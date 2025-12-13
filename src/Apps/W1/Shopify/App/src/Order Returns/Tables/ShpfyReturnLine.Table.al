@@ -94,6 +94,7 @@ table 30141 "Shpfy Return Line"
         field(13; "Presentment Disc. Total Amt."; Decimal)
         {
             Caption = 'Presentment Discounted Total Amount';
+            ToolTip = 'Specifies the total line price in the presentment currency after all discounts on the line item, including both line item level discounts and code-based line item discounts, are applied.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
@@ -103,6 +104,26 @@ table 30141 "Shpfy Return Line"
         {
             Caption = 'Customer Note';
             DataClassification = SystemMetadata;
+        }
+        field(15; Type; Enum "Shpfy Return Line Type")
+        {
+            Caption = 'Type';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(16; "Unit Price"; Decimal)
+        {
+            Caption = 'Unit Price';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = "Unit Price Currency";
+        }
+        field(17; "Unit Price Currency"; Code[10])
+        {
+            Caption = 'Unit Price Currency';
+            DataClassification = SystemMetadata;
+            Editable = false;
         }
         field(101; "Item No."; Code[20])
         {

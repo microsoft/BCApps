@@ -1,8 +1,8 @@
 #if not CLEANSCHEMA29
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
 
 tableextension 8051 "General Ledger Setup" extends "General Ledger Setup"
 {

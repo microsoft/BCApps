@@ -5,18 +5,18 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Item;
-using System.TestLibraries.Utilities;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.CRM.Contact;
 using Microsoft.CRM.BusinessRelation;
-using Microsoft.Foundation.Enums;
+using Microsoft.CRM.Contact;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.NoSeries;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy Initialize Test (ID 139561).

@@ -1,8 +1,98 @@
 [
-    {
-        "bug": "597430",
-        "codeunitId": 139692,
-        "CodeunitName": "Contract Renewal Test",
-        "Method": "TestIfContractRenewalSelectionIsUpdateOnAfterValidateCalcBasePercentage"
-    }
+  {
+    "bug": "597430",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "TestIfContractRenewalSelectionIsUpdateOnAfterValidateCalcBasePercentage"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckAndVerifyCreateSingleSalesQuote"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckCreateMultipleContractRenewalQuotes"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckEndDateForRenewalTermDifferentThanSubsequentTerm"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckSortingInRenewalQuote"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckVatCalculationForContractRenewalServiceCommitmentRhythmInReports"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckServCommSelectionPageAcceptChanges"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckSerialNoDescriptionForRenewalSalesQuoteWithSNTracking"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "ExpectErrorOnChangeQtyToShip"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "ExpectNoPostedSalesInvoiceOnPostRenewalSalesOrder"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "PostContractRenewalAndVerifyResult"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "PostModifiedContractRenewalWithFinalInvoiceAndVerifyResult"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "TestPostedDocumentsOnPostRenewalSalesOrder"
+  },
+  {
+    "bug": "574501",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "TestSalesQuoteToOrderYesNoForContractRenewal"
+  },
+  {
+    "bug": "603387",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "AllowSelectionOfResponsibilityCenterInContractRenewalSalesDocuments"
+  },
+  {
+    "bug": "603387",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "PreventExistingDimensionsInContractRenewalSalesDocumentsWhenResponsibilityCenterIsChanged"
+  }
 ]

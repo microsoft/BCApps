@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.Document;
 using Microsoft.Foundation.Address;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 
@@ -75,7 +75,7 @@ codeunit 30166 "Shpfy Process Order"
             ShopifyOrderHeader.TestField("Sell-to Customer No.");
             SalesHeader.Init();
             SalesHeader.SetHideValidationDialog(true);
-            if ShopifyOrderHeader."Fulfillment Status" = ShopifyOrderHeader."Fulfillment Status"::Fulfilled then
+            if (ShopifyOrderHeader."Fulfillment Status" = ShopifyOrderHeader."Fulfillment Status"::Fulfilled) and ShopifyShop."Create Invoices From Orders" then
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Invoice)
             else
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Order);
@@ -114,7 +114,12 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader."Ship-to County" := CopyStr(ShopifyOrderHeader."Ship-to County", 1, MaxStrLen(SalesHeader."Ship-to County"));
             SalesHeader."Ship-to Contact" := ShopifyOrderHeader."Ship-to Contact Name";
             SalesHeader.Validate("Prices Including VAT", ShopifyOrderHeader."VAT Included");
-            SalesHeader.Validate("Currency Code", ShopifyShop."Currency Code");
+            case ShopifyShop."Currency Handling" of
+                Enum::"Shpfy Currency Handling"::"Shop Currency":
+                    SalesHeader.Validate("Currency Code", ShopifyShop."Currency Code");
+                Enum::"Shpfy Currency Handling"::"Presentment Currency":
+                    SalesHeader.Validate("Currency Code", ShopifyOrderHeader."Presentment Currency Code");
+            end;
             SalesHeader."Shpfy Order Id" := ShopifyOrderHeader."Shopify Order Id";
             SalesHeader."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
             SalesHeader.Validate("Document Date", ShopifyOrderHeader."Document Date");
@@ -205,7 +210,6 @@ codeunit 30166 "Shpfy Process Order"
         IsHandled: Boolean;
         ShipmentChargeType: Boolean;
         ShopifyOrderNoLbl: Label 'Shopify Order No.: %1', Comment = '%1 = Order No.';
-        CashRoundingLbl: Label 'Cash rounding';
     begin
         BindSubscription(SuppressAsmWarning);
         if ShopifyShop."Shopify Order No. on Doc. Line" then begin
@@ -248,8 +252,18 @@ codeunit 30166 "Shpfy Process Order"
                     SalesLine.Validate("Unit of Measure Code", ShopifyOrderLine."Unit of Measure Code");
                     SalesLine.Validate("Variant Code", ShopifyOrderLine."Variant Code");
                     SalesLine.Validate(Quantity, ShopifyOrderLine.Quantity);
-                    SalesLine.Validate("Unit Price", ShopifyOrderLine."Unit Price");
-                    SalesLine.Validate("Line Discount Amount", ShopifyOrderLine."Discount Amount");
+                    case ShopifyShop."Currency Handling" of
+                        Enum::"Shpfy Currency Handling"::"Shop Currency":
+                            begin
+                                SalesLine.Validate("Unit Price", ShopifyOrderLine."Unit Price");
+                                SalesLine.Validate("Line Discount Amount", ShopifyOrderLine."Discount Amount");
+                            end;
+                        Enum::"Shpfy Currency Handling"::"Presentment Currency":
+                            begin
+                                SalesLine.Validate("Unit Price", ShopifyOrderLine."Presentment Unit Price");
+                                SalesLine.Validate("Line Discount Amount", ShopifyOrderLine."Presentment Discount Amount");
+                            end;
+                    end;
                     SalesLine."Shpfy Order Line Id" := ShopifyOrderLine."Line Id";
                     SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
                     SalesLine.Modify(true);
@@ -296,6 +310,18 @@ codeunit 30166 "Shpfy Process Order"
                     SalesLine.Validate("Shipping Agent Service Code", ShipmentMethodMapping."Shipping Agent Service Code");
                     SalesLine.Validate(Quantity, 1);
                     SalesLine.Validate(Description, OrderShippingCharges.Title);
+                    case ShopifyShop."Currency Handling" of
+                        Enum::"Shpfy Currency Handling"::"Shop Currency":
+                            begin
+                                SalesLine.Validate("Unit Price", OrderShippingCharges.Amount);
+                                SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Discount Amount");
+                            end;
+                        Enum::"Shpfy Currency Handling"::"Presentment Currency":
+                            begin
+                                SalesLine.Validate("Unit Price", OrderShippingCharges."Presentment Amount");
+                                SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Presentment Discount Amount");
+                            end;
+                    end;
                     SalesLine.Validate("Unit Price", OrderShippingCharges.Amount);
                     SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Discount Amount");
                     SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
@@ -307,22 +333,11 @@ codeunit 30166 "Shpfy Process Order"
                 OrderEvents.OnAfterCreateShippingCostSalesLine(ShopifyOrderHeader, OrderShippingCharges, SalesHeader, SalesLine);
             until OrderShippingCharges.Next() = 0;
 
-        if ShopifyOrderHeader."Payment Rounding Amount" <> 0 then begin
-            ShopifyShop.TestField("Cash Roundings Account");
-            SalesLine.Init();
-            SalesLine.SetHideValidationDialog(true);
-            SalesLine.Validate("Document Type", SalesHeader."Document Type");
-            SalesLine.Validate("Document No.", SalesHeader."No.");
-            SalesLine.Validate("Line No.", GetNextLineNo(SalesHeader));
-            SalesLine.Insert(true);
-
-            SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
-            SalesLine.Validate("No.", ShopifyShop."Cash Roundings Account");
-            SalesLine.Validate(Quantity, 1);
-            SalesLine.Validate("Unit Price", ShopifyOrderHeader."Payment Rounding Amount");
-            SalesLine.Validate(Description, CashRoundingLbl);
-            SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
-            SalesLine.Modify();
+        case ShopifyShop."Currency Handling" of
+            "Shpfy Currency Handling"::"Shop Currency":
+                CreateRoundingLine(SalesHeader, ShopifyOrderHeader, ShopifyOrderHeader."Payment Rounding Amount");
+            "Shpfy Currency Handling"::"Presentment Currency":
+                CreateRoundingLine(SalesHeader, ShopifyOrderHeader, ShopifyOrderHeader."Pres. Payment Rounding Amount");
         end;
     end;
 
@@ -447,6 +462,30 @@ codeunit 30166 "Shpfy Process Order"
         else
             if SalesLine.FindLast() then
                 exit(10000 + SalesLine."Line No.");
+    end;
+
+    local procedure CreateRoundingLine(var SalesHeader: Record "Sales Header"; var ShopifyOrderHeader: Record "Shpfy Order Header"; PaymentRoundingAmount: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+        CashRoundingLbl: Label 'Cash rounding';
+    begin
+        if PaymentRoundingAmount <> 0 then begin
+            ShopifyShop.TestField("Cash Roundings Account");
+            SalesLine.Init();
+            SalesLine.SetHideValidationDialog(true);
+            SalesLine.Validate("Document Type", SalesHeader."Document Type");
+            SalesLine.Validate("Document No.", SalesHeader."No.");
+            SalesLine.Validate("Line No.", GetNextLineNo(SalesHeader));
+            SalesLine.Insert(true);
+
+            SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
+            SalesLine.Validate("No.", ShopifyShop."Cash Roundings Account");
+            SalesLine.Validate(Quantity, 1);
+            SalesLine.Validate("Unit Price", PaymentRoundingAmount);
+            SalesLine.Validate(Description, CashRoundingLbl);
+            SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
+            SalesLine.Modify(false);
+        end;
     end;
 
     /// <summary> 

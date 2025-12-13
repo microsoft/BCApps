@@ -57,8 +57,12 @@ codeunit 30250 "Shpfy Returns API"
                 LineParameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.return.returnLineItems.pageInfo.endCursor'))
             else
                 LineParameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.return.returnLineItems.pageInfo.endCursor'));
-            foreach JLine in JLines do
-                FillInReturnLine(ReturnId, JLine.AsObject(), ReturnLocations);
+            foreach JLine in JLines do begin
+                if JsonHelper.GetValueAsText(JLine, '__typename') = 'ReturnLineItem' then
+                    FillInReturnLine(ReturnId, JLine.AsObject(), ReturnLocations);
+                if JsonHelper.GetValueAsText(JLine, '__typename') = 'UnverifiedReturnLineItem' then
+                    FillInUnverifiedReturnLine(ReturnId, JLine.AsObject());
+            end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.return.returnLineItems.pageInfo.hasNextPage');
     end;
 
@@ -163,7 +167,7 @@ codeunit 30250 "Shpfy Returns API"
         if Dispositions.Count = 0 then
             exit;
 
-        // If dispositions have different locations (Item was restocked to multiple locations), 
+        // If dispositions have different locations (Item was restocked to multiple locations),
         // we cannot determine the return location for the line
         Dispositions.Get(0, Disposition);
         LocationId := JsonHelper.GetValueAsBigInteger(Disposition, 'location.legacyResourceId');
@@ -195,6 +199,7 @@ codeunit 30250 "Shpfy Returns API"
         if not ReturnLine.Get(Id) then begin
             ReturnLine."Return Line Id" := Id;
             ReturnLine."Return Id" := ReturnId;
+            ReturnLine.Type := ReturnLine.Type::Default;
             ReturnLine."Fulfillment Line Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'fulfillmentLineItem.id'));
             ReturnLine."Order Line Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'fulfillmentLineItem.lineItem.id'));
             ReturnLine.Insert();
@@ -215,6 +220,35 @@ codeunit 30250 "Shpfy Returns API"
         JsonHelper.GetValueIntoField(JLine, 'totalWeight.value', ReturnLineRecordRef, ReturnLine.FieldNo(Weight));
         JsonHelper.GetValueIntoField(JLine, 'withCodeDiscountedTotalPriceSet.shopMoney.amount', ReturnLineRecordRef, ReturnLine.FieldNo("Discounted Total Amount"));
         JsonHelper.GetValueIntoField(JLine, 'withCodeDiscountedTotalPriceSet.presentmentMoney.amount', ReturnLineRecordRef, ReturnLine.FieldNo("Presentment Disc. Total Amt."));
+        ReturnLineRecordRef.Modify();
+        ReturnLineRecordRef.Close();
+        DataCapture.Add(Database::"Shpfy Return Line", ReturnLine.SystemId, JLine);
+    end;
+
+    local procedure FillInUnverifiedReturnLine(ReturnId: BigInteger; JLine: JsonObject)
+    var
+        DataCapture: Record "Shpfy Data Capture";
+        ReturnLine: Record "Shpfy Return Line";
+        ReturnLineRecordRef: RecordRef;
+        Id: BigInteger;
+    begin
+        Id := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'id'));
+        if not ReturnLine.Get(Id) then begin
+            ReturnLine."Return Line Id" := Id;
+            ReturnLine."Return Id" := ReturnId;
+            ReturnLine.Type := ReturnLine.Type::Unverified;
+            ReturnLine.Insert();
+        end;
+        ReturnLine."Return Reason" := ReturnEnumConvertor.ConvertToReturnReason(JsonHelper.GetValueAsText(JLine, 'returnReason'));
+        ReturnLine.SetReturnReasonNote(JsonHelper.GetValueAsText(JLine, 'returnReasonNote'));
+        ReturnLine.SetCustomerNote(JsonHelper.GetValueAsText(JLine, 'customerNote'));
+
+        ReturnLineRecordRef.GetTable(ReturnLine);
+        JsonHelper.GetValueIntoField(JLine, 'quantity', ReturnLineRecordRef, ReturnLine.FieldNo(Quantity));
+        JsonHelper.GetValueIntoField(JLine, 'refundableQuantity', ReturnLineRecordRef, ReturnLine.FieldNo("Refundable Quantity"));
+        JsonHelper.GetValueIntoField(JLine, 'refundedQuantity', ReturnLineRecordRef, ReturnLine.FieldNo("Refunded Quantity"));
+        JsonHelper.GetValueIntoField(JLine, 'unitPrice.amount', ReturnLineRecordRef, ReturnLine.FieldNo("Unit Price"));
+        JsonHelper.GetValueIntoField(JLine, 'unitPrice.currency', ReturnLineRecordRef, ReturnLine.FieldNo("Unit Price Currency"));
         ReturnLineRecordRef.Modify();
         ReturnLineRecordRef.Close();
         DataCapture.Add(Database::"Shpfy Return Line", ReturnLine.SystemId, JLine);

@@ -6,10 +6,10 @@
 namespace System.Azure.Identity;
 
 using System;
-using System.Security.User;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 9018 "Azure AD Plan Impl."
 {

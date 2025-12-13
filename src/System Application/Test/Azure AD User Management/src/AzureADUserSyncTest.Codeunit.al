@@ -5,14 +5,14 @@
 
 namespace System.Test.Azure.ActiveDirectory;
 
-using System.TestLibraries.Environment;
-using System.TestLibraries.Azure.ActiveDirectory;
-using System.TestLibraries.Mocking;
-using System.Security.AccessControl;
-using System.Azure.Identity;
 using System;
+using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Security.AccessControl;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Environment;
+using System.TestLibraries.Mocking;
 using System.TestLibraries.Utilities;
 
 codeunit 132928 "Azure AD User Sync Test"

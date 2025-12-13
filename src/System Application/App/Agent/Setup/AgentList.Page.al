@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Environment.Consumption;
+
 page 4316 "Agent List"
 {
     PageType = List;
@@ -80,6 +82,23 @@ page 4316 "Agent List"
                     Page.Run(Page::"Agent Task List", AgentTask);
                 end;
             }
+            action(ShowConsumptionData)
+            {
+                ApplicationArea = All;
+                Caption = 'View consumption data';
+                ToolTip = 'View AI consumption data for this agent.';
+                Image = BankAccountLedger;
+
+                trigger OnAction()
+                var
+                    UserAIConsumptionData: Record "User AI Consumption Data";
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+                    UserAIConsumptionData.SetRange("User ID", Rec."User Security ID");
+                    Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -98,10 +117,10 @@ page 4316 "Agent List"
     trigger OnOpenPage()
     var
         AgentImpl: Codeunit "Agent Impl.";
-        AgentSessionImpl: Codeunit "Agent Session Impl.";
+        AgentUtilities: Codeunit "Agent Utilities";
         AgentMetadataProvider: Enum "Agent Metadata Provider";
     begin
-        AgentSessionImpl.BlockPageFromBeingOpenedByAgent();
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
         // Check if there are any agents available
         if AgentMetadataProvider.Names().Count() = 0 then
             AgentImpl.ShowNoAgentsAvailableNotification();

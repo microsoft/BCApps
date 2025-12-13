@@ -18,6 +18,12 @@
       "version": "28.0.0.0"
     },
     {
+      "id": "6d7c736f-bfe8-4e01-9449-07295be9c6e4",
+      "publisher": "Microsoft",
+      "name": "Extension Management Test Library",
+      "version": "28.0.0.0"
+    },
+    {
       "id": "c64d75f0-e9f1-4d0f-9949-cd453b9b1466",
       "name": "Guided Experience",
       "publisher": "Microsoft",
@@ -59,7 +65,7 @@
   "idRanges": [
     {
       "from": 133100,
-      "to": 133102
+      "to": 133103
     }
   ],
   "target": "OnPrem"

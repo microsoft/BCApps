@@ -1,15 +1,15 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Navigate;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Posting;
-using Microsoft.Purchases.History;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.GeneralLedger.Preview;
-using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Navigate;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Posting;
 
 codeunit 8068 "Vendor Deferrals Mngmt."
 {
@@ -32,7 +32,7 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         TempVendorContractDeferral.DeleteAll(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", 'OnPrepareLineOnBeforeSetAccount', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", OnPrepareLineOnBeforeSetAccount, '', false, false)]
     local procedure OnPrepareLineOnBeforeSetAccount(PurchLine: Record "Purchase Line"; var SalesAccount: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -50,7 +50,7 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", 'OnAfterInitTotalAmounts', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", OnAfterInitTotalAmounts, '', false, false)]
     local procedure SetVendorContractDeferralLinePosting(PurchLine: Record "Purchase Line")
     begin
         VendorContractDeferralLinePosting := false;
@@ -85,10 +85,10 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchaseHeader."Posting No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostPurchLineOnBeforeInsertInvoiceLine, '', false, false)]
-    local procedure InsertVendorDeferralsFromPurchaseInvoiceOnPostPurchLineOnBeforeInsertInvoiceLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePurchInvLineInsert, '', false, false)]
+    local procedure InsertVendorDeferralsFromPurchaseInvoiceOnBeforePurchInvLineInsert(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseLine: Record "Purchase Line")
     begin
-        InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchaseHeader."Posting No.");
+        InsertContractDeferrals(PurchaseLine.GetPurchHeader(), PurchaseLine, PurchInvHeader."No.");
     end;
 
     local procedure InsertContractDeferrals(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; DocumentNo: Code[20])

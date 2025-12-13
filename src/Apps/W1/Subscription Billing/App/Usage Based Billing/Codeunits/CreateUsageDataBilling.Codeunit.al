@@ -57,24 +57,26 @@ codeunit 8023 "Create Usage Data Billing"
         OnAfterCollectServiceCommitments(TempServiceCommitment, ServiceObjectNo, SubscriptionEndDate);
     end;
 
-    internal procedure CreateUsageDataBillingFromTempServiceCommitments(var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataImportEntryNo: Integer; ServiceObjectNo: Code[20]; BillingPeriodStartDate: Date;
-                        BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
+    internal procedure CreateUsageDataBillingFromTempServiceCommitments(
+        var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataImportEntryNo: Integer; ServiceObjectNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
+        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
     begin
         repeat
-            CreateUsageDataBillingFromTempServiceCommitment(TempServiceCommitment, SupplierNo, UsageDataImportEntryNo, ServiceObjectNo, BillingPeriodStartDate, BillingPeriodEndDate, UnitCost, NewQuantity, CostAmount, UnitPrice, NewAmount, CurrencyCode);
+            CreateUsageDataBillingFromTempServiceCommitment(TempServiceCommitment, SupplierNo, UsageDataImportEntryNo, ServiceObjectNo, ProductID, ProductName, BillingPeriodStartDate, BillingPeriodEndDate, UnitCost, NewQuantity, CostAmount, UnitPrice, NewAmount, CurrencyCode);
         until TempServiceCommitment.Next() = 0;
         OnAfterCreateUsageDataBillingFromTempSubscriptionLines(TempServiceCommitment);
     end;
 
-    local procedure CreateUsageDataBillingFromTempServiceCommitment(var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataImportEntryNo: Integer; ServiceObjectNo: Code[20]; BillingPeriodStartDate: Date;
-                        BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
+    local procedure CreateUsageDataBillingFromTempServiceCommitment(
+        var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataImportEntryNo: Integer; SubscriptionNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
+        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
     var
         UsageDataBilling: Record "Usage Data Billing";
         UsageDataSupplier: Record "Usage Data Supplier";
     begin
         UsageDataSupplier.Get(SupplierNo);
 
-        UsageDataBilling.InitFrom(UsageDataImportEntryNo, ServiceObjectNo, BillingPeriodStartDate, BillingPeriodEndDate, UnitCost, NewQuantity, CostAmount, UnitPrice, NewAmount, CurrencyCode);
+        UsageDataBilling.InitFrom(UsageDataImportEntryNo, SubscriptionNo, ProductID, ProductName, BillingPeriodStartDate, BillingPeriodEndDate, UnitCost, NewQuantity, CostAmount, UnitPrice, NewAmount, CurrencyCode);
         UsageDataBilling."Supplier No." := SupplierNo;
         UsageDataBilling."Subscription Header No." := TempServiceCommitment."Subscription Header No.";
         UsageDataBilling.Partner := TempServiceCommitment.Partner;

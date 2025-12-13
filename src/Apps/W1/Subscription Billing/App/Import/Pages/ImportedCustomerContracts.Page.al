@@ -74,7 +74,7 @@ page 8013 "Imported Customer Contracts"
                 }
                 field("Dimension from Job No."; Rec."Dimension from Job No.")
                 {
-                    ToolTip = 'Specifies the Project number from which the dimensions for the contract are transfered.';
+                    ToolTip = 'Specifies the Project number from which the dimensions for the contract are transferred.';
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {

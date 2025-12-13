@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using System.Reflection;
+using System.Utilities;
 
 codeunit 8021 "Text Management"
 {

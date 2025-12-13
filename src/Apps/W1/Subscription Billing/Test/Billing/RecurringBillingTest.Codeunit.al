@@ -9,6 +9,8 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using System.Utilities;
+using System.TestLibraries.Utilities;
 
 #pragma warning disable AA0210
 codeunit 139688 "Recurring Billing Test"
@@ -58,13 +60,15 @@ codeunit 139688 "Recurring Billing Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         BillingRhythm: DateFormula;
         IsInitialized: Boolean;
         PostedDocumentNo: Code[20];
         StrMenuHandlerStep: Integer;
-        BillingProposalNotCreatedErr: Label 'Billing proposal not created.';
+        BillingProposalNotCreatedErr: Label 'Billing proposal not created.', Locked = true;
         RecurringBillingPage: TestPage "Recurring Billing";
         IsPartnerVendor: Boolean;
+        PostDocuments: Boolean;
 
     #region Tests
 
@@ -124,6 +128,39 @@ codeunit 139688 "Recurring Billing Test"
         BillingLine.SetRange("Billing from");
         BillingLine.SetRange("Billing to", EndDate);
         Assert.RecordIsNotEmpty(BillingLine);
+    end;
+
+    [Test]
+    procedure BillFullQuarterWhenServiceStartDateIsThreeDaysBeforeFebruaryEndsOnLeapYearWithPartialBillingAlignedToEndOfMonth()
+    var
+        StartDate: Date;
+    begin
+        // [SCENARIO] When Customer Subscription Contract has Subscription Line Start Date at the three days before the end of February in a leap year, the proposed billing lines should cover the whole period when services are billed partially
+        Initialize();
+
+        // [GIVEN] Customer Subscription Contract with specific period calculation with Billing Period for month and Billing Period Set to quarter
+        StartDate := 20200227D; // 27th February 2020
+        CreateCustomerContract("Period Calculation"::"Align to Start of Month", '<1Q>', '<1M>', StartDate, LibraryRandom.RandIntInRange(100, 200), LibraryRandom.RandIntInRange(1, 99));
+        CustomerContract.SetRecFilter();
+
+        // [GIVEN] Billing Template for Customer Subscription Contract
+        ContractTestLibrary.CreateRecurringBillingTemplate(BillingTemplate, '', '', CustomerContract.GetView(), Enum::"Service Partner"::Customer);
+
+        // [WHEN] Create Billing Proposal for Customer Subscription Contract for first partial period - until the end of February
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer, StartDate, CalcDate('<CM>', StartDate));
+
+        // [THEN] Billing Lines are created for Customer Subscription Contract for the first partial period
+        BillingLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        BillingLine.FindLast();
+        Assert.AreEqual(CalcDate('<CM>', StartDate), BillingLine."Billing to", 'Expected End Date for Billing Line is incorrect.');
+
+        // [WHEN] Create Billing Proposal for Customer Subscription Contract for second partial period - for the whole quarter
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer, CalcDate('<CM>', StartDate) + 1, 0D);
+
+        // [THEN] Billing Lines are created for Customer Subscription Contract for the second partial period
+        BillingLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        BillingLine.FindLast();
+        Assert.AreEqual(CalcDate('<1Q>', CalcDate('<CM>', StartDate) + 1) - 1, BillingLine."Billing to", 'Expected End Date for Billing Line is incorrect.');
     end;
 
     [Test]
@@ -1269,6 +1306,54 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,BillingTemplateModalPageHandler,ErrorMessagesHandler')]
+    procedure CheckServiceCommitmentConsistencyWhenCreatingDocuments()
+    var
+        SubscriptionLineEntryNo: Integer;
+        FilteredEntryNo: Integer;
+        ExpectedErrorMsg: Text;
+        ConsistencyErr: Label 'The number of filtered billing lines for Subscription Line %1 %2 (%3) does not match the total number of billing lines for this Subscription Line (%4). Adjust the page filters so that there are no gaps in the billing period.', Comment = '%1 = Subscription Header No., %2 = Subscription Line Entry No., %3 = Filtered Count, %4 = Total Count';
+    begin
+        // [SCENARIO] When creating documents from DYCE Recurring billing page with filters that exclude some billing lines for the same Service Commitment,
+        // [SCENARIO] the system should validate that all billing lines for each Service Commitment are included and throw a consistency error if not.
+
+        Initialize();
+        RecurringBillingPageSetupForCustomer(); //ExchangeRateSelectionModalPageHandler,MessageHandler,BillingTemplateModalPageHandler
+
+        // [GIVEN] Find a Service Commitment that has multiple billing lines and get one line to exclude
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.FindLast();
+        SubscriptionLineEntryNo := BillingLine."Subscription Line Entry No.";
+
+        // Create an additional billing line for the same Service Commitment to ensure we have multiple lines
+        CreateAdditionalBillingLineForSameServiceCommitment(BillingLine);
+        BillingLine.SetRange("Subscription Line Entry No.", SubscriptionLineEntryNo);
+        BillingLine.FindLast();
+        FilteredEntryNo := BillingLine."Entry No.";
+
+        // [GIVEN] Prepare expected error message
+        BillingLine.Reset();
+        BillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
+        BillingLine.SetRange("Subscription Line Entry No.", SubscriptionLineEntryNo);
+        ExpectedErrorMsg := StrSubstNo(ConsistencyErr,
+            BillingLine."Subscription Header No.", SubscriptionLineEntryNo, BillingLine.Count() - 1, BillingLine.Count());
+
+        // [GIVEN] Store expected error message for handler verification
+        LibraryVariableStorage.Enqueue(ExpectedErrorMsg);
+
+        // [WHEN] Filter billing lines to exclude one line for a Service Commitment that has multiple lines and try to create documents
+        RecurringBillingPage.OpenEdit();
+        RecurringBillingPage.BillingTemplateField.Lookup();
+        PostDocuments := true;
+        RecurringBillingPage.CreateBillingProposalAction.Invoke();
+        RecurringBillingPage.Filter.SetFilter("Entry No.", '<>' + Format(FilteredEntryNo));
+
+        // [THEN] Creating documents should fail with Service Commitment consistency error (shown in ErrorMessages page)
+        RecurringBillingPage.CreateDocuments.Invoke(); // ErrorMessagesHandler
+    end;
+
+    [Test]
     procedure CreateBillingTemplate()
     var
         FilterText: Text;
@@ -1407,6 +1492,7 @@ codeunit 139688 "Recurring Billing Test"
     local procedure BillingLinesArchiveSetup()
     begin
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.", true);
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
 
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
@@ -1425,6 +1511,7 @@ codeunit 139688 "Recurring Billing Test"
     local procedure BillingLinesArchiveSetupForPurchaseDocs()
     begin
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.", true);
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
 
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
@@ -1480,6 +1567,25 @@ codeunit 139688 "Recurring Billing Test"
         repeat
             Assert.IsTrue(TempBillingLine.Get(BillingLine."Entry No."), 'Record not found in temporary table.');
         until BillingLine.Next() = 0;
+    end;
+
+    local procedure CreateAdditionalBillingLineForSameServiceCommitment(var OriginalBillingLine: Record "Billing Line")
+    var
+        NewBillingLine: Record "Billing Line";
+    begin
+        NewBillingLine.InitNewBillingLine();
+        NewBillingLine."Billing Template Code" := OriginalBillingLine."Billing Template Code";
+        NewBillingLine."Subscription Header No." := OriginalBillingLine."Subscription Header No.";
+        NewBillingLine."Subscription Line Entry No." := OriginalBillingLine."Subscription Line Entry No.";
+        NewBillingLine."Subscription Contract No." := OriginalBillingLine."Subscription Contract No.";
+        NewBillingLine."Subscription Contract Line No." := OriginalBillingLine."Subscription Contract Line No.";
+        NewBillingLine.Partner := OriginalBillingLine.Partner;
+        NewBillingLine."Partner No." := OriginalBillingLine."Partner No.";
+        NewBillingLine."Billing from" := CalcDate('<+1D>', OriginalBillingLine."Billing to");
+        NewBillingLine."Billing to" := CalcDate('<+1M>', NewBillingLine."Billing from");
+        NewBillingLine.Amount := OriginalBillingLine.Amount;
+        NewBillingLine."Unit Price" := OriginalBillingLine."Unit Price";
+        NewBillingLine.Insert(false);
     end;
 
     local procedure CreateBillingProposalForCustomerContractUsingRealTemplate()
@@ -1723,6 +1829,7 @@ codeunit 139688 "Recurring Billing Test"
     [ModalPageHandler]
     procedure CreateBillingDocsCustomerPageHandler(var CreateBillingDocsCustomerPage: TestPage "Create Customer Billing Docs")
     begin
+        CreateBillingDocsCustomerPage.PostDocuments.SetValue(PostDocuments);
         CreateBillingDocsCustomerPage.OK().Invoke();
     end;
 
@@ -1730,6 +1837,18 @@ codeunit 139688 "Recurring Billing Test"
     procedure CreateBillingDocsVendorPageHandler(var CreateBillingDocsVendorPage: TestPage "Create Vendor Billing Docs")
     begin
         CreateBillingDocsVendorPage.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure ErrorMessagesHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ExpectedErrorMsg: Text;
+        ActualErrorMsg: Text;
+    begin
+        ExpectedErrorMsg := LibraryVariableStorage.DequeueText();
+        ActualErrorMsg := ErrorMessages.Description.Value();
+        Assert.AreEqual(ExpectedErrorMsg, ActualErrorMsg, 'Error message does not match expected value');
+        ErrorMessages.OK().Invoke();
     end;
 
     [ModalPageHandler]

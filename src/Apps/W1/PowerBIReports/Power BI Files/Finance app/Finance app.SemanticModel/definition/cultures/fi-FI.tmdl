@@ -1,0 +1,1533 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: KP-tilin luokka
+				column 'G/L Acc. Category Description'
+					caption: KP-tililuokan kuvaus
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: sisennys
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+				measure 'G/L Acc. Category Balance at Date'
+					caption: KP-tilin luokan budjetin saldo pvm:ttäin
+				measure 'G/L Acc. Category Net Change'
+					caption: KP-tilin luokan nettomuutos
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: KP-tilin luokan budjetin saldo pvm:ttäin
+				measure 'G/L Acc. Category Budget Amount'
+					caption: KP-tilin luokan budjettisumma
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: KP-tilin luokkahierarkia
+					level 'G/L Account Category (Level 1)'
+						caption: KP-tilin luokka (taso 1)
+					level 'G/L Account Category (Level 2)'
+						caption: KP-tilin luokka (taso 2)
+					level 'G/L Account Category (Level 3)'
+						caption: KP-tilin luokka (taso 3)
+			table 'Balance Sheet Measures'
+				caption: Taseen mitat
+				measure 'Current Assets'
+					caption: Nykyiset vastaavat
+				measure 'Current Liabilities'
+					caption: Lyhytaikaiset velat
+				measure Inventory
+					caption: Varasto
+				measure 'Working Capital'
+					caption: Käyttöpääoma
+				measure 'Shareholders'' Equity'
+					caption: Osakkeenomistajien pääoma
+				measure Liabilities
+					caption: Vieras pääoma
+				measure Assets
+					caption: Vastaavaa
+				measure Equity
+					caption: Pääoma
+				measure 'Liabilities & Equity'
+					caption: Vieras ja oma pääoma
+				measure 'Accounts Payable'
+					caption: Ostovelat
+				measure 'Accounts Receivable'
+					caption: Saamiset
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Saatavat (alkusaldo)
+				measure 'Accounts Receivable (Average)'
+					caption: Saamiset (keskiarvo)
+				measure 'Inventory (Beginning Balance)'
+					caption: Varasto (alkusaldo)
+				measure 'Inventory (Average)'
+					caption: Varasto (keskimääräinen)
+				measure 'Purchase Prepayments'
+					caption: Ostojen ennakkomaksut
+				measure 'Liquid Assets'
+					caption: Rahoitusomaisuus
+				measure 'Fixed Assets'
+					caption: Käyttöomaisuus
+				measure 'Capital Employed'
+					caption: Sijoitettu pääoma
+				measure 'Liabilities (Neg)'
+					caption: Vastattavaa (neg)
+				measure 'Accounts Payable (Neg)'
+					caption: Ostovelat (neg)
+				measure 'Payroll Liabilites'
+					caption: Palkan sivukulut
+				measure 'Longterm Liabilities'
+					caption: Pitkäaikaiset vastattavat
+			table 'Income Statement Measures'
+				caption: Tuloslaskelman mitat
+				measure Revenue
+					caption: Tuotto
+				measure 'Cost of Goods Sold'
+					caption: Myytyjen tuotteiden kustannukset
+				measure Expense
+					caption: Kulu
+				measure 'Interest Expense'
+					caption: Korkokulut
+				measure 'Tax Expense'
+					caption: Verokulut
+				measure 'Extraordinary Expense'
+					caption: Satunnaiset kulut
+				measure 'Operating Expense - OPEX'
+					caption: Toimintakustannus – OPEX
+				measure Purchases
+					caption: Ostot
+				measure 'FX Losses Expense'
+					caption: VM – tappioiden kulut
+				measure 'Depreciation and Amortization'
+					caption: Poistot ja kuoletus
+				measure 'Revenue (Balance at Date)'
+					caption: Tuotto (saldo pvm:ttäin)
+				measure 'Revenue (Beginning Balance)'
+					caption: Tuotto (alkusaldo)
+				measure 'Interest Revenue'
+					caption: Korkotuotot
+				measure 'FX Gains Revenue'
+					caption: VM – Voitot, tuotto
+				measure 'Extraordinary Revenue'
+					caption: Satunnaiset tuotot
+				measure 'Operating Revenue'
+					caption: Liikevoitto
+				measure 'Expense (Balance at Date)'
+					caption: Kulut (saldo pvm:ttäin)
+				measure 'Expense (Beginning Balance)'
+					caption: Kulut (alkusaldo)
+				measure 'Interest Expense (Balance at Date)'
+					caption: Korkokulut (saldo pvm:ttäin)
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Korkokulut (alkusaldo)
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: VM – tappioiden kulut (saldo pvm:ttäin)
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: VM – tappioiden kulut (alkusaldo)
+				measure 'Tax Expense (Balance at Date)'
+					caption: Verokulut (saldo pvm:ttäin)
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Verokulut (alkusaldo)
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Satunnaiset kulut (saldo pvm:ttäin)
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Satunnaiset kulut (alkusaldo)
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Korkotuotto (saldo pvm:ttäin)
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Korkotuotto (alkusaldo)
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: VM – Voitot, tuotto (saldo pvm:ttäin)
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: VM – Voitot, tuotto (alkusaldo)
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Satunnaiset tuotot (saldo pvm:ttäin)
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Satunnaiset tuotot (alkusaldo)
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Toimintojen kulut – OPEX (saldo pvm:ttäin)
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Toiminnan kulut – OPEX (alkusaldo)
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Liikevoitto (saldo pvm:ttäin)
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Liikevoitto (alkusaldo)
+			table 'G/L Account'
+				caption: KP-tili
+				column 'G/L Account No./Name'
+					caption: KP-tilin nro/nimi
+				column 'G/L Account No./Name Indented'
+					caption: KP-tilin nro / nimi sisennetty
+				column 'Parent G/L Account No.'
+					caption: Ylätason KP-tilinumero
+				column 'G/L Account No.'
+					caption: KP-tilinro
+				column 'G/L Account Name'
+					caption: KP-tilin nimi
+				column 'Account Type'
+					caption: Tilityyppi
+				column Income/Balance
+					caption: Tulos/tase
+				column 'Account Subcategory Entry No.'
+					caption: Tilin aliluokan tapahtuman nro
+				measure 'G/L Acc. Balance at Date'
+					caption: KP-tilin saldo pvm:ttäin
+				measure 'G/L Acc. Net Change'
+					caption: KP-tilin nettomuutos
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: KP-tilin budjetin saldo pvm:ttäin
+				measure 'G/L Acc. Budget Amount'
+					caption: KP-tilin budjettisumma
+				hierarchy 'G/L Account Hierarchy'
+					caption: KP-tilihierarkia
+					level 'G/L Account (Level 1)'
+						caption: KP-tili (taso 1)
+					level 'G/L Account (Level 2)'
+						caption: KP-tili (taso 2)
+					level 'G/L Account (Level 3)'
+						caption: KP-tili (taso 3)
+					level 'G/L Account (Level 4)'
+						caption: KP-tili (taso 4)
+					level 'G/L Account (Level 5)'
+						caption: KP-tili (taso 5)
+			table 'Activity KPIs'
+				caption: Toimenpiteen tunnusluvut
+				measure 'Average Collection Period (Days)'
+					caption: Keskimääräinen myyntisaamisten kiertoaika (päivinä)
+				measure '% Change in Revenue'
+					caption: Tuoton muutosprosentti
+				measure '% Change in Operating Profit - EBIT'
+					caption: Liikevoiton muutosprosentti – EBIT
+				measure 'Days Sales Outstanding - DSO'
+					caption: Myyntisaatavien kiertoaika päivinä – MKP
+				measure 'Days Payable Outstanding - DPO'
+					caption: Ostovelkojen kiertoaika päivinä – OKP
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Varaston myynti päivinä – VMP
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Käteisen muuntosykli – KMS
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Toimintojen hyötytaso – THT
+				measure 'Asset Turnover Ratio'
+					caption: Pääoman kiertonopeus
+				measure 'Inventory Turnover'
+					caption: Varaston liikevaihto
+			table 'Liquidity KPIs'
+				caption: Maksuvalmiuden tunnusluvut
+				measure 'Current Ratio'
+					caption: Nykyinen suhde
+				measure 'Quick Ratio'
+					caption: Nopea suhdeluku
+				measure 'Cash Ratio'
+					caption: Omavaraisuusaste
+			table 'Profitability KPIs'
+				caption: Kannattavuuden tunnusluvut
+				measure 'Gross Profit Margin'
+					caption: Bruttokate
+				measure 'Net Profit Margin'
+					caption: Nettovoittokate
+				measure 'Gross Profit'
+					caption: Bruttovoitto
+				measure 'Net Profit'
+					caption: Nettovoitto
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Liikevoitto – EBIT (alkusaldo)
+				measure 'Operating Profit - EBIT'
+					caption: Liikevoitto – EBIT
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Liikevoitto – EBIT (saldo pvm:ttäin)
+				measure 'Operating Profit Margin'
+					caption: Liikevoittokate
+				measure EBITDA
+					caption: EBITDA
+				measure 'Return On Assets - ROA'
+					caption: Koko pääoman tuotto – ROA
+				measure 'Return On Equity - ROE'
+					caption: Oman pääoman tuotto – ROE
+				measure 'Return On Net Assets - RONA'
+					caption: Nettovarallisuuden tuotto – RONA
+				measure 'Return On Capital Employed - ROCE'
+					caption: Sijoitetun pääoman tuotto – ROCE
+				measure 'Debt/Equity Ratio'
+					caption: Velka- / oma pääoma -suhde
+				measure 'Shareholder Equity Ratio'
+					caption: Osakkeenomistajien pääomasuhde
+				measure 'Debt Ratio'
+					caption: Velkasuhde
+			table 'G/L Budget Entries'
+				caption: KP-budjetin tapahtumat
+				column 'Budget Name'
+					caption: Budjetin nimi
+				column 'Budget Date'
+					caption: Budjettipäivämäärä
+				column 'Entry No.'
+					caption: Tapahtumanro
+				measure 'Budget Balance at Date'
+					caption: Budjetin saldo pvm:ttäin
+				measure 'Budget Amount'
+					caption: Budjettisumma
+				measure 'Budget Entry Back Link'
+					caption: Budjettitapahtuma – Takaisin-linkki
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+				column id
+					caption: tunnus
+			table 'G/L Entries'
+				caption: KP-tapahtumat
+				column 'Posting Date'
+					caption: Kirjauspäivämäärä
+				column 'Closing Entry'
+					caption: Tilinpäätöstapahtuma
+				column 'Source Code'
+					caption: Lähdekoodi
+				column 'Source Type'
+					caption: Lähdetyyppi
+				column 'Source No.'
+					caption: Lähdenro
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column Description
+					caption: Kuvaus
+				measure 'Net Change'
+					caption: Nettomuutos
+				measure 'Net Change (Neg)'
+					caption: Nettomuutos (neg)
+				measure 'Balance at Date'
+					caption: Saldo pvm:ttäin
+				measure Amount
+					caption: Summa
+				measure Balance
+					caption: Saldo
+				measure 'Variance to Budget'
+					caption: Budjetin varianssi
+				measure 'Variance to Budget %'
+					caption: Budjetin varianssi prosentteina
+				measure 'Balance at Date (Neg)'
+					caption: Saldo pvm:ttäin (neg)
+				measure 'Net Change Back Link'
+					caption: Nettomuutos – Takaisin-linkki
+				measure 'Balance At Date Back Link'
+					caption: Pvm:n saldo – Takaisin-linkki
+				measure 'Base Link'
+					caption: Perus, linkki
+			table 'Standard Calendar Time Intelligence'
+				caption: Vakiokalenterin aikatiedot
+				measure 'Net Change AVG 1Y'
+					caption: Nettomuutos, KA 1V
+				measure 'Net Change AVG 3M'
+					caption: Nettomuutos, KA 3KK
+				measure 'Net Change AVG 30D'
+					caption: Nettomuutos, KA 30PV
+				measure 'Net Change MTDOPM %'
+					caption: Nettomuutos, KKAEDKK, prosentteina
+				measure 'Net Change MTDOPM'
+					caption: Nettomuutos, KKAEDKK
+				measure 'Net Change PMC'
+					caption: Nettomuutos, EDKKVAL
+				measure 'Net Change QTDOPQ %'
+					caption: Nettomuutos, VNAEDVN, prosentteina
+				measure 'Net Change QTDOPQ'
+					caption: Nettomuutos, VNAEDVN
+				measure 'Net Change PQC'
+					caption: Nettomuutos, EDVNVAL
+				measure 'Net Change YTDOPY %'
+					caption: Nettomuutos, VAEDV, prosentteina
+				measure 'Net Change YTDOPY'
+					caption: Nettomuutos, VAEDV
+				measure 'Net Change PYC'
+					caption: Nettomuutos, EDVVAL
+				measure 'Net Change MATG %'
+					caption: Nettomuutos, KLVK, prosentteina
+				measure 'Net Change MATG'
+					caption: Nettomuutos, KLVK
+				measure 'Net Change PYMAT'
+					caption: Nettomuutos, EDVLVK
+				measure 'Net Change MAT'
+					caption: Nettomuutos, LVK
+				measure 'Net Change MOMTD %'
+					caption: Nettomuutos, KKKKTM, prosentteina
+				measure 'Net Change MOMTD'
+					caption: Nettomuutos, KKKKTM
+				measure 'Net Change PMTD'
+					caption: Nettomuutos, EDKKA
+				measure 'Net Change QOQTD %'
+					caption: Nettomuutos, VNVNTM, prosentteina
+				measure 'Net Change QOQTD'
+					caption: Nettomuutos, VNVNTM
+				measure 'Net Change YOYTD %'
+					caption: Nettomuutos, VVTM, prosentteina
+				measure 'Net Change YOYTD'
+					caption: Nettomuutos, VVTM
+				measure 'Net Change PQTD'
+					caption: Nettomuutos, EDVNA
+				measure 'Net Change PYTD'
+					caption: Nettomuutos, EDVA
+				measure 'Net Change POP %'
+					caption: Nettomuutos, K-K, prosentteina
+				measure 'Net Change POP'
+					caption: Nettomuutos, K-K
+				measure 'Net Change PP'
+					caption: Nettomuutos, EDK
+				measure 'Net Change MOM %'
+					caption: Nettomuutos, KKKK, prosentteina
+				measure 'Net Change MOM'
+					caption: Nettomuutos, KKKK
+				measure 'Net Change QOQ %'
+					caption: Nettomuutos, VNVN, prosentteina
+				measure 'Net Change PM'
+					caption: Nettomuutos, EDKK
+				measure 'Net Change QOQ'
+					caption: Nettomuutos, VNVN
+				measure 'Net Change PQ'
+					caption: Nettomuutos, EDVN
+				measure 'Net Change YOY'
+					caption: Nettomuutos, VV
+				measure 'Net Change YOY %'
+					caption: Nettomuutos, VV, prosentteina
+				measure 'Net Change PY'
+					caption: Nettomuutos, EDV
+				measure 'Net Change MTD'
+					caption: Nettomuutos, KKA
+				measure 'Net Change QTD'
+					caption: Nettomuutos, VNA
+				measure 'Net Change YTD'
+					caption: Nettomuutos, VA
+				measure 'Balance at Date AVG 1Y'
+					caption: Saldo pvm:ttäin, KA 1V
+				measure 'Balance at Date AVG 3M'
+					caption: Saldo pvm:ttäin, KA 3KK
+				measure 'Balance at Date AVG 30D'
+					caption: Saldo pvm:ttäin, KA 30PV
+				measure 'Balance at Date MTDOPM %'
+					caption: Saldo pvm:ttäin, KKAEDKK, prosentteina
+				measure 'Balance at Date MTDOPM'
+					caption: Saldo pvm:ttäin, KKAEDKK
+				measure 'Balance at Date PMC'
+					caption: Saldo pvm:ttäin, EDKKVAL
+				measure 'Balance at Date QTDOPQ %'
+					caption: Saldo pvm:ttäin, VNAEDVN, prosentteina
+				measure 'Balance at Date QTDOPQ'
+					caption: Saldo pvm:ttäin, VNAEDVN
+				measure 'Balance at Date PQC'
+					caption: Saldo pvm:ttäin, EDVNVAL
+				measure 'Balance at Date YTDOPY %'
+					caption: Saldo pvm:ttäin, VAEDV, prosentteina
+				measure 'Balance at Date YTDOPY'
+					caption: Saldo pvm:ttäin, VAEDV
+				measure 'Balance at Date PYC'
+					caption: Saldo pvm:ttäin, EDVVAL
+				measure 'Balance at Date MATG %'
+					caption: Saldo pvm:ttäin, KLVK, prosentteina
+				measure 'Balance at Date MATG'
+					caption: Saldo pvm:ttäin, KLVK
+				measure 'Balance at Date PYMAT'
+					caption: Saldo pvm:ttäin, EDVLVK
+				measure 'Balance at Date MAT'
+					caption: Saldo pvm:ttäin, LVK
+				measure 'Balance at Date MOMTD %'
+					caption: Saldo pvm:ttäin, KKKKTM, prosentteina
+				measure 'Balance at Date MOMTD'
+					caption: Saldo pvm:ttäin, KKKKTM
+				measure 'Balance at Date PMTD'
+					caption: Saldo pvm:ttäin, EDKKA
+				measure 'Balance at Date QOQTD %'
+					caption: Saldo pvm:ttäin, VNVNTM, prosentteina
+				measure 'Balance at Date QOQTD'
+					caption: Saldo pvm:ttäin, VNVNTM
+				measure 'Balance at Date YOYTD %'
+					caption: Saldo pvm:ttäin, VVTM, prosentteina
+				measure 'Balance at Date YOYTD'
+					caption: Saldo pvm:ttäin, VVTM
+				measure 'Balance at Date PQTD'
+					caption: Saldo pvm:ttäin, EDVNA
+				measure 'Balance at Date PYTD'
+					caption: Saldo pvm:ttäin, EDVA
+				measure 'Balance at Date POP %'
+					caption: Saldo pvm:ttäin, K-K, prosentteina
+				measure 'Balance at Date POP'
+					caption: Saldo pvm:ttäin, K-K
+				measure 'Balance at Date PP'
+					caption: Saldo pvm:ttäin, EDK
+				measure 'Balance at Date MOM %'
+					caption: Saldo pvm:ttäin, KKKK, prosentteina
+				measure 'Balance at Date MOM'
+					caption: Saldo pvm:ttäin, KKKK
+				measure 'Balance at Date QOQ %'
+					caption: Saldo pvm:ttäin, VNVN, prosentteina
+				measure 'Balance at Date PM'
+					caption: Saldo pvm:ttäin, EDKK
+				measure 'Balance at Date QOQ'
+					caption: Saldo pvm:ttäin, VNVN
+				measure 'Balance at Date PQ'
+					caption: Saldo pvm:ttäin, EDVN
+				measure 'Balance at Date YOY'
+					caption: Saldo pvm:ttäin, VV
+				measure 'Balance at Date YOY %'
+					caption: Saldo pvm:ttäin, VV, prosentteina
+				measure 'Balance at Date PY'
+					caption: Saldo pvm:ttäin, EDV
+				measure 'Balance at Date MTD'
+					caption: Saldo pvm:ttäin, KKA
+				measure 'Balance at Date QTD'
+					caption: Saldo pvm:ttäin, VNA
+				measure 'Balance at Date YTD'
+					caption: Saldo pvm:ttäin, VA
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Kirjanpitokalenterin aikatiedot
+				measure 'Net Change YTD (Fiscal)'
+					caption: Nettomuutos, VA (kirjanpito)
+				measure 'Net Change QTD (Fiscal)'
+					caption: Nettomuutos, VNA (kirjanpito)
+				measure 'Net Change MTD (Fiscal)'
+					caption: Nettomuutos, KKA (kirjanpito)
+				measure 'Net Change PY (Fiscal)'
+					caption: Nettomuutos, EDV (kirjanpito)
+				measure 'Net Change YOY % (Fiscal)'
+					caption: Nettomuutos, VV, prosentteina (kirjanpito)
+				measure 'Net Change YOY (Fiscal)'
+					caption: Nettomuutos, VV (kirjanpito)
+				measure 'Net Change PQ (Fiscal)'
+					caption: Nettomuutos, EDVN (kirjanpito)
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Nettomuutos, VNVN (kirjanpito)
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: Nettomuutos, VNVN, prosentteina (kirjanpito)
+				measure 'Net Change PM (Fiscal)'
+					caption: Nettomuutos, EDKK (kirjanpito)
+				measure 'Net Change MOM (Fiscal)'
+					caption: Nettomuutos, KKKK (kirjanpito)
+				measure 'Net Change MOM % (Fiscal)'
+					caption: Nettomuutos, KKKK, prosentteina (kirjanpito)
+				measure 'Net Change PP (Fiscal)'
+					caption: Nettomuutos, EDK (kirjanpito)
+				measure 'Net Change POP (Fiscal)'
+					caption: Nettomuutos, K-K (kirjanpito)
+				measure 'Net Change POP % (Fiscal)'
+					caption: Nettomuutos, K-K, prosentteina (kirjanpito)
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Nettomuutos, EDVA (kirjanpito)
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Nettomuutos, EDVNA (kirjanpito)
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Nettomuutos, VVTM (kirjanpito)
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: Nettomuutos, VVTM, prosentteina (kirjanpito)
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Nettomuutos, VNVNTM (kirjanpito)
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: Nettomuutos, VNVNTM, prosentteina (kirjanpito)
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Nettomuutos, EDKKA (kirjanpito)
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: Nettomuutos, KKKKTM, prosentteina (kirjanpito)
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Nettomuutos, KKKKTM (kirjanpito)
+				measure 'Net Change MAT (Fiscal)'
+					caption: Nettomuutos, LVK (kirjanpito)
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Nettomuutos, EDVLVK (kirjanpito)
+				measure 'Net Change MATG (Fiscal)'
+					caption: Nettomuutos, KLVK (kirjanpito)
+				measure 'Net Change MATG % (Fiscal)'
+					caption: Nettomuutos, KLVK, prosentteina (kirjanpito)
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Nettomuutos, LVK (364) (kirjanpito)
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Nettomuutos, EDVLVK (364) (kirjanpito)
+				measure 'Net Change PYC (Fiscal)'
+					caption: Nettomuutos, EDVVAL (kirjanpito)
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Nettomuutos, VAEDV (kirjanpito)
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: Nettomuutos, VAEDV, prosentteina (kirjanpito)
+				measure 'Net Change PQC (Fiscal)'
+					caption: Nettomuutos, EDVNVAL (kirjanpito)
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Nettomuutos, VNAEDVN (kirjanpito)
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: Nettomuutos, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Net Change PMC (Fiscal)'
+					caption: Nettomuutos, EDKKVAL (kirjanpito)
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Nettomuutos, KKAEDKK (kirjanpito)
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: Nettomuutos, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Nettomuutos, KA 30PV (kirjanpito)
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Nettomuutos, KA 3KK (kirjanpito)
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Nettomuutos, KA 1V (kirjanpito)
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Saldo pvm:ttäin, VA (kirjanpito)
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Saldo pvm:ttäin, VNA (kirjanpito)
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Saldo pvm:ttäin, KKA (kirjanpito)
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Saldo pvm:ttäin, EDV (kirjanpito)
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: Saldo pvm:ttäin, VV, prosentteina (kirjanpito)
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Saldo pvm:ttäin, VV (kirjanpito)
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Saldo pvm:ttäin, EDVN (kirjanpito)
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Saldo pvm:ttäin, VNVN (kirjanpito)
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: Saldo pvm:ttäin, VNVN, prosentteina (kirjanpito)
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Saldo pvm:ttäin, EDKK (kirjanpito)
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Saldo pvm:ttäin, KKKK (kirjanpito)
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: Saldo pvm:ttäin, KKKK, prosentteina (kirjanpito)
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Saldo pvm:ttäin, EDK (kirjanpito)
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Saldo pvm:ttäin, K-K (kirjanpito)
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: Saldo pvm:ttäin, K-K, prosentteina (kirjanpito)
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Saldo pvm:ttäin, EDVA (kirjanpito)
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Saldo pvm:ttäin, EDVNA (kirjanpito)
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Saldo pvm:ttäin, VVTM (kirjanpito)
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: Saldo pvm:ttäin, VVTM, prosentteina (kirjanpito)
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Saldo pvm:ttäin, VNVNTM (kirjanpito)
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: Saldo pvm:ttäin, VNVNTM, prosentteina (kirjanpito)
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Saldo pvm:ttäin, EDKKA (kirjanpito)
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: Saldo pvm:ttäin, KKKKTM, prosentteina (kirjanpito)
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Saldo pvm:ttäin, KKKKTM (kirjanpito)
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Saldo pvm:ttäin, LVK (kirjanpito)
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Saldo pvm:ttäin, EDVLVK (kirjanpito)
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Saldo pvm:ttäin, KLVK (kirjanpito)
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: Saldo pvm:ttäin, KLVK, prosentteina (kirjanpito)
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Saldo pvm:ttäin, LVK (364) (kirjanpito)
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Saldo pvm:ttäin, EDVLVK (364) (kirjanpito)
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Saldo pvm:ttäin, EDVVAL (kirjanpito)
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Saldo pvm:ttäin, VAEDV (kirjanpito)
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: Saldo pvm:ttäin, VAEDV, prosentteina (kirjanpito)
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Saldo pvm:ttäin, EDVNVAL (kirjanpito)
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Saldo pvm:ttäin, VNAEDVN (kirjanpito)
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: Saldo pvm:ttäin, VNAEDVN, prosentteina (kirjanpito)
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Saldo pvm:ttäin, EDKKVAL (kirjanpito)
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Saldo pvm:ttäin, KKAEDKK (kirjanpito)
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: Saldo pvm:ttäin, KKAEDKK, prosentteina (kirjanpito)
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Saldo pvm:ttäin, KA 30PV (kirjanpito)
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Saldo pvm:ttäin, KA 3KK (kirjanpito)
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Saldo pvm:ttäin, KA 1V (kirjanpito)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Viikkokalenterin aikatiedot
+				measure 'Net Change YTD (Weekly)'
+					caption: Nettomuutos, VA (viikoittainen)
+				measure 'Net Change QTD (Weekly)'
+					caption: Nettomuutos, VNA (viikoittainen)
+				measure 'Net Change MTD (Weekly)'
+					caption: Nettomuutos, KKA (viikoittainen)
+				measure 'Net Change WTD (Weekly)'
+					caption: Nettomuutos, VKA (viikoittainen)
+				measure 'Net Change PY (Weekly)'
+					caption: Nettomuutos, EDV (viikoittainen)
+				measure 'Net Change YOY % (Weekly)'
+					caption: Nettomuutos, VV, prosentteina (viikoittainen)
+				measure 'Net Change YOY (Weekly)'
+					caption: Nettomuutos, VV (viikoittainen)
+				measure 'Net Change PQ (Weekly)'
+					caption: Nettomuutos, EDVN (viikoittainen)
+				measure 'Net Change QOQ (Weekly)'
+					caption: Nettomuutos, VNVN (viikoittainen)
+				measure 'Net Change QOQ % (Weekly)'
+					caption: Nettomuutos, VNVN, prosentteina (viikoittainen)
+				measure 'Net Change PW (Weekly)'
+					caption: Nettomuutos, EDVK (viikoittainen)
+				measure 'Net Change WOW (Weekly)'
+					caption: Nettomuutos, VKVK (viikoittainen)
+				measure 'Net Change WOW % (Weekly)'
+					caption: Nettomuutos, VKVK, prosentteina (viikoittainen)
+				measure 'Net Change PP (Weekly)'
+					caption: Nettomuutos, EDK (viikoittainen)
+				measure 'Net Change POP (Weekly)'
+					caption: Nettomuutos, K-K (viikoittainen)
+				measure 'Net Change POP % (Weekly)'
+					caption: Nettomuutos, K-K, prosentteina (viikoittainen)
+				measure 'Net Change PYTD (Weekly)'
+					caption: Nettomuutos, EDVA (viikoittainen)
+				measure 'Net Change PQTD (Weekly)'
+					caption: Nettomuutos, EDVNA (viikoittainen)
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Nettomuutos, VVTM (viikoittainen)
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: Nettomuutos, VVTM, prosentteina (viikoittainen)
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Nettomuutos, VNVNTM (viikoittainen)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Myyntisumma, VNVNTM, prosentteina (viikoittainen)
+				measure 'Net Change PWTD (Weekly)'
+					caption: Nettomuutos, EDVKA (viikoittainen)
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Nettomuutos, VKVKTM (viikoittainen)
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: Nettomuutos, VKVKTM, prosentteina (viikoittainen)
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Nettomuutos, LVK, (364) (viikoittainen)
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Nettomuutos, EDVLVK (364) (viikoittainen)
+				measure 'Net Change MATG (Weekly)'
+					caption: Nettomuutos, KLVK (viikoittainen)
+				measure 'Net Change MATG % (Weekly)'
+					caption: Nettomuutos, KLVK, prosentteina (viikoittainen)
+				measure 'Net Change PYC (Weekly)'
+					caption: Nettomuutos, EDVVAL (viikoittainen)
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Nettomuutos, VAEDV (viikoittainen)
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: Nettomuutos, VAEDV, prosentteina (viikoittainen)
+				measure 'Net Change PQC (Weekly)'
+					caption: Nettomuutos, EDVNVAL (viikoittainen)
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Nettomuutos, VNAEDVN (viikoittainen)
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: Nettomuutos, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Net Change PWC (Weekly)'
+					caption: Nettomuutos, EDVKVAL (viikoittainen)
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Nettomuutos, VKAEDVK (viikoittainen)
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: Nettomuutos, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Nettomuutos, KA 4VK (viikoittainen)
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Nettomuutos, KA 1Q (viikoittainen)
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Nettomuutos, KA 1V (viikoittainen)
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Saldo pvm:ttäin, VA (viikoittainen)
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Saldo pvm:ttäin, VNA (viikoittainen)
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Saldo pvm:ttäin, KKA (viikoittainen)
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Saldo pvm:ttäin, VKA (viikoittainen)
+				measure 'Balance at Date PY (Weekly)'
+					caption: Saldo pvm:ttäin, EDV (viikoittainen)
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: Saldo pvm:ttäin, VV, prosentteina (viikoittainen)
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Saldo pvm:ttäin, VV (viikoittainen)
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Saldo pvm:ttäin, EDVN (viikoittainen)
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Saldo pvm:ttäin, VNVN (viikoittainen)
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: Saldo pvm:ttäin, VNVN, prosentteina (viikoittainen)
+				measure 'Balance at Date PW (Weekly)'
+					caption: Saldo pvm:ttäin, EDVK (viikoittainen)
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Saldo pvm:ttäin, VKVK (viikoittainen)
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: Saldo pvm:ttäin, VKVK, prosentteina (viikoittainen)
+				measure 'Balance at Date PP (Weekly)'
+					caption: Saldo pvm:ttäin, EDK (viikoittainen)
+				measure 'Balance at Date POP (Weekly)'
+					caption: Saldo pvm:ttäin, K-K (viikoittainen)
+				measure 'Balance at Date POP % (Weekly)'
+					caption: Saldo pvm:ttäin, K-K, prosentteina (viikoittainen)
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Saldo pvm:ttäin, EDVA (viikoittainen)
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Saldo pvm:ttäin, EDVNA (viikoittainen)
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Saldo pvm:ttäin, VVTM (viikoittainen)
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: Saldo pvm:ttäin, VVTM, prosentteina (viikoittainen)
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Saldo pvm:ttäin, VNVNTM (viikoittainen)
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: Saldo pvm:ttäin, VNVNTM, prosentteina (viikoittainen)
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Saldo pvm:ttäin, EDVKA (viikoittainen)
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Saldo pvm:ttäin, VKVKTM (viikoittainen)
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: Saldo pvm:ttäin, VKVKTM, prosentteina (viikoittainen)
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Saldo pvm:ttäin, LVK (364) (viikoittainen)
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Saldo pvm:ttäin, EDVLVK (364) (viikoittainen)
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Saldo pvm:ttäin, KLVK (viikoittainen)
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: Saldo pvm:ttäin, KLVK, prosentteina (viikoittainen)
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Saldo pvm:ttäin, EDVVAL (viikoittainen)
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Saldo pvm:ttäin, VAEDV (viikoittainen)
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: Saldo pvm:ttäin, VAEDV, prosentteina (viikoittainen)
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Saldo pvm:ttäin, EDVNVAL (viikoittainen)
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Saldo pvm:ttäin, VNAEDVN (viikoittainen)
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: Saldo pvm:ttäin, VNAEDVN, prosentteina (viikoittainen)
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Saldo pvm:ttäin, EDVKVAL (viikoittainen)
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Saldo pvm:ttäin, VKAEDVK (viikoittainen)
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: Saldo pvm:ttäin, VKAEDVK, prosentteina (viikoittainen)
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Saldo pvm:ttäin, KA 4VK (viikoittainen)
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Saldo pvm:ttäin, KA 1Q (viikoittainen)
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Saldo pvm:ttäin, KA 1V (viikoittainen)
+			table 'Customer Ledger Entries'
+				caption: Asiakastapahtumat
+				column 'CLE Entry No.'
+					caption: AT-tapahtuman nro
+				column 'CLE Due Date'
+					caption: AT – eräpäivä
+				column 'CLE Open'
+					caption: AT – avoimet
+				column 'CLE Posting Date'
+					caption: AT-kirjauspäivämäärä
+				column 'CLE Document Date'
+					caption: AT – asiakirjan pvm
+				column 'DCLE Entry No.'
+					caption: YAT-tapahtuman nro
+				column 'DCLE Posting Date'
+					caption: YAT-kirjauspäivämäärä
+				column 'Ledger Entry Amount'
+					caption: Kirjanpitotapahtuman summa
+				column 'Entry Type'
+					caption: Tapahtumatyyppi
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'DCLE Initial Entry Due Date'
+					caption: YAT – alkutapahtuman eräpäivä
+				column 'Customer No.'
+					caption: Asiakasnumero
+				column 'Application No.'
+					caption: Kohdistusnro
+				column 'Applied Customer Ledger Entry No.'
+					caption: Kohd. asiakastapahtuman nro
+				column 'Sales Invoice Header Document No.'
+					caption: Myyntilaskun otsikon asiakirjanro
+				column 'Payment Terms Code'
+					caption: Maksuehtojen koodi
+				column 'Payment Discount Date'
+					caption: Maksualennuksen päivämäärä
+				measure 'Original Amount (LCY)'
+					caption: Alkuperäinen summa (PVA)
+				measure 'Amount Receivable (LCY)'
+					caption: Saamisten summa (PVA)
+				measure 'Balance (Accounts Receivable)'
+					caption: Saldo (myyntisaamiset)
+				measure 'Bucket 1 (Receivables)'
+					caption: Jakauma 1 (myyntisaamiset)
+				measure 'Bucket 2 (Receivables)'
+					caption: Jakauma 2 (myyntisaamiset)
+				measure 'Bucket 3 (Receivables)'
+					caption: Jakauma 3 (myyntisaamiset)
+				measure 'Bucket 4 (Receivables)'
+					caption: Jakauma 4 (myyntisaamiset)
+				measure 'Current (Receivables)'
+					caption: Nykyiset (myyntisaamiset)
+				measure 'CLE Bucket 1 Back Link'
+					caption: AST:n jakauma 1 – Takaisin-linkki
+				measure 'CLE Bucket 2 Back Link'
+					caption: AST:n jakauma 2 – Takaisin-linkki
+				measure 'CLE Bucket 3 Back Link'
+					caption: AST:n jakauma 3 – Takaisin-linkki
+				measure 'CLE Bucket 4 Back Link'
+					caption: AST:n jakauma 4 – Takaisin-linkki
+				measure 'CLE Current Back Link'
+					caption: AST:n nykyinen – Takaisin-linkki
+				measure 'CLE Balance Back Link'
+					caption: AST:n saldo – Takaisin-linkki
+			table 'Vendor Ledger Entries'
+				caption: Toimittajatapahtumat
+				column 'VLE Entry No.'
+					caption: TT-tapahtuman nro
+				column 'VLE Due Date'
+					caption: TT – eräpäivä
+				column 'VLE Open'
+					caption: TT – avoimet
+				column 'VLE Posting Date'
+					caption: TT-kirjauspäivämäärä
+				column 'VLE Document Date'
+					caption: TT – asiakirjan pvm
+				column 'DVLE Entry No.'
+					caption: YTT-tapahtuman nro
+				column 'DVLE Posting Date'
+					caption: YTT-kirjauspäivämäärä
+				column 'DVLE Ledger Entry Amount'
+					caption: YTT – kirjanpitotapahtuman summa
+				column 'Entry Type'
+					caption: Tapahtumatyyppi
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'DVLE Initial Entry Due Date'
+					caption: YTT – alkutapahtuman eräpäivä
+				column 'Vendor No.'
+					caption: Toimittajanro
+				column 'Application No.'
+					caption: Kohdistusnro
+				column 'Applied Vendor Ledger Entry No.'
+					caption: Kohd. toimittajatapahtuman nro
+				column 'PIH Document No.'
+					caption: OLO – asiakirjanumero
+				column 'Payment Terms Code'
+					caption: Maksuehtojen koodi
+				column 'Payment Discount Date'
+					caption: Maksualennuksen päivämäärä
+				measure 'Amount Payable (LCY)'
+					caption: Maksettava summa (PVA)
+				measure 'Bucket 2 (Payables)'
+					caption: Jakauma 2 (ostovelat)
+				measure 'Bucket 1 (Payables)'
+					caption: Jakauma 1 (ostovelat)
+				measure 'Bucket 3 (Payables)'
+					caption: Jakauma 3 (ostovelat)
+				measure 'Bucket 4 (Payables)'
+					caption: Jakauma 4 (ostovelat)
+				measure 'Current (Payables)'
+					caption: Nykyinen (ostovelat)
+				measure 'Balance (Accounts Payable)'
+					caption: Saldo (ostovelat)
+				measure 'Original Amount'
+					caption: Alkuperäinen summa
+				measure 'VLE Bucket 1 Back Link'
+					caption: TOT:n jakauma 1 – Takaisin-linkki
+				measure 'VLE Bucket 2 Back Link'
+					caption: TOT:n jakauma 2 – Takaisin-linkki
+				measure 'VLE Bucket 3 Back Link'
+					caption: TOT:n jakauma 3 – Takaisin-linkki
+				measure 'VLE Bucket 4 Back Link'
+					caption: TOT:n jakauma 4 – Takaisin-linkki
+				measure 'VLE Current Back Link'
+					caption: TOT:n nykyinen – Takaisin-linkki
+				measure 'VLE Balance Back Link'
+					caption: TOT:n saldo – Takaisin-linkki
+			table Vendors
+				caption: Toimittajat
+				column 'Vendor No.'
+					caption: Toimittajanro
+				column 'Vendor Name'
+					caption: Toimittajan nimi
+				column 'Vendor Address'
+					caption: Osoite
+				column 'Vendor Address 2'
+					caption: Osoite 2
+				column 'Vendor City'
+					caption: Kaupunki
+				column 'Vendor Post Code'
+					caption: Postinro
+				column 'Vendor State'
+					caption: Osavaltio
+				column 'Vendor Country/Region Code'
+					caption: Maa- tai aluekoodi
+				column 'Vendor Posting Group'
+					caption: Toimittajan kirjausryhmä
+				column 'Vendor No. & Name'
+					caption: Toimittajan nro ja nimi
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Laskettu ryhmä – Kalenterin aikatiedot (vakio)
+				column 'Selected Measure'
+					caption: Valittu mitta
+				column Type
+					caption: Tyyppi
+				column 'Sub Type'
+					caption: Alityyppi
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Laskettu ryhmähierarkia (vakio)
+					level Type
+						caption: Tyyppi
+					level 'Sub Type'
+						caption: Alityyppi
+					level 'Selected Measure'
+						caption: Valittu mitta
+			table 'Aging Date Parameter'
+				caption: Erääntymispäivämäärän parametri
+				column 'AGING PARAMETER'
+					caption: ERÄÄNTYMISPARAMETRI
+			table 'Aging Bucket Period'
+				caption: Erääntymisjakauman kausi
+				measure 'Aging Bucket Period Value'
+					caption: Erääntymisjakauman kauden arvo
+				measure 'Bucket 1 Range'
+					caption: Jakauman 1 alue
+				measure 'Bucket 2 Range'
+					caption: Jakauman 2 alue
+				measure 'Bucket 3 Range'
+					caption: Jakauman 3 alue
+				measure 'Bucket 4 Range'
+					caption: Jakauman 4 alue
+				measure 'Bucket 1 Date Range'
+					caption: Jakauman 1 päivämääräväli
+				measure 'Bucket 2 Date Range'
+					caption: Budjetin 2 päivämääräväli
+				measure 'Bucket 3 Date Range'
+					caption: Jakauman 3 päivämääräväli
+				measure 'Bucket 4 Date Range'
+					caption: Jakauman 4 päivämääräväli
+			table Customers
+				caption: Asiakkaat
+				column 'Customer No.'
+					caption: Asiakasnumero
+				column 'Customer Name'
+					caption: Asiakkaan nimi
+				column 'Customer Address'
+					caption: Osoite
+				column 'Customer Address 2'
+					caption: Osoite 2
+				column 'Customer City'
+					caption: Kaupunki
+				column 'CustomerPost Code'
+					caption: Postinro
+				column 'Customer State'
+					caption: Osavaltio
+				column 'Country/Region Code'
+					caption: Maa- tai aluekoodi
+				column 'Customer Posting Group'
+					caption: Asiakkaan kirjausryhmä
+				column 'Customer Price Group'
+					caption: Asiakkaan hintaryhmä
+				column 'Customer Discount Group'
+					caption: Asiakkaan alennusryhmä
+				column 'Customer No. & Name'
+					caption: Asiakkaan nro ja nimi
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Laskettu ryhmä – Kalenterin aikatiedot (kirjanpito)
+				column 'Selected Measure'
+					caption: Valittu mitta
+				column Type
+					caption: Tyyppi
+				column 'Sub Type'
+					caption: Alityyppi
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Laskettu ryhmähierarkia (kirjanpito)
+					level Type
+						caption: Tyyppi
+					level 'Sub Type'
+						caption: Alityyppi
+					level 'Selected Measure'
+						caption: Valittu mitta
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Laskettu ryhmä – Kalenterin aikatiedot (viikoittainen)
+				column 'Selected Measure'
+					caption: Valittu mitta
+				column Type
+					caption: Tyyppi
+				column 'Sub Type'
+					caption: Alityyppi
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Laskettu ryhmähierarkia (viikoittainen)
+					level Type
+						caption: Tyyppi
+					level 'Sub Type'
+						caption: Alityyppi
+					level 'Selected Measure'
+						caption: Valittu mitta
+			table Date
+				caption: Pvm
+				column 'Week Day'
+					caption: Viikonpäivä
+				column 'Day Type'
+					caption: Päivän tyyppi
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar Quarter Year'
+					caption: Kalenteri – Vuosineljännes, vuosi
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi, vuosi
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko, vuosi
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonOstotilaukset
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenOstotilaukset
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Calendar RelativeYearPos'
+					caption: Kalenterin suhteellisen vuoden ostotilaukset
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – PäiväKuukaudenNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – PäiväVuosineljänneksenNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – PäiväVuodenNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpito – Vuosineljännes, vuosi
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonOstotilaukset
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenOstotilaukset
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenOstotilaukset
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – PäiväKuukaudenNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – PäiväVuosineljänneksenNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – PäiväVuodenNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW Quarter Year'
+					caption: KV – Vuosineljännes, vuosi
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonOstotilaukset
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenOstotilaukset
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenOstotilaukset
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DayOfMonthNumber'
+					caption: KV – PäiväKuukaudenNumero
+				column 'FW DayOfQuarterNumber'
+					caption: KV – PäiväVuosineljänneksenNumero
+				column 'FW DayOfYearNumber'
+					caption: KV – PäiväVuodenNumero
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				column Sequential365DayNumber
+					caption: Järjestys 365 PäiväNumero
+				measure 'No. of Days'
+					caption: Päivien määrä
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Kirjanpito Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Quarter Year'
+						caption: Kirjanpito – Vuosineljännes, vuosi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalenteri – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Quarter Year'
+						caption: Kalenteri – Vuosineljännes, vuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: KV – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'Fiscal Year-Month'
+					caption: Kirjanpito – Vuosi-Kuukausi
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Kirjanpito – Vuosi-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Month'
+					caption: Kalenteri – Vuosi-Kuukausi
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalenteri – Vuosi-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'FW Year-Month-Week'
+					caption: KV – Vuosi-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Week'
+					caption: KV – Vuosi-Vuosineljännes-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Week'
+					caption: KV – Vuosi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Oman raportin otsikko
+				measure 'My Button Caption'
+					caption: Oma painikkeen otsikko
+				measure 'My Visual Title'
+					caption: Oma visuaalinen otsikko
+				measure 'Financial Overview'
+					caption: Taloudellinen yhteenveto
+				measure 'Income Statement by Month'
+					caption: Tuloslaskelma kuukausittain
+				measure 'Balance Sheet by Month'
+					caption: Tase kuukausittain
+				measure 'Budget Comparison'
+					caption: Budjettivertailu
+				measure 'Liquidity KPIs'
+					caption: Maksuvalmiuden tunnusluvut
+				measure Profitability
+					caption: Kannattavuus
+				measure 'Liabilities '
+					caption: "Vieras pääoma "
+				measure 'Average Collection Period '
+					caption: "Perintäjakso keskimäärin "
+				measure 'Aged Receivables (Back Dating)'
+					caption: Myyntisaatavien tilanne (päiväys taaksepäin)
+				measure 'Aged Payables (Back Dating)'
+					caption: Erääntyneet ostovelat (päiväys taaksepäin)
+				measure 'G/L Entries'
+					caption: KP-tapahtumat
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Yksityiskohtaiset toimittajatapahtumat
+				measure 'Detailed Customer Ledger Entries'
+					caption: Yksityiskohtaiset asiakastapahtumat
+				measure 'Income Statement Drill Through'
+					caption: Tuloslaskelmaan porautuminen
+				measure 'Balance Sheet Drill Through'
+					caption: Taseeseen porautuminen
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Toimittajatapahtumiin porautuminen
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Asiakastapahtumiin porautuminen
+				measure 'Liabilities Drill Through'
+					caption: Vastattaviin porautuminen
+				measure 'Finance App Change Log'
+					caption: Finance-sovelluksen muutosloki
+				measure 'As At Date'
+					caption: Päivämääränä
+				measure 'Aging Bucket Length'
+					caption: Erääntymisjakauman pituus
+				measure 'Use Aging Date'
+					caption: Käytä maksupäivää
+				measure 'Cost of Goods Sold '
+					caption: "Myytyjen tuotteiden kustannukset "
+				measure 'Net Profit '
+					caption: "Nettovoitto "
+				measure 'Current Assets / Current Liabilities'
+					caption: Nyk. vastaavat / lyhytaikaiset vastattavat
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Nyk. vastaavat – Varasto – Ostojen ennakkomaksut) / lyhytaikaiset vastattavat
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Rahoitusomaisuus / lyhytaikaiset vastattavat
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Tuotto – Myytyjen tuotteiden kustannukset – Kulut
+				measure 'Net Profit / Revenue'
+					caption: Nettovoitto/-tuotto
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Tuotto – Myytyjen tuotteiden kustannukset
+				measure 'Gross Profit / Revenue'
+					caption: Bruttokate/-tuotto
+				measure 'Liabilities by Month'
+					caption: Vastattavat kuukausittain
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Tuotot ja myyntisaamiset (keskimäärin) kuukausittain
+				measure 'Average Collection Period (Days) by Month'
+					caption: Keskimääräinen myyntisaamisten kiertoaika (päivinä) kuukausittain
+				measure 'Operating Revenue '
+					caption: "Liikevoitto "
+				measure 'Operating Expenses '
+					caption: "Juoksevat kulut "
+				measure 'AGED AR / AP'
+					caption: MYYNTISAATAVIEN TILANNE / OSTOVELAT
+				measure 'Finance Analytics'
+					caption: Talousanalytiikka
+				measure for
+					caption: kohteelle
+				measure 'CONNECT YOUR DATA'
+					caption: YHDISTÄ TIETOSI
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Lataa Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Määritä Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Taloushallinto sisältää erilaisia esimääritettyjä raportteja, joiden avulla voit tarkastella tietojasi välittömästi. Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.
+				measure 'HELP AND SUPPORT'
+					caption: OHJE JA TUKI
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.
+				measure 'OTHER POWER BI REPORTS'
+					caption: MUUT POWER BI -RAPORTIT
+				measure PURCHASE
+					caption: OSTO
+				measure SALES
+					caption: MYYNTI
+				measure 'INVENTORY '
+					caption: "VARASTO "
+				measure MANUFACTURING
+					caption: TUOTANTO
+				measure JOBS
+					caption: PROJEKTIT
+				measure 'for Business Central'
+					caption: Business Centralille
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Myyntisaatavien tilanne (AR) ja ostovelat (AP)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Myyntisaatavien tilanne ja ostovelat
+				measure 'Aged Accounts'
+					caption: Erääntyneet tilit
+				measure 'General Ledger (G/L) Entries'
+					caption: Pääkirjanpidon (KP) tapahtumat
+				measure 'General Ledger Entries'
+					caption: Pääkirjanpidon tapahtumat
+				measure 'Return On Assets - ROA by Month'
+					caption: Koko pääoman tuotto – KPT kuukauden mukaan
+				measure 'Top 5 Customers by Balance'
+					caption: Viisi parasta asiakasta saldon mukaan
+				measure 'Top 5 Vendors by Balance'
+					caption: Viisi parasta toimittajaa saldon mukaan
+				measure 'Net Profit Margin by Month'
+					caption: Nettovoittokate kuukauden mukaan
+				measure 'Asset Turnover Ratio by Month'
+					caption: Pääoman kiertonopeus kuukauden mukaan
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Liquidity Line Chart'
+					caption: Maksuvalmius-viivakaavio
+				measure 'Net Profit by Month'
+					caption: Nettovoitto kuukauden mukaan
+				measure 'Gross Profit by Month'
+					caption: Bruttovoitto kuukauden mukaan
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Liikevoitto – TEKV ja TEKVPK kuukauden mukaan
+				measure 'EBITDA '
+					caption: "TEKVPK "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Tuotto, Myyntisaatavat (keskiarvo), Päivien määrä ja Perintäjakso keskimäärin (päivinä) kuukauden mukaan
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Tuotto, Nettovoitto, Nettovoittomarginaali, Vastaavaa, Myyntisaatavien kiertoaika päivinä, Varaston myynti päivinä, Ostovelkojen kiertoaika päivinä.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Nykyinen suhde, Nykyiset vastaavat, Lyhytaikaiset velat.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Maksuvalmiussuhde, Nykyiset vastaavat, Varasto.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Omavaraisuusaste, Rahoitusomaisuus ja Lyhytaikaiset velat.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Nettovoitto, Tuotto, Myytyjen tuotteiden kustannukset.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Nettovoittomarginaali, nettovoitto, tuotto.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Bruttovoitto, Tuotto, Myytyjen tuotteiden kustannukset.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Bruttovoittomarginaali, bruttovoitto, tuotto.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Vieras pääoma, Lyhytaikaiset velat, Palkan sivukulut, Velkasuhde, Velan ja oman pääoman suhde, Vastaavaa, Pitkäaikaiset velat.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Bruttovoittomarginaali, bruttovoitto, tuotto.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Nettovoittomarginaali tilikauden ja kuukauden mukaan
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Pääoman kiertonopeus tilikauden ja kuukauden mukaan
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Saldo pvm:ttäin (neg) tilikauden, kuukauden ja KP-tilin nron/nimen mukaan
+			table COMPANY
+				caption: YRITYS
+				measure 'Company Label'
+					caption: Yrityksen selite
+			table 'Closing Entry Filter Table'
+				caption: Tilinpäätöstapahtuma – Suodatustaulukko
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Takaisin-linkit
+

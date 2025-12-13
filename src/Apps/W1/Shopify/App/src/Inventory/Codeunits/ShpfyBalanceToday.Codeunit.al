@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.Item;
 
 codeunit 30212 "Shpfy Balance Today" implements "Shpfy Stock Calculation"
 {

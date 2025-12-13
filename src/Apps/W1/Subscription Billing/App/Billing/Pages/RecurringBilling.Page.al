@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using Microsoft.Finance.Dimension;
+using System.Utilities;
 
 page 8067 "Recurring Billing"
 {
@@ -114,6 +114,11 @@ page 8067 "Recurring Billing"
                 {
                     ToolTip = 'Specifies the date to which the Subscription Line is billed.';
                     StyleExpr = LineStyleExpr;
+                }
+                field("Billing Reference Date Changed"; Rec."Billing Reference Date Changed")
+                {
+                    StyleExpr = LineStyleExpr;
+                    Visible = false;
                 }
                 field("Service Amount"; Rec.Amount)
                 {
@@ -248,12 +253,21 @@ page 8067 "Recurring Billing"
                     ErrorMessageMgt: Codeunit "Error Message Management";
                     ErrorMessageHandler: Codeunit "Error Message Handler";
                     ErrorContextElement: Codeunit "Error Context Element";
+                    CreateBillingDocuments: Codeunit "Create Billing Documents";
+                    DocumentDate: Date;
+                    PostingDate: Date;
                     IsSuccess: Boolean;
                 begin
                     ErrorMessageMgt.Activate(ErrorMessageHandler);
                     ErrorMessageMgt.PushContext(ErrorContextElement, 0, 0, '');
                     Commit(); //commit to database before processing
-                    IsSuccess := Codeunit.Run(Codeunit::"Create Billing Documents", Rec);
+                    if BillingTemplate.Get(BillingTemplate.Code) then begin
+                        BillingTemplate.CalculateDocumentDates(PostingDate, DocumentDate, false);
+                        if BillingTemplate.Partner = BillingTemplate.Partner::Customer then
+                            CreateBillingDocuments.SetCustomerRecurringBillingGrouping(BillingTemplate."Customer Document per");
+                        CreateBillingDocuments.SetDocumentDataFromRequestPage(DocumentDate, PostingDate, false, false);
+                    end;
+                    IsSuccess := CreateBillingDocuments.Run(Rec);
                     if not IsSuccess then
                         ErrorMessageHandler.ShowErrors();
                     InitTempTable();
@@ -294,7 +308,7 @@ page 8067 "Recurring Billing"
 
                 trigger OnAction()
                 begin
-                    BillingProposal.DeleteBillingDocuments();
+                    BillingProposal.DeleteBillingDocuments(BillingTemplate.Code);
                     InitTempTable();
                 end;
             }
@@ -503,16 +517,7 @@ page 8067 "Recurring Billing"
 
     local procedure ApplyBillingTemplateFilter(var BillingTemplate2: Record "Billing Template")
     begin
-        if Format(BillingTemplate2."Billing Date Formula") <> '' then
-            BillingDate := CalcDate(BillingTemplate2."Billing Date Formula", WorkDate())
-        else
-            BillingDate := WorkDate();
-
-        if Format(BillingTemplate2."Billing to Date Formula") <> '' then
-            BillingToDate := CalcDate(BillingTemplate2."Billing to Date Formula", WorkDate())
-        else
-            BillingToDate := 0D;
-
+        BillingTemplate2.CalculateBillingDates(BillingDate, BillingToDate, false);
         if BillingTemplate2."My Suggestions Only" then
             Rec.SetRange("User ID", UserId())
         else

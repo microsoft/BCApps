@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 using Microsoft.Utilities;
 
 codeunit 8074 "Document Change Management"
@@ -391,6 +391,38 @@ codeunit 8074 "Document Change Management"
             (Rec."Recurring Billing" <> xSalesHeader."Recurring Billing"))
         then
             Error(HeaderCannotBeChangedErr);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnBeforeCreateDimFromDefaultDim, '', false, false)]
+    local procedure PreventExistingDimensionsAfterChangingResponsibilityCenter(var Rec: Record "Sales Header"; FieldNo: Integer; var IsHandled: Boolean)
+    begin
+        if FieldNo <> Rec.FieldNo("Responsibility Center") then
+            exit;
+
+        if not SkipContractSalesHeaderModifyCheck then
+            exit;
+
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnBeforeConfirmKeepExistingDimensions, '', false, false)]
+    local procedure SkipExistingConfirmationDialogAndProceed(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; FieldNo: Integer; OldDimSetID: Integer; var Confirmed: Boolean; var IsHandled: Boolean)
+    var
+        ContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
+    begin
+        if SalesHeader.IsTemporary() then
+            exit;
+        if not (SalesHeader."Document Type" in ["Sales Document Type"::Quote, "Sales Document Type"::"Order"]) then
+            exit;
+        if not ContractRenewalMgt.IsContractRenewal(SalesHeader) then
+            exit;
+        if FieldNo <> SalesHeader.FieldNo("Responsibility Center") then
+            exit;
+        if SkipContractSalesHeaderModifyCheck then
+            exit;
+
+        Confirmed := true;
+        IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Sales Invoice Subform", OnAfterValidateEvent, "Invoice Disc. Pct.", false, false)]

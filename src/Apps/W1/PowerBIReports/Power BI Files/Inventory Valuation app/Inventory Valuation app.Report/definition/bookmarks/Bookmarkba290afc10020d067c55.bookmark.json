@@ -1,0 +1,164 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "displayName": "Overview Inventory Valuation",
+  "name": "Bookmarkba290afc10020d067c55",
+  "options": {
+    "targetVisualNames": []
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSection41d23fcd2b0c70d16059",
+    "sections": {
+      "ReportSection41d23fcd2b0c70d16059": {
+        "visualContainers": {
+          "dc20d720570d0ed7e7b4": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "44ad49922d410e643b06",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Inventory Measures"
+                        }
+                      },
+                      "Property": "Beginning Balance Value"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "05418245f851ef01fec5",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Inventory Measures"
+                        }
+                      },
+                      "Property": "Increases Value"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "18e477e76171ea32a50f",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Inventory Measures"
+                        }
+                      },
+                      "Property": "Decrease Value"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "abec3ff3815955b5cf75",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Inventory Measures"
+                        }
+                      },
+                      "Property": "Expected Cost Included"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "5b64ae9bddff22285744",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item"
+                        }
+                      },
+                      "Property": "Item Category Code"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "fdeba89e5e86ef2195a1",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Inventory Measures"
+                        }
+                      },
+                      "Property": "Ending Balance Posted to G/L"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "pivotTable",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Inventory Measures"
+                        }
+                      },
+                      "Property": "Beginning Balance Value"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Rows": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item"
+                        }
+                      },
+                      "Property": "Item Category Code"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

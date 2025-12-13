@@ -5,23 +5,23 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Finance.GeneralLedger.Account;
-using System.Globalization;
-using System.IO;
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Pricing;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
-using System.Security.AccessControl;
-using System.DataAdministration;
-using System.Privacy;
-using System.Threading;
 using Microsoft.Inventory.Location;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Pricing;
+using System.DataAdministration;
+using System.Globalization;
+using System.IO;
+using System.Privacy;
+using System.Security.AccessControl;
 using System.Telemetry;
+using System.Threading;
 
 /// <summary>
 /// Table Shpfy Shop (ID 30102).
@@ -767,6 +767,11 @@ table 30102 "Shpfy Shop"
             Caption = 'Company Tax Id Mapping';
             DataClassification = CustomerContent;
         }
+        field(135; "Currency Handling"; Enum "Shpfy Currency Handling")
+        {
+            Caption = 'Currency Handling';
+            InitValue = "Shop Currency";
+        }
         field(200; "Shop Id"; Integer)
         {
             DataClassification = SystemMetadata;
@@ -799,6 +804,28 @@ table 30102 "Shpfy Shop"
             Caption = 'Archive Processed Shopify Orders';
             InitValue = true;
         }
+        field(205; "Create Invoices From Orders"; Boolean)
+        {
+            Caption = 'Create Fulfilled Orders as Invoices';
+            ToolTip = 'Specifies if fully fulfilled Shopify orders should be created as sales invoices.';
+            InitValue = true;
+        }
+#if not CLEANSCHEMA31
+        field(206; "Fulfillment Service Updated"; Boolean)
+        {
+            Caption = 'Fulfillment Service Updated';
+            DataClassification = SystemMetadata;
+            Description = 'Indicates whether the Shopify Fulfillment Service has been updated to the latest version.';
+            ObsoleteReason = 'This field is no longer used.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#endif
+        }
+#endif
     }
 
     keys
@@ -995,12 +1022,11 @@ table 30102 "Shpfy Shop"
         JItem: JsonToken;
     begin
         CommunicationMgt.SetShop(Rec);
-        JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { displayName partnerDevelopment shopifyPlus } weightUnit } }"}');
+        JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { publicDisplayName partnerDevelopment shopifyPlus } weightUnit } }"}');
         if JResponse.SelectToken('$.data.shop.plan', JItem) then
             if JItem.IsObject then
-                Rec."B2B Enabled" := JsonHelper.GetValueAsBoolean(JItem, 'partnerDevelopment') or
-                                      JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
-                                        (JsonHelper.GetValueAsText(JItem, 'displayName') = 'Plus Trial');
+                Rec."B2B Enabled" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
+                                        (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development']);
         Rec."Weight Unit" := ConvertToWeightUnit(JsonHelper.GetValueAsText(JResponse, 'data.shop.weightUnit'));
     end;
 
@@ -1044,4 +1070,24 @@ table 30102 "Shpfy Shop"
                 Session.LogMessage('0000KO0', ExpirationNotificationTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
             end;
     end;
+
+#if not CLEAN28
+#pragma warning disable AL0432
+    internal procedure UpdateFulfillmentService()
+    var
+        SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
+    begin
+        if Rec."Fulfillment Service Updated" then
+            exit;
+
+        if Rec."Fulfillment Service Activated" then begin
+            SyncShopLocations.SetShop(Rec);
+            SyncShopLocations.UpdateFulfillmentServiceCallbackUrl();
+        end;
+
+        Rec."Fulfillment Service Updated" := true;
+        Rec.Modify();
+    end;
+#pragma warning restore AL0432
+#endif
 }

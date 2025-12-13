@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Foundation.Shipping;
-using Microsoft.Sales.Document;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
 
 /// <summary>
 /// Table Shpfy Shipment Method Mapping (ID 30131).

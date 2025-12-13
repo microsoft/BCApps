@@ -7,6 +7,7 @@ namespace System.Azure.Identity;
 
 using System;
 using System.Environment;
+using System.Environment.Configuration;
 
 codeunit 9014 "Azure AD Graph Impl."
 {
@@ -262,9 +263,10 @@ codeunit 9014 "Azure AD Graph Impl."
     [NonDebuggable]
     local procedure Initialize(): Boolean
     var
+        ServerSetting: Codeunit "Server Setting";
         Handled: Boolean;
     begin
-        if not EnvironmentInformation.IsSaaS() then
+        if not (EnvironmentInformation.IsSaaS() or ServerSetting.GetEnableEntraGroupsOnPrem()) then
             exit(false);
 
         if IsGraphInitialized then

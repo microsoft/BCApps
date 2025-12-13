@@ -1,0 +1,42 @@
+table 'Time Factors'
+	isHidden
+	lineageTag: 0fe20238-2afe-49f0-ba36-6d399774a635
+
+	column 'Cap Unit of Measure Type'
+		dataType: string
+		isHidden
+		lineageTag: 4ac9c838-ea6a-404b-b991-557211143a48
+		summarizeBy: none
+		sourceColumn: Cap Unit of Measure Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Time Factor'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 802547e6-9a8a-40f2-a017-135b49a47155
+		summarizeBy: sum
+		sourceColumn: Time Factor
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Time Factors' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WCnZ19vdzCVbSUTI0MDBQitWJVvL19AsNcQUJmRnAxICS+h75pUVAQWMzmKCHf2hQMEwEKubiGAkSsjAzgYrFAgA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Cap Unit of Measure Type" = _t, #"Time Factor" = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Cap Unit of Measure Type", type text}, {"Time Factor", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -196,8 +196,8 @@ page 8038 "Usage Data Generic Import"
         {
             action("Usage Data Customers")
             {
-                Caption = 'Usage Data Customers';
-                ToolTip = 'Opens the Usage data Customers.';
+                Caption = 'Usage Data Supp. Customers';
+                ToolTip = 'Opens the usage data supp. customers.';
                 Image = CustomerList;
                 Scope = Repeater;
 

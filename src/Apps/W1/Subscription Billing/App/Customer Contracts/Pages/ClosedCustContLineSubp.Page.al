@@ -1,5 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Inventory.Item;
+
 page 8080 "Closed Cust. Cont. Line Subp."
 {
     PageType = ListPart;
@@ -32,6 +34,14 @@ page 8080 "Closed Cust. Cont. Line Subp."
                 {
                     ToolTip = 'Specifies the No. of the Item or G/L Account of the Subscription.';
                     Editable = false;
+                }
+                field("Variant Code"; VariantCode)
+                {
+                    Caption = 'Variant Code';
+                    ToolTip = 'Specifies the Variant Code of the Subscription.';
+                    Visible = false;
+                    Editable = false;
+                    TableRelation = "Item Variant".Code where("Item No." = field("No."));
                 }
                 field("Invoicing Item No."; ServiceCommitment."Invoicing Item No.")
                 {
@@ -89,10 +99,13 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the description of the Subscription Line.';
                     Editable = false;
                 }
-                field("Service Object Quantity"; Rec."Service Object Quantity")
+                field("Service Object Quantity"; ContractLineQty)
                 {
-                    Editable = false;
+                    Caption = 'Quantity';
                     ToolTip = 'Specifies the number of units of Subscription.';
+                    Editable = false;
+                    AutoFormatType = 0;
+                    DecimalPlaces = 0 : 5;
 
                     trigger OnDrillDown()
                     begin
@@ -106,6 +119,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the base amount from which the price will be calculated.';
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Calculation Base %"; ServiceCommitment."Calculation Base %")
                 {
@@ -114,6 +129,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the percent at which the price of the Subscription Line will be calculated. 100% means that the price corresponds to the Base Price.';
                     BlankZero = true;
                     Editable = false;
+                    DecimalPlaces = 0 : 5;
+                    AutoFormatType = 0;
                 }
                 field(Price; ServiceCommitment.Price)
                 {
@@ -121,6 +138,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the price of the Subscription Line with quantity of 1 in the billing period. The price is calculated from Base Price and Base Price %.';
                     Editable = false;
                     BlankZero = true;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Price (LCY)"; ServiceCommitment."Price (LCY)")
                 {
@@ -129,6 +148,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     Visible = false;
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                 }
                 field("Discount %"; ServiceCommitment."Discount %")
                 {
@@ -138,6 +159,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     MinValue = 0;
                     MaxValue = 100;
                     Editable = false;
+                    DecimalPlaces = 0 : 5;
+                    AutoFormatType = 0;
                 }
                 field("Discount Amount"; ServiceCommitment."Discount Amount")
                 {
@@ -146,6 +169,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     BlankZero = true;
                     MinValue = 0;
                     Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Discount Amount (LCY)"; ServiceCommitment."Discount Amount (LCY)")
                 {
@@ -161,6 +186,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the amount for the Subscription Line including discount.';
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                 }
                 field("Service Amount (LCY)"; ServiceCommitment."Amount (LCY)")
                 {
@@ -169,6 +196,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     Visible = false;
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                 }
                 field("Billing Base Period"; ServiceCommitment."Billing Base Period")
                 {
@@ -259,6 +288,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     Visible = false;
                     BlankZero = true;
                     Editable = false;
+                    DecimalPlaces = 0 : 15;
+                    AutoFormatType = 0;
                 }
                 field("Currency Factor Date"; ServiceCommitment."Currency Factor Date")
                 {
@@ -298,6 +329,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
     begin
         InitializePageVariables();
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
+        LoadQuantityForContractLine();
+        VariantCode := ServiceObject."Variant Code";
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -310,10 +343,24 @@ page 8080 "Closed Cust. Cont. Line Subp."
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
         ContractsGeneralMgt: Codeunit "Sub. Contracts General Mgt.";
+        ContractLineQty: Decimal;
+        VariantCode: Code[10];
 
     local procedure InitializePageVariables()
     begin
         Rec.GetServiceCommitment(ServiceCommitment);
         Rec.GetServiceObject(ServiceObject);
+    end;
+
+    local procedure LoadQuantityForContractLine()
+    begin
+        ContractLineQty := ServiceObject.Quantity;
+        OnAfterLoadQuantityForContractLine(Rec, ServiceObject, ContractLineQty);
+    end;
+
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterLoadQuantityForContractLine(CustSubContractLine: Record "Cust. Sub. Contract Line"; SubscriptionHeader: Record "Subscription Header"; var ContractLineQty: Decimal)
+    begin
     end;
 }

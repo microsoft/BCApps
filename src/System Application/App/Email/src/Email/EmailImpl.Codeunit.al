@@ -5,10 +5,10 @@
 
 namespace System.Email;
 
-using System.Telemetry;
 using System.Globalization;
-using System.Security.AccessControl;
 using System.Reflection;
+using System.Security.AccessControl;
+using System.Telemetry;
 
 codeunit 8900 "Email Impl"
 {
@@ -48,6 +48,7 @@ codeunit 8900 "Email Impl"
         TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
         ErrorCallStackNotFoundErr: Label 'Error call stack not found for the email message with ID %1.', Locked = true;
         EmailOutboxDoesNotExistErr: Label 'The email outbox does not exist for the email message with ID %1.', Locked = true;
+        StuckInProcessingErrorMsg: Label 'The email with subject "%1" is stuck in processing state. Please try resending the email or contact your administrator.', Comment = '%1=the email subject.';
 
     #region API
 
@@ -219,16 +220,31 @@ codeunit 8900 "Email Impl"
         EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
         EmailConnectorv3: Interface "Email Connector v3";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         CheckRequiredPermissions();
 
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then begin
+            TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
+            EmailConnectorv4.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
+            EmailInbox.MarkedOnly(true);
+            exit;
+        end;
+#if not CLEAN28
+#pragma warning disable AL0432
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
             EmailConnectorv3.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
             EmailInbox.MarkedOnly(true);
             exit;
         end;
+#pragma warning restore AL0432
+#endif
 #if not CLEAN26
 #pragma warning disable AL0432
         if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
@@ -241,6 +257,17 @@ codeunit 8900 "Email Impl"
 #endif
 
         Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
+    end;
+
+    procedure GetMailFolders(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailFolders: Record "Email Folders" temporary)
+    var
+        EmailConnectorv4: Interface "Email Connector v4";
+    begin
+        CheckRequiredPermissions();
+
+        CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4);
+
+        EmailConnectorv4.GetEmailFolders(EmailAccountId, EmailFolders);
     end;
 
     local procedure TelemetryAppsAndPublishers(Message: Text)
@@ -272,17 +299,30 @@ codeunit 8900 "Email Impl"
         EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
         EmailConnectorv3: Interface "Email Connector v3";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         CheckRequiredPermissions();
 
         if ExternalId = '' then
             Error(ExternalIdCannotBeEmptyErr);
 
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then begin
+            EmailConnectorv4.MarkAsRead(EmailAccountId, ExternalId);
+            exit;
+        end;
+#if not CLEAN28
+#pragma warning disable AL0432
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             EmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId);
             exit;
         end;
+#pragma warning restore AL0432
+#endif
 #if not CLEAN26
 #pragma warning disable AL0432
         if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
@@ -302,10 +342,21 @@ codeunit 8900 "Email Impl"
         EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
         EmailConnectorv3: Interface "Email Connector v3";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then
+            exit(true);
+#if not CLEAN28
+#pragma warning disable AL0432
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then
             exit(true);
+#pragma warning restore AL0432
+#endif
 #if not CLEAN26
 #pragma warning disable AL0432
         if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then
@@ -328,11 +379,24 @@ codeunit 8900 "Email Impl"
             exit(false);
     end;
 #endif
-
+#if not CLEAN28
+#pragma warning disable AL0432
+    [Obsolete('Replaced by CheckAndGetEmailConnectorv4.', '28.0')]
     procedure CheckAndGetEmailConnectorv3(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v3"): Boolean
+#pragma warning restore AL0432
     begin
         if Connector is "Email Connector v3" then begin
             Connectorv3 := Connector as "Email Connector v3";
+            exit(true);
+        end else
+            exit(false);
+    end;
+#endif
+
+    procedure CheckAndGetEmailConnectorv4(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v4"): Boolean
+    begin
+        if Connector is "Email Connector v4" then begin
+            Connectorv3 := Connector as "Email Connector v4";
             exit(true);
         end else
             exit(false);
@@ -946,6 +1010,25 @@ codeunit 8900 "Email Impl"
     procedure OpenEmailViewPoliciesPage(AdminViewPolicyInEffectNotification: Notification)
     begin
         Page.Run(Page::"Email View Policy List");
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Outbox", 'rm')]
+    internal procedure UpdateFailedEmailOutboxStatusToError() UpdatedEmailCount: Integer
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.SetRange("Is Background Task", true);
+        EmailOutbox.SetRange(Status, Enum::"Email Status"::Processing);
+        EmailOutbox.SetRange("Date Sending", 0DT, CurrentDateTime() - 1000 * 60 * 60); // Emails stuck in processing for more than an hour
+        if EmailOutbox.FindSet() then begin
+            UpdatedEmailCount := EmailOutbox.Count();
+            repeat
+                EmailOutbox.Status := Enum::"Email Status"::Failed;
+                EmailOutbox."Error Message" := StuckInProcessingErrorMsg;
+                EmailOutbox.Modify();
+            until EmailOutbox.Next() = 0;
+        end;
+        exit(UpdatedEmailCount);
     end;
 
     #region Telemetry

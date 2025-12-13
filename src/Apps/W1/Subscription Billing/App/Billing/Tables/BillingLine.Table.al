@@ -1,13 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Utilities;
+using Microsoft.Finance.Currency;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
-using Microsoft.Finance.Currency;
+using Microsoft.Utilities;
 using System.Security.User;
 
 table 8061 "Billing Line"
@@ -89,6 +89,7 @@ table 8061 "Billing Line"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(50; "Billing from"; Date)
         {
@@ -170,6 +171,16 @@ table 8061 "Billing Line"
             if (Partner = const(Vendor), "Document Type" = const(Invoice)) "Purchase Line"."Line No." where("Document Type" = const(Invoice), "Document No." = field("Document No."))
             else
             if (Partner = const(Vendor), "Document Type" = const("Credit Memo")) "Purchase Line"."Line No." where("Document Type" = const("Credit Memo"), "Document No." = field("Document No."));
+        }
+        field(63; "Billing Reference Date Changed"; Boolean)
+        {
+            Caption = 'Billing Reference Date Changed';
+            ToolTip = 'Specifies whether the billing period has been adjusted manually. This is taken into account by the period calculation and may have an effect on the creation of future billing proposals.';
+        }
+        field(70; "Billing Error Log Entry No."; Integer)
+        {
+            Caption = 'Billing Error Log Entry No.';
+            ToolTip = 'Specifies the entry number of the related billing error log, if any.';
         }
         field(100; "Billing Template Code"; Code[20])
         {
@@ -489,7 +500,7 @@ table 8061 "Billing Line"
     begin
     end;
 
-    local procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line")
+    internal procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line")
     begin
         ServiceCommitment.Get("Subscription Line Entry No.");
     end;

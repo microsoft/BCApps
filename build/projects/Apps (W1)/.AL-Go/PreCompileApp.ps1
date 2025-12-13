@@ -13,7 +13,7 @@ if ($ENV:BuildMode -eq 'Clean') {
         # This is to ensure that we don't end up using any of those apps as dependencies in the clean build
         $appFiles = Get-ChildItem -Path $symbolsPath -Filter *.app -Recurse | Where-Object { $_.Name -ne 'System.app' }
         foreach ($appFile in $appFiles) {
-            Remove-Item -Path $appFile.FullName -Force -Verbose
+            Remove-Item -Path $appFile.FullName -Force
         }
     }
 

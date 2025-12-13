@@ -5,10 +5,10 @@
 
 namespace System.Test.IO;
 
-using System.IO;
-using System.Utilities;
 using System;
+using System.IO;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 139036 "Data Compression Tests"
 {

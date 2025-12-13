@@ -1,0 +1,91 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Integration.Receive;
+
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Action;
+using System.Utilities;
+
+codeunit 6186 ReceiveContext
+{
+    Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    /// <summary>
+    /// Retrieves the temporary blob used for storing E-Document content.
+    /// </summary>
+    procedure GetTempBlob(): Codeunit "Temp Blob"
+    begin
+        exit(this.GlobalTempBlob);
+    end;
+
+    /// <summary>
+    /// Sets the temporary blob with the E-Document content.
+    /// </summary>
+    procedure SetTempBlob(TempBlob: Codeunit "Temp Blob")
+    begin
+        this.GlobalTempBlob := TempBlob;
+    end;
+
+    /// <summary>
+    /// Sets the name of the E-Document content.
+    /// </summary>
+    procedure SetName(Name: Text[256])
+    begin
+        this.GlobalName := Name;
+    end;
+
+    /// <summary>
+    /// Retrieves the name of the E-Document content.
+    /// </summary>
+    internal procedure GetName(): Text[256]
+    begin
+        exit(this.GlobalName);
+    end;
+
+    /// <summary>
+    /// Retrieves the file format of the E-Document content.
+    /// </summary>
+    /// <returns></returns>
+    internal procedure GetFileFormat(): Enum "E-Doc. File Format"
+    begin
+        exit(this.GlobalFileFormat);
+    end;
+
+    /// <summary>
+    /// Sets the file format for the E-Document content.
+    /// </summary>
+    /// <param name="FileFormat"></param>
+    procedure SetFileFormat(FileFormat: Enum "E-Doc. File Format")
+    begin
+        this.GlobalFileFormat := FileFormat;
+    end;
+
+    /// <summary>
+    /// Get the Http Message State codeunit.
+    /// </summary>
+    procedure Http(): Codeunit "Http Message State"
+    begin
+        exit(this.HttpMessageState);
+    end;
+
+    /// <summary>
+    /// Retrieves the Action Status object.
+    /// </summary>
+    procedure Status(): Codeunit "Integration Action Status"
+    begin
+        exit(this.IntegrationActionStatus);
+    end;
+
+    var
+        GlobalTempBlob: Codeunit "Temp Blob";
+        HttpMessageState: Codeunit "Http Message State";
+        IntegrationActionStatus: Codeunit "Integration Action Status";
+        GlobalFileFormat: Enum "E-Doc. File Format";
+        GlobalName: Text[256];
+
+}

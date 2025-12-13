@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Finance.Dimension;
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Codeunit Shpfy Create Customer (ID 30110).
@@ -172,9 +172,11 @@ codeunit 30110 "Shpfy Create Customer"
 
         Customer.Modify();
 
-        ShopifyCustomer.Copy(TempShopifyCustomer);
-        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
-        ShopifyCustomer.Insert();
+        if not ShopifyCustomer.Get(TempShopifyCustomer.Id) then begin
+            ShopifyCustomer.Copy(TempShopifyCustomer);
+            ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+            ShopifyCustomer.Insert();
+        end;
 
         ShopifyCompany."Customer SystemId" := Customer.SystemId;
         ShopifyCompany."Main Contact Customer Id" := ShopifyCustomer.Id;

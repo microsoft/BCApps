@@ -79,6 +79,8 @@ page 149031 "AIT Test Suite"
                 }
                 group(Evaluation)
                 {
+                    ShowCaption = false;
+
                     field("Evaluation Setup"; EvaluationSetupTxt)
                     {
                         ApplicationArea = All;
@@ -95,7 +97,9 @@ page 149031 "AIT Test Suite"
                             AITEvaluator.SetRange("Test Method Line", 0);
                             AITEvaluatorPage.SetTableView(AITEvaluator);
                             AITEvaluatorPage.SetTestMethodLine(0);
-                            AITEvaluatorPage.Run();
+
+                            if AITEvaluatorPage.RunModal() = Action::LookupOK then
+                                CurrPage.Update(false);
                         end;
                     }
                     field(Evaluators; Rec."Number of Evaluators")
@@ -103,6 +107,7 @@ page 149031 "AIT Test Suite"
                         ApplicationArea = All;
                         Caption = 'Number of Evaluators';
                         ToolTip = 'Specifies evaluators for the evaluation.';
+                        Visible = false;
                     }
 
                     field("Column Mappings"; Rec."Number of Column Mappings")
@@ -110,6 +115,7 @@ page 149031 "AIT Test Suite"
                         ApplicationArea = All;
                         Caption = 'Column Mappings';
                         ToolTip = 'Specifies column mappings for the evaluation.';
+                        Visible = false;
                     }
                 }
                 group(StatusGroup)

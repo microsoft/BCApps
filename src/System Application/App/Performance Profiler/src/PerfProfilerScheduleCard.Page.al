@@ -5,9 +5,9 @@
 
 namespace System.Tooling;
 
+using System.DataAdministration;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
-using System.DataAdministration;
 using System.Security.User;
 
 /// <summary>
@@ -174,6 +174,7 @@ page 1932 "Perf. Profiler Schedule Card"
                 field("User Name"; UserName)
                 {
                     ApplicationArea = All;
+                    ShowMandatory = true;
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the user associated with the schedule.';
                     AboutText = 'Only this user''s sessions will be profiled.';
@@ -183,7 +184,9 @@ page 1932 "Perf. Profiler Schedule Card"
                         SelectedUser: Record User;
                         UserSelection: Codeunit "User Selection";
                     begin
-                        UserSelection.OpenWithSystemUsers(SelectedUser);
+                        if not UserSelection.OpenWithSystemUsers(SelectedUser) then
+                            exit;
+                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), SelectedUser."User Security ID");
                         UserName := SelectedUser."User Name";
                         Rec.Validate("User ID", SelectedUser."User Security ID");
                     end;
@@ -192,9 +195,12 @@ page 1932 "Perf. Profiler Schedule Card"
                     var
                         User: Record User;
                     begin
+                        if UserName = '' then
+                            Error(UserNameMandatoryErr);
+
                         User.SetRange("User Name", UserName);
-                        if User.FindFirst() then
-                            ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), User."User Security ID");
+                        User.FindFirst();
+                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), User."User Security ID");
                     end;
                 }
                 field(Activity; Activity)
@@ -325,6 +331,7 @@ page 1932 "Perf. Profiler Schedule Card"
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
         EmptyDescriptionErr: Label 'The description must be filled in.';
+        UserNameMandatoryErr: Label 'User name must be filled in.';
 
     local procedure ValidateRecord()
     begin

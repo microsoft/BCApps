@@ -5,9 +5,9 @@
 
 namespace System.DataAdministration;
 
+using System.Apps;
 using System.Environment;
 using System.Reflection;
-using System.Apps;
 
 codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
 {

@@ -255,6 +255,7 @@ codeunit 30290 "Shpfy Catalog API"
                 Catalog.SetRange("Company SystemId", ShopifyCompany.SystemId);
                 Catalog.SetRange("Catalog Type", "Shpfy Catalog Type"::Company);
                 if not Catalog.FindFirst() then begin
+                    Clear(Catalog);
                     Catalog.Id := CatalogId;
                     Catalog."Company SystemId" := ShopifyCompany.SystemId;
                     Catalog."Catalog Type" := "Shpfy Catalog Type"::Company;
@@ -290,6 +291,7 @@ codeunit 30290 "Shpfy Catalog API"
                 Catalog.SetRange(Id, CatalogId);
                 Catalog.SetRange("Catalog Type", "Shpfy Catalog Type"::Market);
                 if not Catalog.FindFirst() then begin
+                    Clear(Catalog);
                     Catalog.Id := CatalogId;
                     Catalog."Catalog Type" := "Shpfy Catalog Type"::Market;
                     Catalog.Insert(true);

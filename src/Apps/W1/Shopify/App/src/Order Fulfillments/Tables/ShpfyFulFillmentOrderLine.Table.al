@@ -51,6 +51,7 @@ table 30144 "Shpfy FulFillment Order Line"
         {
             Caption = 'Qty. to Fulfill';
             DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
         field(9; "Shopify Variant Id"; BigInteger)
@@ -74,6 +75,12 @@ table 30144 "Shpfy FulFillment Order Line"
         key(PK; "Shopify Fulfillment Order Id", "Shopify Fulfillm. Ord. Line Id")
         {
             Clustered = true;
+        }
+        key(Key2; "Shopify Order Id", "Shopify Variant Id")
+        {
+        }
+        key(Key3; "Shopify Order Id", "Shopify Variant Id", "Fulfillment Status")
+        {
         }
     }
 }

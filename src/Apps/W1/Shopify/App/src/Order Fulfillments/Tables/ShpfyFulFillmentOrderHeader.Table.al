@@ -60,12 +60,21 @@ table 30143 "Shpfy FulFillment Order Header"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(10; "Request Status"; Enum "Shpfy FF Request Status")
+        {
+            Caption = 'Request Status';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
     keys
     {
         key(PK; "Shopify Fulfillment Order Id")
         {
             Clustered = true;
+        }
+        key(Key2; "Shopify Order Id")
+        {
         }
     }
 

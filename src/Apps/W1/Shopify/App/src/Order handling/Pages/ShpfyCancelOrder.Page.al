@@ -63,13 +63,14 @@ page 30160 "Shpfy Cancel Order"
     }
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        Orders: Codeunit "Shpfy Orders";
     begin
         if CloseAction = Action::LookupOK then
-            Result := OrdersApi.CancelOrder(Rec."Shopify Order Id", Rec."Shop Code", NotifyCustomer, CancelReason, Refund, Restock);
+            Result := Orders.CancelOrder(Rec."Shopify Order Id", Rec."Shop Code", NotifyCustomer, CancelReason, Refund, Restock);
     end;
 
     var
-        OrdersApi: Codeunit "Shpfy Orders API";
         NotifyCustomer: Boolean;
         CancelReason: Enum "Shpfy Cancel Reason";
         Refund: Boolean;

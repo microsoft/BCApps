@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Telemetry;
 using System.DateTime;
+using System.Telemetry;
 
 /// <summary>
 /// Page Shpfy Shop Card (ID 30101).
@@ -77,10 +77,10 @@ page 30101 "Shpfy Shop Card"
                 field(HasAccessKey; Rec.HasAccessToken())
                 {
                     ApplicationArea = All;
-                    Caption = 'Has AccessKey';
+                    Caption = 'Has access token';
                     Importance = Additional;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies if an access key is available for this store.';
+                    ToolTip = 'Specifies if an API access token is available for this store. The token allows the connector to access your shop''s data as long as the app is installed. To acquire a token, turn on the Enabled toggle or use the Request Access action.';
                 }
                 field(CurrencyCode; Rec."Currency Code")
                 {
@@ -527,6 +527,10 @@ page 30101 "Shpfy Shop Card"
                     ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
                     Enabled = Rec."Allow Outgoing Requests" or Rec."Order Attributes To Shopify";
                 }
+                field("Create Invoices From Orders"; Rec."Create Invoices From Orders")
+                {
+                    ApplicationArea = All;
+                }
                 field(ArchiveProcessOrders; Rec."Archive Processed Orders")
                 {
                     ApplicationArea = All;
@@ -536,6 +540,12 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether the posted sales invoices can be synchronized to Shopify.';
+                }
+                field("Currency Handling"; Rec."Currency Handling")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies which currency is used in Shopify orders processing. Using presentment currency may cause differences between amounts in LCY after posting documents.';
+                    Importance = Additional;
                 }
             }
             group(ReturnsAndRefunds)
@@ -840,6 +850,19 @@ page 30101 "Shpfy Shop Card"
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify Sales Channels for the shop and choose ones used for new product publishing.';
             }
+            action(ProductCollections)
+            {
+                ApplicationArea = All;
+                Caption = 'Custom Product Collections';
+                Image = ItemGroup;
+                Promoted = true;
+                PromotedCategory = Category4;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                RunObject = Page "Shpfy Product Collections";
+                RunPageLink = "Shop Code" = field(Code);
+                ToolTip = 'View a list of Shopify Custom Product Collections for the shop and choose ones used for new product publishing.';
+            }
             action(BulkOperations)
             {
                 ApplicationArea = All;
@@ -877,7 +900,8 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     Image = EncryptionKeys;
                     Caption = 'Request Access';
-                    ToolTip = 'Request Access to your Shopify store.';
+                    ToolTip = 'Request access to your Shopify store. Use this to fix connection issues, after connector updates that require new permissions, or when rotating security tokens for this shop.';
+                    Enabled = Rec.Enabled;
 
                     trigger OnAction()
                     begin
@@ -893,9 +917,18 @@ page 30101 "Shpfy Shop Card"
                     Enabled = Rec.Enabled;
 
                     trigger OnAction()
+                    var
+                        WebhooksMgt: Codeunit "Shpfy Webhooks Mgt.";
                     begin
                         if Rec.TestConnection() then
-                            Message('Connection successful.');
+                            if not Rec."Order Created Webhooks" then begin
+                                Message(ConnectionSuccessfulMsg);
+                                exit;
+                            end else
+                                if WebhooksMgt.TestOrderCreatedWebhookConnection(Rec) then
+                                    Message(ConnectionAndWebhooksSuccessfulMsg)
+                                else
+                                    Message(OrderCreatedWebhookNotConfiguredMsg);
                     end;
                 }
                 action(ClearApiVersionExpiryDateCache)
@@ -913,6 +946,21 @@ page 30101 "Shpfy Shop Card"
                         CommunicationMgt.ClearApiVersionCache();
                     end;
                 }
+                action(LeaveReview)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Leave a Review';
+                    Image = CustomerRating;
+                    ToolTip = 'Open the Shopify App Store to leave a review for the Shopify connector.';
+
+                    trigger OnAction()
+                    var
+                        ShopReview: Codeunit "Shpfy Shop Review";
+                    begin
+                        ShopReview.OpenReviewLinkFromShop(Rec.GetStoreName());
+                    end;
+                }
+
             }
             group(Sync)
             {
@@ -1212,12 +1260,16 @@ page 30101 "Shpfy Shop Card"
         ApiVersion: Text;
         ApiVersionExpiryDate: Date;
         ScopeChangeConfirmLbl: Label 'The access scope of shop %1 for the Shopify connector has changed. Do you want to request a new access token?', Comment = '%1 - Shop Code';
+        ConnectionSuccessfulMsg: Label 'Connection successful.';
+        ConnectionAndWebhooksSuccessfulMsg: Label 'Connection successful and auto synchronize orders is configured correctly.';
+        OrderCreatedWebhookNotConfiguredMsg: Label 'Connection successful, but auto synchronize orders is misconfigured. Reactivate Auto Sync Orders setting.';
 
     trigger OnOpenPage()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ShopReview: Codeunit "Shpfy Shop Review";
         ApiVersionExpiryDateTime: DateTime;
     begin
         FeatureTelemetry.LogUptake('0000HUU', 'Shopify', Enum::"Feature Uptake Status"::Discovered);
@@ -1236,6 +1288,10 @@ page 30101 "Shpfy Shop Card"
                     Rec.Enabled := false;
                     Rec.Modify();
                 end;
+#if not CLEAN28
+            Rec.UpdateFulfillmentService();
+#endif
+            ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
         end;
     end;
 

@@ -1,0 +1,26 @@
+table ENVIRONMENT
+	isHidden
+	lineageTag: f4c87e7d-b2d3-4759-9f0d-210029dfe1d6
+
+	column ENVIRONMENT
+		dataType: string
+		isHidden
+		lineageTag: 66400474-0007-4c89-9dcc-d975c6652f28
+		summarizeBy: none
+		sourceColumn: ENVIRONMENT
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ENVIRONMENT = m
+		mode: import
+		queryGroup: 'Connection Details'
+		source = "PRODUCTION" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

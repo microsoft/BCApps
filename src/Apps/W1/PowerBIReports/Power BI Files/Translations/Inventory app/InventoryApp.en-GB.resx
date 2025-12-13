@@ -1,0 +1,1842 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.caption" xml:space="preserve">
+    <value>Item</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.f923590e-20af-43be-ba76-1deb48889fbc.caption" xml:space="preserve">
+    <value>Item No. &amp; Description</value>
+    <comment>table [Item] column [Item No. &amp; Description]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.719bf83e-fd7e-4772-b1e6-c1b3c53f3a80.caption" xml:space="preserve">
+    <value>Item No.</value>
+    <comment>table [Item] column [Item No.]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.9c50f163-baaf-4a15-b5db-a0579efb1e12.caption" xml:space="preserve">
+    <value>Item Description</value>
+    <comment>table [Item] column [Item Description]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.b6be051b-28a9-4370-b14e-ad28ce0035d6.caption" xml:space="preserve">
+    <value>Item Base Unit of Measure</value>
+    <comment>table [Item] column [Item Base Unit of Measure]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.c834db7a-bff0-41fd-9529-2a9bb04ea7f6.caption" xml:space="preserve">
+    <value>Item Unit Cost (LCY)</value>
+    <comment>table [Item] column [Item Unit Cost (LCY)]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.95afddbc-fd96-45ee-a13d-a20f8510c4b5.caption" xml:space="preserve">
+    <value>Item Inventory Posting Group</value>
+    <comment>table [Item] column [Item Inventory Posting Group]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.abdb8cab-716c-413a-835d-766ebe19f586.caption" xml:space="preserve">
+    <value>Item Routing No.</value>
+    <comment>table [Item] column [Item Routing No.]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.3bc3bdcf-876f-4d14-9da1-8052c2634de9.caption" xml:space="preserve">
+    <value>Item Production BOM No.</value>
+    <comment>table [Item] column [Item Production BOM No.]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.abea4d5c-78cb-4f3a-8b4c-fd45a2f7441c.caption" xml:space="preserve">
+    <value>Item Replenishment System</value>
+    <comment>table [Item] column [Item Replenishment System]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.897aad19-5a03-411c-9b65-dd6f31549635.caption" xml:space="preserve">
+    <value>Item Single-Level Cap. Ovhd Cost</value>
+    <comment>table [Item] column [Item Single-Level Cap. Ovhd Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.9b45b574-0e7e-4b06-afcf-74fcccbdf77b.caption" xml:space="preserve">
+    <value>Item Single-Level Capacity Cost</value>
+    <comment>table [Item] column [Item Single-Level Capacity Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.c7ba7c51-18d8-441d-915e-4d96a3b490e2.caption" xml:space="preserve">
+    <value>Item Single-Level Material Cost</value>
+    <comment>table [Item] column [Item Single-Level Material Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.ebeaec3f-5d3f-41c7-8740-6475ab3b865e.caption" xml:space="preserve">
+    <value>Item Single-Level Mfg. Ovhd Cost</value>
+    <comment>table [Item] column [Item Single-Level Mfg. Ovhd Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.928e1001-9080-4c06-8ad1-ced2fb044519.caption" xml:space="preserve">
+    <value>Item Single-Level Subcontrd. Cost</value>
+    <comment>table [Item] column [Item Single-Level Subcontrd. Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.773ab1db-d857-4fb2-a84a-67908405fb8a.caption" xml:space="preserve">
+    <value>Item Single-Lvl Mat. Non-Invt. Cost</value>
+    <comment>table [Item] column [Item Single-Lvl Mat. Non-Invt. Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.b41d3dc1-2a51-42e6-b9d4-728cc3462a92.caption" xml:space="preserve">
+    <value>Item Rolled-up Cap. Overhead Cost</value>
+    <comment>table [Item] column [Item Rolled-up Cap. Overhead Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.b46b373c-ff46-4838-9ac9-29dc006ad031.caption" xml:space="preserve">
+    <value>Item Rolled-up Capacity Cost</value>
+    <comment>table [Item] column [Item Rolled-up Capacity Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.7ab432c8-691c-450f-804b-1a1f8b262964.caption" xml:space="preserve">
+    <value>Item Rolled-up Mat. Non-Invt. Cost</value>
+    <comment>table [Item] column [Item Rolled-up Mat. Non-Invt. Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.e9bf54a3-7ce7-4ddf-ba5f-05e607268597.caption" xml:space="preserve">
+    <value>Item Rolled-up Material Cost</value>
+    <comment>table [Item] column [Item Rolled-up Material Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.2650f5aa-a315-4b3d-b9fb-a0f8cf5e7780.caption" xml:space="preserve">
+    <value>Item Rolled-up Mfg. Ovhd Cost</value>
+    <comment>table [Item] column [Item Rolled-up Mfg. Ovhd Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.aa0d1443-66a3-41ba-8307-85adaeeec681.caption" xml:space="preserve">
+    <value>Item Rolled-up Subcontracted Cost</value>
+    <comment>table [Item] column [Item Rolled-up Subcontracted Cost]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.column.7c729072-24d5-420f-a098-8bbc0288918a.caption" xml:space="preserve">
+    <value>Item Scrap %</value>
+    <comment>table [Item] column [Item Scrap %]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.measure.c3449f65-1ae1-44df-92cd-85f0262233b1.caption" xml:space="preserve">
+    <value>Scheduled Receipt</value>
+    <comment>table [Item] measure [Scheduled Receipt]</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.measure.41a971c8-759a-4e80-9c20-f0f50ee881e4.caption" xml:space="preserve">
+    <value>Planned Order Releases</value>
+    <comment>table [Item] measure [Planned Order Releases]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.measure.d3408da1-07c0-4953-8728-5d30269e7ed5.caption" xml:space="preserve">
+    <value>Gross Requirement</value>
+    <comment>table [Item] measure [Gross Requirement]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.measure.ccb5da3a-ae8f-4770-9cfd-b00fb66f8c38.caption" xml:space="preserve">
+    <value>Projected Available Balance</value>
+    <comment>table [Item] measure [Projected Available Balance]</comment>
+  </data>
+  <data name="913f87da-54a8-4aa9-a1af-494493f9dc27.measure.2f7af786-850b-480a-ae52-0e1630732f90.caption" xml:space="preserve">
+    <value>Planned Order Receipt</value>
+    <comment>table [Item] measure [Planned Order Receipt]</comment>
+  </data>
+  <data name="e88b24c9-bf32-40fb-9475-01858482a87e.caption" xml:space="preserve">
+    <value>Location</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e88b24c9-bf32-40fb-9475-01858482a87e.column.4a1494ee-53eb-4b6d-bd44-f0f66ca56db5.caption" xml:space="preserve">
+    <value>Location Code</value>
+    <comment>table [Location] column [Location Code]</comment>
+  </data>
+  <data name="e88b24c9-bf32-40fb-9475-01858482a87e.column.db9c1b70-dfd3-4bac-9938-15d6c5117004.caption" xml:space="preserve">
+    <value>Location Name</value>
+    <comment>table [Location] column [Location Name]</comment>
+  </data>
+  <data name="e88b24c9-bf32-40fb-9475-01858482a87e.column.0a52e02f-3e56-48be-a974-07f13120daa0.caption" xml:space="preserve">
+    <value>Location Adjustment Bin Code</value>
+    <comment>table [Location] column [Location Adjustment Bin Code]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.caption" xml:space="preserve">
+    <value>Customer</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.a8077d1c-7353-4046-83a2-08ac2c7cf7e0.caption" xml:space="preserve">
+    <value>Customer No. &amp; Name</value>
+    <comment>table [Customer] column [Customer No. &amp; Name]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.4fbca207-3cd9-425b-b5de-bb6ee53ffe6e.caption" xml:space="preserve">
+    <value>Customer No.</value>
+    <comment>table [Customer] column [Customer No.]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.8b463f00-db4b-4d2c-b4e4-5cf0e0b83d37.caption" xml:space="preserve">
+    <value>Customer Name</value>
+    <comment>table [Customer] column [Customer Name]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.9e454523-5387-479b-acd7-f1c5069489c5.caption" xml:space="preserve">
+    <value>Customer Address</value>
+    <comment>table [Customer] column [Customer Address]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.c8b19481-4c8a-4be2-9ec7-8645fe509987.caption" xml:space="preserve">
+    <value>Customer Address 2</value>
+    <comment>table [Customer] column [Customer Address 2]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.af5f1801-9637-473b-80d5-74558450add9.caption" xml:space="preserve">
+    <value>Customer City</value>
+    <comment>table [Customer] column [Customer City]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.53c9d135-544a-4d28-b648-91c2eb31939f.caption" xml:space="preserve">
+    <value>Customer Postcode</value>
+    <comment>table [Customer] column [Customer Post Code]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.9bdcdf3d-eca5-48ae-b04d-6f7048495b90.caption" xml:space="preserve">
+    <value>Customer County</value>
+    <comment>table [Customer] column [Customer State]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.5a3b6402-dc29-45f5-b7fd-ab1cc9e9c3d1.caption" xml:space="preserve">
+    <value>Customer Country/Region Code</value>
+    <comment>table [Customer] column [Customer Country/Region Code]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.8abff202-2219-438d-be82-9d44d72bfea2.caption" xml:space="preserve">
+    <value>Customer Posting Group</value>
+    <comment>table [Customer] column [Customer Posting Group]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.0d198c3d-893a-4d8b-98ae-32b4ebaae844.caption" xml:space="preserve">
+    <value>Customer Price Group</value>
+    <comment>table [Customer] column [Customer Price Group]</comment>
+  </data>
+  <data name="688f772f-e047-4704-9b59-178678e97b54.column.4ad1148d-602b-4231-9744-22ddeb2f640f.caption" xml:space="preserve">
+    <value>Customer Discount Group</value>
+    <comment>table [Customer] column [Customer Discount Group]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.caption" xml:space="preserve">
+    <value>Date</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.f439bb0f-dcb0-4e28-a9b0-9879a76732a5.caption" xml:space="preserve">
+    <value>Week Day</value>
+    <comment>table [Date] column [Week Day]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.1dc1f387-8618-4a87-844c-cd54c5aa8978.caption" xml:space="preserve">
+    <value>Relative Day</value>
+    <comment>table [Date] column [Relative Day]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.7c248fb6-1b08-49c1-92e4-e7d829d49969.caption" xml:space="preserve">
+    <value>Calendar Year</value>
+    <comment>table [Date] column [Calendar Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.ae1f1d2d-99ab-4fd5-a464-5d23e60bd8e1.caption" xml:space="preserve">
+    <value>Calendar Quarter</value>
+    <comment>table [Date] column [Calendar Quarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.c424b478-9b06-4d54-bab1-abd0641497e6.caption" xml:space="preserve">
+    <value>Calendar Quarter Year</value>
+    <comment>table [Date] column [Calendar Quarter Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.86499fc5-31cf-426e-81bc-4216195b70a0.caption" xml:space="preserve">
+    <value>Calendar Month</value>
+    <comment>table [Date] column [Calendar Month]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.7a2d0a52-6298-44e6-824f-24a232b6f66c.caption" xml:space="preserve">
+    <value>Calendar Month Year</value>
+    <comment>table [Date] column [Calendar Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.a560cdaf-6c9a-45a2-a7dd-2c3a07624754.caption" xml:space="preserve">
+    <value>Calendar Week</value>
+    <comment>table [Date] column [Calendar Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.19089ea7-7d6a-4411-9c51-fb2605921914.caption" xml:space="preserve">
+    <value>Calendar Week Year</value>
+    <comment>table [Date] column [Calendar Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.fbaeb73e-b92a-4c26-817c-d34ba4d45ca1.caption" xml:space="preserve">
+    <value>Calendar WeekYearOrder</value>
+    <comment>table [Date] column [Calendar WeekYearOrder]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.65801694-5712-4841-afc3-3f946434ad96.caption" xml:space="preserve">
+    <value>Calendar RelativeWeekPos</value>
+    <comment>table [Date] column [Calendar RelativeWeekPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.25ebdafa-6654-4e97-be89-6f76cd271463.caption" xml:space="preserve">
+    <value>Calendar RelativeMonthPos</value>
+    <comment>table [Date] column [Calendar RelativeMonthPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.1084a53f-69a2-4e90-ba91-66adf75c6106.caption" xml:space="preserve">
+    <value>Calendar RelativeQuarterPos</value>
+    <comment>table [Date] column [Calendar RelativeQuarterPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.6705de4b-c2a7-4f7a-afcd-ce29280cc2c2.caption" xml:space="preserve">
+    <value>Calendar RelativeYearPos</value>
+    <comment>table [Date] column [Calendar RelativeYearPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.054a21f7-6474-4d3c-9208-102415089afd.caption" xml:space="preserve">
+    <value>Calendar StartOfMonth</value>
+    <comment>table [Date] column [Calendar StartOfMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.3f23eccd-a3d7-47e4-93c1-ff04d3be41fe.caption" xml:space="preserve">
+    <value>Calendar EndOfMonth</value>
+    <comment>table [Date] column [Calendar EndOfMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.fdbce4ae-f205-4911-a37b-e259c890f53f.caption" xml:space="preserve">
+    <value>Calendar StartOfQuarter</value>
+    <comment>table [Date] column [Calendar StartOfQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.2a012a52-98ab-41b5-9b56-41cdb58a4fa6.caption" xml:space="preserve">
+    <value>Calendar EndOfQuarter</value>
+    <comment>table [Date] column [Calendar EndOfQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.abe434d6-1665-4360-a91b-b3b76c5f1cdb.caption" xml:space="preserve">
+    <value>Calendar StartOfYear</value>
+    <comment>table [Date] column [Calendar StartOfYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.b9b7d292-c4cc-4ad1-9446-778c4df4ff2a.caption" xml:space="preserve">
+    <value>Calendar EndOfYear</value>
+    <comment>table [Date] column [Calendar EndOfYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.141cd6b4-cc6b-4e5a-a7b3-43d38dc7f84f.caption" xml:space="preserve">
+    <value>Calendar MonthDays</value>
+    <comment>table [Date] column [Calendar MonthDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.74025faf-4081-44c3-9bc4-56c446d9442b.caption" xml:space="preserve">
+    <value>Calendar QuarterDays</value>
+    <comment>table [Date] column [Calendar QuarterDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.476d08f5-13b3-40be-b1de-7dfcdac92000.caption" xml:space="preserve">
+    <value>Calendar YearDays</value>
+    <comment>table [Date] column [Calendar YearDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.37dccab5-10fd-4e0b-9c2e-b4845dd193f4.caption" xml:space="preserve">
+    <value>Calendar DatePreviousWeek</value>
+    <comment>table [Date] column [Calendar DatePreviousWeek]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.837b07b2-e8a2-411b-8828-fc547b62d87e.caption" xml:space="preserve">
+    <value>Calendar DatePreviousMonth</value>
+    <comment>table [Date] column [Calendar DatePreviousMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.f0c8eb7e-f084-45d6-bc04-9d7fee7ffe08.caption" xml:space="preserve">
+    <value>Calendar DatePreviousQuarter</value>
+    <comment>table [Date] column [Calendar DatePreviousQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.8fd66681-21e0-42bf-88fb-2dde2189e2b5.caption" xml:space="preserve">
+    <value>Calendar DatePreviousYear</value>
+    <comment>table [Date] column [Calendar DatePreviousYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.fc614a3d-3d2c-44b4-a4e4-08762515a6d9.caption" xml:space="preserve">
+    <value>Fiscal Year</value>
+    <comment>table [Date] column [Fiscal Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.59ef34bc-551e-42d3-a467-af530b6180af.caption" xml:space="preserve">
+    <value>Fiscal Quarter</value>
+    <comment>table [Date] column [Fiscal Quarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.fa0c4894-7385-4130-9df6-c116fa35f14b.caption" xml:space="preserve">
+    <value>Fiscal Quarter Year</value>
+    <comment>table [Date] column [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.64f68c5b-b0a6-4f66-8fb7-e9807dea36a9.caption" xml:space="preserve">
+    <value>Fiscal Month</value>
+    <comment>table [Date] column [Fiscal Month]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.d03ddf32-b751-4477-aa3e-2f85bf817b11.caption" xml:space="preserve">
+    <value>Fiscal Month Year</value>
+    <comment>table [Date] column [Fiscal Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.99775dd6-f7b8-43ab-a878-6f71b433ca9a.caption" xml:space="preserve">
+    <value>Fiscal Week</value>
+    <comment>table [Date] column [Fiscal Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.187e1365-1db4-4bd5-a092-c1b380100a5d.caption" xml:space="preserve">
+    <value>Fiscal Week Year</value>
+    <comment>table [Date] column [Fiscal Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.05373b55-9bee-4b17-be10-5f1b89252948.caption" xml:space="preserve">
+    <value>Fiscal WeekYearOrder</value>
+    <comment>table [Date] column [Fiscal WeekYearOrder]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.c560b3e8-583e-4480-8883-8c9f799d8bbb.caption" xml:space="preserve">
+    <value>Fiscal RelativeWeekPos</value>
+    <comment>table [Date] column [Fiscal RelativeWeekPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.f3dcb5e4-ee77-498c-9e32-abf29ad4f295.caption" xml:space="preserve">
+    <value>Fiscal RelativeMonthPos</value>
+    <comment>table [Date] column [Fiscal RelativeMonthPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.d42214b6-5e37-49f2-bbc2-03b45723ef4d.caption" xml:space="preserve">
+    <value>Fiscal RelativeQuarterPos</value>
+    <comment>table [Date] column [Fiscal RelativeQuarterPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.1be93a30-752a-459b-a0b3-06abe117312f.caption" xml:space="preserve">
+    <value>Fiscal RelativeYearPos</value>
+    <comment>table [Date] column [Fiscal RelativeYearPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.6e38cfce-8242-41a0-93c5-212fc2eb2331.caption" xml:space="preserve">
+    <value>Fiscal StartOfMonth</value>
+    <comment>table [Date] column [Fiscal StartOfMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.dd8a0f09-910c-481d-b833-7cb9fd49a4dc.caption" xml:space="preserve">
+    <value>Fiscal EndOfMonth</value>
+    <comment>table [Date] column [Fiscal EndOfMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.e241aef3-c415-4305-932b-38b1ca569497.caption" xml:space="preserve">
+    <value>Fiscal StartOfQuarter</value>
+    <comment>table [Date] column [Fiscal StartOfQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.e203b265-fb27-4f3b-8cc2-d32267ac997b.caption" xml:space="preserve">
+    <value>Fiscal EndOfQuarter</value>
+    <comment>table [Date] column [Fiscal EndOfQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.f138a2e9-50ce-4fe5-a9b7-31eebebcce56.caption" xml:space="preserve">
+    <value>Fiscal StartOfYear</value>
+    <comment>table [Date] column [Fiscal StartOfYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.b1d65a2f-cec8-4560-95ac-784afd76f6d4.caption" xml:space="preserve">
+    <value>Fiscal EndOfYear</value>
+    <comment>table [Date] column [Fiscal EndOfYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.54c87188-13f5-4263-9b2b-4575ed6179a9.caption" xml:space="preserve">
+    <value>Fiscal MonthDays</value>
+    <comment>table [Date] column [Fiscal MonthDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.7684d254-cf08-418c-9bd1-72f0320492b3.caption" xml:space="preserve">
+    <value>Fiscal QuarterDays</value>
+    <comment>table [Date] column [Fiscal QuarterDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.425b67c6-0bda-4922-9f06-5db02190146a.caption" xml:space="preserve">
+    <value>Fiscal YearDays</value>
+    <comment>table [Date] column [Fiscal YearDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.b1a003db-40d6-4f8e-9b05-9fbfb0218c3d.caption" xml:space="preserve">
+    <value>Fiscal DatePreviousWeek</value>
+    <comment>table [Date] column [Fiscal DatePreviousWeek]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.3a9fc641-b159-4d08-a0c0-70395a545c3d.caption" xml:space="preserve">
+    <value>Fiscal DatePreviousMonth</value>
+    <comment>table [Date] column [Fiscal DatePreviousMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.f058d87e-2d73-406b-a8de-4edce63b12d1.caption" xml:space="preserve">
+    <value>Fiscal DatePreviousQuarter</value>
+    <comment>table [Date] column [Fiscal DatePreviousQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.dffc3d11-e452-4a61-9087-18624b2f19bd.caption" xml:space="preserve">
+    <value>Fiscal DatePreviousYear</value>
+    <comment>table [Date] column [Fiscal DatePreviousYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.e5bb7dc1-a82f-4337-8347-0c305234643d.caption" xml:space="preserve">
+    <value>FW Year</value>
+    <comment>table [Date] column [FW Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.1b02bdf0-6dcd-4e9f-a2ce-5780b85a94f0.caption" xml:space="preserve">
+    <value>FW Quarter</value>
+    <comment>table [Date] column [FW Quarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.f73b6498-eb62-418a-b4c2-1ab441d4c68a.caption" xml:space="preserve">
+    <value>FW Quarter Year</value>
+    <comment>table [Date] column [FW Quarter Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.0b168a36-1e0a-474b-b7e3-508defdfa478.caption" xml:space="preserve">
+    <value>FW Month</value>
+    <comment>table [Date] column [FW Month]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.5f4e82bb-3004-4396-af72-99d5561cff77.caption" xml:space="preserve">
+    <value>FW Month Year</value>
+    <comment>table [Date] column [FW Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.af7b36e5-63ad-4db7-a4bf-665a763d6440.caption" xml:space="preserve">
+    <value>FW Week</value>
+    <comment>table [Date] column [FW Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.ec078cdc-78d4-46fc-b434-621ae1d110fa.caption" xml:space="preserve">
+    <value>FW Period</value>
+    <comment>table [Date] column [FW Period]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.26d51c51-e500-496f-99b8-f918507de320.caption" xml:space="preserve">
+    <value>FW Week Year</value>
+    <comment>table [Date] column [FW Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.0ca444a7-a91d-4a88-9b27-32a59088d378.caption" xml:space="preserve">
+    <value>FW StartOfWeek</value>
+    <comment>table [Date] column [FW StartOfWeek]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.36577eca-4f6e-4398-a7e4-93a1cac5ffe2.caption" xml:space="preserve">
+    <value>FW EndOfWeek</value>
+    <comment>table [Date] column [FW EndOfWeek]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.b04200f3-f9fe-4cf8-8c88-db793ee71d4b.caption" xml:space="preserve">
+    <value>FW RelativeWeekPos</value>
+    <comment>table [Date] column [FW RelativeWeekPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.dbb13916-8436-48c2-bcd9-00e5dd687a9e.caption" xml:space="preserve">
+    <value>FW RelativeMonthPos</value>
+    <comment>table [Date] column [FW RelativeMonthPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.9156086f-05f9-4be6-ba8f-973761a7a6ae.caption" xml:space="preserve">
+    <value>FW RelativeQuarterPos</value>
+    <comment>table [Date] column [FW RelativeQuarterPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.c7f466e6-71cc-4f72-b428-f7554e59cfb8.caption" xml:space="preserve">
+    <value>FW RelativeYearPos</value>
+    <comment>table [Date] column [FW RelativeYearPos]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.870e408c-2c75-43e0-9f3d-855401e00d70.caption" xml:space="preserve">
+    <value>FW StartOfMonth</value>
+    <comment>table [Date] column [FW StartOfMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.3d2ead4d-d4d1-4066-8ab7-70f66459bea9.caption" xml:space="preserve">
+    <value>FW EndOfMonth</value>
+    <comment>table [Date] column [FW EndOfMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.f3ac7d84-f44b-43a0-b4f5-b2fd7f615355.caption" xml:space="preserve">
+    <value>FW StartOfQuarter</value>
+    <comment>table [Date] column [FW StartOfQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.0b32a80c-7090-494c-ab41-d7fb4af7bb36.caption" xml:space="preserve">
+    <value>FW EndOfQuarter</value>
+    <comment>table [Date] column [FW EndOfQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.61295234-48e8-4677-ab9e-86c97ae20948.caption" xml:space="preserve">
+    <value>FW StartOfYear</value>
+    <comment>table [Date] column [FW StartOfYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.3db9ec7b-9a18-40e8-afea-78f74c97599d.caption" xml:space="preserve">
+    <value>FW EndOfYear</value>
+    <comment>table [Date] column [FW EndOfYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.7d5df2ce-1ba0-4953-8d59-6a2ca84a75fc.caption" xml:space="preserve">
+    <value>FW MonthDays</value>
+    <comment>table [Date] column [FW MonthDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.d92d0cff-3aa4-4ce2-a040-230985e66714.caption" xml:space="preserve">
+    <value>FW QuarterDays</value>
+    <comment>table [Date] column [FW QuarterDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.532c07de-71d3-4fbc-ba5e-19afbfdb74ec.caption" xml:space="preserve">
+    <value>FW YearDays</value>
+    <comment>table [Date] column [FW YearDays]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.c24e5b04-25b4-4a2f-84c2-327ec9e9152b.caption" xml:space="preserve">
+    <value>FW DatePreviousWeek</value>
+    <comment>table [Date] column [FW DatePreviousWeek]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.d4179f50-2189-4248-9998-c61ad551cc9c.caption" xml:space="preserve">
+    <value>FW DatePreviousMonth</value>
+    <comment>table [Date] column [FW DatePreviousMonth]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.889095a0-62e7-4098-8867-84f8591b043b.caption" xml:space="preserve">
+    <value>FW DatePreviousQuarter</value>
+    <comment>table [Date] column [FW DatePreviousQuarter]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.e495905e-97ec-4688-be52-7eba430183d4.caption" xml:space="preserve">
+    <value>FW DatePreviousYear</value>
+    <comment>table [Date] column [FW DatePreviousYear]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.0250eb45-4fb7-4428-a24d-6093ee9f7afd.caption" xml:space="preserve">
+    <value>Holiday Name</value>
+    <comment>table [Date] column [Holiday Name]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.column.b5a76578-00fc-4cbe-bcac-71692f5c8245.caption" xml:space="preserve">
+    <value>IsWorkingDay</value>
+    <comment>table [Date] column [IsWorkingDay]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.b77745b4-11f8-4f34-a8bc-d4d8505ef7c1.caption" xml:space="preserve">
+    <value>Fiscal Year-Month</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.b77745b4-11f8-4f34-a8bc-d4d8505ef7c1.level.1edf9cac-45ba-47d3-aa20-14d84fefdbfb" xml:space="preserve">
+    <value>Fiscal Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.b77745b4-11f8-4f34-a8bc-d4d8505ef7c1.level.5c945e81-bb27-4fd2-9a04-c23381bce93c" xml:space="preserve">
+    <value>Fiscal Month Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.c0d0d3b0-0651-4101-8600-d9ebc7d60476.caption" xml:space="preserve">
+    <value>Fiscal Year-Month-Week</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.c0d0d3b0-0651-4101-8600-d9ebc7d60476.level.44542741-baab-49ba-ad2b-f1aa69081a8e" xml:space="preserve">
+    <value>Fiscal Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.c0d0d3b0-0651-4101-8600-d9ebc7d60476.level.0e4e108c-dff2-43a8-bf47-fd6438d32bff" xml:space="preserve">
+    <value>Fiscal Month Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.c0d0d3b0-0651-4101-8600-d9ebc7d60476.level.171e4c6e-c1be-4775-a9bf-dfa09f05e5c8" xml:space="preserve">
+    <value>Fiscal Week Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fdc0e7fd-756d-46da-b720-b4b6e91d36e8.caption" xml:space="preserve">
+    <value>Fiscal Year-Quarter-Month-Week</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fdc0e7fd-756d-46da-b720-b4b6e91d36e8.level.69406e62-f8ed-4481-a50d-a4cc053c91ba" xml:space="preserve">
+    <value>Fiscal Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fdc0e7fd-756d-46da-b720-b4b6e91d36e8.level.8115d449-b94a-42e4-af99-41de535281b3" xml:space="preserve">
+    <value>Fiscal Quarter Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fdc0e7fd-756d-46da-b720-b4b6e91d36e8.level.fe9ca907-0840-43ee-9502-3df82bc2c982" xml:space="preserve">
+    <value>Fiscal Month Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fdc0e7fd-756d-46da-b720-b4b6e91d36e8.level.08603833-3227-4d11-8b0f-a6c73c386a48" xml:space="preserve">
+    <value>Fiscal Week Year</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.b3c3cfe4-3ff2-4736-bec2-d1d52bbc2efa.caption" xml:space="preserve">
+    <value>Calendar Year-Month</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.b3c3cfe4-3ff2-4736-bec2-d1d52bbc2efa.level.51f384fe-7d28-42a1-abe9-742987edcc80" xml:space="preserve">
+    <value>Calendar Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.b3c3cfe4-3ff2-4736-bec2-d1d52bbc2efa.level.9915bc69-9fee-4b8f-b1fc-8fec88ef2b3d" xml:space="preserve">
+    <value>Calendar Month Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.4cc2c18d-12b5-4fe6-9112-dcc7871405d8.caption" xml:space="preserve">
+    <value>Calendar Year-Month-Week</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.4cc2c18d-12b5-4fe6-9112-dcc7871405d8.level.e20347a6-f956-4515-9b6e-e659ff871f47" xml:space="preserve">
+    <value>Calendar Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.4cc2c18d-12b5-4fe6-9112-dcc7871405d8.level.11853fcd-60e9-4d91-85e8-7cbc9588d96c" xml:space="preserve">
+    <value>Calendar Month Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.4cc2c18d-12b5-4fe6-9112-dcc7871405d8.level.0b956de9-324a-4d98-b08d-d0c8896495c5" xml:space="preserve">
+    <value>Calendar Week Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.1a3f1f64-1636-42c7-8f70-d499f9a25994.caption" xml:space="preserve">
+    <value>Calendar Year-Quarter-Month-Week</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.1a3f1f64-1636-42c7-8f70-d499f9a25994.level.c26f0d94-c543-4312-be68-a687d4a97342" xml:space="preserve">
+    <value>Calendar Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.1a3f1f64-1636-42c7-8f70-d499f9a25994.level.4bcc4691-359f-4363-bd91-f365fc2a18c8" xml:space="preserve">
+    <value>Calendar Week Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.1a3f1f64-1636-42c7-8f70-d499f9a25994.level.0b653c93-5f32-4aad-9dc5-b9c0743ebf76" xml:space="preserve">
+    <value>Calendar Quarter Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Quarter Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.1a3f1f64-1636-42c7-8f70-d499f9a25994.level.68b52e41-787e-4e24-b025-d2b634c531ce" xml:space="preserve">
+    <value>Calendar Month Year</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.5fffa60f-d462-4290-ab66-8cb0a9c60dbe.caption" xml:space="preserve">
+    <value>FW Year-Week</value>
+    <comment>table [Date] hierarchy [FW Year-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.5fffa60f-d462-4290-ab66-8cb0a9c60dbe.level.1fbff089-05b0-450f-9f86-79e196023399" xml:space="preserve">
+    <value>FW Year</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.5fffa60f-d462-4290-ab66-8cb0a9c60dbe.level.e5f043c9-5eec-4c17-b965-88606d42a499" xml:space="preserve">
+    <value>FW Week Year</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.37d8fb22-5f8a-4dab-aad2-a43f76e37b91.caption" xml:space="preserve">
+    <value>FW Year-Month-Week</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.37d8fb22-5f8a-4dab-aad2-a43f76e37b91.level.8c8831fa-df93-4c0e-bd4b-4ea2cf57dd9f" xml:space="preserve">
+    <value>FW Year</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.37d8fb22-5f8a-4dab-aad2-a43f76e37b91.level.1ec81962-d014-4ec0-8de7-6dde285de2ca" xml:space="preserve">
+    <value>FW Month Year</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.37d8fb22-5f8a-4dab-aad2-a43f76e37b91.level.0733b4f6-bfa0-4154-ac8e-f220c1787823" xml:space="preserve">
+    <value>FW Week Year</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fb43048d-c255-4649-a4cd-7bb119e8c8ea.caption" xml:space="preserve">
+    <value>FW Year-Quarter-Week</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fb43048d-c255-4649-a4cd-7bb119e8c8ea.level.afd33699-c407-4118-ae72-c0726b133161" xml:space="preserve">
+    <value>FW Year</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fb43048d-c255-4649-a4cd-7bb119e8c8ea.level.a28347a3-9477-490a-b857-a9f218b127b7" xml:space="preserve">
+    <value>FW Quarter Year</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.fb43048d-c255-4649-a4cd-7bb119e8c8ea.level.135de209-d3a7-43f0-994e-69246c53fb65" xml:space="preserve">
+    <value>FW Week Year</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.8a742a9f-4eb1-471e-ab1c-d23d017ce922.caption" xml:space="preserve">
+    <value>FW Year-Quarter-Month-Week</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.8a742a9f-4eb1-471e-ab1c-d23d017ce922.level.aeb6fad4-5b12-4229-9e1e-771e28b61cb1" xml:space="preserve">
+    <value>FW Year</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.8a742a9f-4eb1-471e-ab1c-d23d017ce922.level.832b766e-d127-4680-a6ec-f28013815a55" xml:space="preserve">
+    <value>FW Quarter Year</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.8a742a9f-4eb1-471e-ab1c-d23d017ce922.level.bb3aceb2-e1e2-4b1a-beb8-dd291d7f844a" xml:space="preserve">
+    <value>FW Month Year</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="87e48220-f379-4b25-a913-72fbad81b9e5.hierarchy.8a742a9f-4eb1-471e-ab1c-d23d017ce922.level.a797549f-11ea-42a2-935a-22ae5b1eb176" xml:space="preserve">
+    <value>FW Week Year</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.caption" xml:space="preserve">
+    <value>Vendor</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.bc7652ca-bb08-4dc5-8f69-fd086d1d730b.caption" xml:space="preserve">
+    <value>Vendor No. &amp; Name</value>
+    <comment>table [Vendor] column [Vendor No. &amp; Name]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.ed900c98-d3c8-4cc7-9f9f-320b895c5d0f.caption" xml:space="preserve">
+    <value>Vendor No.</value>
+    <comment>table [Vendor] column [Vendor No.]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.948bdd29-f52c-4885-b456-33dad5716769.caption" xml:space="preserve">
+    <value>Vendor Name</value>
+    <comment>table [Vendor] column [Vendor Name]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.a4142aa1-4216-43e0-89ff-713632509beb.caption" xml:space="preserve">
+    <value>Vendor Address</value>
+    <comment>table [Vendor] column [Vendor Address]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.9d11932f-0bc0-4ac4-ae10-5e469d2d4ca1.caption" xml:space="preserve">
+    <value>Vendor Address 2</value>
+    <comment>table [Vendor] column [Vendor Address 2]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.20260214-dcd2-489b-82d7-c89959fa3431.caption" xml:space="preserve">
+    <value>Vendor City</value>
+    <comment>table [Vendor] column [Vendor City]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.00676bb2-f538-4011-9ca4-bc074d658283.caption" xml:space="preserve">
+    <value>Vendor Postcode</value>
+    <comment>table [Vendor] column [Vendor Post Code]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.67ac1138-32c7-46c1-9140-7aa4c5e46f74.caption" xml:space="preserve">
+    <value>Vendor County</value>
+    <comment>table [Vendor] column [Vendor State]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.e26a922c-18d3-41fb-9c37-fb9a1d119796.caption" xml:space="preserve">
+    <value>Vendor Country/Region Code</value>
+    <comment>table [Vendor] column [Vendor Country/Region Code]</comment>
+  </data>
+  <data name="48323306-9d2a-453d-acf9-e0616dd392c7.column.041a38c1-f0f7-442b-be62-9823d2c80bcb.caption" xml:space="preserve">
+    <value>Vendor Posting Group</value>
+    <comment>table [Vendor] column [Vendor Posting Group]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.caption" xml:space="preserve">
+    <value>Item Ledger Entries</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.b0ee5e0c-ae65-476b-aa4a-38650f2b711d.caption" xml:space="preserve">
+    <value>Entry No.</value>
+    <comment>table [Item Ledger Entries] column [Entry No.]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.4797f3f5-c7e7-4053-9c03-c238dbde69f2.caption" xml:space="preserve">
+    <value>Entry Type</value>
+    <comment>table [Item Ledger Entries] column [Entry Type]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.b61f0621-1502-436a-9cd3-93df99669cb3.caption" xml:space="preserve">
+    <value>Expiration Date</value>
+    <comment>table [Item Ledger Entries] column [Expiration Date]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.0383e67f-73cb-4ddc-bb02-7802bf28e649.caption" xml:space="preserve">
+    <value>Open</value>
+    <comment>table [Item Ledger Entries] column [Open]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.4b374619-633f-4519-b728-98e0242d4c38.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Item Ledger Entries] column [Document No.]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.0e47617b-25f2-48dc-bc06-1ed15415920f.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Item Ledger Entries] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.e125168c-59e0-48bc-91e5-a2e4618b5b88.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Item Ledger Entries] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.column.0df3f3de-eb33-402c-acd3-80bf34813556.caption" xml:space="preserve">
+    <value>Document Type</value>
+    <comment>table [Item Ledger Entries] column [Document Type]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.58022b36-d007-4aed-93af-4ea1181b3aa6.caption" xml:space="preserve">
+    <value>Inventory (Quantity)</value>
+    <comment>table [Item Ledger Entries] measure [Inventory (Quantity)]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.de7d4d5e-9944-4a5c-a2b8-c6702b07400f.caption" xml:space="preserve">
+    <value>Remaining Quantity</value>
+    <comment>table [Item Ledger Entries] measure [Remaining Quantity]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.e6ac7c41-073c-4317-831c-25e9c22f4032.caption" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>table [Item Ledger Entries] measure [Quantity]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.de7c3235-4e68-4094-92e3-a50a8b1f92f3.caption" xml:space="preserve">
+    <value>Expired Inventory</value>
+    <comment>table [Item Ledger Entries] measure [Expired Inventory]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.75983cc4-6235-4176-b9ea-2c17724cb44b.caption" xml:space="preserve">
+    <value>Net Qty. Sold</value>
+    <comment>table [Item Ledger Entries] measure [Net Qty. Sold]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.4855f28a-ac56-4c5a-9b7a-3afd58177cb7.caption" xml:space="preserve">
+    <value>Net Qty. Purchased</value>
+    <comment>table [Item Ledger Entries] measure [Net Qty. Purchased]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.161e2361-e7b5-4c35-a79a-2e657318d9b7.caption" xml:space="preserve">
+    <value>Invoiced Quantity</value>
+    <comment>table [Item Ledger Entries] measure [Invoiced Quantity]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.5ce10cd7-9520-4a7c-a650-b492a4dd903b.caption" xml:space="preserve">
+    <value>Base Link</value>
+    <comment>table [Item Ledger Entries] measure [Base Link]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.0db0f775-f0bf-48cf-90ec-7d8a9d901d36.caption" xml:space="preserve">
+    <value>Item Ledger Entries Link (Location Context)</value>
+    <comment>table [Item Ledger Entries] measure [Item Ledger Entries Link (Location Context)]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.fd7edf49-9b06-4d6e-b6bf-693e05b7fc65.caption" xml:space="preserve">
+    <value>Item Ledger Entries Link</value>
+    <comment>table [Item Ledger Entries] measure [Item Ledger Entries Link]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.a5f062eb-a79f-4a50-bfd4-477d6a222994.caption" xml:space="preserve">
+    <value>Item Ledger Entries Lot No Link</value>
+    <comment>table [Item Ledger Entries] measure [Item Ledger Entries Lot No Link]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.1d854284-5407-4c80-b325-9b06a0de6085.caption" xml:space="preserve">
+    <value>Item Ledger Entries Serial No Link</value>
+    <comment>table [Item Ledger Entries] measure [Item Ledger Entries Serial No Link]</comment>
+  </data>
+  <data name="e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d.measure.7230f819-0b0f-4c5c-8170-d0834467bc4f.caption" xml:space="preserve">
+    <value>Quantity (Forecasting)</value>
+    <comment>table [Item Ledger Entries] measure [Quantity (Forecasting)]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.caption" xml:space="preserve">
+    <value>Dimension Sets</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.fd55b0eb-caeb-49f8-b293-d6101b977722.caption" xml:space="preserve">
+    <value>Global Dimension 1</value>
+    <comment>table [Dimension Sets] column [Global Dimension 1]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.ccb6555f-772a-4185-beea-2392f5f97d3f.caption" xml:space="preserve">
+    <value>Global Dimension 2</value>
+    <comment>table [Dimension Sets] column [Global Dimension 2]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.5f74d805-b246-453c-ae1c-92c81adc1fac.caption" xml:space="preserve">
+    <value>Shortcut Dimension 3</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 3]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.79f9944c-ed14-4230-8fd4-da9854a073ef.caption" xml:space="preserve">
+    <value>Shortcut Dimension 4</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 4]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.7c37f522-7835-4e37-9f32-fa0fab647cc0.caption" xml:space="preserve">
+    <value>Shortcut Dimension 5</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 5]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.a2a2f41f-c32e-4425-bedb-feb122933a58.caption" xml:space="preserve">
+    <value>Shortcut Dimension 6</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 6]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.65d8cdc2-4a58-4dfa-a073-2d0056e1f15e.caption" xml:space="preserve">
+    <value>Shortcut Dimension 7</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 7]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.c97f3179-f6ba-4765-9c07-ab267495c309.caption" xml:space="preserve">
+    <value>Shortcut Dimension 8</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 8]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.4d2caa7e-3998-4028-9b4a-881c9a67b469.caption" xml:space="preserve">
+    <value>DEPARTMENT</value>
+    <comment>table [Dimension Sets] column [DEPARTMENT]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.3ac2a901-18b4-484f-9396-e2a79e3ad378.caption" xml:space="preserve">
+    <value>Department Name</value>
+    <comment>table [Dimension Sets] column [Department Name]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.73104306-f7a5-43ef-91c6-d927b08fcf79.caption" xml:space="preserve">
+    <value>CUSTOMERGROUP</value>
+    <comment>table [Dimension Sets] column [CUSTOMERGROUP]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.4b4b0286-7ae6-4044-a488-4364518795aa.caption" xml:space="preserve">
+    <value>Customer Group Name</value>
+    <comment>table [Dimension Sets] column [Customer Group Name]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.76a739b1-c35f-4166-80ab-217978ba2227.caption" xml:space="preserve">
+    <value>SALESPERSON</value>
+    <comment>table [Dimension Sets] column [SALESPERSON]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.231c66bb-c313-47a4-87fa-b87ff41a7dd1.caption" xml:space="preserve">
+    <value>Salesperson Name</value>
+    <comment>table [Dimension Sets] column [Salesperson Name]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.77babcfb-a427-4349-a240-9cf37fee74cf.caption" xml:space="preserve">
+    <value>SALESCAMPAIGN</value>
+    <comment>table [Dimension Sets] column [SALESCAMPAIGN]</comment>
+  </data>
+  <data name="e95872d5-245d-43e9-8030-241257885b47.column.57196348-4f13-4237-b496-ad063e3b5fad.caption" xml:space="preserve">
+    <value>Sales campaign Name</value>
+    <comment>table [Dimension Sets] column [Sales campaign Name]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.caption" xml:space="preserve">
+    <value>Purchase Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.column.010e1c84-eac5-4af6-b632-17d3e5780117.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Purchase Lines] column [Document No.]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.column.eaa16784-86ee-45bf-b2cf-e6762a0cd1fe.caption" xml:space="preserve">
+    <value>Expected Receipt Date</value>
+    <comment>table [Purchase Lines] column [Expected Receipt Date]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.column.d6bcfdc2-e209-4e4d-ad68-514721cdf97f.caption" xml:space="preserve">
+    <value>Document Type</value>
+    <comment>table [Purchase Lines] column [Document Type]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.column.3e7039d0-f20f-4fb8-b9d1-38f8064563a4.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Purchase Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.column.75039692-3057-4ef1-b9b8-de6f5d8c62e8.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Purchase Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.measure.dcf696e6-3e1c-4b0a-9204-792535569ae1.caption" xml:space="preserve">
+    <value>Qty. on Purch. Order</value>
+    <comment>table [Purchase Lines] measure [Qty. on Purch. Order]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.measure.1d71357d-436b-4051-8f3f-e4df98451fec.caption" xml:space="preserve">
+    <value>Qty. on Purch. Return</value>
+    <comment>table [Purchase Lines] measure [Qty. on Purch. Return]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.measure.be638e2c-82ee-4585-a395-798808260369.caption" xml:space="preserve">
+    <value>Purchase Return - Earliest Expected Receipt Date</value>
+    <comment>table [Purchase Lines] measure [Purchase Return - Earliest Expected Receipt Date]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.measure.038490e0-2bf5-468f-bd13-27541406b081.caption" xml:space="preserve">
+    <value>Purchase Order - Earliest Expected Receipt Date</value>
+    <comment>table [Purchase Lines] measure [Purchase Order - Earliest Expected Receipt Date]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.measure.de410091-38b3-4d67-bcdb-d206f804793c.caption" xml:space="preserve">
+    <value>Purchase Order Quantity Link</value>
+    <comment>table [Purchase Lines] measure [Purchase Order Quantity Link]</comment>
+  </data>
+  <data name="cee0c6aa-d784-461b-95a7-aa94750809c3.measure.8e2e9ce7-f6ac-4042-b54d-7e3bc891641a.caption" xml:space="preserve">
+    <value>Purchase Return Order Quantity Link</value>
+    <comment>table [Purchase Lines] measure [Purchase Return Order Quantity Link]</comment>
+  </data>
+  <data name="c0850189-da8a-451a-a81f-9601baf6f42e.caption" xml:space="preserve">
+    <value>Zone</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="c0850189-da8a-451a-a81f-9601baf6f42e.column.b90e7acf-9d25-476c-9597-0aae1383f015.caption" xml:space="preserve">
+    <value>Zone Description</value>
+    <comment>table [Zone] column [Zone Description]</comment>
+  </data>
+  <data name="c0850189-da8a-451a-a81f-9601baf6f42e.column.5da3b3b3-216f-4cfe-9780-c974b2db1a1d.caption" xml:space="preserve">
+    <value>Zone Bin Type Code</value>
+    <comment>table [Zone] column [Zone Bin Type Code]</comment>
+  </data>
+  <data name="c0850189-da8a-451a-a81f-9601baf6f42e.column.d4dc5107-f617-4f96-9ad2-710af62b587a.caption" xml:space="preserve">
+    <value>Zone Code</value>
+    <comment>table [Zone] column [Zone Code]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.caption" xml:space="preserve">
+    <value>Bin</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.column.626e5642-9fb5-40f5-a779-8851482d8b8e.caption" xml:space="preserve">
+    <value>Bin Description</value>
+    <comment>table [Bin] column [Bin Description]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.column.e64b393d-90c4-49c4-8df3-308f863bf7d2.caption" xml:space="preserve">
+    <value>Bin Type Code</value>
+    <comment>table [Bin] column [Bin Type Code]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.column.989c68e4-1501-4e53-8893-f1715cf1cdf2.caption" xml:space="preserve">
+    <value>Bin Code</value>
+    <comment>table [Bin] column [Bin Code]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.column.d246fa2f-cd43-4d0a-bf41-2070cd0e0dd6.caption" xml:space="preserve">
+    <value>Adjustment Bin</value>
+    <comment>table [Bin] column [Adjustment Bin]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.column.b27650e8-c8ce-4c8f-952d-84bdb63b26d2.caption" xml:space="preserve">
+    <value>Bin Zone Code</value>
+    <comment>table [Bin] column [Bin Zone Code]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.0b9df803-8416-40c2-86af-ea45496a0ac9.caption" xml:space="preserve">
+    <value>Available Qty. to Take</value>
+    <comment>table [Bin] measure [Available Qty. to Take]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.d58b3154-c046-47de-85a7-603b30f92bd3.caption" xml:space="preserve">
+    <value>Quantity in Adjustment Bin</value>
+    <comment>table [Bin] measure [Quantity in Adjustment Bin]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.deb1052a-437e-4c8b-a1d5-c9d0009c58f9.caption" xml:space="preserve">
+    <value>Positive Adjmt. Qty. (Base)</value>
+    <comment>table [Bin] measure [Positive Adjmt. Qty. (Base)]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.0970e4c3-c122-4bb8-849f-a29c987033a1.caption" xml:space="preserve">
+    <value>Negative Adjmt. Qty. (Base)</value>
+    <comment>table [Bin] measure [Negative Adjmt. Qty. (Base)]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.cd751454-b225-45e1-af64-e33a75754419.caption" xml:space="preserve">
+    <value>Warehouse Quantity</value>
+    <comment>table [Bin] measure [Warehouse Quantity]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.e6f664f2-be20-4ef4-904a-96d70792f9c6.caption" xml:space="preserve">
+    <value>ATO Components Pick Qty.</value>
+    <comment>table [Bin] measure [ATO Components Pick Qty.]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.00e809fc-6d62-4cad-9f76-8d2c9811d331.caption" xml:space="preserve">
+    <value>Put-away Quantity (Base)</value>
+    <comment>table [Bin] measure [Put-away Quantity (Base)]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.c2bb1b06-1432-4a81-a9a1-b97060301307.caption" xml:space="preserve">
+    <value>Pick Quantity (Base)</value>
+    <comment>table [Bin] measure [Pick Quantity (Base)]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.0d8d0644-43c7-4675-bbc9-c23b96954f4c.caption" xml:space="preserve">
+    <value>Warehouse Entries Link</value>
+    <comment>table [Bin] measure [Warehouse Entries Link]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.37053bd0-f109-4bb0-a5ee-8d0351d2cc82.caption" xml:space="preserve">
+    <value>Pick Quantity Link</value>
+    <comment>table [Bin] measure [Pick Quantity Link]</comment>
+  </data>
+  <data name="1f87b7f3-9737-4264-b80c-47ff181ba603.measure.7982ebca-d5e6-4981-8626-7925caaabf6c.caption" xml:space="preserve">
+    <value>Warehouse Journal Link</value>
+    <comment>table [Bin] measure [Warehouse Journal Link]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.caption" xml:space="preserve">
+    <value>Sales Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.column.8b5489fb-b79d-4892-bc6e-02a8a6133268.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Sales Lines] column [Document No.]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.column.988e3146-9afa-447a-b7bb-bb81f93fc420.caption" xml:space="preserve">
+    <value>Shipment Date</value>
+    <comment>table [Sales Lines] column [Shipment Date]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.column.f66ef470-32a6-4702-879f-f9a309a52a62.caption" xml:space="preserve">
+    <value>Document Type</value>
+    <comment>table [Sales Lines] column [Document Type]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.column.6bc48eae-ef1f-4407-bea5-465e18983687.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Sales Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.column.9e85b6d8-f629-4e17-9bb0-7d0a97af44ef.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Sales Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.measure.b661850d-dbe5-4ee0-9d3c-1cbf6f432dc0.caption" xml:space="preserve">
+    <value>Qty. on Sales Order</value>
+    <comment>table [Sales Lines] measure [Qty. on Sales Order]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.measure.7c05a748-1695-43e8-ab0e-7c08fe8d7e7f.caption" xml:space="preserve">
+    <value>Qty. on Sales Return Order</value>
+    <comment>table [Sales Lines] measure [Qty. on Sales Return Order]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.measure.333d8eda-40d7-4858-9c75-7ed23f3899e3.caption" xml:space="preserve">
+    <value>Sales Order - Earliest Shipment Date</value>
+    <comment>table [Sales Lines] measure [Sales Order - Earliest Shipment Date]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.measure.21790e32-2cfa-4fc1-8ff8-b4d2adf86464.caption" xml:space="preserve">
+    <value>Sales Retrun Order - Earliest Shipment Date</value>
+    <comment>table [Sales Lines] measure [Sales Retrun Order - Earliest Shipment Date]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.measure.717f4d77-4e83-4aaf-8df1-8fc0fc408401.caption" xml:space="preserve">
+    <value>Sales Order Line Link</value>
+    <comment>table [Sales Lines] measure [Sales Order Line Link]</comment>
+  </data>
+  <data name="0570f05a-7137-4ca8-b176-08767ce05397.measure.d051088a-53de-4963-883d-6c6c34714bcf.caption" xml:space="preserve">
+    <value>Sales Return Order Line Link</value>
+    <comment>table [Sales Lines] measure [Sales Return Order Line Link]</comment>
+  </data>
+  <data name="7d81e3fd-34b3-4f54-b13a-0f99ba6433c4.caption" xml:space="preserve">
+    <value>Assembly Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="7d81e3fd-34b3-4f54-b13a-0f99ba6433c4.column.570412f1-a5e9-4dbc-863e-b7b39b99832f.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Assembly Lines] column [Document No.]</comment>
+  </data>
+  <data name="7d81e3fd-34b3-4f54-b13a-0f99ba6433c4.column.38128ffa-0fc0-4468-8d59-f919621e0d75.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Assembly Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="7d81e3fd-34b3-4f54-b13a-0f99ba6433c4.column.c3ac9ee0-7398-46f2-81e6-e7314154c6fe.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Assembly Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="7d81e3fd-34b3-4f54-b13a-0f99ba6433c4.measure.d8011d99-a8e8-43ce-8e65-8294c58b592e.caption" xml:space="preserve">
+    <value>Qty. on Asm. Component</value>
+    <comment>table [Assembly Lines] measure [Qty. on Asm. Component]</comment>
+  </data>
+  <data name="7d81e3fd-34b3-4f54-b13a-0f99ba6433c4.measure.af11dfab-bd3e-4de6-a139-07460dc93270.caption" xml:space="preserve">
+    <value>Assembly Lines - Earliest Due Date</value>
+    <comment>table [Assembly Lines] measure [Assembly Lines - Earliest Due Date]</comment>
+  </data>
+  <data name="7d81e3fd-34b3-4f54-b13a-0f99ba6433c4.measure.19f9d473-1224-45dd-b93a-54bda8096b7f.caption" xml:space="preserve">
+    <value>Assembly Line Quantity Link</value>
+    <comment>table [Assembly Lines] measure [Assembly Line Quantity Link]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.caption" xml:space="preserve">
+    <value>Assembly Headers</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.column.6863de4f-ee6c-4186-8b44-06f83d32c322.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Assembly Headers] column [Document No.]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.column.44a63a96-a774-4f04-b8a8-b5eec560de8a.caption" xml:space="preserve">
+    <value>Status</value>
+    <comment>table [Assembly Headers] column [Status]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.column.87233701-7fe1-4b19-b352-f3da2665dece.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Assembly Headers] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.column.90656d10-5a7f-4bdf-a9a4-9317cb66bf23.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Assembly Headers] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.measure.7d4f1739-96b1-40d6-8753-fd6f0079157a.caption" xml:space="preserve">
+    <value>Qty. on Assembly Order</value>
+    <comment>table [Assembly Headers] measure [Qty. on Assembly Order]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.measure.f75a585a-0d6c-4e92-ae68-0514c4e0faae.caption" xml:space="preserve">
+    <value>Assembly Order - Earliest Due Date</value>
+    <comment>table [Assembly Headers] measure [Assembly Order - Earliest Due Date]</comment>
+  </data>
+  <data name="519ca779-e2ae-4120-b588-d3f360743dcf.measure.3d92849b-6824-4e15-901a-75d98078471d.caption" xml:space="preserve">
+    <value>Assembly Order Quantity Link</value>
+    <comment>table [Assembly Headers] measure [Assembly Order Quantity Link]</comment>
+  </data>
+  <data name="782ba269-8b95-4360-9a25-53f557b2d1b3.caption" xml:space="preserve">
+    <value>Project Planning Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="782ba269-8b95-4360-9a25-53f557b2d1b3.column.f984793e-52b1-4701-81f4-e73d9b90e1be.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Project Planning Lines] column [Document No.]</comment>
+  </data>
+  <data name="782ba269-8b95-4360-9a25-53f557b2d1b3.column.e5b136c3-d6f2-4859-b698-2985a6c7ba20.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Project Planning Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="782ba269-8b95-4360-9a25-53f557b2d1b3.column.7b871f16-cf68-4678-b5a7-3ecde3372c46.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Project Planning Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="782ba269-8b95-4360-9a25-53f557b2d1b3.measure.49a33d4b-0153-4221-9d06-649199b718c7.caption" xml:space="preserve">
+    <value>Qty. on Projects</value>
+    <comment>table [Project Planning Lines] measure [Qty. on Projects]</comment>
+  </data>
+  <data name="782ba269-8b95-4360-9a25-53f557b2d1b3.measure.4d1ead4c-da01-4e4b-86b0-fd5a1dc3cc99.caption" xml:space="preserve">
+    <value>Project Planning - Earliest Planning Date</value>
+    <comment>table [Project Planning Lines] measure [Project Planning - Earliest Planning Date]</comment>
+  </data>
+  <data name="782ba269-8b95-4360-9a25-53f557b2d1b3.measure.9469fbd0-0d17-444b-af4c-9772a71e60d0.caption" xml:space="preserve">
+    <value>Planning Line Link</value>
+    <comment>table [Project Planning Lines] measure [Planning Line Link]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.caption" xml:space="preserve">
+    <value>Production Order Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.column.38c036ff-4b81-49a6-9926-9c564236a804.caption" xml:space="preserve">
+    <value>Status</value>
+    <comment>table [Production Order Lines] column [Status]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.column.b7769d34-580f-4582-94de-dc5c4b40ecdb.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Production Order Lines] column [Document No.]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.column.7ea712b7-22ef-4a34-a1ad-143cd0e8c9c0.caption" xml:space="preserve">
+    <value>Starting Date</value>
+    <comment>table [Production Order Lines] column [Starting Date]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.column.b8e67fc3-2e5f-47b6-93bc-f15a64168155.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Production Order Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.column.e525f468-a815-4f9e-8116-ee7298a8d07c.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Production Order Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.measure.b89c5e4f-ca57-4827-98d7-ca7c2cac63b8.caption" xml:space="preserve">
+    <value>Qty. on Prod. Order</value>
+    <comment>table [Production Order Lines] measure [Qty. on Prod. Order]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.measure.9328dd1a-b11b-431c-9158-bf64585b6355.caption" xml:space="preserve">
+    <value>FP Order Receipt (Qty.)</value>
+    <comment>table [Production Order Lines] measure [FP Order Receipt (Qty.)]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.measure.aec8ea14-0439-4062-9b88-cc5783dab4a2.caption" xml:space="preserve">
+    <value>Rel. Order Receipt (Qty.)</value>
+    <comment>table [Production Order Lines] measure [Rel. Order Receipt (Qty.)]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.measure.f9fe93b3-f193-4c82-a08f-27acb359520f.caption" xml:space="preserve">
+    <value>Scheduled Receipt (Qty.)</value>
+    <comment>table [Production Order Lines] measure [Scheduled Receipt (Qty.)]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.measure.67fb01ec-8895-481a-82c2-194426b57c73.caption" xml:space="preserve">
+    <value>FP Order - Earliest Due Date</value>
+    <comment>table [Production Order Lines] measure [FP Order - Earliest Due Date]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.measure.428731e7-843e-4e0f-ad60-a8edd416cc1b.caption" xml:space="preserve">
+    <value>Rel. Order - Earliest Due Date</value>
+    <comment>table [Production Order Lines] measure [Rel. Order - Earliest Due Date]</comment>
+  </data>
+  <data name="afb87419-2fd4-4375-b8cc-e15d781cfb3a.measure.8dc26dce-99b5-4e87-a429-f9d531b4729e.caption" xml:space="preserve">
+    <value>Production Order Link</value>
+    <comment>table [Production Order Lines] measure [Production Order Link]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.caption" xml:space="preserve">
+    <value>Prod Order Component Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.column.f318eeca-bc42-432c-9172-cc194e5bfce0.caption" xml:space="preserve">
+    <value>Status</value>
+    <comment>table [Prod Order Component Lines] column [Status]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.column.2a64e6a2-5e34-470f-afcc-60659e394aad.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Prod Order Component Lines] column [Document No.]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.column.f86291cf-557e-4ed7-89fb-ec579618c12b.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Prod Order Component Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.column.47b928ee-117a-41b5-a951-353717d0f8f8.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Prod Order Component Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.measure.8774369e-8d7e-4203-8f5b-333410f29844.caption" xml:space="preserve">
+    <value>Qty. on Prod. Order Comp. Lines</value>
+    <comment>table [Prod Order Component Lines] measure [Qty. on Prod. Order Comp. Lines]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.measure.9e5e0eda-d609-471c-a142-6d8a1eae7c2b.caption" xml:space="preserve">
+    <value>Prod. Order Comp. Lines - Earliest Due Date</value>
+    <comment>table [Prod Order Component Lines] measure [Prod. Order Comp. Lines - Earliest Due Date]</comment>
+  </data>
+  <data name="ebf006cc-52f0-41f1-9fec-c3dc7fb39597.measure.82762de4-408f-4bff-a747-373f8f8a9616.caption" xml:space="preserve">
+    <value>Prod. Order Components Link</value>
+    <comment>table [Prod Order Component Lines] measure [Prod. Order Components Link]</comment>
+  </data>
+  <data name="5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f.caption" xml:space="preserve">
+    <value>Service Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f.column.09b51987-7b07-4e9c-83fe-3e221e709ce3.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Service Lines] column [Document No.]</comment>
+  </data>
+  <data name="5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f.column.3a1632d7-29dd-48f8-a715-4f404bcebbbc.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Service Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f.column.058075f3-f480-4c41-82a1-f4e22ab3910a.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Service Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f.measure.c976008c-d2d4-4c25-b198-204f4ef163cd.caption" xml:space="preserve">
+    <value>Qty. on Service Order</value>
+    <comment>table [Service Lines] measure [Qty. on Service Order]</comment>
+  </data>
+  <data name="5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f.measure.ab174953-d991-40a7-a873-82f68eea5c18.caption" xml:space="preserve">
+    <value>Service Lines - Earliest Needed by Date</value>
+    <comment>table [Service Lines] measure [Service Lines - Earliest Needed by Date]</comment>
+  </data>
+  <data name="5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f.measure.d78656af-d260-4205-a5b7-fd3471197afa.caption" xml:space="preserve">
+    <value>Service Order Link</value>
+    <comment>table [Service Lines] measure [Service Order Link]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.caption" xml:space="preserve">
+    <value>Transfer Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.description" xml:space="preserve">
+    <value>Specifies the quantity of the items that remains to be received but are not yet shipped as the difference between the Quantity and the Quantity Shipped fields.</value>
+    <comment>table [Transfer Lines]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.d9fd7223-2aac-4889-b15b-2055cb6bdaa3.caption" xml:space="preserve">
+    <value>Document No.</value>
+    <comment>table [Transfer Lines] column [Document No.]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.aa6c1a25-37bc-4e21-bfc7-2455d359ed69.caption" xml:space="preserve">
+    <value>Receipt Date</value>
+    <comment>table [Transfer Lines] column [Receipt Date]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.0d5bcb54-48ec-4b8d-9080-5dc132f161f6.caption" xml:space="preserve">
+    <value>Transfer To Location Code</value>
+    <comment>table [Transfer Lines] column [Transfer To Location Code]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.88ba6f86-966d-4f6b-ad62-9e2cc6eb1d5a.caption" xml:space="preserve">
+    <value>Transfer From Location Code</value>
+    <comment>table [Transfer Lines] column [Transfer From Location Code]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.b276cf0d-e2bd-42ff-af93-4c5310b6cc91.caption" xml:space="preserve">
+    <value>Shipment Date</value>
+    <comment>table [Transfer Lines] column [Shipment Date]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.06c60dec-3195-4248-bc3b-c38953653047.caption" xml:space="preserve">
+    <value>In Transit Location Code</value>
+    <comment>table [Transfer Lines] column [In Transit Location Code]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.849e147b-0ea8-4288-8da9-73a57e28b657.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Transfer Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.column.a685d3d8-c6bd-4ed3-959a-2cab6651caad.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Transfer Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.measure.b58903be-f152-48eb-a9df-a19d8e04e72f.caption" xml:space="preserve">
+    <value>Qty. in Transit</value>
+    <comment>table [Transfer Lines] measure [Qty. in Transit]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.measure.9d180063-eff9-4605-982c-9d1ed839acf8.caption" xml:space="preserve">
+    <value>Trans. Order Shipment (Qty.)</value>
+    <comment>table [Transfer Lines] measure [Trans. Order Shipment (Qty.)]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.measure.c0b5929b-320c-4e19-9fb0-eaf929bce46e.caption" xml:space="preserve">
+    <value>Trans. Order Receipt (Qty.)</value>
+    <comment>table [Transfer Lines] measure [Trans. Order Receipt (Qty.)]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.measure.05ee7d44-b900-404c-be31-9cf6bb00ec57.caption" xml:space="preserve">
+    <value>Trans. Order Outstanding Qty.</value>
+    <comment>table [Transfer Lines] measure [Trans. Order Outstanding Qty.]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.measure.acebe7d7-70c8-4efe-8386-40e8cd22f358.caption" xml:space="preserve">
+    <value>Trans. Order Shipment - Earliest Shipment Date</value>
+    <comment>table [Transfer Lines] measure [Trans. Order Shipment - Earliest Shipment Date]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.measure.996e99e1-e22b-4095-a8e0-5e4aa4981a5a.caption" xml:space="preserve">
+    <value>Trans. Order Receipt - Earliest Receipt Date</value>
+    <comment>table [Transfer Lines] measure [Trans. Order Receipt - Earliest Receipt Date]</comment>
+  </data>
+  <data name="05e61295-ab37-41ec-8a54-57bb16afad6c.measure.68ec7ae9-c366-436b-98d3-8638a543c464.caption" xml:space="preserve">
+    <value>Transfer Lines Quantity Link</value>
+    <comment>table [Transfer Lines] measure [Transfer Lines Quantity Link]</comment>
+  </data>
+  <data name="ba48597c-918b-4219-a1c3-b1ac010b1a08.caption" xml:space="preserve">
+    <value>Planning Component Lines</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="ba48597c-918b-4219-a1c3-b1ac010b1a08.column.cae85a8f-3404-49b5-8602-8372b1eeeb12.caption" xml:space="preserve">
+    <value>Quantity Per Unit of Measure</value>
+    <comment>table [Planning Component Lines] column [Quantity Per Unit of Measure]</comment>
+  </data>
+  <data name="ba48597c-918b-4219-a1c3-b1ac010b1a08.column.cb5fc5db-c62a-4745-893e-a9fddb0103ed.caption" xml:space="preserve">
+    <value>Unit of Measure Code</value>
+    <comment>table [Planning Component Lines] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="ba48597c-918b-4219-a1c3-b1ac010b1a08.measure.5c1c9ce1-05c5-4a16-8c7d-0e2e645fbbe0.caption" xml:space="preserve">
+    <value>Planning Issues (Qty.)</value>
+    <comment>table [Planning Component Lines] measure [Planning Issues (Qty.)]</comment>
+  </data>
+  <data name="ba48597c-918b-4219-a1c3-b1ac010b1a08.measure.e9dde9d8-93a8-42f0-8213-7ad8376925ee.caption" xml:space="preserve">
+    <value>Planning Issues - Earliest Due Date</value>
+    <comment>table [Planning Component Lines] measure [Planning Issues - Earliest Due Date]</comment>
+  </data>
+  <data name="1c33adda-4650-4f65-88ee-62bddc51d6a1.caption" xml:space="preserve">
+    <value>Item Availability Filter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="1c33adda-4650-4f65-88ee-62bddc51d6a1.column.c0eaecca-323d-466a-b2b6-f1b8db3a1e6f.caption" xml:space="preserve">
+    <value>View As</value>
+    <comment>table [Item Availability Filter] column [View As]</comment>
+  </data>
+  <data name="1c33adda-4650-4f65-88ee-62bddc51d6a1.column.cdc5d653-e209-485a-92cb-e12c2abf1d21.caption" xml:space="preserve">
+    <value>Ordinal</value>
+    <comment>table [Item Availability Filter] column [Ordinal]</comment>
+  </data>
+  <data name="4475260a-16ae-496f-ba47-f03a5bf56b10.caption" xml:space="preserve">
+    <value>Lot No</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="4475260a-16ae-496f-ba47-f03a5bf56b10.column.026700c8-9192-4f57-8a62-ed79774ff3d1.caption" xml:space="preserve">
+    <value>Lot No.</value>
+    <comment>table [Lot No] column [Lot No.]</comment>
+  </data>
+  <data name="89e99e89-7df8-4afe-975d-5300e1a334bc.caption" xml:space="preserve">
+    <value>Serial No</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="89e99e89-7df8-4afe-975d-5300e1a334bc.column.772d3b03-73f0-4d6e-9c15-f2b76d839906.caption" xml:space="preserve">
+    <value>Serial No.</value>
+    <comment>table [Serial No] column [Serial No.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.40a209eb-152c-4485-a6d0-606365e45fe3.caption" xml:space="preserve">
+    <value>My Report Title</value>
+    <comment>table [Localized Labels] measure [My Report Title]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.1aafd251-11be-415e-8c24-f840bd57fb01.caption" xml:space="preserve">
+    <value>My Button Caption</value>
+    <comment>table [Localized Labels] measure [My Button Caption]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.ad7e9846-a22e-4de8-9e2a-c930e4fd7381.caption" xml:space="preserve">
+    <value>My Visual Title</value>
+    <comment>table [Localized Labels] measure [My Visual Title]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.bd3f8bcd-9d78-469c-9881-838207b144c5.caption" xml:space="preserve">
+    <value>Inventory Overview</value>
+    <comment>table [Localized Labels] measure [Inventory Overview]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.a28082cb-f86d-4a12-8c7a-0a7ffb1ee6cf.caption" xml:space="preserve">
+    <value>Inventory and Projected Available Balance</value>
+    <comment>table [Localized Labels] measure [Inventory and Projected Available Balance]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.dbb442e4-15b3-42d3-ac3b-fe4eed0f3321.caption" xml:space="preserve">
+    <value>Availability Outlook</value>
+    <comment>table [Localized Labels] measure [Availability Outlook]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.8dd59990-8a65-429f-a77f-dfe704992433.caption" xml:space="preserve">
+    <value>Inventory by Item</value>
+    <comment>table [Localized Labels] measure [Inventory by Item]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.5e6c5407-ae4f-4a05-80d4-4eb720e671f1.caption" xml:space="preserve">
+    <value>Inventory by Location</value>
+    <comment>table [Localized Labels] measure [Inventory by Location]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.9c861a82-562d-4ac8-943f-8b6c4aba7597.caption" xml:space="preserve">
+    <value>Inventory on Hand by Location</value>
+    <comment>table [Localized Labels] measure [Inventory on Hand by Location]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.4802cd8a-e484-46c8-a3a2-df043c8e50a9.caption" xml:space="preserve">
+    <value>Purchase and Sales Quantity</value>
+    <comment>table [Localized Labels] measure [Purchase and Sales Quantity]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.1d210f27-f363-4527-896c-b2cb3560bc2d.caption" xml:space="preserve">
+    <value>Item Availability</value>
+    <comment>table [Localized Labels] measure [Item Availability]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.5cc6fada-d6da-4f1f-b517-2a8036524d15.caption" xml:space="preserve">
+    <value>Projected Available Balance vs. Quantity on Hand</value>
+    <comment>table [Localized Labels] measure [Projected Available Balance vs. Quantity on Hand]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.32f22cf9-32bc-46f0-aa0d-f20661107688.caption" xml:space="preserve">
+    <value>Gross Requirements vs. Projected Available Balance</value>
+    <comment>table [Localized Labels] measure [Gross Requirements vs. Projected Available Balance]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.f765683c-904e-467c-9c23-1c1bcd14bef8.caption" xml:space="preserve">
+    <value>Gross Requirements Earliest Dates</value>
+    <comment>table [Localized Labels] measure [Gross Requirements Earliest Dates]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.8aa5a2e7-4aa5-462f-a4c3-67218b4f7280.caption" xml:space="preserve">
+    <value>Scheduled Receipt Earliest Dates</value>
+    <comment>table [Localized Labels] measure [Scheduled Receipt Earliest Dates]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.32245e32-7178-49af-8548-64f4111c40ec.caption" xml:space="preserve">
+    <value>Purchase Order Drill Through</value>
+    <comment>table [Localized Labels] measure [Purchase Order Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.673e50e4-999e-47bb-a4f0-dfb70221328f.caption" xml:space="preserve">
+    <value>Purchase Return Order Drill Through</value>
+    <comment>table [Localized Labels] measure [Purchase Return Order Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.01cd3081-3b61-4a4b-a78d-4309fc74537a.caption" xml:space="preserve">
+    <value>Item Ledger Entry Drill through</value>
+    <comment>table [Localized Labels] measure [Item Ledger Entry Drill through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.058574b5-1bca-4145-bacf-1b794478eb5c.caption" xml:space="preserve">
+    <value>Production Order Drill Through</value>
+    <comment>table [Localized Labels] measure [Production Order Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.6f07d96e-5e8e-4f9b-ae67-bb31d8980d8f.caption" xml:space="preserve">
+    <value>Prod. Order Components Drill Through</value>
+    <comment>table [Localized Labels] measure [Prod. Order Components Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.889c3fae-5ce8-48af-8897-0a0d2998a7c9.caption" xml:space="preserve">
+    <value>Sales Order Drill Through</value>
+    <comment>table [Localized Labels] measure [Sales Order Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.20af2c64-930f-4119-9ad7-0efc7bae10b8.caption" xml:space="preserve">
+    <value>Sales Return Order Drill Through</value>
+    <comment>table [Localized Labels] measure [Sales Return Order Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.ebc443f2-1fd7-4b0c-89be-c2bc48a14cb5.caption" xml:space="preserve">
+    <value>Transfer Order Drill Through</value>
+    <comment>table [Localized Labels] measure [Transfer Order Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.6790acc6-0e51-4eaa-a2fe-717482fde808.caption" xml:space="preserve">
+    <value>Assembly Order Drill Through</value>
+    <comment>table [Localized Labels] measure [Assembly Order Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.73b5830d-2bb0-44ef-b37a-0ff4c506ee31.caption" xml:space="preserve">
+    <value>Assembly Lines Drill Through</value>
+    <comment>table [Localized Labels] measure [Assembly Lines Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.672d8637-1060-4127-b783-a4d833ac1323.caption" xml:space="preserve">
+    <value>Service Lines Drill Through</value>
+    <comment>table [Localized Labels] measure [Service Lines Drill Through]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.abc4f34d-e8f6-4734-bdd4-af2a1ecabfc1.caption" xml:space="preserve">
+    <value>Gross Requirement </value>
+    <comment>table [Localized Labels] measure [Gross Requirement ]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.3dd984e0-60ea-4c2b-94a9-7ea6db6c700b.caption" xml:space="preserve">
+    <value>Scheduled Receipt </value>
+    <comment>table [Localized Labels] measure [Scheduled Receipt ]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.50bc6810-aedc-408b-aa0d-f19dcb1e96e8.caption" xml:space="preserve">
+    <value>Inventory by Lot </value>
+    <comment>table [Localized Labels] measure [Inventory by Lot ]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.e63e9e9e-7739-4ead-8d2c-dddfb919c207.caption" xml:space="preserve">
+    <value>Inventory by Serial No.</value>
+    <comment>table [Localized Labels] measure [Inventory by Serial No.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.0e5b4e0b-475c-48ec-84a7-9e1cb79c2cce.caption" xml:space="preserve">
+    <value>Bin Contents</value>
+    <comment>table [Localized Labels] measure [Bin Contents]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.cbc6ea42-9f89-481f-a55c-410796f3e280.caption" xml:space="preserve">
+    <value>Bin Contents by Item Tracking</value>
+    <comment>table [Localized Labels] measure [Bin Contents by Item Tracking]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.7543aab9-c97f-4f58-930a-edfa71bb8b64.caption" xml:space="preserve">
+    <value>Expired Inventory </value>
+    <comment>table [Localized Labels] measure [Expired Inventory ]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.0f551b77-db16-4ba0-a032-304d4e24251f.caption" xml:space="preserve">
+    <value>Gross Requirements</value>
+    <comment>table [Localized Labels] measure [Gross Requirements]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.3e2e09c7-f373-422e-a8d8-d2f4cf2aa536.caption" xml:space="preserve">
+    <value>Scheduled Receipts</value>
+    <comment>table [Localized Labels] measure [Scheduled Receipts]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.ff15e3a6-f0cb-40d5-ab1c-107d56c501b6.caption" xml:space="preserve">
+    <value>for Business Central</value>
+    <comment>table [Localized Labels] measure [for Business Central]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.6906e151-93bf-4c6a-9601-228b8592c761.caption" xml:space="preserve">
+    <value>CONNECT YOUR DATA</value>
+    <comment>table [Localized Labels] measure [CONNECT YOUR DATA]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.99f3dcbe-ef53-4488-8d79-3a11d0e1a429.caption" xml:space="preserve">
+    <value>1. Download the Inventory Connector for Power BI</value>
+    <comment>table [Localized Labels] measure [1. Download the Inventory Connector for Power BI]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.056867ea-ef8f-46b7-97c9-4e07a82d387e.caption" xml:space="preserve">
+    <value>2. Configure Dynamics 365 Business Central</value>
+    <comment>table [Localized Labels] measure [2. Configure Dynamics 365 Business Central]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.5fa0284d-4639-425b-bb70-50f654104fa1.caption" xml:space="preserve">
+    <value>USE, EDIT AND BUILD YOUR OWN REPORTS</value>
+    <comment>table [Localized Labels] measure [USE, EDIT AND BUILD YOUR OWN REPORTS]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.227ab12a-c7ee-44f4-a48e-6057dde01154.caption" xml:space="preserve">
+    <value>Inventory includes a variety of pre-built reports to help you see your data immediately.</value>
+    <comment>table [Localized Labels] measure [Inventory includes a variety of pre-built reports to help you see your data immediately.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.a769b8ec-9860-48cd-a879-3015b17578d4.caption" xml:space="preserve">
+    <value>You are able to edit these reports or build your own report from scratch.</value>
+    <comment>table [Localized Labels] measure [You are able to edit these reports or build your own report from scratch.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.4b55c760-de33-4fed-afc3-da1c7547b42f.caption" xml:space="preserve">
+    <value>HELP AND SUPPORT</value>
+    <comment>table [Localized Labels] measure [HELP AND SUPPORT]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.8c200677-72ce-4496-a2d8-947029cf6ab1.caption" xml:space="preserve">
+    <value>For help and support with your new report please visit the Analytics overview documentation.</value>
+    <comment>table [Localized Labels] measure [For help and support with your new report please visit the Analytics overview documentation.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.14f01507-d845-4874-9e71-268a393bf153.caption" xml:space="preserve">
+    <value>OTHER POWER BI REPORTS</value>
+    <comment>table [Localized Labels] measure [OTHER POWER BI REPORTS]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.281f6ccb-03e2-48ea-b13b-24be863a82ba.caption" xml:space="preserve">
+    <value>PURCHASE</value>
+    <comment>table [Localized Labels] measure [PURCHASE]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.4186a4aa-0620-4651-9c3a-203470250de4.caption" xml:space="preserve">
+    <value>FINANCE</value>
+    <comment>table [Localized Labels] measure [FINANCE]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.763035d1-ad9f-4abb-8e47-78cd912bacc9.caption" xml:space="preserve">
+    <value>REBATES</value>
+    <comment>table [Localized Labels] measure [REBATES]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.059973fd-1dba-4ada-9569-33b30bf4ba84.caption" xml:space="preserve">
+    <value>SALES</value>
+    <comment>table [Localized Labels] measure [SALES]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.caf04296-20f3-4a76-b344-a82e9145afa6.caption" xml:space="preserve">
+    <value>INVENTORY </value>
+    <comment>table [Localized Labels] measure [INVENTORY ]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.67bae389-d51b-4212-8e39-a7a71c48f787.caption" xml:space="preserve">
+    <value>Inventory  </value>
+    <comment>table [Localized Labels] measure [Inventory  ]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.9cf4ec2f-eaad-48cd-a41f-4ecae7d532c7.caption" xml:space="preserve">
+    <value>The inventory by item shows item category code, inventory, and the quantity on various documents.</value>
+    <comment>table [Localized Labels] measure [The inventory by item shows item category code, inventory, and the quantity on various documents.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.3861aa9a-7853-4911-a73f-f503c70c1733.caption" xml:space="preserve">
+    <value>The inventory by location shows item number and description, and quantity on hand per location.</value>
+    <comment>table [Localized Labels] measure [The inventory by location shows item number and description, and quantity on hand per location.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.b0ea157e-3733-4cb1-b493-96072c9a3593.caption" xml:space="preserve">
+    <value>The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.</value>
+    <comment>table [Localized Labels] measure [The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.c09386d1-2427-4299-ae3c-533794a19b61.caption" xml:space="preserve">
+    <value>The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.</value>
+    <comment>table [Localized Labels] measure [The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.3a422950-9502-4361-b607-07989aab9460.caption" xml:space="preserve">
+    <value>The gross requirement and projected available balance shows item number and description, and the quantity on various documents.</value>
+    <comment>table [Localized Labels] measure [The gross requirement and projected available balance shows item number and description, and the quantity on various documents.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.28906937-381d-4855-bba0-51940ec15663.caption" xml:space="preserve">
+    <value>The bin contents shows available quantity to take for each location and bin.</value>
+    <comment>table [Localized Labels] measure [The bin contents shows available quantity to take for each location and bin.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.aaf16c35-2439-4abe-9100-a4f6c3ea39da.caption" xml:space="preserve">
+    <value>The bin contents by item tracking shows item tracking details for each location and bin.</value>
+    <comment>table [Localized Labels] measure [The bin contents by item tracking shows item tracking details for each location and bin.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.cddf64ec-fd13-4c44-9c7e-6d335853f9ed.caption" xml:space="preserve">
+    <value>The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.</value>
+    <comment>table [Localized Labels] measure [The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.a47a5857-a4be-4f27-9245-3c8026acd799.caption" xml:space="preserve">
+    <value>Last Refreshed</value>
+    <comment>table [Localized Labels] measure [Last Refreshed]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.de6f1f8b-5525-42dd-92c5-1c6e11d04894.caption" xml:space="preserve">
+    <value>Company Name</value>
+    <comment>table [Localized Labels] measure [Company Name]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.17e46d85-be2a-4df1-8324-065eee6ca891.caption" xml:space="preserve">
+    <value>Inventory (Quantity) by Location Code</value>
+    <comment>table [Localized Labels] measure [Inventory (Quantity) by Location Code]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.a29d986d-6c42-48d5-b32e-f9e509e0d22d.caption" xml:space="preserve">
+    <value>Scheduled Receipt and Projected Available Balance by Fiscal Year and Month</value>
+    <comment>table [Localized Labels] measure [Scheduled Receipt and Projected Available Balance by Fiscal Year and Month]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.5a407949-4961-4cef-b0a9-01beeac0f8a0.caption" xml:space="preserve">
+    <value>Inventory (Quantity) by Lot No.</value>
+    <comment>table [Localized Labels] measure [Inventory (Quantity) by Lot No.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.bf3cab3e-c7c8-4fc9-8e82-bb80268faaac.caption" xml:space="preserve">
+    <value>Inventory (Quantity) by Serial No.</value>
+    <comment>table [Localized Labels] measure [Inventory (Quantity) by Serial No.]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.b3a0cef2-7e3a-4e26-8021-bd42a7a09f44.caption" xml:space="preserve">
+    <value>MANUFACTURING</value>
+    <comment>table [Localized Labels] measure [MANUFACTURING]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.88b34c97-4385-4336-a7a8-b9d644adb5c4.caption" xml:space="preserve">
+    <value>INVENTORY VALUATION</value>
+    <comment>table [Localized Labels] measure [INVENTORY VALUATION]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.5f873da4-27da-4b34-87e7-efd1a988e4dc.caption" xml:space="preserve">
+    <value>Available Quantity to Take by Bin Code</value>
+    <comment>table [Localized Labels] measure [Available Quantity to Take by Bin Code]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.348330e1-17c3-49dd-9e04-0f05051663cb.caption" xml:space="preserve">
+    <value>Projected Available Balance vs. Current Inventory</value>
+    <comment>table [Localized Labels] measure [Projected Available Balance vs. Current Inventory]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.46da8dcc-2647-456d-a232-56d4354eaa57.caption" xml:space="preserve">
+    <value>Purchase vs. Sales Quantity Across Time</value>
+    <comment>table [Localized Labels] measure [Purchase vs. Sales Quantity Across Time]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.0122ff87-b722-47ae-9cc4-8940f13b3d86.caption" xml:space="preserve">
+    <value>Inventory by Item Details</value>
+    <comment>table [Localized Labels] measure [Inventory by Item Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.d389b3f1-1d8b-4961-a658-856927636fe5.caption" xml:space="preserve">
+    <value>Inventory by Location Details</value>
+    <comment>table [Localized Labels] measure [Inventory by Location Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.97513cca-6f49-4c79-a040-475285fbc4ad.caption" xml:space="preserve">
+    <value>Purchase and Sales Quantity Details</value>
+    <comment>table [Localized Labels] measure [Purchase and Sales Quantity Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.d037676d-efd6-40b2-8318-5b71f4b08b1c.caption" xml:space="preserve">
+    <value>Item Availability Details</value>
+    <comment>table [Localized Labels] measure [Item Availability Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.6e5594b3-6b78-4376-aa57-16ea29d06c12.caption" xml:space="preserve">
+    <value>Gross Requirement Details</value>
+    <comment>table [Localized Labels] measure [Gross Requirement Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.8f609eaa-0503-4f68-ac04-c01443527f6e.caption" xml:space="preserve">
+    <value>Scheduled Receipt Details</value>
+    <comment>table [Localized Labels] measure [Scheduled Receipt Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.ac252346-5736-447f-996c-badbe19e89cc.caption" xml:space="preserve">
+    <value>Inventory by Lot Details</value>
+    <comment>table [Localized Labels] measure [Inventory by Lot Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.09db714c-7b8d-4f31-8492-6fcc07be8003.caption" xml:space="preserve">
+    <value>Inventory by Serial No Details</value>
+    <comment>table [Localized Labels] measure [Inventory by Serial No Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.2a97924d-f47e-4cca-9690-1f5e4d02af29.caption" xml:space="preserve">
+    <value>Bin Contents Details</value>
+    <comment>table [Localized Labels] measure [Bin Contents Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.2fef474f-50f6-4986-baa4-721a8543336f.caption" xml:space="preserve">
+    <value>Bin Contents by Item Tracking Details</value>
+    <comment>table [Localized Labels] measure [Bin Contents by Item Tracking Details]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.1c1e4c94-38e0-4312-a4cb-b5eacfe9a14a.caption" xml:space="preserve">
+    <value>Inventory Sales Forecasting</value>
+    <comment>table [Localized Labels] measure [Inventory Sales Forecasting]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.280819b3-49be-4616-9c1d-e4a094d742fb.caption" xml:space="preserve">
+    <value>Sales Quantity Forecast</value>
+    <comment>table [Localized Labels] measure [Sales Quantity Forecast]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.43054634-9ad6-4a19-be75-f41309421abf.caption" xml:space="preserve">
+    <value>Sales Quantity by Location</value>
+    <comment>table [Localized Labels] measure [Sales Quantity by Location]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.1ed0880e-7627-4faa-a063-1818c81f9651.caption" xml:space="preserve">
+    <value>Sales Quantity by Document Type</value>
+    <comment>table [Localized Labels] measure [Sales Quantity by Document Type]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.e8fb4297-f9ff-41d6-8d86-47a467d0c580.caption" xml:space="preserve">
+    <value>Sales Quantity by Item Category</value>
+    <comment>table [Localized Labels] measure [Sales Quantity by Item Category]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.9f998b9f-a8b0-4fdb-9fb5-b31c4e8ccafe.caption" xml:space="preserve">
+    <value>Sales Quantity by Customer</value>
+    <comment>table [Localized Labels] measure [Sales Quantity by Customer]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.f720fc7c-d7e9-43cd-a87b-e44a9e33311f.caption" xml:space="preserve">
+    <value>Inventory Purchase Forecasting</value>
+    <comment>table [Localized Labels] measure [Inventory Purchase Forecasting]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.28335247-4001-4d0b-96d9-a8a9871915f9.caption" xml:space="preserve">
+    <value>Purchase Quantity Forecast</value>
+    <comment>table [Localized Labels] measure [Purchase Quantity Forecast]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.2b21f970-710e-4806-bfea-c3a36e5e319a.caption" xml:space="preserve">
+    <value>Purchase Quantity by Location</value>
+    <comment>table [Localized Labels] measure [Purchase Quantity by Location]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.58c87efb-5f9f-4d69-939e-57795cd62774.caption" xml:space="preserve">
+    <value>Purchase Quantity by Document Type</value>
+    <comment>table [Localized Labels] measure [Purchase Quantity by Document Type]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.15c9c6e4-7526-4a5b-b5a3-15389d459bd9.caption" xml:space="preserve">
+    <value>Purchase Quantity by Item Category</value>
+    <comment>table [Localized Labels] measure [Purchase Quantity by Item Category]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.580f85cf-0eb1-4768-8b1e-eadf0eb2f598.caption" xml:space="preserve">
+    <value>Purchase Quantity by Vendor</value>
+    <comment>table [Localized Labels] measure [Purchase Quantity by Vendor]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.a2e97fb9-60d3-4e93-ae54-d850679811b9.caption" xml:space="preserve">
+    <value>Inventory Forecasting</value>
+    <comment>table [Localized Labels] measure [Inventory Forecasting]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.97cdcefb-f6d6-4733-9b75-351c52531b95.caption" xml:space="preserve">
+    <value>Quantity Forecast</value>
+    <comment>table [Localized Labels] measure [Quantity Forecast]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.c9f136e0-c411-460b-a057-a05320f02e4e.caption" xml:space="preserve">
+    <value>Quantity by Location</value>
+    <comment>table [Localized Labels] measure [Quantity by Location]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.ecb290a5-594c-46a7-bde9-f46d21f4a5ad.caption" xml:space="preserve">
+    <value>Quantity by Item</value>
+    <comment>table [Localized Labels] measure [Quantity by Item]</comment>
+  </data>
+  <data name="cc17929f-5b17-4eef-8c7a-874f26cd8b03.measure.fa23f2ae-1811-4423-9ecb-ebbcf0bf50c0.caption" xml:space="preserve">
+    <value>Quantity by Item Ledger Entry Type</value>
+    <comment>table [Localized Labels] measure [Quantity by Item Ledger Entry Type]</comment>
+  </data>
+  <data name="28c0c3ac-2661-462c-97ed-8eb717cc0460.caption" xml:space="preserve">
+    <value>Item Category</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="28c0c3ac-2661-462c-97ed-8eb717cc0460.column.203ca2e5-5714-4431-a72c-4c537a27f12d.caption" xml:space="preserve">
+    <value>Item Category Code</value>
+    <comment>table [Item Category] column [Item Category Code]</comment>
+  </data>
+  <data name="28c0c3ac-2661-462c-97ed-8eb717cc0460.column.7c14b037-9dd8-4b4e-bb8f-dc64307113e3.caption" xml:space="preserve">
+    <value>Item Category Description</value>
+    <comment>table [Item Category] column [Item Category Description]</comment>
+  </data>
+  <data name="28c0c3ac-2661-462c-97ed-8eb717cc0460.hierarchy.054c855b-28c5-4b93-a50f-9ae77b57ffe2.caption" xml:space="preserve">
+    <value>Item Category Code Hierarchy</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy]</comment>
+  </data>
+  <data name="28c0c3ac-2661-462c-97ed-8eb717cc0460.hierarchy.054c855b-28c5-4b93-a50f-9ae77b57ffe2.level.38c218e4-e4f0-42ce-94db-be25dad41eb9" xml:space="preserve">
+    <value>Item Category Code Level 1</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 1]</comment>
+  </data>
+  <data name="28c0c3ac-2661-462c-97ed-8eb717cc0460.hierarchy.054c855b-28c5-4b93-a50f-9ae77b57ffe2.level.a813802b-6de1-4dd3-ac3a-c67d2f453029" xml:space="preserve">
+    <value>Item Category Code Level 2</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 2]</comment>
+  </data>
+  <data name="28c0c3ac-2661-462c-97ed-8eb717cc0460.hierarchy.054c855b-28c5-4b93-a50f-9ae77b57ffe2.level.13316c4a-3e64-4665-b23a-31af98a21911" xml:space="preserve">
+    <value>Item Category Code Level 3</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 3]</comment>
+  </data>
+</root>

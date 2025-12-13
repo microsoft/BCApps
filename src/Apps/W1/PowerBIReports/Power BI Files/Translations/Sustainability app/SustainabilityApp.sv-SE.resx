@@ -1,0 +1,1526 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="c3ba4558-e02a-404b-b4a1-a2903520532a.caption" xml:space="preserve">
+    <value>Redovisningskontokategori</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="c3ba4558-e02a-404b-b4a1-a2903520532a.column.6b744939-6d03-4b1d-ae58-32a1709bba2b.caption" xml:space="preserve">
+    <value>Beskrivning av redovisningskontokategori</value>
+    <comment>table [Sustainability Account Category] column [Sustainability Account Category Description]</comment>
+  </data>
+  <data name="c3ba4558-e02a-404b-b4a1-a2903520532a.column.ef380ee9-f918-4dcf-b5bf-b924227c40c2.caption" xml:space="preserve">
+    <value>Kategorikod för hållbarhetskonto</value>
+    <comment>table [Sustainability Account Category] column [Sustainability Account Category Code]</comment>
+  </data>
+  <data name="c3ba4558-e02a-404b-b4a1-a2903520532a.column.de58ab2e-d6d1-4006-8b10-2a1eab736a7f.caption" xml:space="preserve">
+    <value>Utsläpps-scope för hållbarhetskontokategori</value>
+    <comment>table [Sustainability Account Category] column [Sustainability Account Category  Emission Scope]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.caption" xml:space="preserve">
+    <value>Dimensionsuppsättningar</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.509b5a55-d4c9-4990-86ff-4db4ddf6e70b.caption" xml:space="preserve">
+    <value>Global dimension 1</value>
+    <comment>table [Dimension Sets] column [Global Dimension 1]</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.901124b7-d0cf-4a6b-a97d-03b01fcbbb7b.caption" xml:space="preserve">
+    <value>Global dimension 2</value>
+    <comment>table [Dimension Sets] column [Global Dimension 2]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.6da18d1b-4416-4962-9791-a99a2b1b16df.caption" xml:space="preserve">
+    <value>Genväg dimension 3</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 3]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.0a2ce674-7583-47bb-9152-2ed0202f39bd.caption" xml:space="preserve">
+    <value>Genväg dimension 4</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 4]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.6e6336a7-10eb-4cdf-a811-12394bcee5ca.caption" xml:space="preserve">
+    <value>Genväg dimension 5</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 5]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.19675f86-76bf-4a08-8d8f-782bfe6bc306.caption" xml:space="preserve">
+    <value>Genväg dimension 6</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 6]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.5a352164-bd57-476e-b9e1-1dad571ae15f.caption" xml:space="preserve">
+    <value>Genväg dimension 7</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 7]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.ae9c39e3-c860-475e-ad05-9ad0ee181ac9.caption" xml:space="preserve">
+    <value>Genväg dimension 8</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 8]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.c9b13a06-5235-445b-b498-18970bb5f3f9.caption" xml:space="preserve">
+    <value>AVDELNING</value>
+    <comment>table [Dimension Sets] column [DEPARTMENT]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.279d1b06-3c0e-4dd7-888b-1a2996603b16.caption" xml:space="preserve">
+    <value>Avdelningens namn</value>
+    <comment>table [Dimension Sets] column [Department Name]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.0efc3042-cf67-4a18-a26b-e06092c8fe4c.caption" xml:space="preserve">
+    <value>KUNDGRUPP</value>
+    <comment>table [Dimension Sets] column [CUSTOMERGROUP]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.76a7b2de-c7bd-4a13-87f3-329048ef9d78.caption" xml:space="preserve">
+    <value>Namn på kundgrupp</value>
+    <comment>table [Dimension Sets] column [Customer Group Name]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.e26cf462-6284-4dcb-b58a-49ef71495598.caption" xml:space="preserve">
+    <value>OMRÅDE</value>
+    <comment>table [Dimension Sets] column [AREA]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.1d498d37-ad10-4af2-9275-efb40b935a57.caption" xml:space="preserve">
+    <value>Områdesnamn</value>
+    <comment>table [Dimension Sets] column [Area Name]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.c6feaa0e-cccb-4eb1-a094-1aab20225ad3.caption" xml:space="preserve">
+    <value>AFFÄRSGRUPP</value>
+    <comment>table [Dimension Sets] column [BUSINESSGROUP]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.2cd14dcc-4de2-454a-9c74-0f459676c6c1.caption" xml:space="preserve">
+    <value>Namn för affärsgrupp</value>
+    <comment>table [Dimension Sets] column [Business Group Name]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.cfe9ef7f-d3a0-4cee-a711-b3183c926fed.caption" xml:space="preserve">
+    <value>FÖRSKAMPANJ</value>
+    <comment>table [Dimension Sets] column [SALESCAMPAIGN]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.4f77e048-7625-4037-b17e-5f49b43d4dd2.caption" xml:space="preserve">
+    <value>Namn på försäljningskampanj</value>
+    <comment>table [Dimension Sets] column [Sales campaign Name]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.b8284c3c-f39d-4391-8946-2e320ecca84e.caption" xml:space="preserve">
+    <value>SÄLJARE</value>
+    <comment>table [Dimension Sets] column [SALESPERSON]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.50a459a1-a3f3-4d79-81cb-2c3ceff0a5ae.caption" xml:space="preserve">
+    <value>Säljarnamn</value>
+    <comment>table [Dimension Sets] column [Salesperson Name]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.caption" xml:space="preserve">
+    <value>Datum</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.87d986f6-8d0a-4af1-bf9d-2748b7ba57dc.caption" xml:space="preserve">
+    <value>Vecka Dag</value>
+    <comment>table [Date] column [Week Day]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a92edf57-7150-40d0-98b0-670245650ac0.caption" xml:space="preserve">
+    <value>Typ av dag</value>
+    <comment>table [Date] column [Day Type]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.eafb2700-d9bf-40ef-b2a6-d97476b09f5e.caption" xml:space="preserve">
+    <value>Kalender År</value>
+    <comment>table [Date] column [Calendar Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.906fcdf7-6285-4922-8968-362fc571dd84.caption" xml:space="preserve">
+    <value>Kalender Kvartal</value>
+    <comment>table [Date] column [Calendar Quarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.2c5ea502-608c-4500-beb1-042ffb003d68.caption" xml:space="preserve">
+    <value>Kalender Kvartal År</value>
+    <comment>table [Date] column [Calendar Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.6e1a2bd3-8529-433c-a4ea-a6a3d3611046.caption" xml:space="preserve">
+    <value>Kalender Månad</value>
+    <comment>table [Date] column [Calendar Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.46388357-c60d-4744-a628-f9ccff2c0687.caption" xml:space="preserve">
+    <value>Kalender Månad År</value>
+    <comment>table [Date] column [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.fa556103-ff03-4954-af2d-8e70b22bcfb7.caption" xml:space="preserve">
+    <value>Kalender Vecka</value>
+    <comment>table [Date] column [Calendar Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.43f804c2-759c-4fe1-97d9-0dc74f83630c.caption" xml:space="preserve">
+    <value>Kalender Vecka År</value>
+    <comment>table [Date] column [Calendar Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3c121010-847d-4661-86b0-d3306993d1fc.caption" xml:space="preserve">
+    <value>Kalender RelativtVeckaPos</value>
+    <comment>table [Date] column [Calendar RelativeWeekPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.72d7ff37-a6f6-45ac-9bd1-cb3050da78f3.caption" xml:space="preserve">
+    <value>Kalender RelativtMånadPos</value>
+    <comment>table [Date] column [Calendar RelativeMonthPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b9bbb6c1-a863-42b0-9be0-4c067880aecf.caption" xml:space="preserve">
+    <value>Kalender RelativtKvartalPos</value>
+    <comment>table [Date] column [Calendar RelativeQuarterPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.0389f321-8c3e-4094-9937-a72690d006ce.caption" xml:space="preserve">
+    <value>Kalender RelativtÅrPos</value>
+    <comment>table [Date] column [Calendar RelativeYearPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.86e6859f-ddf3-4905-b792-58c9b97c6e44.caption" xml:space="preserve">
+    <value>Kalender StartPåMånad</value>
+    <comment>table [Date] column [Calendar StartOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.cacb2e9f-f673-4700-af72-7afbee746739.caption" xml:space="preserve">
+    <value>Kalender SlutPåMånad</value>
+    <comment>table [Date] column [Calendar EndOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.fe44207b-b823-4d13-a311-0c96e70b987c.caption" xml:space="preserve">
+    <value>Kalender StartPåKvartal</value>
+    <comment>table [Date] column [Calendar StartOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3291fc3a-8587-4dca-b01d-2ab523ce7101.caption" xml:space="preserve">
+    <value>Kalender SlutPåKvartal</value>
+    <comment>table [Date] column [Calendar EndOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.c33c2def-e542-47d1-b431-11fa3ec39720.caption" xml:space="preserve">
+    <value>Kalender StartPåÅr</value>
+    <comment>table [Date] column [Calendar StartOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ef673c14-ae3c-4f69-bb8a-f63db9617875.caption" xml:space="preserve">
+    <value>Kalender Årsslut</value>
+    <comment>table [Date] column [Calendar EndOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.c7b6991d-1e93-4a53-b0bf-bb4d9728240b.caption" xml:space="preserve">
+    <value>Kalender MånadDagar</value>
+    <comment>table [Date] column [Calendar MonthDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.7e1c85c4-20ce-49a5-a788-b44eff618ef3.caption" xml:space="preserve">
+    <value>Kalender KvartalDagar</value>
+    <comment>table [Date] column [Calendar QuarterDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4891dfee-1f75-4c3a-9bea-861d3612b2a5.caption" xml:space="preserve">
+    <value>Kalender ÅrDagar</value>
+    <comment>table [Date] column [Calendar YearDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.34806fca-07c1-4024-a936-9161e13a8c7b.caption" xml:space="preserve">
+    <value>Kalender DagIMånadNummer</value>
+    <comment>table [Date] column [Calendar DayOfMonthNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9bddb3d9-8f84-44de-9e0c-30aacc4fe3db.caption" xml:space="preserve">
+    <value>Kalender DagIKvartalNummer</value>
+    <comment>table [Date] column [Calendar DayOfQuarterNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.5e77a5c0-44bc-493f-9fd1-3c3c3845fc32.caption" xml:space="preserve">
+    <value>Kalender DagIÅrNummer</value>
+    <comment>table [Date] column [Calendar DayOfYearNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9412edbb-aa3e-440a-b28b-b815200206c1.caption" xml:space="preserve">
+    <value>Kalender DatumFöregåendeVecka</value>
+    <comment>table [Date] column [Calendar DatePreviousWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.c0ff8f0c-5607-440d-beb7-be720f02c21c.caption" xml:space="preserve">
+    <value>Kalender DatumFöregåendeMånad</value>
+    <comment>table [Date] column [Calendar DatePreviousMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b1cd39c6-820f-4eec-b95b-eca9e4fb2f3f.caption" xml:space="preserve">
+    <value>Kalender DatumFöregåendeKvartal</value>
+    <comment>table [Date] column [Calendar DatePreviousQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3836d147-36d2-4b0c-be3a-02013f871121.caption" xml:space="preserve">
+    <value>Kalender DatumFöregåendeÅr</value>
+    <comment>table [Date] column [Calendar DatePreviousYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4309f1b1-5303-4bbe-a033-3ae569481cb4.caption" xml:space="preserve">
+    <value>Räkenskapsår</value>
+    <comment>table [Date] column [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a3fdb947-7ec9-4f75-a830-9e008027f5be.caption" xml:space="preserve">
+    <value>Räkenskapskalender Kvartal</value>
+    <comment>table [Date] column [Fiscal Quarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.55062367-69e1-4f9a-b4a6-ea8e527caec4.caption" xml:space="preserve">
+    <value>Räkenskapskalender Kvartal År</value>
+    <comment>table [Date] column [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8a49071b-afae-41c5-b463-81bce1e24c65.caption" xml:space="preserve">
+    <value>Räkenskapskalender Månad</value>
+    <comment>table [Date] column [Fiscal Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a6c93316-93e2-4fc2-aebb-21781fcbf7d5.caption" xml:space="preserve">
+    <value>Räkenskapskalender Månad År</value>
+    <comment>table [Date] column [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3ee8444b-9959-446c-909b-67ccacc04ec1.caption" xml:space="preserve">
+    <value>Räkenskapskalender Vecka</value>
+    <comment>table [Date] column [Fiscal Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b09e6e42-954d-401d-901e-73a4908a36eb.caption" xml:space="preserve">
+    <value>Räkenskapskalender År Vecka</value>
+    <comment>table [Date] column [Fiscal Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a7092406-c70e-47ce-bb5c-8f8c9eb85e1f.caption" xml:space="preserve">
+    <value>Räkenskapskalender RelativtVeckaPos</value>
+    <comment>table [Date] column [Fiscal RelativeWeekPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.e4c65d43-bc58-4c60-a2e6-ca42f109abab.caption" xml:space="preserve">
+    <value>Räkenskapskalender: RelativtMånadPos</value>
+    <comment>table [Date] column [Fiscal RelativeMonthPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8db19a91-3741-4dfe-832d-0b08d51a578a.caption" xml:space="preserve">
+    <value>Räkenskapskalender RelativtKvartalPos</value>
+    <comment>table [Date] column [Fiscal RelativeQuarterPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.405ce0df-cdba-447e-abb8-2f7fda806b0b.caption" xml:space="preserve">
+    <value>Räkenskapskalender RelativtÅrPos</value>
+    <comment>table [Date] column [Fiscal RelativeYearPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.96ec7ed1-cf0f-444d-86bc-2cf7fd378db1.caption" xml:space="preserve">
+    <value>Räkenskapskalender StartPåMånad</value>
+    <comment>table [Date] column [Fiscal StartOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.d4ee5d8b-8ac7-4319-a7a6-0ec65331f465.caption" xml:space="preserve">
+    <value>Räkenskapskalender SlutPåMånad</value>
+    <comment>table [Date] column [Fiscal EndOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.268275df-62fb-49db-987d-5e4e1b08a39c.caption" xml:space="preserve">
+    <value>Räkenskapskalender StartPåKvartal</value>
+    <comment>table [Date] column [Fiscal StartOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.bc4ac4d0-6d23-43e0-9c0f-bd2039e21980.caption" xml:space="preserve">
+    <value>Räkenskapskalender SlutPåKvartal</value>
+    <comment>table [Date] column [Fiscal EndOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.cfa797dd-4fe9-4af8-9aaf-543956efd413.caption" xml:space="preserve">
+    <value>Räkenskapskalender StartPåÅr</value>
+    <comment>table [Date] column [Fiscal StartOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3d9bdb34-e70a-44ec-b296-d13266432f70.caption" xml:space="preserve">
+    <value>Räkenskapskalender Årsslut</value>
+    <comment>table [Date] column [Fiscal EndOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.5d912c0d-fcf0-4259-b2f2-1b8f21666e05.caption" xml:space="preserve">
+    <value>Räkenskapskalender MånadDagar</value>
+    <comment>table [Date] column [Fiscal MonthDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.dce72481-e786-4ed9-9776-584f5732d133.caption" xml:space="preserve">
+    <value>Räkenskapskalender KvartalDagar</value>
+    <comment>table [Date] column [Fiscal QuarterDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b2e1d2c0-aa54-4100-a7f2-a4e018e0bce0.caption" xml:space="preserve">
+    <value>Räkenskapskalender ÅrDagar</value>
+    <comment>table [Date] column [Fiscal YearDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9005eda0-cd3d-40ac-800b-72f704c571f2.caption" xml:space="preserve">
+    <value>Räkenskapskalender DagIMÅnadNummer</value>
+    <comment>table [Date] column [Fiscal DayOfMonthNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.90be3b35-e218-47e3-91fd-707bfc7c7a2a.caption" xml:space="preserve">
+    <value>Räkenskapskalender DagIKvartalNummer</value>
+    <comment>table [Date] column [Fiscal DayOfQuarterNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.51f8869a-eae7-44e0-aaa3-a8219657d14c.caption" xml:space="preserve">
+    <value>Räkenskapskalender DagIÅrNummer</value>
+    <comment>table [Date] column [Fiscal DayOfYearNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.f3d6591f-f7e3-4909-a849-6ac956f6e4b5.caption" xml:space="preserve">
+    <value>Räkenskapskalender DatumFöregåendeVecka</value>
+    <comment>table [Date] column [Fiscal DatePreviousWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.cca225dd-90da-4aa5-8907-aff394845eee.caption" xml:space="preserve">
+    <value>Räkenskapskalender DatumFöregåendeMånad</value>
+    <comment>table [Date] column [Fiscal DatePreviousMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.09daf6ef-268b-4d0d-b5c8-413ce37c6186.caption" xml:space="preserve">
+    <value>Räkenskapskalender DatumFöregåendeKvartal</value>
+    <comment>table [Date] column [Fiscal DatePreviousQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.239ad661-3781-4f71-a474-045ee230e220.caption" xml:space="preserve">
+    <value>Räkenskapskalender DatumFöregåendeÅr</value>
+    <comment>table [Date] column [Fiscal DatePreviousYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ac826f1e-e350-4f10-a088-7cdd9d921d22.caption" xml:space="preserve">
+    <value>RV År</value>
+    <comment>table [Date] column [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ea488855-48b0-4a2d-a99c-cfeb1c841c00.caption" xml:space="preserve">
+    <value>RV Kvartal</value>
+    <comment>table [Date] column [FW Quarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.61e1ae08-6194-4c3c-b8d6-b7b3a8548e3f.caption" xml:space="preserve">
+    <value>RV Kvartal År</value>
+    <comment>table [Date] column [FW Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3b27db1b-5184-48e7-a64f-8713263bbcde.caption" xml:space="preserve">
+    <value>RV Månad</value>
+    <comment>table [Date] column [FW Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b4fc566a-9fa1-4d4c-b593-b9e688465df8.caption" xml:space="preserve">
+    <value>RV Månad År</value>
+    <comment>table [Date] column [FW Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.94ccf79f-75e4-4e53-85e5-d7ba2e318383.caption" xml:space="preserve">
+    <value>RV Vecka</value>
+    <comment>table [Date] column [FW Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.1ea40e86-d134-40b0-a117-957e0fcb5c94.caption" xml:space="preserve">
+    <value>RV Period</value>
+    <comment>table [Date] column [FW Period]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.e215dcb4-1cb2-40be-9dbe-972862b3baa2.caption" xml:space="preserve">
+    <value>RV Vecka År</value>
+    <comment>table [Date] column [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.13c0c728-c94e-4602-a213-81fdf9318fdd.caption" xml:space="preserve">
+    <value>RV StartPåVecka</value>
+    <comment>table [Date] column [FW StartOfWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ba4d5cae-592d-4aa1-bb4f-80d480ac0e32.caption" xml:space="preserve">
+    <value>RV SlutPåVecka</value>
+    <comment>table [Date] column [FW EndOfWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.90865798-3ed2-48db-970d-407a69f604a1.caption" xml:space="preserve">
+    <value>RV RelativtVeckaPos</value>
+    <comment>table [Date] column [FW RelativeWeekPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.15cab468-7f86-4a20-81b2-ef7a1108ed10.caption" xml:space="preserve">
+    <value>RV RelativtMånPos</value>
+    <comment>table [Date] column [FW RelativeMonthPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.7c457684-360a-4ede-a38a-41c46bc88d7c.caption" xml:space="preserve">
+    <value>RV RelativtKvartalPos</value>
+    <comment>table [Date] column [FW RelativeQuarterPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9ba55f9b-2226-4985-a3a5-def688fc151c.caption" xml:space="preserve">
+    <value>RV RelativtÅrPos</value>
+    <comment>table [Date] column [FW RelativeYearPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a46d4152-42a0-44af-9ea8-16d4e9a15ecb.caption" xml:space="preserve">
+    <value>RV StartPåMånad</value>
+    <comment>table [Date] column [FW StartOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.6293aed1-d7fa-41a1-a62d-fa2d8e89f045.caption" xml:space="preserve">
+    <value>RV SlutPåMånad</value>
+    <comment>table [Date] column [FW EndOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8483ae63-3171-4889-8dcb-bb706a0cfc45.caption" xml:space="preserve">
+    <value>RV StartPåKvartal</value>
+    <comment>table [Date] column [FW StartOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b249ccc8-36bd-4e18-b574-1fc55d8fc9a8.caption" xml:space="preserve">
+    <value>RV SlutPåKvartal</value>
+    <comment>table [Date] column [FW EndOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4e147ce6-585a-4b5a-bf49-1e96a65022f6.caption" xml:space="preserve">
+    <value>RV StartPåÅr</value>
+    <comment>table [Date] column [FW StartOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.60b08900-3f6c-4855-bc00-789ccb4ca8c2.caption" xml:space="preserve">
+    <value>RV Årsslut</value>
+    <comment>table [Date] column [FW EndOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.df984e82-e421-48fc-8a00-59826303e58f.caption" xml:space="preserve">
+    <value>RV MånadDagar</value>
+    <comment>table [Date] column [FW MonthDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4b23d5be-1bef-4bee-be02-a48c680a91ed.caption" xml:space="preserve">
+    <value>RV KvartalDagar</value>
+    <comment>table [Date] column [FW QuarterDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.f94d98c8-b581-4c1d-be31-23d2e0f57fba.caption" xml:space="preserve">
+    <value>RV ÅrDagar</value>
+    <comment>table [Date] column [FW YearDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8d833c34-a69f-487a-a198-52eb7ae8fa48.caption" xml:space="preserve">
+    <value>RV DagPåMånadNummer</value>
+    <comment>table [Date] column [FW DayOfMonthNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.13d04d86-e5fa-48e4-a680-4ca569b43bfd.caption" xml:space="preserve">
+    <value>RV DagIKvartalNummer</value>
+    <comment>table [Date] column [FW DayOfQuarterNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.17054897-fac4-4cab-89a0-88049f3b8b3b.caption" xml:space="preserve">
+    <value>RV DagIÅrNummer</value>
+    <comment>table [Date] column [FW DayOfYearNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.12add804-bcd9-449c-9034-623015558a9e.caption" xml:space="preserve">
+    <value>RV DatumFöregåendeVecka</value>
+    <comment>table [Date] column [FW DatePreviousWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.81345b13-f5f8-4a2e-a9fa-2aa7a0cded00.caption" xml:space="preserve">
+    <value>RV DatumFöregåendeMånad</value>
+    <comment>table [Date] column [FW DatePreviousMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.326717ad-741d-4f97-86fa-864673193d21.caption" xml:space="preserve">
+    <value>RV DatumFöregåendeKvartal</value>
+    <comment>table [Date] column [FW DatePreviousQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.eccf8b73-0631-422c-a03b-44fdf591c2a4.caption" xml:space="preserve">
+    <value>RV DatumFöregåendeÅr</value>
+    <comment>table [Date] column [FW DatePreviousYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.065c76e8-8ede-45f4-b15b-f30f6d127e3e.caption" xml:space="preserve">
+    <value>Relativt Dag</value>
+    <comment>table [Date] column [Relative Day]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.measure.1a4368d8-993e-48df-ba27-a8c23154722a.caption" xml:space="preserve">
+    <value>Antal dagar</value>
+    <comment>table [Date] measure [No. of Days]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.measure.1fd0995b-72b6-4f5d-8daf-a09e2f5137f5.caption" xml:space="preserve">
+    <value>Arbetsdagar</value>
+    <comment>table [Date] measure [Working Days]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.measure.be76e6e5-8688-4d0d-a625-8b10009582ce.caption" xml:space="preserve">
+    <value>Intervall</value>
+    <comment>table [Date] measure [Ranged]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.caption" xml:space="preserve">
+    <value>Räkenskapskalender År-Kvartal-Månad-Vecka</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.40f0b909-9e82-4ba3-92df-a8b50b00a40b" xml:space="preserve">
+    <value>Räkenskapsår</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.b110c9b3-ebdb-4ed1-8427-abbb882e1d58" xml:space="preserve">
+    <value>Räkenskapskalender Kvartal År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.9bd26d03-671d-4cea-9e25-5aafb1c7d21f" xml:space="preserve">
+    <value>Räkenskapskalender Månad År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.50478d23-8e70-467a-8801-ce96d8e29c35" xml:space="preserve">
+    <value>Räkenskapskalender År Vecka</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.caption" xml:space="preserve">
+    <value>Kalender År-Kvartal-Månad-Vecka</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.d82e0fe4-49e2-4df6-a525-9a4f6108743b" xml:space="preserve">
+    <value>Kalender År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.875d1c42-f9de-4373-9dec-a1409f1e179d" xml:space="preserve">
+    <value>Kalender Kvartal År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.86bf3301-883d-4e52-be22-7585cc62296d" xml:space="preserve">
+    <value>Kalender Månad År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.82ff4fc4-5640-43be-96e1-1ccb6533253e" xml:space="preserve">
+    <value>Kalender Vecka År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.caption" xml:space="preserve">
+    <value>RV År-Kvartal-Månad-Vecka</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.e5cd94ed-0d1a-4e41-89ad-82cf77688b47" xml:space="preserve">
+    <value>RV År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.9adb622b-d68e-41eb-92d3-f0d3ea6d363f" xml:space="preserve">
+    <value>RV Kvartal År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.80aae42c-b9ec-42c5-ae09-13c65d700732" xml:space="preserve">
+    <value>RV Månad År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.01c4eb82-c283-4300-8765-3e61e813fec9" xml:space="preserve">
+    <value>RV Vecka År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.caption" xml:space="preserve">
+    <value>Räkenskapskalender År-Månad</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.54b6013d-cd41-43ea-adde-7461b8f56250" xml:space="preserve">
+    <value>Räkenskapsår</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.0e94c815-23fc-4ac6-9863-dd02e6f69315" xml:space="preserve">
+    <value>Räkenskapskalender Månad År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.caption" xml:space="preserve">
+    <value>Räkenskapskalender År-Månad-Vecka</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.e8fd0bf8-66c7-4df2-8526-1bb27177f912" xml:space="preserve">
+    <value>Räkenskapsår</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.edd3142f-d60d-494b-85fc-dcadaaa5b8a4" xml:space="preserve">
+    <value>Räkenskapskalender Månad År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.c88b8774-fc79-4567-9b79-2849dedd4657" xml:space="preserve">
+    <value>Räkenskapskalender År Vecka</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.caption" xml:space="preserve">
+    <value>Kalender År-Månad</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.7bfba93e-5d86-41fa-a428-152ab854a070" xml:space="preserve">
+    <value>Kalender År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.a923bc3f-1bdd-4926-b538-a0bf17d0b2d5" xml:space="preserve">
+    <value>Kalender Månad År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.caption" xml:space="preserve">
+    <value>Kalender År-Månad-Vecka</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.b4693f04-e15f-42f1-afce-641aa9bd8386" xml:space="preserve">
+    <value>Kalender År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.ad1f4929-9815-47ae-ae38-e76760467433" xml:space="preserve">
+    <value>Kalender Månad År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.8c1e598f-68d9-4ec8-8e8b-94bc0f325e6d" xml:space="preserve">
+    <value>Kalender Vecka År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.caption" xml:space="preserve">
+    <value>RV År-Månad-Vecka</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.37704c7b-a221-40d3-a104-a5e5c16746f0" xml:space="preserve">
+    <value>RV År</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.1d9a9430-6bed-465f-afbf-c367b9f5edf6" xml:space="preserve">
+    <value>RV Månad År</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.da024fdc-e22a-4d6e-8355-fbe50de4695c" xml:space="preserve">
+    <value>RV Vecka År</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.caption" xml:space="preserve">
+    <value>RV År-Kvartal-Vecka</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.c4f66205-6c99-4eed-9ea9-0fd4bf9fa72b" xml:space="preserve">
+    <value>RV År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.d9c3188f-b8fa-45bc-9e08-880f6c98db91" xml:space="preserve">
+    <value>RV Kvartal År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.a100ef88-63c6-46b8-88c7-7d5d4ba25929" xml:space="preserve">
+    <value>RV Vecka År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.caption" xml:space="preserve">
+    <value>RV År-Vecka</value>
+    <comment>table [Date] hierarchy [FW Year-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.0e86a949-ac84-4345-a88e-352ea19afe07" xml:space="preserve">
+    <value>RV År</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.7fb1d3c0-186f-4de8-a7be-dec117b3c3fd" xml:space="preserve">
+    <value>RV Vecka År</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9e65416f-15d8-460c-b41b-c5268ae1171e.caption" xml:space="preserve">
+    <value>Min rapportrubrik</value>
+    <comment>table [Localized Labels] measure [My Report Title]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.bb8cf56a-9b48-47e6-a637-878d9618701d.caption" xml:space="preserve">
+    <value>Min knapprubrik</value>
+    <comment>table [Localized Labels] measure [My Button Caption]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.b62c0144-e6a1-4cd7-9ecc-e6a858099595.caption" xml:space="preserve">
+    <value>Min visuella rubrik</value>
+    <comment>table [Localized Labels] measure [My Visual Title]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.18896aa9-3a2f-40c6-b556-d0f1672d09b1.caption" xml:space="preserve">
+    <value>Inaktiva medarbetare</value>
+    <comment>table [Localized Labels] measure [Inactive Employees]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.566f5710-7c55-4c83-9621-5381bedaf249.caption" xml:space="preserve">
+    <value>Uppsagda medarbetare</value>
+    <comment>table [Localized Labels] measure [Terminated Employees]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.4a2ad2b9-3658-4588-930c-f3591d70cf27.caption" xml:space="preserve">
+    <value>Medarbetare i fackföreningar</value>
+    <comment>table [Localized Labels] measure [Employees in Unions]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9204c6c8-e948-4812-a025-f8bb80f90e32.caption" xml:space="preserve">
+    <value>Samhällsanalys</value>
+    <comment>table [Localized Labels] measure [Social Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9ca8694a-da41-44a6-984c-73dcbfc39070.caption" xml:space="preserve">
+    <value>Könsfördelning</value>
+    <comment>table [Localized Labels] measure [Gender Distribution]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.73b30466-7200-4178-ab96-4a5bdb2e5e03.caption" xml:space="preserve">
+    <value>Åldersfördelning</value>
+    <comment>table [Localized Labels] measure [Age Distribution]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.5a2af44e-779a-480d-9adb-e26af766e21a.caption" xml:space="preserve">
+    <value>Personalkompetenser</value>
+    <comment>table [Localized Labels] measure [Employees Qualifications]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.71f80cda-75ca-42a0-a179-43d59980f214.caption" xml:space="preserve">
+    <value>Realiserade utsläpp jämfört med målet</value>
+    <comment>table [Localized Labels] measure [Realized Emissions vs Target]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.b0629446-28a2-4927-952b-53a97f67a2fe.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per scope</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Scope]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.d09a834c-cd31-41d4-86b1-35814e18af0e.caption" xml:space="preserve">
+    <value>Gasutsläpp per kategori</value>
+    <comment>table [Localized Labels] measure [Gas Emissions by Category]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.631ba763-4ef0-4a71-ba09-7e53eb7a98ea.caption" xml:space="preserve">
+    <value>Realiserade utsläpp jämfört med baslinjen</value>
+    <comment>table [Localized Labels] measure [Realized Emissions vs Baseline]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.46f3e69c-a92c-4270-916e-4d2c403bd0ab.caption" xml:space="preserve">
+    <value>CO2e-utsläpp jämfört med baslinjen</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions vs Baseline]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.7f398453-b234-4f7f-b6b0-f19c66c58006.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per konto</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Account]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.a95d2b66-65ad-44ba-8346-3782184f3570.caption" xml:space="preserve">
+    <value>Vatten- och avfallsanalys</value>
+    <comment>table [Localized Labels] measure [Water and Waste Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.3d7c4b40-5391-4d34-8113-c87b14a7d4a4.caption" xml:space="preserve">
+    <value>Vatten per anläggningsplats</value>
+    <comment>table [Localized Labels] measure [Water by Facility Location]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.0fd2dc50-304b-4baf-9bf6-ccce48bf0b6b.caption" xml:space="preserve">
+    <value>Vatten per anläggningskapacitet</value>
+    <comment>table [Localized Labels] measure [Water by Facility Capacity]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.623403d9-6170-47d3-b510-625bf8337b04.caption" xml:space="preserve">
+    <value>Vatten och avfall per typ</value>
+    <comment>table [Localized Labels] measure [Water and Waste by Type]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.a8c017f3-1866-44c3-8142-0658acdaad13.caption" xml:space="preserve">
+    <value>Vatten- och avfallsintensitet per typ</value>
+    <comment>table [Localized Labels] measure [Water and Waste Intensity by Type]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.93e09b40-4080-4d45-9129-be7d18c5c785.caption" xml:space="preserve">
+    <value>Vatten- och avfallsintensitet per anläggning</value>
+    <comment>table [Localized Labels] measure [Water and Waste Intensity by Facility]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.b1053c69-988d-4bc4-9d5a-b5fa6bd18530.caption" xml:space="preserve">
+    <value>Utsläpp per kategori och scope</value>
+    <comment>table [Localized Labels] measure [Emissions by Category and Scope]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.6da08a4c-8f1a-4b7e-ac0a-51d1bdfcfddf.caption" xml:space="preserve">
+    <value>Utsläpp per kategori</value>
+    <comment>table [Localized Labels] measure [Emissions by Category]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.e4ddab31-7c0d-490f-bab7-af8c70da07e1.caption" xml:space="preserve">
+    <value>Utsläpp per scope</value>
+    <comment>table [Localized Labels] measure [Emissions by Scope]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10ff233f-69ad-4d2a-aff5-1e81e7327c62.caption" xml:space="preserve">
+    <value>CO2e-analys</value>
+    <comment>table [Localized Labels] measure [CO2e Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.66ac4f18-a5eb-42eb-8d1f-10cdf8f24142.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per kategori</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Category]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.5c475b32-8fc3-437a-a2fc-7812e7ebbb26.caption" xml:space="preserve">
+    <value>Koldioxidkredit per månad</value>
+    <comment>table [Localized Labels] measure [Carbon Credit by Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.7cf80c7c-c1fc-4d32-a660-946e21b472ae.caption" xml:space="preserve">
+    <value>Utsläpp av CO2e-ekvivalenter per månad och intäkt</value>
+    <comment>table [Localized Labels] measure [CO2e Equivalent Emission by Month and Revenue]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.59c31939-f665-4347-ad99-f62ebc1aa736.caption" xml:space="preserve">
+    <value>Detaljerad analys av personaltransaktioner</value>
+    <comment>table [Localized Labels] measure [Employee Entries Drillthrough]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.aeaf3868-4b59-48dc-831a-b759246225f1.caption" xml:space="preserve">
+    <value>Personaltransaktioner</value>
+    <comment>table [Localized Labels] measure [Employee Ledger Entries]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.400de913-a611-4ff8-b928-283ef2321eeb.caption" xml:space="preserve">
+    <value>Hållbarhetstransaktioner</value>
+    <comment>table [Localized Labels] measure [Sustainability Ledger Entries]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.2cf8f7f5-dfde-475c-9711-660fb6994931.caption" xml:space="preserve">
+    <value>Detaljerad analys av hållbarhetstransaktioner</value>
+    <comment>table [Localized Labels] measure [Sustainability Ledger Entries Drillthrough]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.ea61ae70-5a70-48ed-82f3-244293ec688a.caption" xml:space="preserve">
+    <value>Detaljerad analys av redovisningstransaktioner för personal</value>
+    <comment>table [Localized Labels] measure [Employee Ledger Entries Drillthrough]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.ebdf6286-26e7-484a-a52b-7ce6062ddddb.caption" xml:space="preserve">
+    <value>Hållbarhetsöversikt</value>
+    <comment>table [Localized Labels] measure [Sustainability Overview]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.ff1ab351-e3fa-43f9-ac1b-ea85b7b94d2c.caption" xml:space="preserve">
+    <value>Hållbarhetsanalys</value>
+    <comment>table [Localized Labels] measure [Sustainability Analytics]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.503f3e52-171a-4a1d-bef8-24de16c49186.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per månad</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.44b017f0-9f5e-4157-b1d9-77505000a6d9.caption" xml:space="preserve">
+    <value>Analys av kategorierna scope 1 och 2 per kategori och år</value>
+    <comment>table [Localized Labels] measure [Scopes 1 and 2 Analysis by Categories Per Year]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.36086391-3b8d-4120-a408-f9e1884c7b03.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per avdelning</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Department]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.736f9a78-90e0-41ce-b915-9670871a5387.caption" xml:space="preserve">
+    <value>Resan mot netto-noll koldioxidutsläpp</value>
+    <comment>table [Localized Labels] measure [Journey to Net-Zero Carbon]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.b21ae342-6355-47ff-b0a6-6b98f5a20181.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per affärsgrupp</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Business Group]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.8a5cb81e-f637-4bda-82a6-dc8aa7ae6af7.caption" xml:space="preserve">
+    <value>Användning av förnybar energi</value>
+    <comment>table [Localized Labels] measure [Renewable Energy Usage]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.57b3ef30-e5c0-4f3a-ae8a-c35be4072e29.caption" xml:space="preserve">
+    <value>CO2e-utsläpp över tid</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions Over Time]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.70c2f156-2eb3-421a-9051-64838b54af5e.caption" xml:space="preserve">
+    <value>Smart granskning av CO2e</value>
+    <comment>table [Localized Labels] measure [CO2e Smart Review]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.7fca9521-f490-4a7d-a611-6c99f54e3ddf.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per global dimension ett</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Global Dimension One]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.0fff5903-bcad-408b-ac28-3e0679eae7d4.caption" xml:space="preserve">
+    <value>CO2e-utsläpp per global dimension två</value>
+    <comment>table [Localized Labels] measure [CO2e Emissions by Global Dimension Two]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.46a0f17f-fa4a-49fc-9c86-28c58c3d0872.caption" xml:space="preserve">
+    <value>Utsläpp av CO2e-ekvivalenter per månad</value>
+    <comment>table [Localized Labels] measure [CO2e Equivalent Emissions by Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.52480de2-e6cb-4b1d-b31b-d52d1d88e185.caption" xml:space="preserve">
+    <value>Företagsnamn</value>
+    <comment>table [Localized Labels] measure [Company Name]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.46a670c1-4eb6-458b-bcda-35548cb10ea1.caption" xml:space="preserve">
+    <value>Uppdaterades senast</value>
+    <comment>table [Localized Labels] measure [Last Refreshed]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.d6394ad5-6fe4-47f9-979f-d0decf6426d6.caption" xml:space="preserve">
+    <value>Frisläppta medarbetare</value>
+    <comment>table [Localized Labels] measure [Released Employees]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.c724871e-084f-4dc5-b8b7-a43dd3597ef0.caption" xml:space="preserve">
+    <value>Nedbrytningsträd för CO2e</value>
+    <comment>table [Localized Labels] measure [CO2e Decomposition Tree]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.aac80eb3-dad2-43f0-9acd-6d68daee9953.caption" xml:space="preserve">
+    <value>Viktiga CO2e-influenser</value>
+    <comment>table [Localized Labels] measure [CO2e Key Influences]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.3a1c37f6-15d4-440f-8ca8-27f98f1e1e09.caption" xml:space="preserve">
+    <value>Årlig och daglig förändring för vatten och avfall</value>
+    <comment>table [Localized Labels] measure [Water and Waste Yearly and Daily Change]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.caption" xml:space="preserve">
+    <value>Hållbarhetstransaktioner</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.column.56c87b66-607f-4c15-977a-005985b5e581.caption" xml:space="preserve">
+    <value>Transaktionsnummer</value>
+    <comment>table [Sustainability Ledger Entries] column [Entry No.]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.column.2a630679-72e8-4b7c-802f-e6776d8354b2.caption" xml:space="preserve">
+    <value>Beskrivning</value>
+    <comment>table [Sustainability Ledger Entries] column [Description]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.column.c28fbbcf-d677-41d7-9d48-f3f7d45e1f1b.caption" xml:space="preserve">
+    <value>Vattentyp</value>
+    <comment>table [Sustainability Ledger Entries] column [Water Type]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.column.27772ee5-4bdd-445a-a702-6b6ff73bad27.caption" xml:space="preserve">
+    <value>Typ av vatten-/avfallsintensitet</value>
+    <comment>table [Sustainability Ledger Entries] column [Wate/Waste Intensity Type]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.column.1973a70e-ce74-4dc5-9b79-03296b9c1a3c.caption" xml:space="preserve">
+    <value>Dokumenttyp</value>
+    <comment>table [Sustainability Ledger Entries] column [Document Type]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.770ba9f8-c49b-44c6-aad5-2dd17aeb06b0.caption" xml:space="preserve">
+    <value>CO2-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2 Emissions]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.d5316adc-5aa1-4184-8ce8-5747c2834a88.caption" xml:space="preserve">
+    <value>CH4-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CH4 Emissions]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.d62bb2c9-c112-498a-8afe-ded1c2faef7e.caption" xml:space="preserve">
+    <value>Saldo för CO2-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2 Emissions Balance]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.4bcc8b7a-27cb-4914-a832-c87a2644c275.caption" xml:space="preserve">
+    <value>Saldo t.o.m. datum för CO2-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2 Emissions Balance at Date]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.b387d55c-6f71-4448-ac41-731e2e1c0f79.caption" xml:space="preserve">
+    <value>N2O-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [N2O Emissions]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.88d60675-3900-4161-9565-c30601162b92.caption" xml:space="preserve">
+    <value>CO2e-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2e Emissions]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.6ce5a382-915f-498e-844c-3187beb27d8d.caption" xml:space="preserve">
+    <value>Saldo t.o.m. datum för CH4-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CH4 Emissions Balance at Date]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.3b1cb8b3-dfdc-477f-9128-f0c2d111d980.caption" xml:space="preserve">
+    <value>Saldo för CH4-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CH4 Emissions Balance]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.08405276-cfe4-4c4e-bb1f-ccf744ee4cb8.caption" xml:space="preserve">
+    <value>Vattenintensitet</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Intensity]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.0e31eb23-69c3-442d-a2e5-a7be11945246.caption" xml:space="preserve">
+    <value>Avfallsintensitet</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Intensity]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.ac161858-ae68-4289-b316-d4fde3f01a69.caption" xml:space="preserve">
+    <value>Utsläpp i vatten</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.d8cf0bf3-eb02-4da7-9b5d-137550445e7c.caption" xml:space="preserve">
+    <value>Saldo CO2e-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2e Emissions Balance]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.2b53dd5a-8c62-40c0-9487-6d7f07dec99d.caption" xml:space="preserve">
+    <value>Saldo CO2e-utsläpp t.o.m. datum</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2e Emissions Balance at Date]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.9f6fa36d-f530-4492-9f9d-edcc57d2cf0b.caption" xml:space="preserve">
+    <value>Saldo för utsläpp i vatten t.o.m. datum</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water Balance at Date]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.1f11cd59-61b0-4113-879c-d9e23f4e61d7.caption" xml:space="preserve">
+    <value>Saldo för utsläpp i vatten</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water Balance]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.fd7b9d88-cef7-4446-ad56-0fa3cef0bf0b.caption" xml:space="preserve">
+    <value>Saldo för N2O-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [N2O Emissions Balance]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.9426944e-ac09-4626-baaf-70242ecfaa99.caption" xml:space="preserve">
+    <value>Saldo t.o.m. datum för N2O-utsläpp</value>
+    <comment>table [Sustainability Ledger Entries] measure [N2O Emissions Balance at Date]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.77726021-8550-43b1-8a8a-93413f66fdd0.caption" xml:space="preserve">
+    <value>Saldo för avfallsintensitet t.o.m. datum</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Intensity Balance at Date]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.38d01131-cd14-49c0-a583-23d3f35c1d6f.caption" xml:space="preserve">
+    <value>Saldo för avfallsintensitet</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Intensity Balance]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.b5097795-4a11-4281-af9f-249febc43f4f.caption" xml:space="preserve">
+    <value>Saldo för vattenintensitet</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Intensity Balance]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.d6fbfd5b-566d-4689-8ebb-3ec5fbc42ead.caption" xml:space="preserve">
+    <value>Saldo för vattenintensitet t.o.m. datum</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Intensity Balance at Date]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.382b3caf-4192-4c59-bd8e-61271f8fe259.caption" xml:space="preserve">
+    <value>CO2-baslinje</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2 Baseline]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.aa34a845-69a9-4911-80ab-a626c447bee8.caption" xml:space="preserve">
+    <value>CH4-baslinje</value>
+    <comment>table [Sustainability Ledger Entries] measure [CH4 Baseline]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.9d154b5a-d5ea-4529-940a-a5f4dec274f7.caption" xml:space="preserve">
+    <value>CH4 jämfört med baslinjen (%)</value>
+    <comment>table [Sustainability Ledger Entries] measure [CH4 vs Baseline (%)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.176c24f7-23b8-4d71-b7f5-7a34896c049f.caption" xml:space="preserve">
+    <value>N2O-baslinje</value>
+    <comment>table [Sustainability Ledger Entries] measure [N2O Baseline]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.f71aa40a-1fcd-4d8c-9e2f-9c011013989a.caption" xml:space="preserve">
+    <value>N2O jämfört med baslinjen (%)</value>
+    <comment>table [Sustainability Ledger Entries] measure [N2O vs Baseline (%)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.36ae0168-06ba-4880-98bb-59bb35399af8.caption" xml:space="preserve">
+    <value>CO2 jämfört med baslinjen (%)</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2 vs Baseline (%)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.577402bf-28bc-4551-8efb-8098222b95bc.caption" xml:space="preserve">
+    <value>Vattnets baslinje</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Baseline]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.2b24ae24-9469-40a3-9ccd-8614d3936298.caption" xml:space="preserve">
+    <value>Baslinje för avfall</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Baseline]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.8fe0587c-04fd-4a0c-83dc-a4b7f8ad8b27.caption" xml:space="preserve">
+    <value>Vatten jämfört med baslinje (%)</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water vs Baseline (%)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.73e2e1da-1650-4ed2-aeb7-5fee5e823416.caption" xml:space="preserve">
+    <value>Avfall jämfört med baslinje (%)</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste vs Baseline (%)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.007410d5-f576-4caa-8e68-0df15bc234a1.caption" xml:space="preserve">
+    <value>CO2e-baslinje</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2e Baseline]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.9f4a9531-9f03-4896-b099-2342b9c1b9f7.caption" xml:space="preserve">
+    <value>CO2e jämfört med baslinjen (%)</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2e vs Baseline (%)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.95d2cc4b-fe13-4c2f-a018-f19e639bb92a.caption" xml:space="preserve">
+    <value>Köpta koldioxidkrediter</value>
+    <comment>table [Sustainability Ledger Entries] measure [Purchased Carbon Credits]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.50b14d49-6c4d-4abb-b983-aca23232a8f0.caption" xml:space="preserve">
+    <value>Baslinje för utsläpp i vatten</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water Baseline]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.1e6b7c40-0119-4028-b946-2c436ca62dd1.caption" xml:space="preserve">
+    <value>Utsläpp i vatten kontra baslinje (%)</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water vs Baseline (%)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.36836214-b579-41f9-91d1-008ddb5970b1.caption" xml:space="preserve">
+    <value>CO2e-utsläpp (exkl. krediter)</value>
+    <comment>table [Sustainability Ledger Entries] measure [CO2e Emissions (Excl Credits)]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.223d8ff9-fe11-4f5f-90ba-3629d0f27087.caption" xml:space="preserve">
+    <value>Vattenintensitet FÅ</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Intensity PY]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.f4f0bfab-f650-4b05-aa74-6f903ad2e4a1.caption" xml:space="preserve">
+    <value>Vattenintensitet ÅFÅ</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Intensity YOY]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.4e103d90-531d-4ebc-bcdf-4424628b28f0.caption" xml:space="preserve">
+    <value>Avfallsintensitet FÅ</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Intensity PY]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.ee6c4d62-1729-4fb6-b666-c42d4d1a9ae2.caption" xml:space="preserve">
+    <value>Avfallsintensitet ÅFÅ</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Intensity YOY]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.d8bcec7e-3837-4c36-855e-e08b010dc678.caption" xml:space="preserve">
+    <value>Utsläpp i vatten FÅ</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water PY]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.f93aae63-4ce3-4146-a037-c2bf583ec759.caption" xml:space="preserve">
+    <value>Utsläpp i vatten ÅFÅ</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water YOY]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.1f436360-692b-4ad6-8415-ddb471f080b1.caption" xml:space="preserve">
+    <value>Utsläpp i vatten PD</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water PD]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.e3918949-dfe7-42e7-8443-c157aa994d3d.caption" xml:space="preserve">
+    <value>Avfallsintensitet FD</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Intensity PD]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.81689940-d831-4d39-acb4-181435d15ada.caption" xml:space="preserve">
+    <value>Vattenintensitet PD</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Intensity PD]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.0067f1fd-987f-4327-8e2f-3db6e5762ae4.caption" xml:space="preserve">
+    <value>Vattenintensitet DFD</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Intensity DOD]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.3331f55f-3ace-49fa-a547-1bb0df0e64c6.caption" xml:space="preserve">
+    <value>Avfallsintensitet DFD</value>
+    <comment>table [Sustainability Ledger Entries] measure [Waste Intensity DOD]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.9508c68d-3a6b-4d9b-862d-dc739d2cc99c.caption" xml:space="preserve">
+    <value>Utsläpp i vatten DFD</value>
+    <comment>table [Sustainability Ledger Entries] measure [Discharged Into Water DOD]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.df2ffa0c-4e05-4257-8483-d124377814f9.caption" xml:space="preserve">
+    <value>Baslänk</value>
+    <comment>table [Sustainability Ledger Entries] measure [Base Link]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.f24f87a5-4019-4ed5-ae4b-67285d98d57a.caption" xml:space="preserve">
+    <value>Länk för hållbarhetstransaktioner</value>
+    <comment>table [Sustainability Ledger Entries] measure [Sustainability Ledger Entries Link]</comment>
+  </data>
+  <data name="2a0cf939-2176-4b5a-970c-8d0ef8334663.measure.a4076b8c-7262-417f-b534-f0712a788efa.caption" xml:space="preserve">
+    <value>Tillgängligt vatten</value>
+    <comment>table [Sustainability Ledger Entries] measure [Water Available]</comment>
+  </data>
+  <data name="816fcc93-a534-482d-bf58-a75c40d24465.caption" xml:space="preserve">
+    <value>Hållbarhetskonton</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="816fcc93-a534-482d-bf58-a75c40d24465.column.a4e29f80-9152-4ee5-9b88-4bd0d76f5243.caption" xml:space="preserve">
+    <value>Hållbarhetskontonr</value>
+    <comment>table [Sustainability Accounts] column [Sustainability Account No.]</comment>
+  </data>
+  <data name="816fcc93-a534-482d-bf58-a75c40d24465.column.9e586a43-6c1b-4947-8d51-309bc60b1522.caption" xml:space="preserve">
+    <value>Namn på hållbarhetskonto</value>
+    <comment>table [Sustainability Accounts] column [Sustainability Account Name]</comment>
+  </data>
+  <data name="60f5456e-1b5c-4448-9a86-e4c1970e18f3.caption" xml:space="preserve">
+    <value>Land/region</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="60f5456e-1b5c-4448-9a86-e4c1970e18f3.column.0d932f35-6962-429c-820f-e5833623f366.caption" xml:space="preserve">
+    <value>Lands-/regionskod</value>
+    <comment>table [Country/Region] column [Country Region Code]</comment>
+  </data>
+  <data name="60f5456e-1b5c-4448-9a86-e4c1970e18f3.column.f41d290c-5bc0-4d88-93e0-f9c066311f9d.caption" xml:space="preserve">
+    <value>Namn på land/region</value>
+    <comment>table [Country/Region] column [Country Region Name]</comment>
+  </data>
+  <data name="a8623892-be7f-4115-9213-a5a049ea3eef.caption" xml:space="preserve">
+    <value>Ansvarsenhet</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="a8623892-be7f-4115-9213-a5a049ea3eef.column.c5d0eaaa-0caf-4636-88e8-b3938b29bd4a.caption" xml:space="preserve">
+    <value>Kod för ansvarsenhet</value>
+    <comment>table [Responsibility Centre] column [Responsibility Centre Code]</comment>
+  </data>
+  <data name="a8623892-be7f-4115-9213-a5a049ea3eef.column.a7e4ec29-e333-4a92-912f-fd47bbfc0df6.caption" xml:space="preserve">
+    <value>Ansvarsenhetsnamn</value>
+    <comment>table [Responsibility Centre] column [Responsibility Centre Name]</comment>
+  </data>
+  <data name="a8623892-be7f-4115-9213-a5a049ea3eef.measure.0d06ebf4-5755-4106-8205-ec013bac139e.caption" xml:space="preserve">
+    <value>Anläggningens kapacitet</value>
+    <comment>table [Responsibility Centre] measure [Facility Capacity]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.caption" xml:space="preserve">
+    <value>Hållbarhetsmål</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.7c16c01d-e33a-46b7-b5f1-e0df80d60b71.caption" xml:space="preserve">
+    <value>Styrkortsnummer</value>
+    <comment>table [Sustainability Goals] column [Score Card No.]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.b92d3b27-f546-4342-9bae-8a836e57f2b4.caption" xml:space="preserve">
+    <value>Nummer</value>
+    <comment>table [Sustainability Goals] column [No.]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.4e5619ba-dc90-4e38-9100-241b6babb275.caption" xml:space="preserve">
+    <value>Namn</value>
+    <comment>table [Sustainability Goals] column [Name]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.27e0a1eb-a476-4fbb-bb0f-2fa204a7445f.caption" xml:space="preserve">
+    <value>Ägare</value>
+    <comment>table [Sustainability Goals] column [Owner]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.35d5ba40-73bf-48a2-ba3a-96ec25e22721.caption" xml:space="preserve">
+    <value>Målvärde för CO2</value>
+    <comment>table [Sustainability Goals] column [Target Value For CO2]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.a10c9c0f-ecea-4c46-8826-620a84f8471b.caption" xml:space="preserve">
+    <value>Målvärde för CH4</value>
+    <comment>table [Sustainability Goals] column [Target Value For CH4]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.83c35783-9e36-4de2-b241-adf36be8ae85.caption" xml:space="preserve">
+    <value>Målvärde för N2O</value>
+    <comment>table [Sustainability Goals] column [Target Value For N2O]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.3ce01cc9-15cf-4464-9d90-515d879fb55e.caption" xml:space="preserve">
+    <value>Målvärde för vattenintensitet</value>
+    <comment>table [Sustainability Goals] column [Target Value For Water Intensity]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.1f4dd665-9b6e-4b16-aab8-e8b86d011584.caption" xml:space="preserve">
+    <value>Målvärde för avfallsintensitet</value>
+    <comment>table [Sustainability Goals] column [Target Value For Waste Intensity]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.01436eb1-5942-4ae5-bf48-8e4cff25c9ef.caption" xml:space="preserve">
+    <value>Huvudmål</value>
+    <comment>table [Sustainability Goals] column [Main Goal]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.fbba48b3-d78d-4405-9195-784441d6da6b.caption" xml:space="preserve">
+    <value>Startdatum</value>
+    <comment>table [Sustainability Goals] column [Start Date]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.0342fa70-be23-458d-8a1f-82dc030203ca.caption" xml:space="preserve">
+    <value>Slutdatum</value>
+    <comment>table [Sustainability Goals] column [End Date]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.29cec17a-f3a0-4d03-bf17-33a414e9ff6d.caption" xml:space="preserve">
+    <value>Startdatum för baslinje</value>
+    <comment>table [Sustainability Goals] column [Baseline Start Date]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.column.07d4c22d-fdd8-4bf9-826b-c6328996ef4b.caption" xml:space="preserve">
+    <value>Slutdatum för baslinje</value>
+    <comment>table [Sustainability Goals] column [Baseline End Date]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.b01821d8-2d59-4b3a-990d-0649f5ef5324.caption" xml:space="preserve">
+    <value>CO2-mål</value>
+    <comment>table [Sustainability Goals] measure [CO2 Target]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.afd43b65-54b6-4089-9d0c-b3252fffc250.caption" xml:space="preserve">
+    <value>CO2 realiserat (%)</value>
+    <comment>table [Sustainability Goals] measure [CO2 Realized (%)]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.c4ebd68e-2f5b-4f14-87ea-22d0572de7b5.caption" xml:space="preserve">
+    <value>CH4-mål</value>
+    <comment>table [Sustainability Goals] measure [CH4 Target]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.06cf511e-dc95-4fe6-8249-5d7c7d2f7db5.caption" xml:space="preserve">
+    <value>N2O-mål</value>
+    <comment>table [Sustainability Goals] measure [N2O Target]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.8802864b-165b-4836-9781-e4cc533fd043.caption" xml:space="preserve">
+    <value>CH4 realiserat (%)</value>
+    <comment>table [Sustainability Goals] measure [CH4 Realized (%)]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.b2d19c75-09fe-4965-883d-923297c12105.caption" xml:space="preserve">
+    <value>N2O realiserat (%)</value>
+    <comment>table [Sustainability Goals] measure [N2O Realized (%)]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.7b5ae209-a294-40ae-bc72-8e4fa7c07e1b.caption" xml:space="preserve">
+    <value>Vattenmål</value>
+    <comment>table [Sustainability Goals] measure [Water Target]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.6084f614-54a8-46e5-833e-5c1f32943669.caption" xml:space="preserve">
+    <value>Avfallsmål</value>
+    <comment>table [Sustainability Goals] measure [Waste Target]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.4b5c1806-9d18-4ff9-942d-496f87142de9.caption" xml:space="preserve">
+    <value>Vatten realiserat (%)</value>
+    <comment>table [Sustainability Goals] measure [Water Realized (%)]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.e3ecf69e-7b4e-42f9-a169-35cd1acee720.caption" xml:space="preserve">
+    <value>Realiserat avfall (%)</value>
+    <comment>table [Sustainability Goals] measure [Waste Realized (%)]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.f6b9bc51-30f4-488c-9689-f83de8705dc2.caption" xml:space="preserve">
+    <value>CO2e realiserat (%)</value>
+    <comment>table [Sustainability Goals] measure [CO2e Realized (%)]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.925995aa-74e6-4c44-be1f-cd4de53b8b9f.caption" xml:space="preserve">
+    <value>Aktuellt värde för CO2</value>
+    <comment>table [Sustainability Goals] measure [CO2 Current Value]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.24fa7b6f-957c-46f0-9d1c-5462365aaa56.caption" xml:space="preserve">
+    <value>Aktuellt värde för CH4</value>
+    <comment>table [Sustainability Goals] measure [CH4 Current Value]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.09aa2b0e-d6dd-44dc-b602-1241c31b7296.caption" xml:space="preserve">
+    <value>Aktuellt värde för N2O</value>
+    <comment>table [Sustainability Goals] measure [N2O Current Value]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.6a2ab28f-e47c-421b-83a2-80f52548c8c0.caption" xml:space="preserve">
+    <value>Aktuellt värde för CO2e</value>
+    <comment>table [Sustainability Goals] measure [CO2e Current Value]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.fbe8597e-4a1a-43b5-a4be-4acf4fca27cb.caption" xml:space="preserve">
+    <value>Aktuellt värde för vatten</value>
+    <comment>table [Sustainability Goals] measure [Water Current Value]</comment>
+  </data>
+  <data name="da071c77-b29a-499b-a452-91aa43e7f707.measure.b4eba006-0dca-43eb-914e-16cb1e95de17.caption" xml:space="preserve">
+    <value>Aktuellt värde för avfall</value>
+    <comment>table [Sustainability Goals] measure [Waste Current Value]</comment>
+  </data>
+  <data name="efc44628-dbc3-4b0a-a873-6e698c2b747f.caption" xml:space="preserve">
+    <value>Personaltransaktioner</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="efc44628-dbc3-4b0a-a873-6e698c2b747f.column.c6d5f659-403b-4e66-9dae-89412439602e.caption" xml:space="preserve">
+    <value>Transaktionsnummer</value>
+    <comment>table [Employee Ledger Entries] column [Entry No.]</comment>
+  </data>
+  <data name="efc44628-dbc3-4b0a-a873-6e698c2b747f.column.e0a99c44-aeb1-473f-bdd5-6432db8db55a.caption" xml:space="preserve">
+    <value>Dokumenttyp</value>
+    <comment>table [Employee Ledger Entries] column [Document Type]</comment>
+  </data>
+  <data name="efc44628-dbc3-4b0a-a873-6e698c2b747f.column.332d015a-ba58-49af-b8ef-3e9b76c8b178.caption" xml:space="preserve">
+    <value>Dokumentnummer</value>
+    <comment>table [Employee Ledger Entries] column [Document No.]</comment>
+  </data>
+  <data name="efc44628-dbc3-4b0a-a873-6e698c2b747f.column.c93cd236-7354-4c07-9a80-0088dde8e277.caption" xml:space="preserve">
+    <value>Beskrivning</value>
+    <comment>table [Employee Ledger Entries] column [Description]</comment>
+  </data>
+  <data name="efc44628-dbc3-4b0a-a873-6e698c2b747f.measure.5bc7caaa-0565-4c52-a7e5-7c116086f802.caption" xml:space="preserve">
+    <value>Medarbetarbelopp</value>
+    <comment>table [Employee Ledger Entries] measure [Employee Amount]</comment>
+  </data>
+  <data name="efc44628-dbc3-4b0a-a873-6e698c2b747f.measure.702abf4b-9e8a-40cd-b20d-080b777d0343.caption" xml:space="preserve">
+    <value>Länk för personaltransaktioner</value>
+    <comment>table [Employee Ledger Entries] measure [Employee Ledger Entries Link]</comment>
+  </data>
+  <data name="0dff38e4-da38-4481-bce4-10332ddefc77.caption" xml:space="preserve">
+    <value>Personalkompetenser</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="0dff38e4-da38-4481-bce4-10332ddefc77.column.dc150d05-cea8-4741-8e2b-7fb23c45e1c8.caption" xml:space="preserve">
+    <value>Koder för personalkompetens</value>
+    <comment>table [Employee Qualifications] column [Employee Qualification Codes]</comment>
+  </data>
+  <data name="0dff38e4-da38-4481-bce4-10332ddefc77.measure.7f1ce2fe-ef23-4593-a5e1-0a9b8be64352.caption" xml:space="preserve">
+    <value>Personalkompetenser</value>
+    <comment>table [Employee Qualifications] measure [Employee Qualifications]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.caption" xml:space="preserve">
+    <value>Utsläppsavgifter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.0a8ab281-ab77-4f60-bf8d-18c5a098dad3.caption" xml:space="preserve">
+    <value>Utsläppstyp</value>
+    <comment>table [Emission Fees] column [Emission Type]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.9d5b9e9b-c336-4ab4-ab1e-9ddf260b08ff.caption" xml:space="preserve">
+    <value>Typ av scope</value>
+    <comment>table [Emission Fees] column [Scope Type]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.0eb56f57-e7a0-4574-addc-849e08017ebc.caption" xml:space="preserve">
+    <value>Startdatum</value>
+    <comment>table [Emission Fees] column [Starting Date]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.00c07462-4b47-452b-aa03-d63933c657a0.caption" xml:space="preserve">
+    <value>Slutdatum</value>
+    <comment>table [Emission Fees] column [Ending Date]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.f597564c-4f8d-447b-aaa6-55bc4303bbe5.caption" xml:space="preserve">
+    <value>Lands-/regionskod</value>
+    <comment>table [Emission Fees] column [Country Region Code]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.3505d97f-87bb-474f-92af-97c95b56cda2.caption" xml:space="preserve">
+    <value>Ansvarsenhet</value>
+    <comment>table [Emission Fees] column [Responsibility Centre]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.1ac537aa-360e-437b-8bb1-e4eecf6ea941.caption" xml:space="preserve">
+    <value>Koldioxidavgift</value>
+    <comment>table [Emission Fees] column [Carbon Fee]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.column.28b5df6a-4754-4ccb-9823-8d0975405b5d.caption" xml:space="preserve">
+    <value>Faktor för koldioxidekvivalent</value>
+    <comment>table [Emission Fees] column [Carbon Equivalent Factor]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.measure.56c15b36-8a7f-4061-a605-199039d691ce.caption" xml:space="preserve">
+    <value>CO2e-mål</value>
+    <comment>table [Emission Fees] measure [CO2e Target]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.measure.7098868a-fe63-4514-bfd5-d87690bf39b8.caption" xml:space="preserve">
+    <value>CO2-koldioxidekvivalent</value>
+    <comment>table [Emission Fees] measure [CO2 Carbon Equivalent]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.measure.8544e1fc-381c-41ab-bb7c-c6d30fc8406b.caption" xml:space="preserve">
+    <value>CH4-koldioxidekvivalent</value>
+    <comment>table [Emission Fees] measure [CH4 Carbon Equivalent]</comment>
+  </data>
+  <data name="3a19b8b1-42d9-483b-8642-4b80854e6852.measure.b5b8d805-dbc9-4331-8c7a-b665305a04fb.caption" xml:space="preserve">
+    <value>N2O-koldioxidekvivalent</value>
+    <comment>table [Emission Fees] measure [N2O Carbon Equivalent]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.caption" xml:space="preserve">
+    <value>Personalfrånvaro</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.column.ebcc2a78-4a30-49cc-9841-b1d44e062b77.caption" xml:space="preserve">
+    <value>Transaktionsnummer</value>
+    <comment>table [Employee Absences] column [Entry No]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.column.a0576715-4fe1-4a23-a1f8-8d164ab164d5.caption" xml:space="preserve">
+    <value>Från datum</value>
+    <comment>table [Employee Absences] column [From Date]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.column.fad3bfa4-f42a-47ef-b1a0-77fc3bd1b07d.caption" xml:space="preserve">
+    <value>Till datum</value>
+    <comment>table [Employee Absences] column [To Date]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.column.1f814577-9ab7-49a3-9a85-97934275b69a.caption" xml:space="preserve">
+    <value>Orsak till frånvaro</value>
+    <comment>table [Employee Absences] column [Cause of Absence]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.column.dea41a73-65cb-4fc7-b371-8e02616a048d.caption" xml:space="preserve">
+    <value>Beskrivning</value>
+    <comment>table [Employee Absences] column [Description]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.measure.81db14f9-ad5e-41c8-a8ce-310ed2f83794.caption" xml:space="preserve">
+    <value>Personalfrånvaro</value>
+    <comment>table [Employee Absences] measure [Employee Absences]</comment>
+  </data>
+  <data name="a2fed5db-ebdc-40c8-88e3-9e005cd56347.measure.8815b958-50bd-4a9e-91fa-2cf049b876a0.caption" xml:space="preserve">
+    <value>Frånvarotimmar (%)</value>
+    <comment>table [Employee Absences] measure [Absence Hours (%)]</comment>
+  </data>
+  <data name="69811130-f179-45c5-b874-e277cc1470f4.caption" xml:space="preserve">
+    <value>Kategorier för hållbarhetsunderkonton</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="69811130-f179-45c5-b874-e277cc1470f4.column.8bb05cc7-68e8-4b12-82de-fbeb7db0f8b6.caption" xml:space="preserve">
+    <value>Koder för underkategori</value>
+    <comment>table [Sustainability Sub-Account Categories] column [Sub-Category Code]</comment>
+  </data>
+  <data name="69811130-f179-45c5-b874-e277cc1470f4.column.f8eaddfc-77bf-40d5-8bf3-1febb540225b.caption" xml:space="preserve">
+    <value>Beskrivning av underkategori</value>
+    <comment>table [Sustainability Sub-Account Categories] column [Sub-Category Description]</comment>
+  </data>
+  <data name="69811130-f179-45c5-b874-e277cc1470f4.column.7c2f6290-5e19-4c60-a25e-9ac2c982d87e.caption" xml:space="preserve">
+    <value>Förnybar energi</value>
+    <comment>table [Sustainability Sub-Account Categories] column [Renewable Energy]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.caption" xml:space="preserve">
+    <value>Medarbetare</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.3c95435d-58df-4aad-af62-dc55ed4b3acf.caption" xml:space="preserve">
+    <value>Anställningsnr</value>
+    <comment>table [Employees] column [Employee No.]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.3bb36502-e4a2-4ff0-8848-32458b6c1345.caption" xml:space="preserve">
+    <value>Medarbetarens fullständiga namn</value>
+    <comment>table [Employees] column [Employee Full Name]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.c2fc45c0-5806-4446-9f5b-e5514f9f6332.caption" xml:space="preserve">
+    <value>Medarbetarens förnamn</value>
+    <comment>table [Employees] column [Employee First Name]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.2bedba2b-5602-4dfc-afe8-faf930c5b912.caption" xml:space="preserve">
+    <value>Medarbetarens efternamn</value>
+    <comment>table [Employees] column [Employee Last Name]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.47dcb956-edf5-4742-a8db-c814b36b86d9.caption" xml:space="preserve">
+    <value>Medarbetarens kön</value>
+    <comment>table [Employees] column [Employee Gender]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.c9a79b09-7d16-4803-8510-875fa81896d8.caption" xml:space="preserve">
+    <value>Medarbetarens fackföreningskod</value>
+    <comment>table [Employees] column [Employee Union Code]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.b5f7243d-70e5-4253-a1d4-d49c9a4f4145.caption" xml:space="preserve">
+    <value>Personalstatus</value>
+    <comment>table [Employees] column [Employee Status]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.4f832747-1e3b-4f63-bbe2-fccc0c17c786.caption" xml:space="preserve">
+    <value>Orsak till medarbetarens inaktivitet</value>
+    <comment>table [Employees] column [Employee Cause of Inactivity]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.ff7110d1-3f92-4a4e-a320-ab232b473cb1.caption" xml:space="preserve">
+    <value>Medarbetarens inaktivitetsdatum</value>
+    <comment>table [Employees] column [Employee Inactive Date]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.e2cbc06b-686b-40ea-94b8-6fb281094682.caption" xml:space="preserve">
+    <value>Orsaker till medarbetarens uppsägning</value>
+    <comment>table [Employees] column [Employee Grounds for Termination]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.b8f03122-d79a-462a-b243-835f18ebd8f0.caption" xml:space="preserve">
+    <value>Medarbetarens födelsedatum</value>
+    <comment>table [Employees] column [Employee Date of Birth]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.2774549d-a4a0-417e-aaf0-8cf1c557360a.caption" xml:space="preserve">
+    <value>Ålder</value>
+    <comment>table [Employees] column [Age]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.column.92926218-b984-4167-b15b-5502d9e59fab.caption" xml:space="preserve">
+    <value>Åldersfördelning</value>
+    <comment>table [Employees] column [Age Distribution]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.c24a6780-10b6-4f6c-b8d4-155ed521df53.caption" xml:space="preserve">
+    <value>Antal medarbetare</value>
+    <comment>table [Employees] measure [No. of Employees]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.3a59aa72-61f5-439a-95f3-a1044b352e10.caption" xml:space="preserve">
+    <value>Antal medarbetare – män</value>
+    <comment>table [Employees] measure [No. of Male Employees]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.4b7fb167-179f-4459-a79a-db1b2db3a249.caption" xml:space="preserve">
+    <value>Antal medarbetare – kvinnor</value>
+    <comment>table [Employees] measure [No. of Female Employees]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.00874ba1-5083-4337-b5e4-6bfce0db94c7.caption" xml:space="preserve">
+    <value>Antal övriga medarbetare</value>
+    <comment>table [Employees] measure [No. of Other Employees]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.eefb5ba3-77ce-4b47-861c-a0b8f5822471.caption" xml:space="preserve">
+    <value>Medarbetare – män (%)</value>
+    <comment>table [Employees] measure [Male Employees (%)]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.fbf3d691-b627-40ef-a581-ee0094f7b43e.caption" xml:space="preserve">
+    <value>Medarbetare – kvinnor (%)</value>
+    <comment>table [Employees] measure [Female Employees (%)]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.b8f03a06-2a3a-4e7f-8d41-beaba6d24073.caption" xml:space="preserve">
+    <value>Övriga medarbetare (%)</value>
+    <comment>table [Employees] measure [Other Employees (%)]</comment>
+  </data>
+  <data name="c080803e-a4fd-4a9e-b16d-0c0d3de20837.measure.e75cd780-38ae-4bde-aa11-836a80e34d14.caption" xml:space="preserve">
+    <value>Aktiva medarbetare</value>
+    <comment>table [Employees] measure [Active Employees]</comment>
+  </data>
+</root>

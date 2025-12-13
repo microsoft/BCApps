@@ -205,9 +205,19 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
                 SetUsageDataGenericImportError('');
                 if not CheckServiceCommitments(TempServiceCommitment) then
                     exit;
-                CreateUsageDataBilling.CreateUsageDataBillingFromTempServiceCommitments(TempServiceCommitment, UsageDataImport."Supplier No.", UsageDataGenericImportGlobal."Usage Data Import Entry No.", UsageDataGenericImportGlobal."Subscription Header No.", UsageDataGenericImportGlobal."Billing Period Start Date",
-                                UsageDataGenericImportGlobal."Billing Period End Date", UsageDataGenericImportGlobal.Cost, UsageDataGenericImportGlobal.Quantity,
-                                UsageDataGenericImportGlobal."Cost Amount", UsageDataGenericImportGlobal.Price, UsageDataGenericImportGlobal.Amount, UsageDataGenericImportGlobal.GetCurrencyCode());
+                CreateUsageDataBilling.CreateUsageDataBillingFromTempServiceCommitments(
+                    TempServiceCommitment, UsageDataImport."Supplier No.",
+                    UsageDataGenericImportGlobal."Usage Data Import Entry No.",
+                    UsageDataGenericImportGlobal."Subscription Header No.",
+                    UsageDataGenericImportGlobal."Product ID",
+                    UsageDataGenericImportGlobal."Product Name",
+                    UsageDataGenericImportGlobal."Billing Period Start Date",
+                    UsageDataGenericImportGlobal."Billing Period End Date",
+                    UsageDataGenericImportGlobal.Cost, UsageDataGenericImportGlobal.Quantity,
+                    UsageDataGenericImportGlobal."Cost Amount",
+                    UsageDataGenericImportGlobal.Price,
+                    UsageDataGenericImportGlobal.Amount,
+                    UsageDataGenericImportGlobal.GetCurrencyCode());
             until UsageDataGenericImportGlobal.Next() = 0
         else begin
             UsageDataImport.SetErrorReason(StrSubstNo(NoDataFoundErr, UsageDataImport."Processing Step"));
@@ -277,7 +287,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataGenericImportGlobal.Modify(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", 'OnProcessColumnMappingOnBeforeDataExchFieldMappingFindSet', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", OnProcessColumnMappingOnBeforeDataExchFieldMappingFindSet, '', false, false)]
     local procedure SetNextEntryNoForUsageDataGenericImport(var RecordRef: RecordRef; LastKeyFieldId: Integer; CurrLineNo: Integer)
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";

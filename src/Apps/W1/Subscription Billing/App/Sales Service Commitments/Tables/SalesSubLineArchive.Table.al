@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Archive;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 
 table 8069 "Sales Sub. Line Archive"
@@ -70,7 +70,7 @@ table 8069 "Sales Sub. Line Archive"
             Caption = 'Calculation Base Amount';
             MinValue = 0;
             BlankZero = true;
-            AutoFormatType = 1;
+            AutoFormatType = 2;
             AutoFormatExpression = Rec."Currency Code";
         }
         field(16; "Calculation Base %"; Decimal)
@@ -95,7 +95,7 @@ table 8069 "Sales Sub. Line Archive"
             MinValue = 0;
             MaxValue = 100;
             BlankZero = true;
-            DecimalPlaces = 0 : 2;
+            DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
         field(19; "Discount Amount"; Decimal)
