@@ -7,19 +7,19 @@ namespace System.SFTPClient;
 
 table 9760 "SFTP Folder Content"
 {
-    DataClassification = SystemMetadata;
+    DataClassification = CustomerContent;
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
     Extensible = false;
-    Caption = 'SFTP Folder Content', Locked = true;
+    Caption = 'SFTP Folder Content';
     TableType = Temporary;
 
     fields
     {
         field(1; "Entry No."; Integer)
         {
-            Caption = 'Entry No.', Locked = true;
+            Caption = 'Entry No.';
             ToolTip = 'Specifies a unique identifier for each entry in the SFTP folder content.';
             Access = Internal;
         }

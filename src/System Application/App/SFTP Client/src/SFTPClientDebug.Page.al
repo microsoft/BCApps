@@ -12,7 +12,6 @@ page 9760 "SFTP Client - Debug"
     Caption = 'SFTP Client - Debug';
     PageType = Card;
     UsageCategory = None;
-    SaveValues = true;
 
     layout
     {
@@ -117,7 +116,7 @@ page 9760 "SFTP Client - Debug"
 
                 trigger OnAction()
                 begin
-                    TestSftpClientPrivateKeyPasspharse();
+                    TestSftpClientPrivateKeyPassphrase();
                 end;
             }
             action(UploadFile)
@@ -375,7 +374,7 @@ page 9760 "SFTP Client - Debug"
             NewDirectory := WorkingDirectory;
     end;
 
-    local procedure TestSftpClientPrivateKeyPasspharse()
+    local procedure TestSftpClientPrivateKeyPassphrase()
     var
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         SFTPOperationResponse: Codeunit "SFTP Operation Response";
