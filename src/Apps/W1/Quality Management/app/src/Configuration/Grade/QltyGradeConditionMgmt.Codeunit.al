@@ -62,16 +62,10 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
     internal procedure PromptUpdateFieldsFromGradeIfApplicable(GradeCode: Code[20])
     var
         ExistingQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
         Continue: Boolean;
     begin
         ExistingQltyIGradeConditionConf.SetRange("Grade Code", GradeCode);
         ExistingQltyIGradeConditionConf.SetRange("Condition Type", ExistingQltyIGradeConditionConf."Condition Type"::Field);
-
-        QltyInspectionGrade.Get(GradeCode);
-        if not (QltyInspectionGrade."Copy Behavior" in [QltyInspectionGrade."Copy Behavior"::"Automatically copy the grade"]) then
-            exit;
-
         if not ExistingQltyIGradeConditionConf.IsEmpty() then begin
             if not GuiAllowed() then
                 Continue := true
