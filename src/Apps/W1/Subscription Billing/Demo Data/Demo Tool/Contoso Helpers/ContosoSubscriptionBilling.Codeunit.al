@@ -453,6 +453,11 @@ codeunit 8105 "Contoso Subscription Billing"
     end;
 
     procedure InsertServiceObject(ObjectNo: Code[20]; CustomerNo: Code[20]; ItemNo: Code[20]; ProvisionStartDate: Date; Quantity: Decimal)
+    begin
+        InsertServiceObject(ObjectNo, CustomerNo, ItemNo, ProvisionStartDate, 0D, Quantity);
+    end;
+
+    procedure InsertServiceObject(ObjectNo: Code[20]; CustomerNo: Code[20]; ItemNo: Code[20]; ProvisionStartDate: Date; ProvisionEndDate: Date; Quantity: Decimal)
     var
         ServiceObject: Record "Subscription Header";
         Exists: Boolean;
@@ -472,6 +477,8 @@ codeunit 8105 "Contoso Subscription Billing"
 
         ServiceObject.Validate("End-User Customer No.", CustomerNo);
         ServiceObject.Validate("Provision Start Date", ProvisionStartDate);
+        if ProvisionEndDate <> 0D then
+            ServiceObject.Validate("Provision End Date", ProvisionEndDate);
         ServiceObject.SkipInsertServiceCommitmentsFromStandardServCommPackages(true);
         ServiceObject.Validate(Type, Enum::"Service Object Type"::Item);
         ServiceObject.Validate("Source No.", ItemNo);
