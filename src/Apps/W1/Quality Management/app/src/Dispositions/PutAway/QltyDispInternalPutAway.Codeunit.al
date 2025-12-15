@@ -143,7 +143,7 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         if (TempWarehouseEntry."Lot No." <> '') or (TempWarehouseEntry."Serial No." <> '') or (TempWarehouseEntry."Package No." <> '') then
             WhseInternalPutAwayLine.SetItemTrackingLines(TempWarehouseEntry, Quantity);
 
-        if WhseInternalPutAwayLine.Modify() then;
+        WhseInternalPutAwayLine.Modify();
     end;
 
     /// <summary>

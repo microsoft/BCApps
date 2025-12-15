@@ -673,7 +673,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         QltyInTestGenerationRule.Modify();
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyWarehouseTrigger;
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
 
         ExistingQltyInTestGenerationRule.SetRange("Template Code", QltyInTestGenerationRule."Template Code");
         ExistingQltyInTestGenerationRule.SetRange("Source Table No.", QltyInTestGenerationRule."Source Table No.");

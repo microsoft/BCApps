@@ -333,13 +333,13 @@ table 20405 "Qlty. Inspection Test Header"
 
                     Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
                     Rec."Finished Date" := CurrentDateTime();
-                    if Rec.Modify(false) then;
+                    Rec.Modify(false);
                     OnTestFinished(Rec);
 
                     QltyStartWorkflow.StartWorkflowTestFinished(Rec);
                 end else
                     if (xRec.Status = xRec.Status::Finished) and (Rec.Status = Rec.Status::Open) then begin
-                        if Rec.Modify(false) then;
+                        Rec.Modify(false);
                         OnTestReopened(Rec);
                         QltyStartWorkflow.StartWorkflowTestReopens(Rec);
                     end
@@ -1191,7 +1191,7 @@ table 20405 "Qlty. Inspection Test Header"
         if TempTrackingSpecification."Lot No." <> Rec."Source Lot No." then begin
             Rec."Source Lot No." := TempTrackingSpecification."Lot No.";
             if not Rec.IsTemporary() then
-                if Rec.Modify() then;
+                Rec.Modify();
         end;
     end;
 
@@ -1259,7 +1259,7 @@ table 20405 "Qlty. Inspection Test Header"
         if TempTrackingSpecification."Package No." <> Rec."Source Package No." then begin
             Rec."Source Package No." := TempTrackingSpecification."Package No.";
             if not Rec.IsTemporary() then
-                if Rec.Modify() then;
+                Rec.Modify();
         end;
     end;
 
@@ -1323,7 +1323,7 @@ table 20405 "Qlty. Inspection Test Header"
         if TempTrackingSpecification."Serial No." <> Rec."Source Serial No." then begin
             Rec."Source Serial No." := TempTrackingSpecification."Serial No.";
             if not Rec.IsTemporary() then
-                if Rec.Modify() then;
+                Rec.Modify();
         end;
     end;
 

@@ -225,6 +225,9 @@ codeunit 20599 "Qlty. Misc Helpers"
         DummyText: Text;
         TableFilter: Text;
     begin
+        if TempBufferQltyLookupCode.IsTemporary() then
+            TempBufferQltyLookupCode.DeleteAll();
+
         ReasonableMaximum := GetDefaultMaximumRowsFieldLookup();
 
         TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyField."Lookup Table Filter", OptionalContextQltyInspectionTestHeader, OptionalContextQltyInspectionTestLine);
@@ -333,7 +336,7 @@ codeunit 20599 "Qlty. Misc Helpers"
                     if (TempBufferQltyLookupCode.Description = '') and (TempBufferQltyLookupCode."Custom 1" <> '') then
                         TempBufferQltyLookupCode.Description := TempBufferQltyLookupCode."Custom 1";
 
-                    if TempBufferQltyLookupCode.Insert() then;
+                    TempBufferQltyLookupCode.Insert();
                     if HasAtLeastOne then
                         CSVSimpleText += ',';
                     CSVSimpleText += TempBufferQltyLookupCode."Custom 1";

@@ -89,7 +89,10 @@ page 20442 "Qlty. Report Selection"
     local procedure SetUsageFilter(ModifyRec: Boolean)
     begin
         if ModifyRec then
-            if Rec.Modify() then;
+            if IsNullGuid(Rec.SystemId) then
+                Rec.Insert()
+            else
+                Rec.Modify();
         Rec.FilterGroup(2);
 
         case QltyReportSelectionUsage of

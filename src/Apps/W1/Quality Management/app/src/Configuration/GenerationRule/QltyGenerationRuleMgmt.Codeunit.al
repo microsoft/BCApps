@@ -207,7 +207,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                 Clear(TemporaryTestMatchRecordRef);
                 TemporaryTestMatchRecordRef.Open(TargetRecordRef.Number(), true);
                 TemporaryTestMatchRecordRef.Copy(TargetRecordRef);
-                if TemporaryTestMatchRecordRef.Insert(false) then;
+                TemporaryTestMatchRecordRef.Insert(false);
                 TemporaryTestMatchRecordRef.Reset();
                 TemporaryTestMatchRecordRef.SetView(QltyInTestGenerationRule."Condition Filter");
                 if TemporaryTestMatchRecordRef.FindFirst() then
@@ -245,7 +245,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                     TempAlreadySearchedsQltyInspectSourceConfig.Reset();
                     if not TempAlreadySearchedsQltyInspectSourceConfig.Get(TempAvailableQltyInspectSourceConfig.Code) then begin
                         TempAlreadySearchedsQltyInspectSourceConfig := TempAvailableQltyInspectSourceConfig;
-                        if TempAlreadySearchedsQltyInspectSourceConfig.Insert() then;
+                        TempAlreadySearchedsQltyInspectSourceConfig.Insert();
                         if QltyTraversal.FindFromTableLinkedRecordWithToTable(true, false, TempAvailableQltyInspectSourceConfig, TargetRecordRef, FoundLinkRecordRef) then
                             if FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth, UseActivationFilter, IsManualCreation, FoundLinkRecordRef, OptionalItem, TempAvailableQltyInspectSourceConfig, TempAlreadySearchedsQltyInspectSourceConfig, OptionalSpecificTemplate, TempQltyInTestGenerationRule) then begin
                                 Found := true;

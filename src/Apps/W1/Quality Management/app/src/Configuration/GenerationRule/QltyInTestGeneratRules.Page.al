@@ -634,7 +634,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
             if QltyInTestGenerationRule.FindSet() then
                 repeat
                     QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    if QltyInTestGenerationRule.Modify() then;
+                    QltyInTestGenerationRule.Modify();
                 until QltyInTestGenerationRule.Next() = 0;
     end;
 }

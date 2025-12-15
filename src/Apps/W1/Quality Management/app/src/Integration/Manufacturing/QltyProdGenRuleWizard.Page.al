@@ -813,7 +813,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             QltyInTestGenerationRule."Assembly Trigger" := QltyAssemblyTrigger;
             QltyManagementSetup."Assembly Trigger" := QltyAssemblyTrigger;
         end;
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
         QltyInTestGenerationRule."Item Filter" := ItemRuleFilter;
         QltyInTestGenerationRule.Modify();
 

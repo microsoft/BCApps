@@ -209,8 +209,8 @@ codeunit 20410 "Qlty. Grade Evaluation"
         if (not QltyInspectionTestLine.IsTemporary()) and (OptionalQltyInspectionTestHeader."No." <> '') and (QltyInspectionTestLine."Test No." <> '') then begin
             OptionalQltyInspectionTestHeader.UpdateGradeFromLines();
             OptionalQltyInspectionTestHeader.Validate("Grade Code");
-            if Modify then
-                if OptionalQltyInspectionTestHeader.Modify(true) then;
+            if Modify and not IsNullGuid(OptionalQltyInspectionTestHeader.SystemId) then
+                OptionalQltyInspectionTestHeader.Modify(true);
         end;
     end;
 
