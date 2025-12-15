@@ -63,9 +63,8 @@ codeunit 20411 "Qlty. Receiving Integration"
         if ExpectedAmountOfTests = 0 then begin
             ExpectedAmountOfTests := 1;
             if not ApplicableReceivingQltyInTestGenerationRule.IsEmpty() then begin
-                TempSingleBufferTrackingSpecification := TempTrackingSpecification;
+                TempSingleBufferTrackingSpecification.Init();
                 TempSingleBufferTrackingSpecification.Insert(false);
-                TempSingleBufferTrackingSpecification.SetRecFilter();
                 AttemptCreateTestWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempSingleBufferTrackingSpecification);
             end
         end else
