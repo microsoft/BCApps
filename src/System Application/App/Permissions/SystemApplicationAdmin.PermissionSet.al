@@ -10,6 +10,7 @@ using System.DataAdministration;
 using System.Email;
 using System.Environment.Configuration;
 using System.ExternalFileStorage;
+using System.SFTPClient;
 using System.Integration;
 using System.Integration.Excel;
 using System.Privacy;
@@ -36,5 +37,6 @@ permissionset 154 "System Application - Admin"
                              "PageScripting - Play",
                              "Page Summary - Admin",
                              "TROUBLESHOOT TOOLS",
-                             "VSC Intgr. - Admin";
+                             "VSC Intgr. - Admin",
+                             "SFTP Admin";
 }

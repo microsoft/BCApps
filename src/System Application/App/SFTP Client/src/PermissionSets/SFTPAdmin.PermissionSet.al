@@ -11,13 +11,6 @@ permissionset 9762 "SFTP Admin"
     Caption = 'SFTP Admin';
 
     Permissions =
-        codeunit "Dotnet SFTP Client" = X,
-        codeunit "Dotnet SFTP File" = X,
-        codeunit "SFTP Client Implementation" = X,
-        codeunit "SFTP Client" = X,
-        codeunit "SFTP Operation Response" = X,
         page "SFTP Client - Debug" = X,
-        page "SFTP Folder Content" = X,
-        table "SFTP Folder Content" = X,
-        tabledata "SFTP Folder Content" = RIMD;
+        page "SFTP Folder Content" = X;
 }
