@@ -332,7 +332,13 @@ page 8006 "Contract Renewal Selection"
         ServiceCommitment: Record "Subscription Line";
         TempServiceCommitment2: Record "Subscription Line" temporary;
         EmptyDateFormula: DateFormula;
+        IsHandled: Boolean;
+        Result: Boolean;
     begin
+        OnBeforeServiceHasRenewalTerm(CustomerContractLine, IsHandled, Result);
+        if IsHandled then
+            exit(Result);
+
         CustomerContractLine.TestField("Subscription Header No.");
         CustomerContractLine.TestField("Subscription Line Entry No.");
 
@@ -506,6 +512,11 @@ page 8006 "Contract Renewal Selection"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateRenewalTermOnBeforeCurrPageUpdate(var CustSubContractLine: Record "Cust. Sub. Contract Line"; var TempSubscriptionLine: Record "Subscription Line" temporary; RenewalTerm: DateFormula)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeServiceHasRenewalTerm(CustSubContractLine: Record "Cust. Sub. Contract Line"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
