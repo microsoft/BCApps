@@ -235,6 +235,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
             begin
                 FormatAddressFields(Header);
                 VATAmount := Header."Total VAT";
+                TotalAmtInclVAT += VATAmount;
             end;
         }
     }
