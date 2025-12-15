@@ -5,7 +5,7 @@ using Microsoft.Sales.Document;
 using System.Security.User;
 using System.Threading;
 
-codeunit 139684 "Automated Billing Test"
+codeunit 148455 "Automated Billing Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
