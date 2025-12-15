@@ -41,7 +41,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     local procedure HandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         VerifiedItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Handled: Boolean;
@@ -84,10 +84,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if ProdOrderRoutingLine."Next Operation No." <> '' then
                 Clear(VerifiedItemLedgerEntry);
 
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost);
-        QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
-        if not QltyInTestGenerationRule.IsEmpty() then
-            AttemptCreateTestPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInTestGenerationRule);
+        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectionGenRule.IsEmpty() then
+            AttemptCreateTestPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnBeforeChangeStatusOnProdOrder', '', true, true)]
@@ -106,7 +106,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         OldProductionOrder: Record "Production Order";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Handled: Boolean;
     begin
         if not QltyManagementSetup.GetSetupRecord() then
@@ -124,10 +124,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if ToProdOrder.Status <> ToProdOrder.Status::Released then
             exit;
 
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease);
-        QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
-        if not QltyInTestGenerationRule.IsEmpty() then
-            AttemptCreateTestReleased(ToProdOrder, QltyInTestGenerationRule);
+        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectionGenRule.IsEmpty() then
+            AttemptCreateTestReleased(ToProdOrder, QltyInspectionGenRule);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderLineModify', '', true, true)]
@@ -162,7 +162,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     local procedure HandleOnAfterRefreshProdOrder(var ProductionOrder: Record "Production Order"; ErrorOccured: Boolean)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         if ErrorOccured then
             exit;
@@ -173,10 +173,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnReleasedProductionOrderRefresh);
-        QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
-        if not QltyInTestGenerationRule.IsEmpty() then
-            AttemptCreateTestReleased(ProductionOrder, QltyInTestGenerationRule);
+        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectionGenRule.IsEmpty() then
+            AttemptCreateTestReleased(ProductionOrder, QltyInspectionGenRule);
     end;
 
     /// <summary>
@@ -186,45 +186,45 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="NewProductionOrder"></param>
     local procedure UpdateReferencesForProductionOrder(OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TargetRecordRef: RecordRef;
     begin
         TargetRecordRef.GetTable(NewProductionOrder);
-        if not QltyInspectionTestHeader.WritePermission() then begin
+        if not QltyInspectionHeader.WritePermission() then begin
             LogProductionProblemWith1(TargetRecordRef, PermissionErr, UserId());
             exit;
         end;
 
-        QltyInspectionTestHeader.SetRange("Source RecordId", OldProductionOrder.RecordId());
-        if QltyInspectionTestHeader.FindSet(true) then
+        QltyInspectionHeader.SetRange("Source RecordId", OldProductionOrder.RecordId());
+        if QltyInspectionHeader.FindSet(true) then
             repeat
-                QltyInspectionTestHeader."Source RecordId" := NewProductionOrder.RecordId();
-                UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionTestHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-            until QltyInspectionTestHeader.Next() = 0
+                QltyInspectionHeader."Source RecordId" := NewProductionOrder.RecordId();
+                UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+            until QltyInspectionHeader.Next() = 0
         else begin
-            QltyInspectionTestHeader.Reset();
-            QltyInspectionTestHeader.SetRange("Source RecordId 2", OldProductionOrder.RecordId());
-            if QltyInspectionTestHeader.FindSet(true) then
+            QltyInspectionHeader.Reset();
+            QltyInspectionHeader.SetRange("Source RecordId 2", OldProductionOrder.RecordId());
+            if QltyInspectionHeader.FindSet(true) then
                 repeat
-                    QltyInspectionTestHeader."Source RecordId 2" := NewProductionOrder.RecordId();
-                    UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionTestHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-                until QltyInspectionTestHeader.Next() = 0
+                    QltyInspectionHeader."Source RecordId 2" := NewProductionOrder.RecordId();
+                    UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+                until QltyInspectionHeader.Next() = 0
             else begin
-                QltyInspectionTestHeader.Reset();
-                QltyInspectionTestHeader.SetRange("Source RecordId 3", OldProductionOrder.RecordId());
-                if QltyInspectionTestHeader.FindSet(true) then
+                QltyInspectionHeader.Reset();
+                QltyInspectionHeader.SetRange("Source RecordId 3", OldProductionOrder.RecordId());
+                if QltyInspectionHeader.FindSet(true) then
                     repeat
-                        QltyInspectionTestHeader."Source RecordId 3" := NewProductionOrder.RecordId();
-                        UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionTestHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-                    until QltyInspectionTestHeader.Next() = 0
+                        QltyInspectionHeader."Source RecordId 3" := NewProductionOrder.RecordId();
+                        UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+                    until QltyInspectionHeader.Next() = 0
                 else begin
-                    QltyInspectionTestHeader.Reset();
-                    QltyInspectionTestHeader.SetRange("Source RecordId 4", OldProductionOrder.RecordId());
-                    if QltyInspectionTestHeader.FindSet(true) then
+                    QltyInspectionHeader.Reset();
+                    QltyInspectionHeader.SetRange("Source RecordId 4", OldProductionOrder.RecordId());
+                    if QltyInspectionHeader.FindSet(true) then
                         repeat
-                            QltyInspectionTestHeader."Source RecordId 4" := NewProductionOrder.RecordId();
-                            UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionTestHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
-                        until QltyInspectionTestHeader.Next() = 0;
+                            QltyInspectionHeader."Source RecordId 4" := NewProductionOrder.RecordId();
+                            UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+                        until QltyInspectionHeader.Next() = 0;
                 end;
             end;
         end;
@@ -237,45 +237,45 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="NewProdOrderLine"></param>
     local procedure UpdateReferencesForProductionOrderLine(OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TargetRecordRef: RecordRef;
     begin
         TargetRecordRef.GetTable(NewProdOrderLine);
-        if not QltyInspectionTestHeader.WritePermission() then begin
+        if not QltyInspectionHeader.WritePermission() then begin
             LogProductionProblemWith1(TargetRecordRef, PermissionErr, UserId());
             exit;
         end;
 
-        QltyInspectionTestHeader.SetRange("Source RecordId", OldProdOrderLine.RecordId());
-        if QltyInspectionTestHeader.FindSet(true) then
+        QltyInspectionHeader.SetRange("Source RecordId", OldProdOrderLine.RecordId());
+        if QltyInspectionHeader.FindSet(true) then
             repeat
-                QltyInspectionTestHeader."Source RecordId" := NewProdOrderLine.RecordId();
-                UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-            until QltyInspectionTestHeader.Next() = 0
+                QltyInspectionHeader."Source RecordId" := NewProdOrderLine.RecordId();
+                UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+            until QltyInspectionHeader.Next() = 0
         else begin
-            QltyInspectionTestHeader.Reset();
-            QltyInspectionTestHeader.SetRange("Source RecordId 2", OldProdOrderLine.RecordId());
-            if QltyInspectionTestHeader.FindSet(true) then
+            QltyInspectionHeader.Reset();
+            QltyInspectionHeader.SetRange("Source RecordId 2", OldProdOrderLine.RecordId());
+            if QltyInspectionHeader.FindSet(true) then
                 repeat
-                    QltyInspectionTestHeader."Source RecordId 2" := NewProdOrderLine.RecordId();
-                    UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-                until QltyInspectionTestHeader.Next() = 0
+                    QltyInspectionHeader."Source RecordId 2" := NewProdOrderLine.RecordId();
+                    UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+                until QltyInspectionHeader.Next() = 0
             else begin
-                QltyInspectionTestHeader.Reset();
-                QltyInspectionTestHeader.SetRange("Source RecordId 3", OldProdOrderLine.RecordId());
-                if QltyInspectionTestHeader.FindSet(true) then
+                QltyInspectionHeader.Reset();
+                QltyInspectionHeader.SetRange("Source RecordId 3", OldProdOrderLine.RecordId());
+                if QltyInspectionHeader.FindSet(true) then
                     repeat
-                        QltyInspectionTestHeader."Source RecordId 3" := NewProdOrderLine.RecordId();
-                        UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-                    until QltyInspectionTestHeader.Next() = 0
+                        QltyInspectionHeader."Source RecordId 3" := NewProdOrderLine.RecordId();
+                        UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+                    until QltyInspectionHeader.Next() = 0
                 else begin
-                    QltyInspectionTestHeader.Reset();
-                    QltyInspectionTestHeader.SetRange("Source RecordId 4", OldProdOrderLine.RecordId());
-                    if QltyInspectionTestHeader.FindSet(true) then
+                    QltyInspectionHeader.Reset();
+                    QltyInspectionHeader.SetRange("Source RecordId 4", OldProdOrderLine.RecordId());
+                    if QltyInspectionHeader.FindSet(true) then
                         repeat
-                            QltyInspectionTestHeader."Source RecordId 4" := NewProdOrderLine.RecordId();
-                            UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-                        until QltyInspectionTestHeader.Next() = 0
+                            QltyInspectionHeader."Source RecordId 4" := NewProdOrderLine.RecordId();
+                            UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+                        until QltyInspectionHeader.Next() = 0
                 end;
             end;
         end;
@@ -288,106 +288,106 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="NewProdOrderRoutingLine"></param>
     local procedure UpdateReferencesForProductionOrderRoutingLine(OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TargetRecordRef: RecordRef;
     begin
         TargetRecordRef.GetTable(NewProdOrderRoutingLine);
-        if not QltyInspectionTestHeader.WritePermission() then begin
+        if not QltyInspectionHeader.WritePermission() then begin
             LogProductionProblemWith1(TargetRecordRef, PermissionErr, UserId());
             exit;
         end;
 
-        QltyInspectionTestHeader.SetRange("Source RecordId", OldProdOrderRoutingLine.RecordId());
-        if QltyInspectionTestHeader.FindSet(true) then
+        QltyInspectionHeader.SetRange("Source RecordId", OldProdOrderRoutingLine.RecordId());
+        if QltyInspectionHeader.FindSet(true) then
             repeat
-                QltyInspectionTestHeader."Source RecordId" := NewProdOrderRoutingLine.RecordId();
-                UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-            until QltyInspectionTestHeader.Next() = 0
+                QltyInspectionHeader."Source RecordId" := NewProdOrderRoutingLine.RecordId();
+                UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+            until QltyInspectionHeader.Next() = 0
         else begin
-            QltyInspectionTestHeader.Reset();
-            QltyInspectionTestHeader.SetRange("Source RecordId 2", OldProdOrderRoutingLine.RecordId());
-            if QltyInspectionTestHeader.FindSet(true) then
+            QltyInspectionHeader.Reset();
+            QltyInspectionHeader.SetRange("Source RecordId 2", OldProdOrderRoutingLine.RecordId());
+            if QltyInspectionHeader.FindSet(true) then
                 repeat
-                    QltyInspectionTestHeader."Source RecordId 2" := NewProdOrderRoutingLine.RecordId();
-                    UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-                until QltyInspectionTestHeader.Next() = 0
+                    QltyInspectionHeader."Source RecordId 2" := NewProdOrderRoutingLine.RecordId();
+                    UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+                until QltyInspectionHeader.Next() = 0
             else begin
-                QltyInspectionTestHeader.Reset();
-                QltyInspectionTestHeader.SetRange("Source RecordId 3", OldProdOrderRoutingLine.RecordId());
-                if QltyInspectionTestHeader.FindSet(true) then
+                QltyInspectionHeader.Reset();
+                QltyInspectionHeader.SetRange("Source RecordId 3", OldProdOrderRoutingLine.RecordId());
+                if QltyInspectionHeader.FindSet(true) then
                     repeat
-                        QltyInspectionTestHeader."Source RecordId 3" := NewProdOrderRoutingLine.RecordId();
-                        UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-                    until QltyInspectionTestHeader.Next() = 0
+                        QltyInspectionHeader."Source RecordId 3" := NewProdOrderRoutingLine.RecordId();
+                        UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+                    until QltyInspectionHeader.Next() = 0
                 else begin
-                    QltyInspectionTestHeader.Reset();
-                    QltyInspectionTestHeader.SetRange("Source RecordId 4", OldProdOrderRoutingLine.RecordId());
-                    if QltyInspectionTestHeader.FindSet(true) then
+                    QltyInspectionHeader.Reset();
+                    QltyInspectionHeader.SetRange("Source RecordId 4", OldProdOrderRoutingLine.RecordId());
+                    if QltyInspectionHeader.FindSet(true) then
                         repeat
-                            QltyInspectionTestHeader."Source RecordId 4" := NewProdOrderRoutingLine.RecordId();
-                            UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionTestHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-                        until QltyInspectionTestHeader.Next() = 0
+                            QltyInspectionHeader."Source RecordId 4" := NewProdOrderRoutingLine.RecordId();
+                            UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+                        until QltyInspectionHeader.Next() = 0
                 end;
             end;
         end;
     end;
 
-    local procedure UpdateSourceDocumentForSpecificTestOnOrder(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TargetRecordRef: RecordRef; OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
+    local procedure UpdateSourceDocumentForSpecificTestOnOrder(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
     var
         OldStatusValue: Integer;
         NewStatusValue: Integer;
     begin
         OldStatusValue := OldProductionOrder.Status.AsInteger();
         NewStatusValue := NewProductionOrder.Status.AsInteger();
-        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionTestHeader, false, true) then begin
-            if QltyInspectionTestHeader."Source Type" = OldStatusValue then
-                QltyInspectionTestHeader."Source Type" := NewStatusValue;
+        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionHeader, false, true) then begin
+            if QltyInspectionHeader."Source Type" = OldStatusValue then
+                QltyInspectionHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Document No." = OldProductionOrder."No." then
-                QltyInspectionTestHeader."Source Document No." := NewProductionOrder."No.";
+            if QltyInspectionHeader."Source Document No." = OldProductionOrder."No." then
+                QltyInspectionHeader."Source Document No." := NewProductionOrder."No.";
         end;
 
-        if QltyInspectionTestHeader.Modify(false) then;
+        if QltyInspectionHeader.Modify(false) then;
     end;
 
-    local procedure UpdateSourceDocumentForSpecificTestOnLine(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TargetRecordRef: RecordRef; OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
+    local procedure UpdateSourceDocumentForSpecificTestOnLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
     var
         OldStatusValue: Integer;
         NewStatusValue: Integer;
     begin
         OldStatusValue := OldProdOrderLine.Status.AsInteger();
         NewStatusValue := NewProdOrderLine.Status.AsInteger();
-        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionTestHeader, false, true) then begin
-            if QltyInspectionTestHeader."Source Type" = OldStatusValue then
-                QltyInspectionTestHeader."Source Type" := NewStatusValue;
+        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionHeader, false, true) then begin
+            if QltyInspectionHeader."Source Type" = OldStatusValue then
+                QltyInspectionHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Document No." = OldProdOrderLine."Prod. Order No." then
-                QltyInspectionTestHeader."Source Document No." := NewProdOrderLine."Prod. Order No.";
+            if QltyInspectionHeader."Source Document No." = OldProdOrderLine."Prod. Order No." then
+                QltyInspectionHeader."Source Document No." := NewProdOrderLine."Prod. Order No.";
 
-            if QltyInspectionTestHeader."Source Document Line No." = OldProdOrderLine."Line No." then
-                QltyInspectionTestHeader."Source Document Line No." := NewProdOrderLine."Line No.";
+            if QltyInspectionHeader."Source Document Line No." = OldProdOrderLine."Line No." then
+                QltyInspectionHeader."Source Document Line No." := NewProdOrderLine."Line No.";
         end;
-        if QltyInspectionTestHeader.Modify(false) then;
+        if QltyInspectionHeader.Modify(false) then;
     end;
 
-    local procedure UpdateSourceDocumentForSpecificTestOnOperation(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TargetRecordRef: RecordRef; OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    local procedure UpdateSourceDocumentForSpecificTestOnOperation(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         OldStatusValue: Integer;
         NewStatusValue: Integer;
     begin
         OldStatusValue := OldProdOrderRoutingLine.Status.AsInteger();
         NewStatusValue := NewProdOrderRoutingLine.Status.AsInteger();
-        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionTestHeader, false, true) then begin
-            if QltyInspectionTestHeader."Source Type" = OldStatusValue then
-                QltyInspectionTestHeader."Source Type" := NewStatusValue;
+        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionHeader, false, true) then begin
+            if QltyInspectionHeader."Source Type" = OldStatusValue then
+                QltyInspectionHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Document No." = OldProdOrderRoutingLine."Prod. Order No." then
-                QltyInspectionTestHeader."Source Document No." := NewProdOrderRoutingLine."Prod. Order No.";
+            if QltyInspectionHeader."Source Document No." = OldProdOrderRoutingLine."Prod. Order No." then
+                QltyInspectionHeader."Source Document No." := NewProdOrderRoutingLine."Prod. Order No.";
 
-            if QltyInspectionTestHeader."Source Task No." = OldProdOrderRoutingLine."Operation No." then
-                QltyInspectionTestHeader."Source Task No." := NewProdOrderRoutingLine."Operation No.";
+            if QltyInspectionHeader."Source Task No." = OldProdOrderRoutingLine."Operation No." then
+                QltyInspectionHeader."Source Task No." := NewProdOrderRoutingLine."Operation No.";
         end;
-        if QltyInspectionTestHeader.Modify(false) then;
+        if QltyInspectionHeader.Modify(false) then;
     end;
 
     /// <summary>
@@ -396,15 +396,15 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// What we can do is automatically apply them.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
-    /// <param name="OptionalFiltersQltyInTestGenerationRule">Optional generation rule filters.</param>
-    local procedure AttemptCreateTestReleased(var ProductionOrder: Record "Production Order"; var OptionalFiltersQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    /// <param name="OptionalFiltersQltyInspectionGenRule">Optional generation rule filters.</param>
+    local procedure AttemptCreateTestReleased(var ProductionOrder: Record "Production Order"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderLine: Record "Prod. Order Line";
         ReservationEntry: Record "Reservation Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
         OfTestIds: List of [RecordId];
         HasReservationEntries: Boolean;
@@ -440,20 +440,20 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                                 TempTrackingSpecification.Insert();
 
-                                MadeTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInTestGenerationRule);
+                                MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInspectionGenRule);
 
                                 if MadeTest then begin
-                                    QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                                    OfTestIds.Add(QltyInspectionTestHeader.RecordId());
+                                    QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                                    OfTestIds.Add(QltyInspectionHeader.RecordId());
                                     CreatedAtLeastOneTestForRoutingLine := true;
                                 end;
                             until ReservationEntry.Next() = 0;
                         end else begin
-                            MadeTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule);
+                            MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
                             if MadeTest then begin
-                                QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                                OfTestIds.Add(QltyInspectionTestHeader.RecordId());
+                                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                                OfTestIds.Add(QltyInspectionHeader.RecordId());
                                 CreatedAtLeastOneTestForRoutingLine := true;
                             end;
                         end;
@@ -469,30 +469,30 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                             TempTrackingSpecification.Insert();
 
-                            MadeTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule);
+                            MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
                             if MadeTest then begin
-                                QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                                OfTestIds.Add(QltyInspectionTestHeader.RecordId());
+                                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                                OfTestIds.Add(QltyInspectionHeader.RecordId());
                                 CreatedAtLeastOneTestForOrderLine := true;
                             end;
 
                         until ReservationEntry.Next() = 0;
                     end else begin
-                        MadeTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule);
+                        MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
                         if MadeTest then begin
-                            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                            OfTestIds.Add(QltyInspectionTestHeader.RecordId());
+                            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                            OfTestIds.Add(QltyInspectionHeader.RecordId());
                             CreatedAtLeastOneTestForOrderLine := true;
                         end;
                     end;
             until ProdOrderLine.Next() = 0;
         end;
         if (not CreatedAtLeastOneTestForOrderLine) and (not CreatedAtLeastOneTestForRoutingLine) then begin
-            MadeTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule);
+            MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
             if MadeTest then begin
-                QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                OfTestIds.Add(QltyInspectionTestHeader.RecordId());
+                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                OfTestIds.Add(QltyInspectionHeader.RecordId());
                 CreatedTestForProdOrder := MadeTest;
             end;
         end;
@@ -508,10 +508,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine"></param>
     /// <param name="ItemJournalLine"></param>
-    local procedure AttemptCreateTestPosting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var OptionalFiltersQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    local procedure AttemptCreateTestPosting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Handled: Boolean;
         HasTest: Boolean;
         DummyVariant: Variant;
@@ -521,16 +521,16 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             exit;
 
         if (ItemLedgerEntry."Entry Type" <> ItemLedgerEntry."Entry Type"::Output) or (ItemLedgerEntry."Item No." = '') then
-            HasTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule)
+            HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule)
 
         else
             if ProdOrderRoutingLine."Operation No." <> '' then
-                HasTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ItemLedgerEntry, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, OptionalFiltersQltyInTestGenerationRule)
+                HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(ItemLedgerEntry, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, OptionalFiltersQltyInspectionGenRule)
             else
-                HasTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule);
+                HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
         if HasTest then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         OnAfterProductionAttemptCreateAutomaticTest(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
     end;

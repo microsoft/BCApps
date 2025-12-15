@@ -21,7 +21,7 @@ report 20410 "Qlty. Create Transfer Order"
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
@@ -29,7 +29,7 @@ report 20410 "Qlty. Create Transfer Order"
             var
                 QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
             begin
-                QltyDispTransfer.PerformDisposition(CurrentTest, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, Destination, InTransit);
+                QltyDispTransfer.PerformDisposition(CurrentInspection, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, Destination, InTransit);
             end;
         }
     }

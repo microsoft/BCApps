@@ -20,8 +20,8 @@ codeunit 20426 "Qlty. Start Workflow"
 {
     Permissions =
         tabledata "Qlty. Management Setup" = r,
-        tabledata "Qlty. Inspection Test Header" = rimd,
-        tabledata "Qlty. Inspection Test Line" = rimd,
+        tabledata "Qlty. Inspection Header" = rimd,
+        tabledata "Qlty. Inspection Line" = rimd,
         tabledata "Workflow Step Instance" = r,
         tabledata "Employee" = r,
         tabledata "User Setup" = r,
@@ -34,37 +34,37 @@ codeunit 20426 "Qlty. Start Workflow"
         WorkflowManagement: Codeunit "Workflow Management";
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
 
-    internal procedure StartWorkflowTestCreated(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowTestCreated(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestCreatedEvent(), QltyInspectionTestHeader);
+        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestCreatedEvent(), QltyInspectionHeader);
     end;
 
-    internal procedure StartWorkflowTestFinished(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowTestFinished(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestFinishedEvent(), QltyInspectionTestHeader);
+        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestFinishedEvent(), QltyInspectionHeader);
     end;
 
-    internal procedure StartWorkflowTestReopens(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowTestReopens(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestReopensEvent(), QltyInspectionTestHeader);
+        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestReopensEvent(), QltyInspectionHeader);
     end;
 
-    internal procedure StartWorkflowTestChanged(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; xQltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowTestChanged(var QltyInspectionHeader: Record "Qlty. Inspection Header"; xQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         RecursionDetectionQltySessionHelper: Codeunit "Qlty. Session Helper";
         Temp: Text;
         TestDateTime: DateTime;
     begin
-        if QltyInspectionTestHeader.IsTemporary() then
+        if QltyInspectionHeader.IsTemporary() then
             exit;
 
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
@@ -72,7 +72,7 @@ codeunit 20426 "Qlty. Start Workflow"
 
         Temp := RecursionDetectionQltySessionHelper.GetSessionValue('StartWorkflowTestChanged-Record');
         if Temp <> '' then
-            if Temp = QltyInspectionTestHeader."No." then begin
+            if Temp = QltyInspectionHeader."No." then begin
                 Temp := RecursionDetectionQltySessionHelper.GetSessionValue('StartWorkflowTestChanged-Time');
                 if Temp <> '' then
                     if Evaluate(TestDateTime, Temp) then
@@ -84,9 +84,9 @@ codeunit 20426 "Qlty. Start Workflow"
             end;
 
         Temp := Format(CurrentDateTime());
-        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Record', QltyInspectionTestHeader."No.");
+        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Record', QltyInspectionHeader."No.");
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Time', Temp);
-        WorkflowManagement.HandleEventWithxRec(CopyStr(QltyWorkflowSetup.GetTestHasChangedEvent(), 1, 128), QltyInspectionTestHeader, xQltyInspectionTestHeader);
+        WorkflowManagement.HandleEventWithxRec(CopyStr(QltyWorkflowSetup.GetTestHasChangedEvent(), 1, 128), QltyInspectionHeader, xQltyInspectionHeader);
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Time', '');
         RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Record', '');
     end;

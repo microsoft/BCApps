@@ -235,7 +235,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := NewLotNoExpression;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 NewLotNoExpression := Expression;
                                 QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownNewLotNo(), NewLotNoExpression);
                             end;
@@ -263,7 +263,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := NewSerialNoExpression;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 NewSerialNoExpression := Expression;
                                 QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownNewSerialNo(), NewSerialNoExpression);
                             end;
@@ -291,7 +291,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := NewPackageNoExpression;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 NewPackageNoExpression := Expression;
                                 QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownNewPackageNo(), NewPackageNoExpression);
                             end;
@@ -731,8 +731,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Field';
-                        Tooltip = 'Specifies which field on the table to set? [QITestField] nomenclature can be used to help find record based on another value in the quality inspection test.';
-                        InstructionalText = '[QITestField] nomenclature can be used to help find record based on another value in the quality inspection test.';
+                        Tooltip = 'Specifies which field on the table to set? [QITestField] nomenclature can be used to help find record based on another value in the quality inspection.';
+                        InstructionalText = '[QITestField] nomenclature can be used to help find record based on another value in the quality inspection.';
 
                         trigger OnValidate()
                         var
@@ -766,8 +766,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Value to Set';
-                        Tooltip = 'Specifies what value do you want to set? [QITestField] nomenclature can be used to use a field on the quality inspection test while setting the value.';
-                        InstructionalText = '[QITestField] nomenclature can be used to use a field on the quality inspection test while setting the value.';
+                        Tooltip = 'Specifies what value do you want to set? [QITestField] nomenclature can be used to use a field on the quality inspection while setting the value.';
+                        InstructionalText = '[QITestField] nomenclature can be used to use a field on the quality inspection while setting the value.';
 
                         trigger OnValidate()
                         begin
@@ -781,7 +781,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Expression: Text;
                         begin
                             Expression := TestValueExpressionToSet;
-                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+                            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                                 TestValueExpressionToSet := Expression;
                                 Qlty_SetCommonDatabaseVariables();
                             end;

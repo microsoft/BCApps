@@ -79,22 +79,22 @@ table 20402 "Qlty. Inspection Template Hdr."
     trigger OnDelete()
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         QltyInspectionTemplateLine.SetRange("Template Code", Code);
         QltyInspectionTemplateLine.DeleteAll(true);
 
-        QltyInTestGenerationRule.SetRange("Template Code", Code);
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.SetRange("Template Code", Code);
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     trigger OnRename()
     var
-        RenameQltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        RenameQltyInspectionLine: Record "Qlty. Inspection Line";
     begin
         if (xRec."Code" <> '') and (Rec."Code" <> '') and (xRec."Code" <> Rec."Code") then begin
-            RenameQltyInspectionTestLine.SetRange("Template Code", xRec."Code");
-            RenameQltyInspectionTestLine.ModifyAll("Template Code", Rec."Code");
+            RenameQltyInspectionLine.SetRange("Template Code", xRec."Code");
+            RenameQltyInspectionLine.ModifyAll("Template Code", Rec."Code");
         end;
     end;
 

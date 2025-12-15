@@ -211,11 +211,11 @@ table 20401 "Qlty. Field"
         ReviewGradesErr: Label 'Advanced configuration required. Please review the grade configurations for field "%1", for grade "%2".', Comment = '%1=the field, %2=the grade';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
-        ExistingTestErr: Label 'The field %1 exists on %2 tests (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection Test.', Comment = '%1=the field, %2=count of tests, %3=one example test, %4=example template.';
+        ExistingTestErr: Label 'The field %1 exists on %2 tests (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of tests, %3=one example test, %4=example template.';
         DeleteQst: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
         DeleteErr: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
         FieldTypeErrTitleMsg: Label 'Field Type cannot be changed for a field that has been used in tests. ';
-        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on test %2.', Comment = '%1 = Error Title, %2 = Quality Inspection Test No.';
+        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on test %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
 
     /// <summary>
     /// Set a specific grade for the field. If AllowError is set to true it will error
@@ -380,19 +380,19 @@ table 20401 "Qlty. Field"
     procedure EnsureCanBeDeleted(AskQuestion: Boolean)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         LineCount: Integer;
         CanBeDeleted: Boolean;
     begin
-        QltyInspectionTestLine.SetRange("Field Code", Rec.Code);
-        LineCount := QltyInspectionTestLine.Count();
+        QltyInspectionLine.SetRange("Field Code", Rec.Code);
+        LineCount := QltyInspectionLine.Count();
         if LineCount > 0 then begin
-            QltyInspectionTestLine.FindFirst();
+            QltyInspectionLine.FindFirst();
             Error(ExistingTestErr,
-                QltyInspectionTestLine."Field Code",
+                QltyInspectionLine."Field Code",
                 LineCount,
-                QltyInspectionTestLine."Test No.",
-                QltyInspectionTestLine."Template Code");
+                QltyInspectionLine."Test No.",
+                QltyInspectionLine."Template Code");
         end;
 
         QltyInspectionTemplateLine.SetRange("Field Code", Rec.Code);
@@ -487,18 +487,18 @@ table 20401 "Qlty. Field"
     /// Custom 2 = lowercase value
     /// Custom 3 = uppercase value.
     /// </summary>
-    /// <param name="ContextQltyInspectionTestHeader">Supply if you want to give a test, this is useful for table lookups which can have additional values.</param>
+    /// <param name="ContextQltyInspectionHeader">Supply if you want to give a test, this is useful for table lookups which can have additional values.</param>
     /// <param name="TempBufferQltyLookupCode"></param>
     /// <param name="OptionalSetToValue">Leave empty to ignore. Supply a value to have the record auto-filtered to the supplied record that matches</param>
     procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
     var
-        TempDummyContextQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        TempDummyContextQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
+        TempDummyContextQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        TempDummyContextQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        CollectAllowableValues(TempDummyContextQltyInspectionTestHeader, TempDummyContextQltyInspectionTestLine, TempBufferQltyLookupCode, OptionalSetToValue);
+        CollectAllowableValues(TempDummyContextQltyInspectionHeader, TempDummyContextQltyInspectionLine, TempBufferQltyLookupCode, OptionalSetToValue);
     end;
 
-    procedure CollectAllowableValues(var OptionalContextQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var OptionalContextQltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
+    procedure CollectAllowableValues(var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         OfChoices: List of [Text];
@@ -507,7 +507,7 @@ table 20401 "Qlty. Field"
         case Rec."Field Type" of
             Rec."Field Type"::"Field Type Table Lookup":
                 begin
-                    QltyMiscHelpers.GetRecordsForTableField(Rec, OptionalContextQltyInspectionTestHeader, OptionalContextQltyInspectionTestLine, TempBufferQltyLookupCode);
+                    QltyMiscHelpers.GetRecordsForTableField(Rec, OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyLookupCode);
                     if TempBufferQltyLookupCode.FindSet() then begin
                         if OptionalSetToValue <> '' then begin
                             TempBufferQltyLookupCode.SetRange(Code, CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyLookupCode.Code)));
@@ -539,17 +539,17 @@ table 20401 "Qlty. Field"
 
     internal procedure HandleOnValidateFieldType(AllowActionableError: Boolean)
     var
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
     begin
-        QltyInspectionTestLine.SetRange("Field Code", Rec.Code);
-        if QltyInspectionTestLine.FindLast() then begin
-            if QltyInspectionTestHeader.Get(QltyInspectionTestLine."Test No.", QltyInspectionTestLine."Retest No.") then;
+        QltyInspectionLine.SetRange("Field Code", Rec.Code);
+        if QltyInspectionLine.FindLast() then begin
+            if QltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionLine."Retest No.") then;
             if AllowActionableError then
-                Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionTestHeader."No.")
+                Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionHeader."No.")
             else
-                Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionTestHeader."No.");
+                Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionHeader."No.");
         end;
 
         if Rec."Field Type" <> xRec."Field Type" then begin
@@ -575,7 +575,7 @@ table 20401 "Qlty. Field"
 
         Expression := Rec."Expression Formula";
 
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             Rec."Expression Formula" := CopyStr(Expression, 1, MaxStrLen(Rec."Expression Formula"));
             Rec.Modify();
         end;
@@ -600,7 +600,7 @@ table 20401 "Qlty. Field"
             Rec.UpdateAllowedValuesFromTableLookup();
         end else begin
             Expression := Rec."Allowable Values";
-            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+            if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
                 Rec."Allowable Values" := CopyStr(Expression, 1, MaxStrLen(Rec."Allowable Values"));
                 Rec.Modify();
             end;

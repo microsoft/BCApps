@@ -28,32 +28,32 @@ codeunit 20428 "Qlty. Item Tracking"
     /// Sets the lot block state.
     /// If there is no lot no. information card then it will create a lot no information card.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="Blocked"></param>
-    procedure SetLotBlockState(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; Blocked: Boolean)
+    procedure SetLotBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         LotNoInformation: Record "Lot No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
-        GetOrCreateLotNoInformation(QltyInspectionTestHeader, LotNoInformation);
+        GetOrCreateLotNoInformation(QltyInspectionHeader, LotNoInformation);
         LotNoInformation.Validate(Blocked, Blocked);
         LotNoInformation.Modify(true);
-        QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionTestHeader, LotNoInformation.RecordId(), LotTypeLbl, LotNoInformation."Lot No.", LotNoInformation.Blocked);
+        QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionHeader, LotNoInformation.RecordId(), LotTypeLbl, LotNoInformation."Lot No.", LotNoInformation.Blocked);
     end;
 
-    local procedure GetOrCreateLotNoInformation(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var LotNoInformation: Record "Lot No. Information")
+    local procedure GetOrCreateLotNoInformation(QltyInspectionHeader: Record "Qlty. Inspection Header"; var LotNoInformation: Record "Lot No. Information")
     begin
         LotNoInformation.Reset();
-        if (QltyInspectionTestHeader."Source Lot No." = '') or (QltyInspectionTestHeader."Source Item No." = '') then
-            Error(ThereIsNoSourceLotErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+        if (QltyInspectionHeader."Source Lot No." = '') or (QltyInspectionHeader."Source Item No." = '') then
+            Error(ThereIsNoSourceLotErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
-        if LotNoInformation.Get(QltyInspectionTestHeader."Source Item No.", QltyInspectionTestHeader."Source Variant Code", QltyInspectionTestHeader."Source Lot No.") then
+        if LotNoInformation.Get(QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Source Variant Code", QltyInspectionHeader."Source Lot No.") then
             exit;
 
         LotNoInformation.Init();
-        LotNoInformation."Item No." := QltyInspectionTestHeader."Source Item No.";
-        LotNoInformation."Variant Code" := QltyInspectionTestHeader."Source Variant Code";
-        LotNoInformation."Lot No." := QltyInspectionTestHeader."Source Lot No.";
+        LotNoInformation."Item No." := QltyInspectionHeader."Source Item No.";
+        LotNoInformation."Variant Code" := QltyInspectionHeader."Source Variant Code";
+        LotNoInformation."Lot No." := QltyInspectionHeader."Source Lot No.";
         LotNoInformation.Insert(true);
     end;
 
@@ -61,32 +61,32 @@ codeunit 20428 "Qlty. Item Tracking"
     /// Sets the serial block state.
     /// If there is no serial no. information card then it will create a serial no information card.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="Blocked"></param>
-    procedure SetSerialBlockState(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; Blocked: Boolean)
+    procedure SetSerialBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         SerialNoInformation: Record "Serial No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
-        GetOrCreateSerialNoInformation(QltyInspectionTestHeader, SerialNoInformation);
+        GetOrCreateSerialNoInformation(QltyInspectionHeader, SerialNoInformation);
         SerialNoInformation.Validate(Blocked, Blocked);
         SerialNoInformation.Modify(true);
-        QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionTestHeader, SerialNoInformation.RecordId(), SerialTypeLbl, SerialNoInformation."Serial No.", SerialNoInformation.Blocked);
+        QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionHeader, SerialNoInformation.RecordId(), SerialTypeLbl, SerialNoInformation."Serial No.", SerialNoInformation.Blocked);
     end;
 
-    local procedure GetOrCreateSerialNoInformation(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var SerialNoInformation: Record "Serial No. Information")
+    local procedure GetOrCreateSerialNoInformation(QltyInspectionHeader: Record "Qlty. Inspection Header"; var SerialNoInformation: Record "Serial No. Information")
     begin
         SerialNoInformation.Reset();
-        if (QltyInspectionTestHeader."Source Serial No." = '') or (QltyInspectionTestHeader."Source Item No." = '') then
-            Error(ThereIsNoSourceSerialErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+        if (QltyInspectionHeader."Source Serial No." = '') or (QltyInspectionHeader."Source Item No." = '') then
+            Error(ThereIsNoSourceSerialErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
-        if SerialNoInformation.Get(QltyInspectionTestHeader."Source Item No.", QltyInspectionTestHeader."Source Variant Code", QltyInspectionTestHeader."Source Serial No.") then
+        if SerialNoInformation.Get(QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Source Variant Code", QltyInspectionHeader."Source Serial No.") then
             exit;
 
         SerialNoInformation.Init();
-        SerialNoInformation."Item No." := QltyInspectionTestHeader."Source Item No.";
-        SerialNoInformation."Variant Code" := QltyInspectionTestHeader."Source Variant Code";
-        SerialNoInformation."Serial No." := QltyInspectionTestHeader."Source Serial No.";
+        SerialNoInformation."Item No." := QltyInspectionHeader."Source Item No.";
+        SerialNoInformation."Variant Code" := QltyInspectionHeader."Source Variant Code";
+        SerialNoInformation."Serial No." := QltyInspectionHeader."Source Serial No.";
         SerialNoInformation.Insert(true);
     end;
 
@@ -94,38 +94,38 @@ codeunit 20428 "Qlty. Item Tracking"
     /// Sets the package block state.
     /// If no package no information card exists then one will be created.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="Blocked"></param>
-    procedure SetPackageBlockState(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; Blocked: Boolean)
+    procedure SetPackageBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         PackageNoInformation: Record "Package No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
-        GetOrCreatePackageNoInformation(QltyInspectionTestHeader, PackageNoInformation);
+        GetOrCreatePackageNoInformation(QltyInspectionHeader, PackageNoInformation);
         PackageNoInformation.Validate(Blocked, Blocked);
         PackageNoInformation.Modify(true);
-        QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionTestHeader, PackageNoInformation.RecordId(), PackageTypeLbl, PackageNoInformation."Package No.", PackageNoInformation.Blocked);
+        QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionHeader, PackageNoInformation.RecordId(), PackageTypeLbl, PackageNoInformation."Package No.", PackageNoInformation.Blocked);
     end;
 
-    local procedure GetOrCreatePackageNoInformation(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var PackageNoInformation: Record "Package No. Information")
+    local procedure GetOrCreatePackageNoInformation(QltyInspectionHeader: Record "Qlty. Inspection Header"; var PackageNoInformation: Record "Package No. Information")
     begin
         PackageNoInformation.Reset();
-        if (QltyInspectionTestHeader."Source Package No." = '') or (QltyInspectionTestHeader."Source Item No." = '') then
-            Error(ThereIsNoSourcePackageErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+        if (QltyInspectionHeader."Source Package No." = '') or (QltyInspectionHeader."Source Item No." = '') then
+            Error(ThereIsNoSourcePackageErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
-        if PackageNoInformation.Get(QltyInspectionTestHeader."Source Item No.", QltyInspectionTestHeader."Source Variant Code", QltyInspectionTestHeader."Source Package No.") then
+        if PackageNoInformation.Get(QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Source Variant Code", QltyInspectionHeader."Source Package No.") then
             exit;
 
         PackageNoInformation.Init();
-        PackageNoInformation."Item No." := QltyInspectionTestHeader."Source Item No.";
-        PackageNoInformation."Variant Code" := QltyInspectionTestHeader."Source Variant Code";
-        PackageNoInformation."Package No." := QltyInspectionTestHeader."Source Package No.";
+        PackageNoInformation."Item No." := QltyInspectionHeader."Source Item No.";
+        PackageNoInformation."Variant Code" := QltyInspectionHeader."Source Variant Code";
+        PackageNoInformation."Package No." := QltyInspectionHeader."Source Package No.";
         PackageNoInformation.Insert(true);
     end;
 
     procedure GetMostRecentGradeFor(ItemNo: Code[20]; VariantCodeFilter: Text; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]; var QualityGradeCode: Code[20]; var QualityGradeDescription: Text)
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         Clear(QualityGradeCode);
         Clear(QualityGradeDescription);
@@ -133,25 +133,25 @@ codeunit 20428 "Qlty. Item Tracking"
         if not CheckIfQualityManagementIsEnabled() then
             exit;
 
-        QltyInspectionTestHeader.SetCurrentKey(SystemModifiedAt);
-        QltyInspectionTestHeader.Ascending(false);
+        QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
+        QltyInspectionHeader.Ascending(false);
         if ItemNo <> '' then
-            QltyInspectionTestHeader.SetRange("Source Item No.", ItemNo);
+            QltyInspectionHeader.SetRange("Source Item No.", ItemNo);
 
         if VariantCodeFilter <> '' then
-            QltyInspectionTestHeader.SetFilter("Source Variant Code", VariantCodeFilter);
+            QltyInspectionHeader.SetFilter("Source Variant Code", VariantCodeFilter);
 
         if LotNo <> '' then
-            QltyInspectionTestHeader.SetRange("Source Lot No.", LotNo);
+            QltyInspectionHeader.SetRange("Source Lot No.", LotNo);
         if SerialNo <> '' then
-            QltyInspectionTestHeader.SetRange("Source Serial No.", SerialNo);
+            QltyInspectionHeader.SetRange("Source Serial No.", SerialNo);
         if PackageNo <> '' then
-            QltyInspectionTestHeader.SetRange("Source Package No.", PackageNo);
+            QltyInspectionHeader.SetRange("Source Package No.", PackageNo);
 
-        QltyInspectionTestHeader.SetAutoCalcFields("Grade Description");
-        if QltyInspectionTestHeader.FindFirst() then begin
-            QualityGradeCode := QltyInspectionTestHeader."Grade Code";
-            QualityGradeDescription := QltyInspectionTestHeader."Grade Description";
+        QltyInspectionHeader.SetAutoCalcFields("Grade Description");
+        if QltyInspectionHeader.FindFirst() then begin
+            QualityGradeCode := QltyInspectionHeader."Grade Code";
+            QualityGradeDescription := QltyInspectionHeader."Grade Description";
         end;
     end;
 

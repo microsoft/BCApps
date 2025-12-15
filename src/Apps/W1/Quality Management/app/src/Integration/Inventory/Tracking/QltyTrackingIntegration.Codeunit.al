@@ -30,7 +30,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     local procedure HandleOnAfterCheckItemTrackingInformation(var ItemJnlLine2: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; ItemTrackingSetup: Record "Item Tracking Setup"; Item: Record Item)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         Blocked: Boolean;
         IsFinished: Boolean;
@@ -38,71 +38,71 @@ codeunit 20415 "Qlty. Tracking Integration"
         TrackingDetails: Text;
     begin
         case true of
-            not QltyInspectionTestHeader.ReadPermission(),
+            not QltyInspectionHeader.ReadPermission(),
             not QltyInspectionGrade.ReadPermission(),
             not QltyManagementSetup.GetSetupRecord():
                 exit;
         end;
 
-        QltyInspectionTestHeader.SetRange("Source Item No.", ItemJnlLine2."Item No.");
-        QltyInspectionTestHeader.SetRange("Source Variant Code", ItemJnlLine2."Variant Code");
-        QltyInspectionTestHeader.SetRange("Source Lot No.", TrackingSpecification."Lot No.");
-        QltyInspectionTestHeader.SetRange("Source Serial No.", TrackingSpecification."Serial No.");
-        QltyInspectionTestHeader.SetRange("Source Package No.", TrackingSpecification."Package No.");
-        OnHandleCheckItemTrackingAfterFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionTestHeader, Handled);
+        QltyInspectionHeader.SetRange("Source Item No.", ItemJnlLine2."Item No.");
+        QltyInspectionHeader.SetRange("Source Variant Code", ItemJnlLine2."Variant Code");
+        QltyInspectionHeader.SetRange("Source Lot No.", TrackingSpecification."Lot No.");
+        QltyInspectionHeader.SetRange("Source Serial No.", TrackingSpecification."Serial No.");
+        QltyInspectionHeader.SetRange("Source Package No.", TrackingSpecification."Package No.");
+        OnHandleCheckItemTrackingAfterFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, Handled);
         if Handled then
             exit;
 
         case QltyManagementSetup."Conditional Lot Find Behavior" of
             QltyManagementSetup."Conditional Lot Find Behavior"::Any:
-                if not QltyInspectionTestHeader.FindSet() then
+                if not QltyInspectionHeader.FindSet() then
                     exit;
             QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished:
                 begin
-                    QltyInspectionTestHeader.SetRange(Status, QltyInspectionTestHeader.Status::Finished);
-                    if not QltyInspectionTestHeader.FindSet() then
+                    QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
+                    if not QltyInspectionHeader.FindSet() then
                         exit;
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::HighestRetestNumber:
                 begin
-                    QltyInspectionTestHeader.SetCurrentKey("No.", "Retest No.");
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedRetestNumber:
                 begin
-                    QltyInspectionTestHeader.SetRange(Status, QltyInspectionTestHeader.Status::Finished);
-                    QltyInspectionTestHeader.SetCurrentKey("No.", "Retest No.");
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
+                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified:
                 begin
-                    QltyInspectionTestHeader.SetCurrentKey(SystemModifiedAt);
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified:
                 begin
-                    QltyInspectionTestHeader.SetRange(Status, QltyInspectionTestHeader.Status::Finished);
-                    QltyInspectionTestHeader.SetCurrentKey(SystemModifiedAt);
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
+                    QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
         end;
 
         repeat
-            if QltyInspectionTestHeader."Grade Code" <> '' then begin
-                IsFinished := QltyInspectionTestHeader.Status = QltyInspectionTestHeader.Status::Finished;
-                if QltyInspectionGrade.Get(QltyInspectionTestHeader."Grade Code") then begin
+            if QltyInspectionHeader."Grade Code" <> '' then begin
+                IsFinished := QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished;
+                if QltyInspectionGrade.Get(QltyInspectionHeader."Grade Code") then begin
                     case ItemJnlLine2."Entry Type" of
                         ItemJnlLine2."Entry Type"::"Assembly Consumption":
                             Blocked := (QltyInspectionGrade."Lot Allow Assembly Consumption" = QltyInspectionGrade."Lot Allow Assembly Consumption"::Block) or
@@ -132,7 +132,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                             Blocked := (QltyInspectionGrade."Lot Allow Transfer" = QltyInspectionGrade."Lot Allow Transfer"::Block) or
                                 (not IsFinished and (QltyInspectionGrade."Lot Allow Transfer" = QltyInspectionGrade."Lot Allow Transfer"::"Allow finished only"));
                     end;
-                    OnHandleCheckItemTrackingBeforeBlockErrorCheck(ItemJnlLine2, TrackingSpecification, QltyInspectionTestHeader, QltyInspectionGrade, Blocked);
+                    OnHandleCheckItemTrackingBeforeBlockErrorCheck(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, QltyInspectionGrade, Blocked);
 
                     if Blocked then begin
                         TrackingDetails := TrackingSpecification."Lot No.";
@@ -147,7 +147,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                             TrackingDetails += TrackingSpecification."Package No.";
                         end;
                         Error(EntryTypeBlockedErr,
-                            QltyInspectionTestHeader.GetFriendlyIdentifier(),
+                            QltyInspectionHeader.GetFriendlyIdentifier(),
                             QltyInspectionGrade.Code,
                             ItemJnlLine2."Entry Type",
                             ItemJnlLine2."Item No.",
@@ -155,7 +155,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                     end;
                 end;
             end;
-        until QltyInspectionTestHeader.Next() = 0;
+        until QltyInspectionHeader.Next() = 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnAfterCheckWhseActivLine', '', true, true)]
@@ -179,82 +179,82 @@ codeunit 20415 "Qlty. Tracking Integration"
     local procedure CommonCheckWarehouseActivityLineIsAllowed(WarehouseActivityLine: Record "Warehouse Activity Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         Blocked: Boolean;
         IsFinished: Boolean;
         Handled: Boolean;
     begin
         case true of
-            not QltyInspectionTestHeader.ReadPermission(),
+            not QltyInspectionHeader.ReadPermission(),
             not QltyInspectionGrade.ReadPermission(),
             not QltyManagementSetup.GetSetupRecord():
                 exit;
         end;
 
-        QltyInspectionTestHeader.SetRange("Source Item No.", WarehouseActivityLine."Item No.");
-        QltyInspectionTestHeader.SetRange("Source Variant Code", WarehouseActivityLine."Variant Code");
-        QltyInspectionTestHeader.SetRange("Source Lot No.", WarehouseActivityLine."Lot No.");
-        QltyInspectionTestHeader.SetRange("Source Serial No.", WarehouseActivityLine."Serial No.");
-        QltyInspectionTestHeader.SetRange("Source Package No.", WarehouseActivityLine."Package No.");
+        QltyInspectionHeader.SetRange("Source Item No.", WarehouseActivityLine."Item No.");
+        QltyInspectionHeader.SetRange("Source Variant Code", WarehouseActivityLine."Variant Code");
+        QltyInspectionHeader.SetRange("Source Lot No.", WarehouseActivityLine."Lot No.");
+        QltyInspectionHeader.SetRange("Source Serial No.", WarehouseActivityLine."Serial No.");
+        QltyInspectionHeader.SetRange("Source Package No.", WarehouseActivityLine."Package No.");
 
-        OnHandleCheckWhseItemTrackingAfterFilters(WarehouseActivityLine, QltyInspectionTestHeader, Handled);
+        OnHandleCheckWhseItemTrackingAfterFilters(WarehouseActivityLine, QltyInspectionHeader, Handled);
         if Handled then
             exit;
 
         case QltyManagementSetup."Conditional Lot Find Behavior" of
             QltyManagementSetup."Conditional Lot Find Behavior"::Any:
-                if not QltyInspectionTestHeader.FindSet() then
+                if not QltyInspectionHeader.FindSet() then
                     exit;
             QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished:
                 begin
-                    QltyInspectionTestHeader.SetRange(Status, QltyInspectionTestHeader.Status::Finished);
-                    if not QltyInspectionTestHeader.FindSet() then
+                    QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
+                    if not QltyInspectionHeader.FindSet() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::HighestRetestNumber:
                 begin
-                    QltyInspectionTestHeader.SetCurrentKey("No.", "Retest No.");
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedRetestNumber:
                 begin
-                    QltyInspectionTestHeader.SetRange(Status, QltyInspectionTestHeader.Status::Finished);
-                    QltyInspectionTestHeader.SetCurrentKey("No.", "Retest No.");
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
+                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified:
                 begin
-                    QltyInspectionTestHeader.SetCurrentKey(SystemModifiedAt);
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
             QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified:
                 begin
-                    QltyInspectionTestHeader.SetRange(Status, QltyInspectionTestHeader.Status::Finished);
+                    QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
 
-                    QltyInspectionTestHeader.SetCurrentKey(SystemModifiedAt);
-                    QltyInspectionTestHeader.Ascending(false);
-                    if not QltyInspectionTestHeader.FindFirst() then
+                    QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
+                    QltyInspectionHeader.Ascending(false);
+                    if not QltyInspectionHeader.FindFirst() then
                         exit;
-                    QltyInspectionTestHeader.SetRecFilter();
+                    QltyInspectionHeader.SetRecFilter();
                 end;
         end;
 
         repeat
-            if QltyInspectionTestHeader."Grade Code" <> '' then begin
-                IsFinished := QltyInspectionTestHeader.Status = QltyInspectionTestHeader.Status::Finished;
+            if QltyInspectionHeader."Grade Code" <> '' then begin
+                IsFinished := QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished;
 
-                if QltyInspectionGrade.Get(QltyInspectionTestHeader."Grade Code") then begin
+                if QltyInspectionGrade.Get(QltyInspectionHeader."Grade Code") then begin
                     case WarehouseActivityLine."Activity Type" of
                         WarehouseActivityLine."Activity Type"::"Invt. Movement":
                             Blocked := (QltyInspectionGrade."Lot Allow Invt. Movement" = QltyInspectionGrade."Lot Allow Invt. Movement"::Block) or
@@ -280,12 +280,12 @@ codeunit 20415 "Qlty. Tracking Integration"
                             Blocked := (QltyInspectionGrade."Lot Allow Put-Away" = QltyInspectionGrade."Lot Allow Put-Away"::Block) or
                                 (not IsFinished and (QltyInspectionGrade."Lot Allow Put-away" = QltyInspectionGrade."Lot Allow Put-away"::"Allow finished only"));
                     end;
-                    OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(WarehouseActivityLine, QltyInspectionTestHeader, QltyInspectionGrade, Blocked);
+                    OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(WarehouseActivityLine, QltyInspectionHeader, QltyInspectionGrade, Blocked);
 
                     if Blocked then
                         Error(
                             WarehouseEntryTypeBlockedErr,
-                            QltyInspectionTestHeader.GetFriendlyIdentifier(),
+                            QltyInspectionHeader.GetFriendlyIdentifier(),
                             QltyInspectionGrade.Code,
                             WarehouseActivityLine."Activity Type",
                             WarehouseActivityLine."Item No.",
@@ -293,12 +293,12 @@ codeunit 20415 "Qlty. Tracking Integration"
                             WarehouseActivityLine."Serial No.");
                 end;
             end;
-        until QltyInspectionTestHeader.Next() = 0;
+        until QltyInspectionHeader.Next() = 0;
     end;
 
     /// <summary>
     /// Used to help assist edits find serial and lot numbers.
-    /// In the context of Quality Inspection Tests location doesn't really matter.
+    /// In the context of Quality Inspections location doesn't really matter.
     /// Used as part of the AssistEdit Lot Number functionality.
     /// </summary>
     /// <param name="ReservEntry"></param>
@@ -306,7 +306,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Data Collection", 'OnRetrieveLookupDataOnAfterReservEntrySetFilters', '', true, true)]
     local procedure HandleOnRetrieveLookupDataOnAfterReservEntrySetFilters(var ReservEntry: Record "Reservation Entry"; TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
-        if TempTrackingSpecification."Source Type" <> Database::"Qlty. Inspection Test Header" then
+        if TempTrackingSpecification."Source Type" <> Database::"Qlty. Inspection Header" then
             exit;
 
         ReservEntry.SetRange("Location Code");
@@ -327,7 +327,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     var
         PipeSeparatedPostedDocs: Text;
     begin
-        if TempTrackingSpecification."Source Type" <> Database::"Qlty. Inspection Test Header" then
+        if TempTrackingSpecification."Source Type" <> Database::"Qlty. Inspection Header" then
             exit;
 
         ItemLedgerEntry.SetRange("Location Code");
@@ -378,7 +378,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Data Collection", 'OnCreateEntrySummary2OnBeforeInsertOrModify', '', true, true)]
     local procedure HandleOnCreateEntrySummary2OnBeforeInsertOrModify(var TempGlobalEntrySummary: Record "Entry Summary" temporary; TempReservEntry: Record "Reservation Entry" temporary; TrackingSpecification: Record "Tracking Specification")
     begin
-        if TrackingSpecification."Source Type" <> Database::"Qlty. Inspection Test Header" then
+        if TrackingSpecification."Source Type" <> Database::"Qlty. Inspection Header" then
             exit;
 
         if (TempReservEntry."Reservation Status" = TempReservEntry."Reservation Status"::Surplus) and
@@ -392,7 +392,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     end;
 
     /// <summary>
-    /// Allows quality inspection tests to show up in the 'Find Entries' for any given item tracking.
+    /// Allows quality inspections to show up in the 'Find Entries' for any given item tracking.
     /// This is when you are in the Find Entries / Navigate page in "search for items" mode
     /// </summary>
     /// <param name="sender"></param>
@@ -401,30 +401,30 @@ codeunit 20415 "Qlty. Tracking Integration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnAfterFindTrackingRecords', '', true, true)]
     local procedure HandleItemTrackingNvgMgmtOnAfterFindTrackingRecords(sender: Codeunit "Item Tracking Navigate Mgt."; var TempRecordBuffer: Record "Record Buffer" temporary; var ItemFilters: Record Item)
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempBufferItemTrackingSetup: Record "Item Tracking Setup" temporary;
         QltySessionHelper: Codeunit "Qlty. Session Helper";
         ReferenceToTest: RecordRef;
     begin
-        if not QltyInspectionTestHeader.ReadPermission() then
+        if not QltyInspectionHeader.ReadPermission() then
             exit;
 
-        QltyInspectionTestHeader.SetFilter("Source Item No.", ItemFilters.GetFilter("No."));
-        QltyInspectionTestHeader.SetFilter("Source Variant Code", ItemFilters.GetFilter("Variant Filter"));
-        QltyInspectionTestHeader.SetFilter("Source Lot No.", ItemFilters.GetFilter("Lot No. Filter"));
-        QltyInspectionTestHeader.SetFilter("Source Serial No.", ItemFilters.GetFilter("Serial No. Filter"));
-        QltyInspectionTestHeader.SetFilter("Source Package No.", ItemFilters.GetFilter("Package No. Filter"));
+        QltyInspectionHeader.SetFilter("Source Item No.", ItemFilters.GetFilter("No."));
+        QltyInspectionHeader.SetFilter("Source Variant Code", ItemFilters.GetFilter("Variant Filter"));
+        QltyInspectionHeader.SetFilter("Source Lot No.", ItemFilters.GetFilter("Lot No. Filter"));
+        QltyInspectionHeader.SetFilter("Source Serial No.", ItemFilters.GetFilter("Serial No. Filter"));
+        QltyInspectionHeader.SetFilter("Source Package No.", ItemFilters.GetFilter("Package No. Filter"));
 
-        QltySessionHelper.SetSessionValue(NavigatePageSearchFiltersTok, QltyInspectionTestHeader.GetView());
-        if QltyInspectionTestHeader.FindSet() then
+        QltySessionHelper.SetSessionValue(NavigatePageSearchFiltersTok, QltyInspectionHeader.GetView());
+        if QltyInspectionHeader.FindSet() then
             repeat
                 Clear(TempBufferItemTrackingSetup);
-                TempBufferItemTrackingSetup."Lot No." := QltyInspectionTestHeader."Source Lot No.";
-                TempBufferItemTrackingSetup."Serial No." := QltyInspectionTestHeader."Source Serial No.";
-                TempBufferItemTrackingSetup."Package No." := QltyInspectionTestHeader."Source Package No.";
-                ReferenceToTest.GetTable(QltyInspectionTestHeader);
-                sender.InsertBufferRec(ReferenceToTest, TempBufferItemTrackingSetup, QltyInspectionTestHeader."Source Item No.", QltyInspectionTestHeader."Source Variant Code");
-            until QltyInspectionTestHeader.Next() = 0;
+                TempBufferItemTrackingSetup."Lot No." := QltyInspectionHeader."Source Lot No.";
+                TempBufferItemTrackingSetup."Serial No." := QltyInspectionHeader."Source Serial No.";
+                TempBufferItemTrackingSetup."Package No." := QltyInspectionHeader."Source Package No.";
+                ReferenceToTest.GetTable(QltyInspectionHeader);
+                sender.InsertBufferRec(ReferenceToTest, TempBufferItemTrackingSetup, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Source Variant Code");
+            until QltyInspectionHeader.Next() = 0;
     end;
 
     /// <summary>
@@ -434,10 +434,10 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="TrackingSpecification"></param>
-    /// <param name="QltyInspectionTestHeader">Adjust filters to find the relevant test here as needed</param>
+    /// <param name="QltyInspectionHeader">Adjust filters to find the relevant test here as needed</param>
     /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckItemTrackingAfterFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
+    local procedure OnHandleCheckItemTrackingAfterFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 
@@ -448,11 +448,11 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="TrackingSpecification"></param>
-    /// <param name="QltyInspectionTestHeader">Test has already been found at this point, this should be a reference to the test.</param>
+    /// <param name="QltyInspectionHeader">Test has already been found at this point, this should be a reference to the test.</param>
     /// <param name="QltyGrade">This is the grade being analyzed.</param>
     /// <param name="Blocked">Set to true to flag as blocked</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckItemTrackingBeforeBlockErrorCheck(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var QltyInspectionGrade: Record "Qlty. Inspection Grade"; var Blocked: Boolean)
+    local procedure OnHandleCheckItemTrackingBeforeBlockErrorCheck(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionGrade: Record "Qlty. Inspection Grade"; var Blocked: Boolean)
     begin
     end;
 
@@ -462,10 +462,10 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// Used for inventory movements, inventory picks, inventory put aways, movements, picks, putaways.
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>
-    /// <param name="QltyInspectionTestHeader">Adjust filters to find the relevant test here as needed</param>
+    /// <param name="QltyInspectionHeader">Adjust filters to find the relevant test here as needed</param>
     /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckWhseItemTrackingAfterFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
+    local procedure OnHandleCheckWhseItemTrackingAfterFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 
@@ -475,11 +475,11 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// Used for inventory movements, inventory picks, inventory putaways, movements, picks, putaways.
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>
-    /// <param name="QltyInspectionTestHeader">Test has already been found at this point, this should be a reference to the test.</param>
+    /// <param name="QltyInspectionHeader">Test has already been found at this point, this should be a reference to the test.</param>
     /// <param name="QltyGrade">This is the grade being analyzed.</param>
     /// <param name="Blocked">Set to true to flag as blocked</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var QltyInspectionGrade: Record "Qlty. Inspection Grade"; var Blocked: Boolean)
+    local procedure OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionGrade: Record "Qlty. Inspection Grade"; var Blocked: Boolean)
     begin
     end;
 }

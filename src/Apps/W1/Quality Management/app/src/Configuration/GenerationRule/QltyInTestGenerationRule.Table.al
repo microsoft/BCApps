@@ -27,13 +27,13 @@ using Microsoft.Warehouse.Ledger;
 using System.Reflection;
 
 /// <summary>
-/// A Quality Inspection Test generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.
+/// A Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.
 /// </summary>
-table 20404 "Qlty. In. Test Generation Rule"
+table 20404 "Qlty. Inspection Gen. Rule"
 {
-    Caption = 'Quality Inspection Test Generation Rule';
-    DrillDownPageID = "Qlty. In. Test Generat. Rules";
-    LookupPageID = "Qlty. In. Test Generat. Rules";
+    Caption = 'Quality Inspection Generation Rule';
+    DrillDownPageID = "Qlty. Inspection Gen. Rules";
+    LookupPageID = "Qlty. Inspection Gen. Rules";
     DataClassification = CustomerContent;
 
     fields
@@ -54,9 +54,9 @@ table 20404 "Qlty. In. Test Generation Rule"
         }
         field(4; "Schedule Group"; Code[20])
         {
-            Description = 'Specifies a group which allows a schedule to refer to multiple test generation rules.';
+            Description = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
             Caption = 'Schedule Group';
-            ToolTip = 'Specifies a group which allows a schedule to refer to multiple test generation rules.';
+            ToolTip = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
 
             trigger OnValidate()
             var
@@ -64,7 +64,7 @@ table 20404 "Qlty. In. Test Generation Rule"
             begin
                 if xRec."Schedule Group" <> Rec."Schedule Group" then
                     if Rec."Schedule Group" <> '' then begin
-                        QltyJobQueueManagement.TestIfGenerationRuleCanBeScheduled(Rec);
+                        QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(Rec);
                         Rec.Modify();
                         QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group");
                     end else
@@ -75,7 +75,7 @@ table 20404 "Qlty. In. Test Generation Rule"
             var
                 QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
             begin
-                QltyJobQueueManagement.TestIfGenerationRuleCanBeScheduled(Rec);
+                QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(Rec);
                 if GuiAllowed() then
                     if Rec."Schedule Group" = '' then begin
                         Rec."Schedule Group" := DefaultScheduleGroupLbl;
@@ -160,7 +160,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         field(22; "Warehouse Receive Trigger"; Enum "Qlty. Whse. Receive Trigger")
         {
             Caption = 'Warehouse Receive Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a warehouse receive trigger.';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a warehouse receive trigger.';
 
             trigger OnValidate()
             var
@@ -174,7 +174,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         field(23; "Purchase Trigger"; Enum "Qlty. Purchase Trigger")
         {
             Caption = 'Purchase Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a purchase receive trigger.';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a purchase receive trigger.';
 
             trigger OnValidate()
             var
@@ -188,7 +188,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         field(24; "Sales Return Trigger"; Enum "Qlty. Sales Return Trigger")
         {
             Caption = 'Sales Return Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a sales return receive trigger.';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a sales return receive trigger.';
 
             trigger OnValidate()
             var
@@ -202,7 +202,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         field(25; "Transfer Trigger"; Enum "Qlty. Transfer Trigger")
         {
             Caption = 'Transfer Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a transfer receive trigger.';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a transfer receive trigger.';
 
             trigger OnValidate()
             var
@@ -216,7 +216,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         field(26; "Production Trigger"; Enum "Qlty. Production Trigger")
         {
             Caption = 'Production Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a production trigger.';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a production trigger.';
 
             trigger OnValidate()
             var
@@ -230,7 +230,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         field(27; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
         {
             Caption = 'Assembly Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on an assembly trigger.';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on an assembly trigger.';
 
             trigger OnValidate()
             var
@@ -244,7 +244,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         field(28; "Warehouse Movement Trigger"; Enum "Qlty. Warehouse Trigger")
         {
             Caption = 'Warehouse Movement Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a warehouse movement trigger.';
+            ToolTip = 'Specifies whether the generation rule should be used to automatically create inspections based on a warehouse movement trigger.';
 
             trigger OnValidate()
             var
@@ -306,39 +306,39 @@ table 20404 "Qlty. In. Test Generation Rule"
 
     internal procedure SetEntryNo()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         if Rec."Entry No." = 0 then begin
-            QltyInTestGenerationRule.SetCurrentKey("Entry No.");
-            QltyInTestGenerationRule.SetLoadFields("Entry No.");
-            if QltyInTestGenerationRule.FindLast() then;
-            Rec."Entry No." := QltyInTestGenerationRule."Entry No." + 1;
+            QltyInspectionGenRule.SetCurrentKey("Entry No.");
+            QltyInspectionGenRule.SetLoadFields("Entry No.");
+            if QltyInspectionGenRule.FindLast() then;
+            Rec."Entry No." := QltyInspectionGenRule."Entry No." + 1;
         end;
     end;
 
     internal procedure UpdateSortOrder()
     var
-        FindHighestQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        FindHighestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         if (Rec."Sort Order" = 0) or (Rec."Sort Order" = 1) then begin
-            FindHighestQltyInTestGenerationRule.SetCurrentKey("Sort Order");
-            FindHighestQltyInTestGenerationRule.Ascending(false);
-            if FindHighestQltyInTestGenerationRule.FindFirst() then;
-            Rec."Sort Order" := FindHighestQltyInTestGenerationRule."Sort Order" + 10;
+            FindHighestQltyInspectionGenRule.SetCurrentKey("Sort Order");
+            FindHighestQltyInspectionGenRule.Ascending(false);
+            if FindHighestQltyInspectionGenRule.FindFirst() then;
+            Rec."Sort Order" := FindHighestQltyInspectionGenRule."Sort Order" + 10;
         end;
     end;
 
     internal procedure HandleOnLookupSourceTable()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
-        QltyGenerationRuleMgmt: Codeunit "Qlty. Generation Rule Mgmt.";
+        QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
         Filter: Text;
     begin
         if Rec."Template Code" = '' then
             Error(ChooseTemplateFirstErr);
         if IsNullGuid(Rec.SystemId) and not Rec.IsTemporary() then
             if Rec.Insert() then;
-        Filter := QltyGenerationRuleMgmt.GetFilterForAvailableConfigurations();
+        Filter := QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations();
         QltyFilterHelpers.RunModalLookupTable(Rec."Source Table No.", Filter);
         Rec.CalcFields("Table Caption");
         Rec.Validate("Source Table No.");

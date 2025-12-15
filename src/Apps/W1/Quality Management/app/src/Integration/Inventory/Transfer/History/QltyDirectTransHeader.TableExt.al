@@ -8,26 +8,26 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// Used to help map the transfer test document was created as a result of a quality inspection test.
+/// Used to help map the transfer test document was created as a result of a quality inspection.
 /// </summary>
 tableextension 20410 "Qlty. Direct Trans. Header" extends "Direct Trans. Header"
 {
     fields
     {
-        field(20400; "Qlty. Inspection Test No."; Code[20])
+        field(20400; "Qlty. Inspection No."; Code[20])
         {
-            Caption = 'Quality Inspection Test No.';
-            ToolTip = 'Specifies the related quality inspection test.';
+            Caption = 'Quality Inspection No.';
+            ToolTip = 'Specifies the related quality inspection.';
             DataClassification = CustomerContent;
-            TableRelation = "Qlty. Inspection Test Header"."No.";
+            TableRelation = "Qlty. Inspection Header"."No.";
             Description = 'Only used to link to the test that created the original Transfer document that generated this.';
         }
         field(20401; "Qlty. Inspection Retest No."; Integer)
         {
             Caption = 'Quality Inspection Retest No.';
-            ToolTip = 'Specifies the related quality inspection test.';
+            ToolTip = 'Specifies the related quality inspection.';
             DataClassification = CustomerContent;
-            TableRelation = "Qlty. Inspection Test Header"."Retest No." where("No." = field("Qlty. Inspection Test No."));
+            TableRelation = "Qlty. Inspection Header"."Retest No." where("No." = field("Qlty. Inspection No."));
             Description = 'Only used to link to the test that created the original Transfer document that generated this.';
             BlankZero = true;
         }
@@ -35,22 +35,22 @@ tableextension 20410 "Qlty. Direct Trans. Header" extends "Direct Trans. Header"
 
     keys
     {
-        key(Key20400; "Qlty. Inspection Test No.", "Qlty. Inspection Retest No.")
+        key(Key20400; "Qlty. Inspection No.", "Qlty. Inspection Retest No.")
         {
         }
     }
 
     /// <summary>
-    /// Runs associated Quality Inspection Test page
+    /// Runs associated Quality Inspection page
     /// </summary>
-    procedure QltyShowRelatedInspectionTest()
+    procedure QltyShowRelatedInspection()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTest: Page "Qlty. Inspection Test";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspection: Page "Qlty. Inspection";
     begin
-        if QltyInspectionTestHeader.Get(Rec."Qlty. Inspection Test No.", Rec."Qlty. Inspection Retest No.") then begin
-            QltyInspectionTest.SetRecord(QltyInspectionTestHeader);
-            QltyInspectionTest.Run();
+        if QltyInspectionHeader.Get(Rec."Qlty. Inspection No.", Rec."Qlty. Inspection Retest No.") then begin
+            QltyInspection.SetRecord(QltyInspectionHeader);
+            QltyInspection.Run();
         end;
     end;
 }

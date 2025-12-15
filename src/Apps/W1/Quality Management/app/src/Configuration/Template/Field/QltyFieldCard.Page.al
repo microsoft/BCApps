@@ -700,7 +700,7 @@ page 20479 "Qlty. Field Card"
         Expression: Text;
     begin
         Expression := MatrixArrayConditionCellData[Matrix];
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             MatrixArrayConditionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
             UpdateMatrixDataCondition(Matrix);
         end;
@@ -717,7 +717,7 @@ page 20479 "Qlty. Field Card"
         Expression: Text;
     begin
         Expression := MatrixArrayConditionDescriptionCellData[Matrix];
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;

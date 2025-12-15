@@ -29,13 +29,13 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
     /// one internal put-away.
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The test to create the internal put-away from</param>
+    /// <param name="QltyInspectionHeader">The test to create the internal put-away from</param>
     /// <param name="OptionalSpecificQuantity">Optional quantity.  Leave blank to use the entire lot or the quantity from the test.</param>
     /// <param name="OptionalSourceLocationFilter">Optional limitations on the source location.</param>
     /// <param name="OptionalSourceBinFilter">Optional limitations on the source bin.</param>
     /// <param name="QltyQuantityBehavior">The quantity behavior</param>
     /// <returns>Confirming internal putaway lines created.</returns>
-    internal procedure PerformDisposition(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
+    internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin
@@ -44,7 +44,7 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := QltyQuantityBehavior;
         TempInstructionQltyDispositionBuffer."Location Filter" := CopyStr(OptionalSourceLocationFilter, 1, MaxStrLen(TempInstructionQltyDispositionBuffer."Location Filter"));
         TempInstructionQltyDispositionBuffer."Bin Filter" := CopyStr(OptionalSourceBinFilter, 1, MaxStrLen(TempInstructionQltyDispositionBuffer."Bin Filter"));
-        exit(PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer));
+        exit(PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
     end;
 
     ///<summary>
@@ -53,10 +53,10 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
     /// one internal put-away.
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <returns></returns>
-    procedure PerformDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         TempCreatedBufferWhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header" temporary;
         WhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header";
@@ -68,7 +68,7 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Create Internal Put-away";
         QltyDispInternalPutAway.SetSuppressNotifications(true);
-        QltyDispInternalPutAway.PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer);
+        QltyDispInternalPutAway.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
 
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Create Warehouse Put-away";
@@ -90,11 +90,11 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
                 DidSomething := PutAwayWarehouseActivityHeader.Get(PutAwayWarehouseActivityHeader.Type::"Put-away", CreatedWarehouseActivityHeader);
 
                 if DidSomething then
-                    QltyNotificationMgmt.NotifyDocumentCreated(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl, PutAwayWarehouseActivityHeader."No.", PutAwayWarehouseActivityHeader);
+                    QltyNotificationMgmt.NotifyDocumentCreated(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl, PutAwayWarehouseActivityHeader."No.", PutAwayWarehouseActivityHeader);
             end;
         until TempCreatedBufferWhseInternalPutAwayHeader.Next() = 0;
         if not DidSomething then
-            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
     #region Event Subscribers

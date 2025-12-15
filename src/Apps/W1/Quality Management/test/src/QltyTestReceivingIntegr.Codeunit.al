@@ -34,7 +34,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
         IsInitialized: Boolean;
 
     [Test]
@@ -42,8 +42,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -55,18 +55,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from a lot-tracked purchase order when receiving
+        // [SCENARIO] Create a quality inspection from a lot-tracked purchase order when receiving
 
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -74,24 +74,24 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code, lot number, and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
@@ -99,8 +99,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -113,15 +113,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from a purchase order without lot tracking when receiving
+        // [SCENARIO] Create a quality inspection from a purchase order without lot tracking when receiving
 
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item (not lot-tracked) is created
         LibraryInventory.CreateItem(Item);
@@ -132,23 +132,23 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
@@ -156,8 +156,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -169,18 +169,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from warehouse journal line for lot-tracked item on receipt post
+        // [SCENARIO] Create a quality inspection from warehouse journal line for lot-tracked item on receipt post
 
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -188,25 +188,25 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
-        QltyInTestGenerationRule."Warehouse Receive Trigger" := QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received through warehouse receipt
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        // [THEN] One quality inspection is created with matching template code, lot number, and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
 
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
@@ -214,8 +214,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -227,18 +227,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from warehouse receipt line for lot-tracked item on receipt create
+        // [SCENARIO] Create a quality inspection from warehouse receipt line for lot-tracked item on receipt create
 
         // [GIVEN] A full WMS location, quality inspection template, and warehouse receipt line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -246,23 +246,23 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
-        QltyInTestGenerationRule."Warehouse Receive Trigger" := QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received through warehouse receipt
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code and lot number
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        // [THEN] One quality inspection is created with matching template code and lot number
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
     end;
 
     [Test]
@@ -270,8 +270,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -284,15 +284,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from warehouse journal line for standard item on receipt post
+        // [SCENARIO] Create a quality inspection from warehouse journal line for standard item on receipt post
 
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item (not lot-tracked) is created
         LibraryInventory.CreateItem(Item);
@@ -303,23 +303,23 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
-        QltyInTestGenerationRule."Warehouse Receive Trigger" := QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received through warehouse receipt
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
@@ -327,8 +327,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -340,18 +340,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from purchase line for lot-tracked item on warehouse receipt post
+        // [SCENARIO] Create a quality inspection from purchase line for lot-tracked item on warehouse receipt post
 
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -359,25 +359,25 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
-        QltyInTestGenerationRule."Warehouse Receive Trigger" := QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received through warehouse receipt
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code and lot number
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionTestHeader."Source Document No.", 'Test source document should be for purchase order.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionTestHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
+        // [THEN] One quality inspection is created with matching template code and lot number
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionHeader."Source Document No.", 'Test source document should be for purchase order.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
     end;
 
     [Test]
@@ -385,8 +385,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -398,18 +398,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from purchase line for lot-tracked item on warehouse receipt create
+        // [SCENARIO] Create a quality inspection from purchase line for lot-tracked item on warehouse receipt create
 
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -417,24 +417,24 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
-        QltyInTestGenerationRule."Warehouse Receive Trigger" := QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received through warehouse receipt
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionTestHeader."Source Document No.", 'Test source document should be for purchase order.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionTestHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionHeader."Source Document No.", 'Test source document should be for purchase order.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
     end;
 
     [Test]
@@ -442,8 +442,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -456,15 +456,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from purchase line for standard item on warehouse receipt create
+        // [SCENARIO] Create a quality inspection from purchase line for standard item on warehouse receipt create
 
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item (not lot-tracked) is created
         LibraryInventory.CreateItem(Item);
@@ -475,22 +475,22 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
-        QltyInTestGenerationRule."Warehouse Receive Trigger" := QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received through warehouse receipt
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
+        // [THEN] One quality inspection is created with matching template code
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
     end;
 
     [Test]
@@ -498,8 +498,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         Customer: Record Customer;
@@ -521,18 +521,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnitCost: Decimal;
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from sales return order for lot-tracked item on receive post
+        // [SCENARIO] Create a quality inspection from sales return order for lot-tracked item on receive post
 
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item with unit cost and price is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
         UnitCost := LibraryRandom.RandDecInDecimalRange(1, 10, 2);
         UnitPrice := LibraryRandom.RandDecInDecimalRange(2, 20, 2);
         Item."Unit Cost" := UnitCost;
@@ -562,22 +562,22 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibrarySales.ReleaseSalesDocument(RtnOrderSalesHeader);
 
         // [GIVEN] The generation rule is set to trigger on sales return order receive
-        QltyInTestGenerationRule."Sales Return Trigger" := QltyInTestGenerationRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Sales Return Trigger" := QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The sales return order is posted to receive
         LibrarySales.PostSalesDocument(RtnOrderSalesHeader, true, false);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
     end;
 
     [Test]
@@ -585,8 +585,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         Customer: Record Customer;
@@ -608,15 +608,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnitCost: Decimal;
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from sales return order for standard item on receive post
+        // [SCENARIO] Create a quality inspection from sales return order for standard item on receive post
 
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item with unit cost and price is created
         UnitCost := LibraryRandom.RandDecInDecimalRange(1, 10, 2);
@@ -644,22 +644,22 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibrarySales.ReleaseSalesDocument(RtnOrderSalesHeader);
 
         // [GIVEN] The generation rule is set to trigger on sales return order receive
-        QltyInTestGenerationRule."Sales Return Trigger" := QltyInTestGenerationRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Sales Return Trigger" := QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The sales return order is posted to receive
         LibrarySales.PostSalesDocument(RtnOrderSalesHeader, true, false);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
+        // [THEN] One quality inspection is created with matching template code
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
     end;
 
     [Test]
@@ -669,8 +669,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         FromLocation: Record Location;
         ToLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -685,7 +685,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from direct transfer order for lot-tracked item on receive post
+        // [SCENARIO] Create a quality inspection from direct transfer order for lot-tracked item on receive post
 
         // [GIVEN] From and To locations are set up
         Initialize();
@@ -693,13 +693,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available with lot tracking
         UnusedItemVariant := '';
@@ -720,25 +720,25 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInTestGenerationRule."Transfer Trigger" := QltyInTestGenerationRule."Transfer Trigger"::OnTransferOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The transfer order is posted to receive
         Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", OrderTransferHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code, location, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionTestHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Lot no. should match source');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code, location, lot number, and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Lot no. should match source');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
@@ -748,8 +748,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         FromLocation: Record Location;
         ToLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -764,7 +764,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from direct transfer order for standard item on receive post
+        // [SCENARIO] Create a quality inspection from direct transfer order for standard item on receive post
 
         // [GIVEN] From and To locations are set up
         Initialize();
@@ -772,10 +772,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item is created
         LibraryInventory.CreateItem(Item);
@@ -798,24 +798,24 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInTestGenerationRule."Transfer Trigger" := QltyInTestGenerationRule."Transfer Trigger"::OnTransferOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The transfer order is posted to receive
         Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", OrderTransferHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code, location, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionTestHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code, location, and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
@@ -825,8 +825,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         ToLocation: Record Location;
         InTransitLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -841,7 +841,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from transfer order with in-transit for lot-tracked item on receive post
+        // [SCENARIO] Create a quality inspection from transfer order with in-transit for lot-tracked item on receive post
 
         // [GIVEN] From, To, and In-Transit locations are set up
         Initialize();
@@ -850,13 +850,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available with lot tracking
         UnusedItemVariant := '';
@@ -871,25 +871,25 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInTestGenerationRule."Transfer Trigger" := QltyInTestGenerationRule."Transfer Trigger"::OnTransferOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The transfer order is posted to ship and receive
         LibraryWarehouse.PostTransferOrder(OrderTransferHeader, true, true);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code, location, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionTestHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Lot no. should match source');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code, location, lot number, and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Lot no. should match source');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
@@ -899,8 +899,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         ToLocation: Record Location;
         InTransitLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -915,7 +915,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         UnusedItemVariant: Code[10];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from transfer order with in-transit for standard item on receive post
+        // [SCENARIO] Create a quality inspection from transfer order with in-transit for standard item on receive post
 
         // [GIVEN] From, To, and In-Transit locations are set up
         Initialize();
@@ -924,10 +924,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item is created
         LibraryInventory.CreateItem(Item);
@@ -944,31 +944,31 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInTestGenerationRule."Transfer Trigger" := QltyInTestGenerationRule."Transfer Trigger"::OnTransferOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The transfer order is posted to ship and receive
         LibraryWarehouse.PostTransferOrder(OrderTransferHeader, true, true);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code, location, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionTestHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code, location, and quantity
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
     procedure WarehouseIntegration_AttemptCreateTestWithWhseJournalLine()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         WarehouseJournalTemplate: Record "Warehouse Journal Template";
@@ -978,8 +978,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Item: Record Item;
         Bin: Record Bin;
         WarehouseEntry: Record "Warehouse Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestHeaderForCounting: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionHeaderForCounting: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -989,15 +989,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from warehouse journal line with warehouse movement integration
+        // [SCENARIO] Create a quality inspection from warehouse journal line with warehouse movement integration
 
         // [GIVEN] Setup is ensured and a quality inspection template is created
         Initialize();
         LibraryERMCountryData.CreateVATData();
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
         // [GIVEN] A full WMS location is created with bins and zones
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1010,7 +1010,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received, and inventory is available with lot tracking
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1026,8 +1026,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         WarehouseEntry.FindFirst();
 
         // [GIVEN] A warehouse reclassification journal line is created to move items between bins
-        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
-        QltyTestsUtility.CreateReclassWhseJournalLine(ReclassWarehouseJournalLine, WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code,
+        QltyInspectionsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionsUtility.CreateReclassWhseJournalLine(ReclassWarehouseJournalLine, WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code,
             WarehouseEntry."Zone Code", WarehouseEntry."Bin Code", ReclassWarehouseJournalLine."Entry Type"::Movement, Item."No.", 50);
 
         Bin.SetRange("Location Code", Location.Code);
@@ -1051,35 +1051,35 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
 
         // [GIVEN] The generation rule is set to trigger on warehouse movement register
-        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeaderForCounting.Count();
+        BeforeCount := QltyInspectionHeaderForCounting.Count();
 
         // [WHEN] The warehouse journal line is registered
         LibraryWarehouse.RegisterWhseJournalLine(WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code, true);
 
-        // [THEN] One quality inspection test is created with matching template code, lot number, and quantity
-        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionTestHeaderForCounting.Count(), 'Should be one new test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        // [THEN] One quality inspection is created with matching template code, lot number, and quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, QltyInspectionHeaderForCounting.Count(), 'Should be one new inspection created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
     [Test]
     procedure WarehouseIntegration_CreateTestDuringReceive()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         WarehouseJournalTemplate: Record "Warehouse Journal Template";
         WarehouseJournalBatch: Record "Warehouse Journal Batch";
         Item: Record Item;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ForCountQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ForCountQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -1088,14 +1088,14 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         OrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test during warehouse receipt process for lot-tracked items into bin
+        // [SCENARIO] Create a quality inspection during warehouse receipt process for lot-tracked items into bin
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
         // [GIVEN] A full WMS location with warehouse journal template and batch are set up
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1107,41 +1107,41 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyManagementSetup.Modify();
 
         // [GIVEN] The generation rule is set to trigger on movement into bin and a lot-tracked item is created
-        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInspectionGenRule.Modify();
 
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created and released
         OrdQltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
-        BeforeCount := ForCountQltyInspectionTestHeader.Count();
+        BeforeCount := ForCountQltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is received
         OrdQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        // [THEN] One quality inspection test is created with matching template code, lot number, and full received quantity
-        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionTestHeader.Count(), 'Should be one new test created during receive.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match full received quantity.');
+        // [THEN] One quality inspection is created with matching template code, lot number, and full received quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionHeader.Count(), 'Should be one new inspection created during receive.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match full received quantity.');
     end;
 
     [Test]
     procedure WarehouseIntegration_SalesPickShipBin()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Zone: Record Zone;
         BinType: Record "Bin Type";
         WarehouseEntry: Record "Warehouse Entry";
         Item: Record Item;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ForCountQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ForCountQltyInspectionHeader: Record "Qlty. Inspection Header";
         Customer: Record Customer;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1158,18 +1158,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         OrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test during warehouse pick operation from storage bin to ship bin for sales order
+        // [SCENARIO] Create a quality inspection during warehouse pick operation from storage bin to ship bin for sales order
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] A full WMS location is created and a lot-tracked item is available in inventory
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
         OrdQltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         OrdQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1204,11 +1204,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
 
         // [GIVEN] The generation rule is set to trigger on movement into bin
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
-        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := ForCountQltyInspectionTestHeader.Count();
+        BeforeCount := ForCountQltyInspectionHeader.Count();
 
         // [WHEN] The warehouse pick activity is registered to move items to ship bin
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
@@ -1219,20 +1219,20 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
         LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
 
-        // [THEN] One quality inspection test is created with matching template code, lot number, and picked quantity
-        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionTestHeader.Count(), 'Should be one new test created during warehouse pick to ship bin.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
+        // [THEN] One quality inspection is created with matching template code, lot number, and picked quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionHeader.Count(), 'Should be one new inspection created during warehouse pick to ship bin.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
     end;
 
     [Test]
     procedure WarehouseIntegration_TransferPickShipBin()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         FromLocation: Record Location;
         ToLocation: Record Location;
         InTransitLocation: Record Location;
@@ -1240,8 +1240,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         BinType: Record "Bin Type";
         WarehouseEntry: Record "Warehouse Entry";
         Item: Record Item;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ForCountQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ForCountQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
@@ -1256,20 +1256,20 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test during warehouse pick operation from storage bin to ship bin for transfer order
+        // [SCENARIO] Create a quality inspection during warehouse pick operation from storage bin to ship bin for transfer order
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] From, To, and In-Transit locations are set up with lot-tracked item in inventory
         LibraryWarehouse.CreateFullWMSLocation(FromLocation, 3);
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurchaseHeader, PurchaseLine);
@@ -1301,11 +1301,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
 
         // [GIVEN] The generation rule is set to trigger on movement into bin
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
-        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := ForCountQltyInspectionTestHeader.Count();
+        BeforeCount := ForCountQltyInspectionHeader.Count();
 
         // [WHEN] The warehouse pick activity is registered to move items to ship bin
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
@@ -1316,13 +1316,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
         LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
 
-        // [THEN] One quality inspection test is created with matching template code, lot number, and picked quantity
-        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionTestHeader.Count(), 'Should be one new test created during warehouse pick to ship bin.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
+        // [THEN] One quality inspection is created with matching template code, lot number, and picked quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionHeader.Count(), 'Should be one new inspection created during warehouse pick to ship bin.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
     end;
 
     [Test]
@@ -1330,8 +1330,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -1343,18 +1343,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create quality inspection tests from purchase line with multiple lot tracking on purchase release
+        // [SCENARIO] Create quality inspections from purchase line with multiple lot tracking on purchase release
 
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with one reservation entry
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, FirstReservationEntry);
@@ -1368,25 +1368,25 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         SecondReservationEntry.Insert();
 
         // [GIVEN] The generation rule is set to trigger on purchase order release
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The purchase order is released
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] Two quality inspection tests are created, each with matching template code and quantity of 50
-        LibraryAssert.AreEqual((BeforeCount + 2), QltyInspectionTestHeader.Count(), 'Should be two tests created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindSet();
+        // [THEN] Two quality inspections are created, each with matching template code and quantity of 50
+        LibraryAssert.AreEqual((BeforeCount + 2), QltyInspectionHeader.Count(), 'Should be two tests created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindSet();
         repeat
-            LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-            LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match reservation entry quantity, not qty. to receive.');
-        until QltyInspectionTestHeader.Next() = 0;
+            LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+            LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match reservation entry quantity, not qty. to receive.');
+        until QltyInspectionHeader.Next() = 0;
     end;
 
     [Test]
@@ -1394,8 +1394,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -1406,18 +1406,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from purchase line with lot-tracked item but unassigned lot on purchase release
+        // [SCENARIO] Create a quality inspection from purchase line with lot-tracked item but unassigned lot on purchase release
 
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with a reservation entry that is then deleted to simulate unassigned lot
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
@@ -1425,10 +1425,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         ReservationEntry.Delete();
 
         // [GIVEN] The generation rule is set to trigger on purchase order release
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [GIVEN] The quantity to receive is set to 50
         PurOrdPurchaseLine.Validate("Qty. to Receive (Base)", 50);
@@ -1437,15 +1437,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [WHEN] The purchase order is released
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code and quantity matching qty. to receive
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
+        // [THEN] One quality inspection is created with matching template code and quantity matching qty. to receive
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
     end;
 
     [Test]
@@ -1453,8 +1453,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -1466,15 +1466,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Create a quality inspection test from purchase line with untracked item on purchase release
+        // [SCENARIO] Create a quality inspection from purchase line with untracked item on purchase release
 
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item without item tracking is created
         LibraryInventory.CreateItem(Item);
@@ -1483,10 +1483,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
 
         // [GIVEN] The generation rule is set to trigger on purchase order release
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         // [GIVEN] The quantity to receive is set to 50
         PurOrdPurchaseLine.Validate("Qty. to Receive (Base)", 50);
@@ -1495,15 +1495,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [WHEN] The purchase order is released
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One quality inspection test is created with matching template code and quantity matching qty. to receive
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionTestHeader.Count(), 'Should be one test created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
+        // [THEN] One quality inspection is created with matching template code and quantity matching qty. to receive
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
     end;
 
     [Test]
@@ -1511,8 +1511,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
@@ -1524,32 +1524,32 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         BeforeCount: Integer;
     begin
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInTestGenerationRule.DeleteAll();
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        QltyTestsUtility.CreateSerialTrackedItem(Item);
+        QltyInspectionsUtility.CreateSerialTrackedItem(Item);
 
         IWXOrdQltyPurOrderGenerator.CreatePurchaseOrder(2, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
 
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderRelease;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule.Modify();
 
-        BeforeCount := QltyInspectionTestHeader.Count();
+        BeforeCount := QltyInspectionHeader.Count();
 
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionTestHeader.Count(), 'Should be two tests created.');
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindSet();
+        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionHeader.Count(), 'Should be two tests created.');
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindSet();
         repeat
-            LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-            LibraryAssert.AreEqual(1, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should be 1 for serial-tracked items.');
-        until QltyInspectionTestHeader.Next() = 0;
+            LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
+            LibraryAssert.AreEqual(1, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should be 1 for serial-tracked items.');
+        until QltyInspectionHeader.Next() = 0;
     end;
 
     local procedure Initialize()

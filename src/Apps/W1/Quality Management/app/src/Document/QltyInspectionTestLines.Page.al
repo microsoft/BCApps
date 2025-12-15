@@ -9,11 +9,11 @@ using Microsoft.QualityManagement.AccessControl;
 /// <summary>
 /// Introduced to make it easier to analyze test values changes over time.
 /// </summary>
-page 20413 "Qlty. Inspection Test Lines"
+page 20413 "Qlty. Inspection Lines"
 {
-    Caption = 'Quality Inspection Test Values';
+    Caption = 'Quality Inspection Values';
     PageType = List;
-    SourceTable = "Qlty. Inspection Test Line";
+    SourceTable = "Qlty. Inspection Line";
     SourceTableView = sorting("Test No.", "Retest No.", "Line No.") order(descending);
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
@@ -102,12 +102,12 @@ page 20413 "Qlty. Inspection Test Lines"
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
                     Caption = 'Created at';
-                    ToolTip = 'Specifies the date and time when the test line was created.';
+                    ToolTip = 'Specifies the date and time when the inspection line was created.';
                 }
                 field(SystemModifiedAt; Rec.SystemModifiedAt)
                 {
                     Caption = 'Last modified at';
-                    ToolTip = 'Specifies the date and time when the test line was last modified.';
+                    ToolTip = 'Specifies the date and time when the inspection line was last modified.';
                 }
             }
         }

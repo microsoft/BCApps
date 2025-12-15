@@ -42,82 +42,82 @@ page 20440 "Qlty. Inspection Template Edit"
             }
             group(SettingsForTestExpressionWithATest)
             {
-                Caption = 'Test expression with an existing Quality Inspection Test';
+                Caption = 'Test expression with an existing Quality Inspection';
                 Visible = ShowAddFieldFromTest;
                 field(ChooseTestRecordId; Format(ChooseTestRecordId))
                 {
                     ApplicationArea = All;
-                    Caption = 'Choose test';
-                    ToolTip = 'Specifies an existing test to test the expression with.';
+                    Caption = 'Choose inspection';
+                    ToolTip = 'Specifies an existing inspection to test the expression with.';
                     Editable = false;
 
                     trigger OnAssistEdit()
                     var
-                        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-                        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
-                        QltyTests: Page "Qlty. Inspection Test List";
+                        QltyInspectionHeader: Record "Qlty. Inspection Header";
+                        QltyInspectionLine: Record "Qlty. Inspection Line";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestHeader.Ascending(false);
+                        QltyInspectionHeader.Ascending(false);
 
-                        if QltyInspectionTestHeader.Get(ChooseTestRecordId) then begin
-                            QltyTests.SetRecord(QltyInspectionTestHeader);
-                            QltyInspectionTestHeader.SetRecFilter();
-                            if QltyInspectionTestHeader.FindSet() then;
-                            QltyInspectionTestHeader.SetRange("No.");
+                        if QltyInspectionHeader.Get(ChooseTestRecordId) then begin
+                            QltyInspectionList.SetRecord(QltyInspectionHeader);
+                            QltyInspectionHeader.SetRecFilter();
+                            if QltyInspectionHeader.FindSet() then;
+                            QltyInspectionHeader.SetRange("No.");
                         end;
                         if LimitedToTemplateCode <> '' then
-                            QltyInspectionTestHeader.SetRange("Template Code", LimitedToTemplateCode);
+                            QltyInspectionHeader.SetRange("Template Code", LimitedToTemplateCode);
 
-                        QltyTests.SetTableView(QltyInspectionTestHeader);
+                        QltyInspectionList.SetTableView(QltyInspectionHeader);
 
-                        QltyTests.LookupMode(true);
-                        if QltyTests.RunModal() in [Action::LookupOK, Action::OK] then begin
-                            QltyTests.GetRecord(QltyInspectionTestHeader);
-                            ChooseTestRecordId := QltyInspectionTestHeader.RecordId();
+                        QltyInspectionList.LookupMode(true);
+                        if QltyInspectionList.RunModal() in [Action::LookupOK, Action::OK] then begin
+                            QltyInspectionList.GetRecord(QltyInspectionHeader);
+                            ChooseTestRecordId := QltyInspectionHeader.RecordId();
                             Clear(ChooseTestLineChooseTestRecordId);
-                            QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-                            QltyInspectionTestLine.SetRange("Retest No.", QltyInspectionTestHeader."Retest No.");
-                            if QltyInspectionTestLine.FindFirst() then
-                                ChooseTestLineChooseTestRecordId := QltyInspectionTestLine.RecordId();
+                            QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
+                            QltyInspectionLine.SetRange("Retest No.", QltyInspectionHeader."Retest No.");
+                            if QltyInspectionLine.FindFirst() then
+                                ChooseTestLineChooseTestRecordId := QltyInspectionLine.RecordId();
 
-                            LimitedToTemplateCode := QltyInspectionTestHeader."Template Code";
+                            LimitedToTemplateCode := QltyInspectionHeader."Template Code";
                         end;
                     end;
                 }
                 field(ChooseTestLineRecordId; Format(ChooseTestLineChooseTestRecordId))
                 {
                     ApplicationArea = All;
-                    Caption = 'Choose test line';
-                    ToolTip = 'Specifies an existing test line to test the expression with.';
+                    Caption = 'Choose inspection line';
+                    ToolTip = 'Specifies an existing inspection line to test the expression with.';
                     Editable = false;
 
                     trigger OnAssistEdit()
                     var
-                        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-                        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
-                        LinesQltyTestValues: Page "Qlty. Inspection Test Lines";
+                        QltyInspectionHeader: Record "Qlty. Inspection Header";
+                        QltyInspectionLine: Record "Qlty. Inspection Line";
+                        LinesQltyTestValues: Page "Qlty. Inspection Lines";
                     begin
-                        QltyInspectionTestLine.Ascending(false);
-                        if not QltyInspectionTestHeader.Get(ChooseTestRecordId) then
+                        QltyInspectionLine.Ascending(false);
+                        if not QltyInspectionHeader.Get(ChooseTestRecordId) then
                             Error(ChooseAValidTestFirstBeforeChoosingLineErr);
-                        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-                        QltyInspectionTestLine.SetRange("Retest No.", QltyInspectionTestHeader."Retest No.");
-                        if QltyInspectionTestLine.Get(ChooseTestLineChooseTestRecordId) then begin
-                            LinesQltyTestValues.SetRecord(QltyInspectionTestLine);
-                            QltyInspectionTestLine.SetRecFilter();
-                            if QltyInspectionTestLine.FindSet() then;
-                            QltyInspectionTestLine.SetRange("Field Code");
-                            QltyInspectionTestLine.SetRange("Line No.");
+                        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
+                        QltyInspectionLine.SetRange("Retest No.", QltyInspectionHeader."Retest No.");
+                        if QltyInspectionLine.Get(ChooseTestLineChooseTestRecordId) then begin
+                            LinesQltyTestValues.SetRecord(QltyInspectionLine);
+                            QltyInspectionLine.SetRecFilter();
+                            if QltyInspectionLine.FindSet() then;
+                            QltyInspectionLine.SetRange("Field Code");
+                            QltyInspectionLine.SetRange("Line No.");
                         end;
                         if LimitedToTemplateCode <> '' then
-                            QltyInspectionTestLine.SetRange("Template Code", LimitedToTemplateCode);
+                            QltyInspectionLine.SetRange("Template Code", LimitedToTemplateCode);
 
-                        LinesQltyTestValues.SetTableView(QltyInspectionTestLine);
+                        LinesQltyTestValues.SetTableView(QltyInspectionLine);
 
                         LinesQltyTestValues.LookupMode(true);
                         if LinesQltyTestValues.RunModal() in [Action::LookupOK, Action::OK] then begin
-                            LinesQltyTestValues.GetRecord(QltyInspectionTestLine);
-                            ChooseTestLineChooseTestRecordId := QltyInspectionTestLine.RecordId();
+                            LinesQltyTestValues.GetRecord(QltyInspectionLine);
+                            ChooseTestLineChooseTestRecordId := QltyInspectionLine.RecordId();
                         end;
                     end;
                 }
@@ -131,15 +131,15 @@ page 20440 "Qlty. Inspection Template Edit"
 
                     trigger OnDrillDown()
                     var
-                        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-                        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+                        QltyInspectionHeader: Record "Qlty. Inspection Header";
+                        QltyInspectionLine: Record "Qlty. Inspection Line";
                     begin
                         OutputResult := '';
-                        if not QltyInspectionTestHeader.Get(ChooseTestRecordId) then
+                        if not QltyInspectionHeader.Get(ChooseTestRecordId) then
                             Error(ChooseAValidTestFirstBeforeTestingErr);
-                        if not QltyInspectionTestLine.Get(ChooseTestLineChooseTestRecordId) then
-                            Clear(QltyInspectionTestLine);
-                        OutputResult := QltyExpressionMgmt.EvaluateTextExpression(HtmlContentText, QltyInspectionTestHeader, QltyInspectionTestLine, ShowEmbeddedFormula);
+                        if not QltyInspectionLine.Get(ChooseTestLineChooseTestRecordId) then
+                            Clear(QltyInspectionLine);
+                        OutputResult := QltyExpressionMgmt.EvaluateTextExpression(HtmlContentText, QltyInspectionHeader, QltyInspectionLine, ShowEmbeddedFormula);
                     end;
                 }
                 field(ChooseResult; OutputResult)
@@ -200,7 +200,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 Caption = 'Add Test Information';
                 Image = Add;
                 ToolTip = 'Click here to insert additional test fields into the template.';
-                AboutTitle = 'Add a field from a quality inspection test.';
+                AboutTitle = 'Add a field from a quality inspection.';
                 AboutText = 'Click here to insert additional Fields into the template.';
                 Promoted = true;
                 PromotedIsBig = true;
@@ -250,7 +250,7 @@ page 20440 "Qlty. Inspection Template Edit"
     procedure RunModalWith(TableNo2: Integer; OptionalNameFilter2: Text; var ExistingTemplate: Text) ResultAction: Action
     begin
         TableNo := TableNo2;
-        if TableNo = Database::"Qlty. Inspection Test Header" then
+        if TableNo = Database::"Qlty. Inspection Header" then
             ShowAddFieldFromTest := true;
 
         ShowAddFieldFromAnyTable := not ShowAddFieldFromTest;

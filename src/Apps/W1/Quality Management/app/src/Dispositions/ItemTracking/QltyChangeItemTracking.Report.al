@@ -25,7 +25,7 @@ report 20409 "Qlty. Change Item Tracking"
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
@@ -46,7 +46,7 @@ report 20409 "Qlty. Change Item Tracking"
                 TempInstructionQltyDispositionBuffer."New Package No." := NewPackageNo;
                 TempInstructionQltyDispositionBuffer."New Expiration Date" := NewExpirationDate;
 
-                ReactionTrkngQltyDispChangeTracking.PerformDisposition(CurrentTest, TempInstructionQltyDispositionBuffer);
+                ReactionTrkngQltyDispChangeTracking.PerformDisposition(CurrentInspection, TempInstructionQltyDispositionBuffer);
             end;
         }
     }

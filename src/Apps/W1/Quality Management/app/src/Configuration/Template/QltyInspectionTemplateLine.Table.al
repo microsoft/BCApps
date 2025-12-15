@@ -72,7 +72,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Allowable Values';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies an expression for the range of values you can enter or select on the Quality Inspection Test line. The program automatically retrieves the value from the Allowable Values field on the Field template.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select on the Quality Inspection line. The program automatically retrieves the value from the Allowable Values field on the Field template.';
         }
         field(10; "Copied From Template Code"; Code[20])
         {

@@ -1118,7 +1118,7 @@ page 20434 "Qlty. Field Number Card Part"
     begin
         Expression := AdvancedRange;
 
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then
             AdvancedRange := Expression;
 
         HandleFieldValidateAllowedRanges();
@@ -1169,7 +1169,7 @@ page 20434 "Qlty. Field Number Card Part"
         Expression: Text;
     begin
         Expression := MatrixArrayConditionCellData[Matrix];
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             MatrixArrayConditionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
             HandleFieldValidateAdvancedSyntax(Matrix);
         end;
@@ -1182,7 +1182,7 @@ page 20434 "Qlty. Field Number Card Part"
         Expression: Text;
     begin
         Expression := MatrixArrayConditionDescriptionCellData[Matrix];
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
             HandleFieldValidateConditionDescription(Matrix);
         end;

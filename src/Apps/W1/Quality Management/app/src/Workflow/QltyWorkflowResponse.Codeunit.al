@@ -44,15 +44,15 @@ codeunit 20424 "Qlty. Workflow Response"
         WorkflowResponse: Record "Workflow Response";
         ForOriginalWorkflowStepArgument: Record "Workflow Step Argument";
         ApprovalEntry: Record "Approval Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        Test2QualityOrder: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        Test2QualityOrder: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         OriginalWorkflowStep: Record "Workflow Step";
         Location: Record Location;
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         DataTypeManagement: Codeunit "Data Type Management";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -89,28 +89,28 @@ codeunit 20424 "Qlty. Workflow Response"
         end;
 
         case PrimaryRecordRefInWorkflow.Number() of
-            Database::"Qlty. Inspection Test Header":
+            Database::"Qlty. Inspection Header":
                 begin
                     PrimaryRecordRefInWorkflow.SetTable(Test2QualityOrder);
                     Test2QualityOrder.SetRecFilter();
                     if Test2QualityOrder.Count() <> 1 then begin
-                        QltyInspectionTestHeader.SetFilter("No.", Test2QualityOrder.GetFilter("No."));
-                        QltyInspectionTestHeader.SetFilter("Retest No.", Test2QualityOrder.GetFilter("Retest No."));
+                        QltyInspectionHeader.SetFilter("No.", Test2QualityOrder.GetFilter("No."));
+                        QltyInspectionHeader.SetFilter("Retest No.", Test2QualityOrder.GetFilter("Retest No."));
                     end else
-                        QltyInspectionTestHeader.Copy(Test2QualityOrder);
+                        QltyInspectionHeader.Copy(Test2QualityOrder);
 
-                    QltyInspectionTestHeader.FindFirst();
-                    QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-                    QltyInspectionTestLine.SetRange("Retest No.", QltyInspectionTestHeader."Retest No.");
-                    if QltyInspectionTestLine.FindLast() then;
+                    QltyInspectionHeader.FindFirst();
+                    QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
+                    QltyInspectionLine.SetRange("Retest No.", QltyInspectionHeader."Retest No.");
+                    if QltyInspectionLine.FindLast() then;
                 end;
-            Database::"Qlty. Inspection Test Line":
+            Database::"Qlty. Inspection Line":
                 begin
-                    PrimaryRecordRefInWorkflow.SetTable(QltyInspectionTestLine);
-                    QltyInspectionTestLine.SetRecFilter();
-                    QltyInspectionTestLine.FindFirst();
-                    if QltyInspectionTestHeader.Get(QltyInspectionTestLine."Test No.", QltyInspectionTestLine."Retest No.") then
-                        QltyInspectionTestHeader.SetRecFilter();
+                    PrimaryRecordRefInWorkflow.SetTable(QltyInspectionLine);
+                    QltyInspectionLine.SetRecFilter();
+                    QltyInspectionLine.FindFirst();
+                    if QltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionLine."Retest No.") then
+                        QltyInspectionHeader.SetRecFilter();
                 end;
         end;
 
@@ -126,112 +126,112 @@ codeunit 20424 "Qlty. Workflow Response"
         if Handled then
             exit;
 
-        if PrimaryRecordRefInWorkflow.Number() = Database::"Qlty. Inspection Test Header" then
+        if PrimaryRecordRefInWorkflow.Number() = Database::"Qlty. Inspection Header" then
             ClearTestStatusFilterIfRequired(ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow);
 
         if WorkflowResponse.Get(ResponseWorkflowStepInstance."Function Name") then
             case WorkflowResponse."Function Name" of
                 QltyWorkflowSetup.GetWorkflowResponseCreateTest():
                     begin
-                        if QltyInspectionTestCreate.CreateTest(PrimaryRecordRefInWorkflow, GuiAllowed()) then
-                            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+                        if QltyInspectionCreate.CreateTest(PrimaryRecordRefInWorkflow, GuiAllowed()) then
+                            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
                         ResponseExecuted := true;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseFinishTest():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyInspectionTestHeader.FinishTest();
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyInspectionHeader.FinishTest();
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseReopenTest():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyInspectionTestHeader.ReopenTest();
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyInspectionHeader.ReopenTest();
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseCreateRetest():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyInspectionTestHeader.CreateReTest();
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyInspectionHeader.CreateReTest();
                             ResponseExecuted := true;
                         end;
                     end;
 
                 QltyWorkflowSetup.GetWorkflowResponseBlockLot():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyItemTracking.SetLotBlockState(QltyInspectionTestHeader, true);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyItemTracking.SetLotBlockState(QltyInspectionHeader, true);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseBlockSerial():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyItemTracking.SetSerialBlockState(QltyInspectionTestHeader, true);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyItemTracking.SetSerialBlockState(QltyInspectionHeader, true);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseBlockPackage():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyItemTracking.SetPackageBlockState(QltyInspectionTestHeader, true);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyItemTracking.SetPackageBlockState(QltyInspectionHeader, true);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseUnBlockLot():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyItemTracking.SetLotBlockState(QltyInspectionTestHeader, false);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyItemTracking.SetLotBlockState(QltyInspectionHeader, false);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyItemTracking.SetSerialBlockState(QltyInspectionTestHeader, false);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyItemTracking.SetSerialBlockState(QltyInspectionHeader, false);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            QltyItemTracking.SetPackageBlockState(QltyInspectionTestHeader, false);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            QltyItemTracking.SetPackageBlockState(QltyInspectionHeader, false);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseMoveInventory():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionTestHeader, QltyInspectionTestLine, ForOriginalWorkflowStepArgument);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionHeader, QltyInspectionLine, ForOriginalWorkflowStepArgument);
 
-                            QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
+                            QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
                             if not TempQuantityToActQltyDispositionBuffer.FindSet() then begin
                                 if GuiAllowed() then
-                                    QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+                                    QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
                                 ResponseExecuted := true;
                                 exit;
                             end;
@@ -243,32 +243,32 @@ codeunit 20424 "Qlty. Workflow Response"
 
                                 if Location."Directed Put-away and Pick" then begin
                                     if (TempQuantityToActQltyDispositionBuffer."New Location Code" <> '') and (TempQuantityToActQltyDispositionBuffer."New Location Code" <> TempQuantityToActQltyDispositionBuffer."Location Filter") then
-                                        Error(UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr, QltyInspectionTestHeader."No.", TempQuantityToActQltyDispositionBuffer."Location Filter", TempQuantityToActQltyDispositionBuffer."New Location Code");
+                                        Error(UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr, QltyInspectionHeader."No.", TempQuantityToActQltyDispositionBuffer."Location Filter", TempQuantityToActQltyDispositionBuffer."New Location Code");
                                     if GetStepConfigurationValueAsBoolean(ForOriginalWorkflowStepArgument, GetWellKnownUseMoveSheet()) then
-                                        QltyDispMoveWorksheet.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer)
+                                        QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer)
                                     else
-                                        QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer)
+                                        QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer)
                                 end else
                                     if GetStepConfigurationValueAsBoolean(ForOriginalWorkflowStepArgument, GetWellKnownUseMoveSheet()) then
-                                        QltyDispInternalMove.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer)
+                                        QltyDispInternalMove.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer)
                                     else
-                                        QltyDispMoveItemReclass.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer);
+                                        QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer);
                             until TempQuantityToActQltyDispositionBuffer.Next() = 0;
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
+                        if QltyInspectionHeader."No." <> '' then begin
                             ValueToSet := GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyValueExpression());
                             if ValueToSet.Contains('[') or ValueToSet.Contains('{') then
-                                ValueToSet := QltyExpressionMgmt.EvaluateTextExpression(ValueToSet, QltyInspectionTestHeader, QltyInspectionTestLine, true);
+                                ValueToSet := QltyExpressionMgmt.EvaluateTextExpression(ValueToSet, QltyInspectionHeader, QltyInspectionLine, true);
 
                             TableFilter := GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyDatabaseTableFilter());
                             if TableFilter.Contains('[') or TableFilter.Contains('{') then
-                                TableFilter := QltyExpressionMgmt.EvaluateTextExpression(TableFilter, QltyInspectionTestHeader, QltyInspectionTestLine, true);
+                                TableFilter := QltyExpressionMgmt.EvaluateTextExpression(TableFilter, QltyInspectionHeader, QltyInspectionLine, true);
 
                             QltyMiscHelpers.SetTableValue(GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyDatabaseTable()), TableFilter, GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyField()), ValueToSet, true);
                             ResponseExecuted := true;
@@ -276,70 +276,70 @@ codeunit 20424 "Qlty. Workflow Response"
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseInternalPutAway():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionTestHeader, QltyInspectionTestLine, ForOriginalWorkflowStepArgument);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionHeader, QltyInspectionLine, ForOriginalWorkflowStepArgument);
 
                             if GetStepConfigurationValueAsBoolean(ForOriginalWorkflowStepArgument, GetWellKnownCreatePutAway()) then
-                                QltyDispWarehousePutAway.PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer)
+                                QltyDispWarehousePutAway.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer)
                             else
-                                QltyDispInternalPutAway.PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer);
+                                QltyDispInternalPutAway.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseInventoryAdjustment():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionTestHeader, QltyInspectionTestLine, ForOriginalWorkflowStepArgument);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionHeader, QltyInspectionLine, ForOriginalWorkflowStepArgument);
 
-                            QltyDispNegAdjustInv.PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer);
+                            QltyDispNegAdjustInv.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
 
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionTestHeader, QltyInspectionTestLine, ForOriginalWorkflowStepArgument);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionHeader, QltyInspectionLine, ForOriginalWorkflowStepArgument);
 
-                            ReactionTrkngQltyDispChangeTracking.PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer);
+                            ReactionTrkngQltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseCreateTransfer():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionTestHeader, QltyInspectionTestLine, ForOriginalWorkflowStepArgument);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionHeader, QltyInspectionLine, ForOriginalWorkflowStepArgument);
 
-                            QltyDispTransfer.PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer);
+                            QltyDispTransfer.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
                             ResponseExecuted := true;
                         end;
                     end;
                 QltyWorkflowSetup.GetWorkflowResponseCreatePurchaseReturn():
                     begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
+                        EnsureTestHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionTestHeader, QltyInspectionTestLine, ForOriginalWorkflowStepArgument);
+                        if QltyInspectionHeader."No." <> '' then begin
+                            InitDispositionBufferFromWorkflowStepArgument(TempInstructionQltyDispositionBuffer, QltyInspectionHeader, QltyInspectionLine, ForOriginalWorkflowStepArgument);
 
-                            QltyDispPurchaseReturn.PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer);
+                            QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
                             ResponseExecuted := true;
                         end;
                     end;
             end;
     end;
 
-    local procedure EnsureTestHeaderIsLoaded(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; PrimaryRecordRefInWorkflow: RecordRef)
+    local procedure EnsureTestHeaderIsLoaded(var QltyInspectionHeader: Record "Qlty. Inspection Header"; PrimaryRecordRefInWorkflow: RecordRef)
     begin
-        if QltyInspectionTestHeader."No." = '' then
-            QltyInspectionTestHeader.GetMostRecentTestFor(PrimaryRecordRefInWorkflow);
+        if QltyInspectionHeader."No." = '' then
+            QltyInspectionHeader.GetMostRecentTestFor(PrimaryRecordRefInWorkflow);
     end;
 
     /// <summary>
@@ -769,7 +769,7 @@ codeunit 20424 "Qlty. Workflow Response"
         end;
     end;
 
-    local procedure InitDispositionBufferFromWorkflowStepArgument(var TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var WorkflowStepArgument: Record "Workflow Step Argument")
+    local procedure InitDispositionBufferFromWorkflowStepArgument(var TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var WorkflowStepArgument: Record "Workflow Step Argument")
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         Temp: Text;
@@ -778,17 +778,17 @@ codeunit 20424 "Qlty. Workflow Response"
 
         Temp := GetStepConfigurationValue(WorkflowStepArgument, GetWellKnownNewLotNo());
         if Temp.Contains('[') or Temp.Contains('{') then
-            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionTestHeader, QltyInspectionTestLine, true);
+            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionHeader, QltyInspectionLine, true);
         TempQltyDispositionBuffer."New Lot No." := CopyStr(Temp, 1, MaxStrLen(TempQltyDispositionBuffer."New Lot No."));
 
         Temp := GetStepConfigurationValue(WorkflowStepArgument, GetWellKnownNewSerialNo());
         if Temp.Contains('[') or Temp.Contains('{') then
-            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionTestHeader, QltyInspectionTestLine, true);
+            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionHeader, QltyInspectionLine, true);
         TempQltyDispositionBuffer."New Serial No." := CopyStr(Temp, 1, MaxStrLen(TempQltyDispositionBuffer."New Serial No."));
 
         Temp := GetStepConfigurationValue(WorkflowStepArgument, GetWellKnownNewPackageNo());
         if Temp.Contains('[') or Temp.Contains('{') then
-            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionTestHeader, QltyInspectionTestLine, true);
+            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionHeader, QltyInspectionLine, true);
         TempQltyDispositionBuffer."New Package No." := CopyStr(Temp, 1, MaxStrLen(TempQltyDispositionBuffer."New Package No."));
 
         TempQltyDispositionBuffer."New Expiration Date" := GetStepConfigurationValueAsDate(WorkflowStepArgument, GetWellKnownNewExpDate());
@@ -814,19 +814,19 @@ codeunit 20424 "Qlty. Workflow Response"
 
         Temp := GetStepConfigurationValue(WorkflowStepArgument, GetWellKnownExternalDocNo());
         if Temp.Contains('[') or Temp.Contains('{') then
-            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionTestHeader, QltyInspectionTestLine, true);
+            Temp := QltyExpressionMgmt.EvaluateTextExpression(Temp, QltyInspectionHeader, QltyInspectionLine, true);
         TempQltyDispositionBuffer."External Document No." := CopyStr(Temp, 1, MaxStrLen(TempQltyDispositionBuffer."External Document No."));
     end;
 
     local procedure ClearTestStatusFilterIfRequired(ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var RecordRef: RecordRef)
     var
         WorkflowStep: Record "Workflow Step";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyWorkflowSetup2: Codeunit "Qlty. Workflow Setup";
         FieldRef: FieldRef;
         FilterGroupIterator: Integer;
     begin
-        FieldRef := RecordRef.Field(QltyInspectionTestHeader.FieldNo(Status));
+        FieldRef := RecordRef.Field(QltyInspectionHeader.FieldNo(Status));
         if FieldRef.GetFilter() = '' then
             exit;
 
@@ -845,7 +845,7 @@ codeunit 20424 "Qlty. Workflow Response"
         repeat
             RecordRef.FilterGroup(FilterGroupIterator);
 
-            FieldRef := RecordRef.Field(QltyInspectionTestHeader.FieldNo(Status));
+            FieldRef := RecordRef.Field(QltyInspectionHeader.FieldNo(Status));
             FieldRef.SetRange();
 
             FilterGroupIterator -= 1;

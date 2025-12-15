@@ -55,7 +55,7 @@ table 20407 "Qlty. Inspect. Source Config."
 
             trigger OnValidate()
             begin
-                if (Rec."From Table No." = Rec."To Table No.") and (Rec."From Table No." <> Database::"Qlty. Inspection Test Header") then
+                if (Rec."From Table No." = Rec."To Table No.") and (Rec."From Table No." <> Database::"Qlty. Inspection Header") then
                     Error(TheFromAndToCannotBeTheSameErr);
                 if Rec."To Table No." <> xRec."To Table No." then
                     UpdateChildLines();
@@ -97,7 +97,7 @@ table 20407 "Qlty. Inspect. Source Config."
             Caption = 'To Table';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the table this is connected to. This can also be the Quality Inspection Test.';
+            ToolTip = 'Specifies the table this is connected to. This can also be the Quality Inspection.';
         }
         field(7; "To Type"; Enum "Qlty. Target Type")
         {
@@ -108,7 +108,7 @@ table 20407 "Qlty. Inspect. Source Config."
             trigger OnValidate()
             begin
                 if Rec."To Type" = Rec."To Type"::Test then
-                    Rec.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+                    Rec.Validate("To Table No.", Database::"Qlty. Inspection Header");
             end;
         }
         field(8; Description; Text[100])

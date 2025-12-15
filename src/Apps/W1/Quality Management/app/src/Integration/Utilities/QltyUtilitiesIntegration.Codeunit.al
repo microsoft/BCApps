@@ -25,10 +25,10 @@ codeunit 20418 "Qlty. Utilities Integration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnBeforeGetConditionalCardPageID', '', true, true)]
     local procedure HandleOnBeforeGetConditionalCardPageID(RecRef: RecordRef; var CardPageID: Integer; var IsHandled: Boolean)
     begin
-        if RecRef.Number() <> Database::"Qlty. Inspection Test Header" then
+        if RecRef.Number() <> Database::"Qlty. Inspection Header" then
             exit;
 
-        CardPageID := Page::"Qlty. Inspection Test";
+        CardPageID := Page::"Qlty. Inspection";
         IsHandled := true;
     end;
 
@@ -44,10 +44,10 @@ codeunit 20418 "Qlty. Utilities Integration"
         if RecRef.IsTemporary() then
             exit;
 
-        if RecRef.Number() <> Database::"Qlty. Inspection Test Header" then
+        if RecRef.Number() <> Database::"Qlty. Inspection Header" then
             exit;
 
-        PageID := Page::"Qlty. Inspection Test List";
+        PageID := Page::"Qlty. Inspection List";
         IsHandled := true;
     end;
 
@@ -67,12 +67,12 @@ codeunit 20418 "Qlty. Utilities Integration"
     internal procedure InternalHandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var FieldsJsonArray: JsonArray)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         FieldToken: JsonToken;
         CaptionToken: JsonToken;
         FieldObject: JsonObject;
     begin
-        if RecId.TableNo() <> Database::"Qlty. Inspection Test Header" then
+        if RecId.TableNo() <> Database::"Qlty. Inspection Header" then
             exit;
 
         if not QltyManagementSetup.Get() then
@@ -83,15 +83,15 @@ codeunit 20418 "Qlty. Utilities Integration"
                 FieldObject := FieldToken.AsObject();
                 if FieldObject.Get(CaptionTok, CaptionToken) then
                     case CaptionToken.AsValue().AsText() of
-                        QltyInspectionTestHeader.FieldCaption("Brick Bottom Left"):
+                        QltyInspectionHeader.FieldCaption("Brick Bottom Left"):
                             if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Bottom Left Header") then;
-                        QltyInspectionTestHeader.FieldCaption("Brick Bottom Right"):
+                        QltyInspectionHeader.FieldCaption("Brick Bottom Right"):
                             if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Bottom Right Header") then;
-                        QltyInspectionTestHeader.FieldCaption("Brick Middle Left"):
+                        QltyInspectionHeader.FieldCaption("Brick Middle Left"):
                             if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Middle Left Header") then;
-                        QltyInspectionTestHeader.FieldCaption("Brick Middle Right"):
+                        QltyInspectionHeader.FieldCaption("Brick Middle Right"):
                             if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Middle Right Header") then;
-                        QltyInspectionTestHeader.FieldCaption("Brick Top Left"):
+                        QltyInspectionHeader.FieldCaption("Brick Top Left"):
                             if FieldObject.Replace(CaptionTok, QltyManagementSetup."Brick Top Left Header") then;
                     end;
             end;

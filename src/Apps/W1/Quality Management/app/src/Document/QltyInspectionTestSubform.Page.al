@@ -9,17 +9,17 @@ using Microsoft.QualityManagement.Configuration.Grade;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
-/// Subform Page for Quality Inspection Tests.
+/// Subform Page for Quality Inspections.
 /// </summary>
-page 20407 "Qlty. Inspection Test Subform"
+page 20407 "Qlty. Inspection Subform"
 {
-    Caption = 'Quality Inspection Test Subform';
+    Caption = 'Quality Inspection Subform';
     DeleteAllowed = false;
     InsertAllowed = false;
     LinksAllowed = false;
     PageType = ListPart;
     ShowFilter = false;
-    SourceTable = "Qlty. Inspection Test Line";
+    SourceTable = "Qlty. Inspection Line";
     ApplicationArea = QualityManagement;
 
     layout
@@ -268,7 +268,7 @@ page 20407 "Qlty. Inspection Test Subform"
     }
 
     protected var
-        CachedReadOnlyQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CachedReadOnlyQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
@@ -304,11 +304,11 @@ page 20407 "Qlty. Inspection Test Subform"
 
     trigger OnFindRecord(Which: Text): Boolean
     var
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
-        QltyInspectionTestLine.CopyFilters(Rec);
-        QltyInspectionTestLine.SetFilter("Unit of Measure Code", '<>''''');
-        ShowUnitOfMeasure := not QltyInspectionTestLine.IsEmpty();
+        QltyInspectionLine.CopyFilters(Rec);
+        QltyInspectionLine.SetFilter("Unit of Measure Code", '<>''''');
+        ShowUnitOfMeasure := not QltyInspectionLine.IsEmpty();
         exit(Rec.Find(Which));
     end;
 
@@ -339,9 +339,9 @@ page 20407 "Qlty. Inspection Test Subform"
     begin
         MeasurementNote := Rec.GetMeasurementNote();
 
-        if (CachedReadOnlyQltyInspectionTestHeader."No." <> Rec."Test No.") or (CachedReadOnlyQltyInspectionTestHeader."Retest No." <> CachedReadOnlyQltyInspectionTestHeader."Retest No.") then begin
-            CachedReadOnlyQltyInspectionTestHeader.ReadIsolation(IsolationLevel::ReadUncommitted);
-            if CachedReadOnlyQltyInspectionTestHeader.Get(Rec."Test No.", Rec."Retest No.") then;
+        if (CachedReadOnlyQltyInspectionHeader."No." <> Rec."Test No.") or (CachedReadOnlyQltyInspectionHeader."Retest No." <> CachedReadOnlyQltyInspectionHeader."Retest No.") then begin
+            CachedReadOnlyQltyInspectionHeader.ReadIsolation(IsolationLevel::ReadUncommitted);
+            if CachedReadOnlyQltyInspectionHeader.Get(Rec."Test No.", Rec."Retest No.") then;
         end;
 
         Rec.CalcFields("Field Type");
@@ -374,13 +374,13 @@ page 20407 "Qlty. Inspection Test Subform"
     end;
 
     /// <summary>
-    /// Use this event to manipulate the decision if this test line can have it's test value edited or not.
+    /// Use this event to manipulate the decision if this inspection line can have it's test value edited or not.
     /// </summary>
-    /// <param name="QltyInspectionTestLine"></param>
+    /// <param name="QltyInspectionLine"></param>
     /// <param name="CanEditTestValue"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCanEditTestValue(var QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var CanEditTestValue: Boolean; var Handled: Boolean)
+    local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var Handled: Boolean)
     begin
     end;
 }

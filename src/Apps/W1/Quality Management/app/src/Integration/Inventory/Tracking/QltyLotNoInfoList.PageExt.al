@@ -23,16 +23,16 @@ pageextension 20411 "Qlty. Lot No. Info. List" extends "Lot No. Information List
 
                 trigger OnDrillDown()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader.SetRange("Source Item No.", Rec."Item No.");
-                    QltyInspectionTestHeader.SetRange("Source Variant Code", Rec."Variant Code");
-                    QltyInspectionTestHeader.SetRange("Source Lot No.", Rec."Lot No.");
-                    if QltyInspectionTestHeader.FindFirst() then;
-                    Page.Run(Page::"Qlty. Inspection Test List", QltyInspectionTestHeader);
+                    QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
+                    QltyInspectionHeader.SetRange("Source Variant Code", Rec."Variant Code");
+                    QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
+                    if QltyInspectionHeader.FindFirst() then;
+                    Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
                 end;
             }
-            field("Qlty. Inspection Test Count"; Rec."Qlty. Inspection Test Count")
+            field("Qlty. Inspection Count"; Rec."Qlty. Inspection Count")
             {
                 ApplicationArea = QualityManagement;
                 Editable = false;

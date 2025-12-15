@@ -24,23 +24,23 @@ page 20425 "Qlty. Inspection Activities"
 
                 field("Unassigned Tests"; Rec."Unassigned Tests")
                 {
-                    DrillDownPageID = "Qlty. Inspection Test List";
+                    DrillDownPageID = "Qlty. Inspection List";
                 }
                 field("My Open Tests"; Rec."My Open Tests")
                 {
-                    DrillDownPageID = "Qlty. Inspection Test List";
+                    DrillDownPageID = "Qlty. Inspection List";
                 }
                 field("My Open and Due Tests"; Rec."My Open and Due Tests")
                 {
-                    DrillDownPageID = "Qlty. Inspection Test List";
+                    DrillDownPageID = "Qlty. Inspection List";
                 }
                 field("All Open Tests"; Rec."All Open Tests")
                 {
-                    DrillDownPageID = "Qlty. Inspection Test List";
+                    DrillDownPageID = "Qlty. Inspection List";
                 }
                 field("All Open and Due Tests"; Rec."All Open and Due Tests")
                 {
-                    DrillDownPageID = "Qlty. Inspection Test List";
+                    DrillDownPageID = "Qlty. Inspection List";
                 }
             }
             cuegroup("Finished Tests")
@@ -49,11 +49,11 @@ page 20425 "Qlty. Inspection Activities"
 
                 field("My Finished Tests"; Rec."My Finished Tests")
                 {
-                    DrillDownPageID = "Qlty. Inspection Test List";
+                    DrillDownPageID = "Qlty. Inspection List";
                 }
                 field("All Finished Tests"; Rec."All Finished Tests")
                 {
-                    DrillDownPageID = "Qlty. Inspection Test List";
+                    DrillDownPageID = "Qlty. Inspection List";
                 }
             }
         }

@@ -5,22 +5,22 @@
 namespace Microsoft.QualityManagement.Setup.Setup;
 
 /// <summary>
-/// Defines when to automatically show the tests.
+/// Defines when to automatically show the inspections.
 /// </summary>
-enum 20401 "Qlty. Show Test Behavior"
+enum 20401 "Qlty. Show Inspection Behavior"
 {
-    Caption = 'Quality Show Test Behavior';
+    Caption = 'Quality Show Inspection Behavior';
 
-    value(0; "Automatic and manually created tests")
+    value(0; "Automatic and manually created inspections")
     {
-        Caption = 'Automatic and manually created tests';
+        Caption = 'Automatic and manually created inspections';
     }
-    value(1; "Only manually created tests")
+    value(1; "Only manually created inspections")
     {
-        Caption = 'Only manually created tests';
+        Caption = 'Only manually created inspections';
     }
-    value(2; "Do not show created tests")
+    value(2; "Do not show created inspections")
     {
-        Caption = 'Do not show created tests';
+        Caption = 'Do not show created inspections';
     }
 }

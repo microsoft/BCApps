@@ -21,8 +21,8 @@ using Microsoft.Warehouse.Tracking;
 codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
 {
     var
-        WarehouseJournalLineDescriptionTemplateLbl: Label 'Test [%1] changed item tracking', Comment = '%1 = Quality Inspection Test';
-        DescriptionTxt: Label 'Test [%1] changed item tracking', Comment = '%1 = Quality Inspection Test';
+        WarehouseJournalLineDescriptionTemplateLbl: Label 'Test [%1] changed item tracking', Comment = '%1 = Quality Inspection';
+        DescriptionTxt: Label 'Test [%1] changed item tracking', Comment = '%1 = Quality Inspection';
         NoJournalBatchErr: Label 'Cannot open the Reclassification Journal Batch. Check the Move/Reclassify batches on the Quality Management Setup page.';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclassification Journal Batch or Warehouse Reclassification Batch';
         NoTrackingChangesErr: Label 'No changes to item tracking information were provided.';
@@ -31,10 +31,10 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// <summary>
     /// Performs the change item tracking disposition.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <returns></returns>
-    procedure PerformDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) Changed: Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) Changed: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -53,7 +53,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     begin
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Change Item Tracking";
 
-        OnBeforeProcessDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, Changed, Handled);
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, Changed, Handled);
         if Handled then
             exit;
 
@@ -64,10 +64,10 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
 
         QltyManagementSetup.Get();
 
-        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
+        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
         if not TempQuantityToActQltyDispositionBuffer.FindSet() then
-            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
 
         repeat
             Clear(Location);
@@ -80,41 +80,41 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
 
                 DocumentOrBatch := QltyManagementSetup."Bin Whse. Move Batch Name";
                 Clear(WarehouseJournalLine);
-                CreateTrackingWarehouseReclassLine(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Bin Whse. Move Batch Name", WarehouseJournalLine, WhseItemTrackingLine);
+                CreateTrackingWarehouseReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Bin Whse. Move Batch Name", WarehouseJournalLine, WhseItemTrackingLine);
                 LineCreated := WarehouseJournalLine."Line No." <> 0;
                 if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
                     Changed := LineCreated;
                 if LineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) then
-                    Changed := QltyItemJournalManagement.PostWarehouseJournal(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine);
+                    Changed := QltyItemJournalManagement.PostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine);
                 LoopSuccess := true;
             end else begin
                 if QltyManagementSetup."Bin Move Batch Name" = '' then
                     Error(MissingBatchErr);
                 DocumentOrBatch := QltyManagementSetup."Bin Move Batch Name";
                 Clear(ItemJournalLine);
-                CreateTrackingItemReclassLine(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Bin Move Batch Name", ItemJournalLine, ItemReservationEntry);
+                CreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Bin Move Batch Name", ItemJournalLine, ItemReservationEntry);
                 LineCreated := ItemJournalLine."Line No." <> 0;
                 if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
                     Changed := LineCreated;
                 if LineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) then
-                    Changed := QltyItemJournalManagement.PostItemJournal(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine);
+                    Changed := QltyItemJournalManagement.PostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine);
                 LoopSuccess := true;
             end;
 
             if LoopSuccess then
                 if Location."Directed Put-away and Pick" then
-                    QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, WhseItemTrackingLine."Expiration Date")
+                    QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, WhseItemTrackingLine."Expiration Date")
                 else
-                    QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, ItemReservationEntry."Expiration Date")
+                    QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, ItemReservationEntry."Expiration Date")
         until TempQuantityToActQltyDispositionBuffer.Next() = 0;
 
-        OnAfterProcessDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, Changed);
+        OnAfterProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, Changed);
 
         if not Changed then
-            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
-    local procedure CreateTrackingItemReclassLine(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
+    local procedure CreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ItemJournalBatch: Record "Item Journal Batch";
@@ -130,7 +130,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         if not ItemJournalBatch.Get(JournalTemplate, ReclassBatchName) then
             Error(NoJournalBatchErr);
 
-        OnBeforeInsertCreateTrackingItemReclassLine(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, ReclassBatchName, ItemJournalLine, Handled);
+        OnBeforeInsertCreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ReclassBatchName, ItemJournalLine, Handled);
         if Handled then
             exit;
 
@@ -140,16 +140,16 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         if TempQuantityToActQltyDispositionBuffer."New Bin Code" = '' then
             TempQuantityToActQltyDispositionBuffer."New Bin Code" := TempQuantityToActQltyDispositionBuffer.GetFromBinCode();
 
-        QltyItemJournalManagement.CreateItemJournalLine(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch, ItemJournalLine, ReservationEntry);
+        QltyItemJournalManagement.CreateItemJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch, ItemJournalLine, ReservationEntry);
 
-        ItemJournalLine.Description := CopyStr(StrSubstNo(DescriptionTxt, QltyInspectionTestHeader.GetFriendlyIdentifier()), 1, MaxStrLen(ItemJournalLine.Description));
+        ItemJournalLine.Description := CopyStr(StrSubstNo(DescriptionTxt, QltyInspectionHeader.GetFriendlyIdentifier()), 1, MaxStrLen(ItemJournalLine.Description));
 
         ItemJournalLine.Modify();
 
-        OnAfterCreateTrackingItemReclassLine(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, ReclassBatchName, ItemJournalLine, ReservationEntry);
+        OnAfterCreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ReclassBatchName, ItemJournalLine, ReservationEntry);
     end;
 
-    local procedure CreateTrackingWarehouseReclassLine(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; ReclassBatchName: Code[10]; var WhseWarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    local procedure CreateTrackingWarehouseReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; ReclassBatchName: Code[10]; var WhseWarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ChangeTrackingWarehouseJournalBatch: Record "Warehouse Journal Batch";
@@ -164,8 +164,8 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         TempQuantityToActQltyDispositionBuffer."New Location Code" := TempQuantityToActQltyDispositionBuffer.GetFromLocationCode();
         TempQuantityToActQltyDispositionBuffer."New Bin Code" := TempQuantityToActQltyDispositionBuffer.GetFromBinCode();
 
-        QltyItemJournalManagement.CreateWarehouseJournalLine(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, ChangeTrackingWarehouseJournalBatch, WhseWarehouseJournalLine, WhseItemTrackingLine);
-        WhseWarehouseJournalLine.Description := CopyStr(StrSubstNo(WarehouseJournalLineDescriptionTemplateLbl, QltyInspectionTestHeader.GetFriendlyIdentifier()), 1, MaxStrLen(WhseWarehouseJournalLine.Description));
+        QltyItemJournalManagement.CreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ChangeTrackingWarehouseJournalBatch, WhseWarehouseJournalLine, WhseItemTrackingLine);
+        WhseWarehouseJournalLine.Description := CopyStr(StrSubstNo(WarehouseJournalLineDescriptionTemplateLbl, QltyInspectionHeader.GetFriendlyIdentifier()), 1, MaxStrLen(WhseWarehouseJournalLine.Description));
 
         WhseWarehouseJournalLine.Modify();
     end;
@@ -174,7 +174,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Occurs before change tracking has taken place, allowing the opportunity to extend or replace the functionality.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean; var Handled: Boolean)
     begin
     end;
 
@@ -182,7 +182,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Occurs after change tracking has taken place.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean)
     begin
     end;
 
@@ -190,7 +190,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Provides an opportunity to adjust the item reclassification line created to change item tracking information before it is inserted.
     /// </summary>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeInsertCreateTrackingItemReclassLine(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
+    procedure OnBeforeInsertCreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
     begin
     end;
 
@@ -198,7 +198,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Provides an opportunity to adjust the warehouse reclassification line and whse. tracking line created to change item tracking information.
     /// </summary>
     [IntegrationEvent(false, false)]
-    procedure OnAfterCreateTrackingItemReclassLine(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
+    procedure OnAfterCreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     begin
     end;
 }

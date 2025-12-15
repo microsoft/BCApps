@@ -30,7 +30,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
         FileName: Text;
         OutStreamLbl: Label 'test';
         FileNameTok: Label 'test.txt';
@@ -43,34 +43,34 @@ codeunit 139970 "Qlty. Codeunit Tests"
     [Test]
     procedure HandleOnBeforeInsertAttachment_Test()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         DocumentAttachment: Record "Document Attachment";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
         OutStreamToTest: OutStream;
     begin
-        // [SCENARIO] Attach a document to a Quality Inspection Test Header and verify attachment details
+        // [SCENARIO] Attach a document to a Quality Inspection Header and verify attachment details
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
-        // [GIVEN] A new Quality Inspection Test Header record is created
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader.Insert(true);
+        // [GIVEN] A new Quality Inspection Header record is created
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader.Insert(true);
 
         // [GIVEN] A file content is prepared in a temporary blob
         TempBlob.CreateOutStream(OutStreamToTest);
         OutStreamToTest.WriteText(OutStreamLbl);
 
-        // [WHEN] The attachment is saved to the test header record
-        RecordRef.GetTable(QltyInspectionTestHeader);
+        // [WHEN] The attachment is saved to the inspection header record
+        RecordRef.GetTable(QltyInspectionHeader);
         DocumentAttachment.SaveAttachment(RecordRef, FileNameTok, TempBlob);
 
-        // [THEN] The document attachment is correctly linked to the test header with proper table ID and identifiers
-        LibraryAssert.AreEqual(Database::"Qlty. Inspection Test Header", DocumentAttachment."Table ID", 'Should be test.');
-        LibraryAssert.AreEqual(QltyInspectionTestHeader."No.", DocumentAttachment."No.", 'Should be correct test.');
-        LibraryAssert.AreEqual(QltyInspectionTestHeader."Retest No.", DocumentAttachment."Line No.", 'Should be correct test.');
+        // [THEN] The document attachment is correctly linked to the inspection header with proper table ID and identifiers
+        LibraryAssert.AreEqual(Database::"Qlty. Inspection Header", DocumentAttachment."Table ID", 'Should be test.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."No.", DocumentAttachment."No.", 'Should be correct test.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."Retest No.", DocumentAttachment."Line No.", 'Should be correct test.');
     end;
 
     [Test]
@@ -87,10 +87,10 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
         // [GIVEN] A Quality Inspection Template is created
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A file content is prepared in a temporary blob
         TempBlob.CreateOutStream(OutStreamToTest);
@@ -120,11 +120,11 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
         // [GIVEN] A Quality Field with a randomly generated code is created
         ToLoadQltyField.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Insert();
 
@@ -144,42 +144,42 @@ codeunit 139970 "Qlty. Codeunit Tests"
     [Test]
     procedure HandleOnBeforeInsertAttachment_TestLine()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         DocumentAttachment: Record "Document Attachment";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
         OutStreamToTest: OutStream;
     begin
-        // [SCENARIO] Attach a document to a Quality Inspection Test Line and verify attachment details
+        // [SCENARIO] Attach a document to a Quality Inspection Line and verify attachment details
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
-        // [GIVEN] A Quality Inspection Test Header is created
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader.Insert(true);
+        // [GIVEN] A Quality Inspection r is created
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader.Insert(true);
 
-        // [GIVEN] A Quality Inspection Test Line is created for the test header
-        QltyInspectionTestLine.Init();
-        QltyInspectionTestLine."Test No." := QltyInspectionTestHeader."No.";
-        QltyInspectionTestLine."Retest No." := QltyInspectionTestHeader."Retest No.";
-        QltyInspectionTestLine.Insert(true);
+        // [GIVEN] A Quality Inspection Line is created for the inspection header
+        QltyInspectionLine.Init();
+        QltyInspectionLine."Test No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Retest No." := QltyInspectionHeader."Retest No.";
+        QltyInspectionLine.Insert(true);
 
         // [GIVEN] A file content is prepared in a temporary blob
         TempBlob.CreateOutStream(OutStreamToTest);
         OutStreamToTest.WriteText(OutStreamLbl);
 
-        // [WHEN] The attachment is saved to the test line record
-        RecordRef.GetTable(QltyInspectionTestLine);
+        // [WHEN] The attachment is saved to the inspection line record
+        RecordRef.GetTable(QltyInspectionLine);
         DocumentAttachment.SaveAttachment(RecordRef, FileNameTok, TempBlob);
 
-        // [THEN] The document attachment is correctly linked to the test line with proper table ID and identifiers
-        LibraryAssert.AreEqual(Database::"Qlty. Inspection Test Line", DocumentAttachment."Table ID", 'Should be test line.');
-        LibraryAssert.AreEqual(QltyInspectionTestLine."Test No.", DocumentAttachment."No.", 'Should be correct test line.');
-        LibraryAssert.AreEqual(QltyInspectionTestLine."Line No.", DocumentAttachment."Line No.", 'Should be correct test line.');
+        // [THEN] The document attachment is correctly linked to the inspection line with proper table ID and identifiers
+        LibraryAssert.AreEqual(Database::"Qlty. Inspection Line", DocumentAttachment."Table ID", 'Should be inspection line.');
+        LibraryAssert.AreEqual(QltyInspectionLine."Test No.", DocumentAttachment."No.", 'Should be correct inspection line.');
+        LibraryAssert.AreEqual(QltyInspectionLine."Line No.", DocumentAttachment."Line No.", 'Should be correct inspection line.');
     end;
 
     [Test]
@@ -197,10 +197,10 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
         // [GIVEN] A Quality Inspection Template with one line is created
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A Quality Inspection Template Line is created for the template
         QltyInspectionTemplateLine.Init();
@@ -225,48 +225,48 @@ codeunit 139970 "Qlty. Codeunit Tests"
     [HandlerFunctions('DocumentAttachmentDetailsModalPageHandler')]
     procedure HandleOnAfterOpenForRecRef_Test()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        SecondQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        SecondQltyInspectionHeader: Record "Qlty. Inspection Header";
         FirstDocumentAttachment: Record "Document Attachment";
         SecondDocumentAttachment: Record "Document Attachment";
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
     begin
-        // [SCENARIO] Open attachments page for a test record and verify correct attachment filtering
-
-        Initialize();
+        // [SCENARIO] Open attachments age for a test record and verify correct attachment filtering
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
 
-        // [GIVEN] Two Quality Inspection Test Headers are created
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader.Insert(true);
+        // [GIVEN] Quality Management stup is initialized
+        // [GIVEN] Two Quality Inspection Headers are created
 
-        SecondQltyInspectionTestHeader.Init();
-        SecondQltyInspectionTestHeader.Insert(true);
+        // [GIVEN] Two Quality Inspection Headers are created
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader.Insert(true);
+
+        SecondQltyInspectionHeader.Init);
+        // [QltyInspectionchment is created for the first test
 
         // [GIVEN] A document attachment is created for the first test
         FirstDocumentAttachment.Init();
-        FirstDocumentAttachment."Table ID" := Database::"Qlty. Inspection Test Header";
-        FirstDocumentAttachment."No." := QltyInspectionTestHeader."No.";
-        FirstDocumentAttachment."Line No." := QltyInspectionTestHeader."Retest No.";
+        FirstDocumentAttachment."Table ID" := Database::"Qlty. Inspection Header";
+        FirstDocumentAttachment."No." := QltyInspectionHeader."No.";
+        FirstDocumentAttachment."Line No." := QltyInspectionHeader."Retest No.";
         FirstDocumentAttachment."File Name" := FirstFileNameTxt;
         FirstDocumentAttachment.Insert();
 
         // [GIVEN] A document attachment is created for the second test
         SecondDocumentAttachment.Init();
-        SecondDocumentAttachment."Table ID" := Database::"Qlty. Inspection Test Header";
-        SecondDocumentAttachment."No." := SecondQltyInspectionTestHeader."No.";
-        SecondDocumentAttachment."Line No." := SecondQltyInspectionTestHeader."Retest No.";
+        SecondDocumentAttachment."Table ID" := Database::"Qlty. Inspection Header";
+        SecondDocumentAttachment."No." := SecondQltyInspectionHeader."No.";
+        SecondDocumentAttachment."Line No." := SecondQltyInspectionHeader."Retest No.";
         SecondDocumentAttachment."File Name" := SecondFileNameTxt;
         SecondDocumentAttachment.Insert();
 
         // [WHEN] The attachments page is opened for the first test
-        QltyInspectionTest.OpenView();
-        QltyInspectionTest.GotoRecord(QltyInspectionTestHeader);
+        QltyInspectionileNameTxt;
+        QltyInspection.GotoRecord(QltyInspectionHeader);
         FileName := FirstFileNameTxt;
-        QltyInspectionTest.Attachments.Invoke();
-        QltyInspectionTest."Attached Documents".OpenInDetail.Invoke();
+        QltyInspection.Attachments.Invoke();
+        QltyInspection."Attached Documents".OpenInDetail.Invoke();
 
         // [THEN] Only the attachment for the first test is displayed (verified in modal page handler)
     end;
@@ -289,13 +289,13 @@ codeunit 139970 "Qlty. Codeunit Tests"
 
         // [GIVEN] Two Quality Inspection Templates with unique codes are created
         QltyInspectionTemplateHdr.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(QltyInspectionTemplateHdr.Code), TemplateCode1);
+        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyInspectionTemplateHdr.Code), TemplateCode1);
         QltyInspectionTemplateHdr.Code := CopyStr(TemplateCode1, 1, MaxStrLen(QltyInspectionTemplateHdr.Code));
         QltyInspectionTemplateHdr.Insert();
 
         InspectionSecondQltyInspectionTemplateHdr.Init();
         repeat
-            QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(InspectionSecondQltyInspectionTemplateHdr.Code), TemplateCode2);
+            QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(InspectionSecondQltyInspectionTemplateHdr.Code), TemplateCode2);
         until TemplateCode2 <> TemplateCode1;
         InspectionSecondQltyInspectionTemplateHdr.Code := CopyStr(TemplateCode2, 1, MaxStrLen(InspectionSecondQltyInspectionTemplateHdr.Code));
         InspectionSecondQltyInspectionTemplateHdr.Insert();
@@ -340,17 +340,17 @@ codeunit 139970 "Qlty. Codeunit Tests"
 
         Initialize();
 
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
         // [GIVEN] Two Quality Field records with different codes are created
         QltyField.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Insert();
 
         SecondQltyField.Init();
         repeat
-            QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SecondQltyField.Code), SecondFieldCode);
+            QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SecondQltyField.Code), SecondFieldCode);
         until SecondFieldCode <> FieldCode;
         SecondQltyField.Code := CopyStr(SecondFieldCode, 1, MaxStrLen(SecondQltyField.Code));
         SecondQltyField.Insert();
@@ -392,7 +392,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
 
         // [GIVEN] A Quality Field with a randomly generated code is created
         ToLoadQltyField.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Insert();
 
@@ -414,45 +414,45 @@ codeunit 139970 "Qlty. Codeunit Tests"
     [Test]
     procedure FilterDocumentAttachment_TestLine()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         DocumentAttachment: Record "Document Attachment";
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         RecordRef: RecordRef;
     begin
-        // [SCENARIO] Filter document attachments for a Quality Inspection Test Line and verify correct filters are applied
+        // [SCENARIO] Filter document attachments for a Quality Inspection Line and verify correct filters are applied
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
-        // [GIVEN] A Quality Inspection Test Header is created
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader.Insert(true);
+        // [GIVEN] A Quality Inspection Header is created
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader.Insert(true);
 
-        // [GIVEN] A Quality Inspection Test Line is created for the test header
-        QltyInspectionTestLine.Init();
-        QltyInspectionTestLine."Test No." := QltyInspectionTestHeader."No.";
-        QltyInspectionTestLine."Retest No." := QltyInspectionTestHeader."Retest No.";
-        QltyInspectionTestLine."Line No." := 10000;
-        QltyInspectionTestLine.Insert();
+        // [GIVEN] A Quality Inspection Line is created for the inspection header
+        QltyInspectionLine.Init();
+        QltyInspectionLine."Test No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Retest No." := QltyInspectionHeader."Retest No.";
+        QltyInspectionLine."Line No." := 10000;
+        QltyInspectionLine.Insert();
 
-        // [GIVEN] A document attachment is created for the test line
+        // [GIVEN] A document attachment is created for the inspection line
         DocumentAttachment.Init();
-        DocumentAttachment."Table ID" := Database::"Qlty. Inspection Test Line";
+        DocumentAttachment."Table ID" := Database::"Qlty. Inspection Line";
         DocumentAttachment."File Name" := FileNameTxt;
-        DocumentAttachment."No." := QltyInspectionTestLine."Test No.";
-        DocumentAttachment."Line No." := QltyInspectionTestLine."Line No.";
+        DocumentAttachment."No." := QltyInspectionLine."Test No.";
+        DocumentAttachment."Line No." := QltyInspectionLine."Line No.";
         DocumentAttachment.Insert();
 
-        // [WHEN] Document attachment filters are set for the test line record
-        RecordRef.GetTable(QltyInspectionTestLine);
+        // [WHEN] Document attachment filters are set for the inspection line record
+        RecordRef.GetTable(QltyInspectionLine);
         DocumentAttachmentMgmt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachment, RecordRef);
 
         // [THEN] The document attachment is filtered to the correct test number and line number
-        LibraryAssert.AreEqual(QltyInspectionTestLine."Test No.", DocumentAttachment.GetFilter("No."), 'Should be filtered to test no.');
-        LibraryAssert.AreEqual(Format(QltyInspectionTestLine."Line No."), DocumentAttachment.GetFilter("Line No."), 'Should be filtered to line no.');
+        LibraryAssert.AreEqual(QltyInspectionLine."Test No.", DocumentAttachment.GetFilter("No."), 'Should be filtered to test no.');
+        LibraryAssert.AreEqual(Format(QltyInspectionLine."Line No."), DocumentAttachment.GetFilter("Line No."), 'Should be filtered to line no.');
     end;
 
     [Test]
@@ -470,11 +470,11 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
 
         // [GIVEN] A Quality Inspection Template with a randomly generated code is created
         QltyInspectionTemplateHdr.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(QltyInspectionTemplateHdr.Code), TemplateCode);
+        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyInspectionTemplateHdr.Code), TemplateCode);
         QltyInspectionTemplateHdr.Code := CopyStr(TemplateCode, 1, MaxStrLen(QltyInspectionTemplateHdr.Code));
         QltyInspectionTemplateHdr.Insert(true);
 
@@ -503,87 +503,88 @@ codeunit 139970 "Qlty. Codeunit Tests"
     [Test]
     procedure HandleOnAfterShowRecords()
     var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
-        QltyInspectionTestSecond: TestPage "Qlty. Inspection Test";
+        // [GIVEN] A basic template and test instance are created
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspection: TestPage "Qlty. Inspection";
+        // [WHEN] The Navigate page is opened from the test and the test record is selected and shown
         Navigate: TestPage Navigate;
-    begin
-        // [SCENARIO] Navigate to a Quality Inspection Test record from the Navigate page and verify correct test is opened
+        begi                                                                        n
+                                                                                // [SCENARIO] Navigate to a Quality Inspection record from the Navigate page and verify correct test is opened
 
         Initialize();
 
-        // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+                                                                                // [GIVEN] Quality Management setup is initialized
+                                                                                QltyInspectionsUtility.EnsureSetup();
+                                                                        
+        / [G;
+                                                                                VEN] A basic template and tes t instance are created
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
-        // [GIVEN] A basic template and test instance are created
-        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, QltyInspectionTemplateHdr);
-
-        // [WHEN] The Navigate page is opened from the test and the test record is selected and shown
-        QltyInspectionTest.OpenView();
-        QltyInspectionTest.GotoRecord(QltyInspectionTestHeader);
+        break;
+ ltyInspection.OpenView();
+        QltyInspection.GotoRecord(QltyInspectionHeader);
         Navigate.Trap();
-        QltyInspectionTest.FindEntries.Invoke();
+        QltyInspection.FindEntries.Invoke();
         Navigate.First();
         repeat
-            if Navigate."Table Name".Value() = QltyInspectionTestHeader.TableCaption() then begin
-                QltyInspectionTestSecond.Trap();
+            if Navigate."Table Name".Value() = QltyInspectionHeader.TableCaption() then begin
+                QltyInspectionSecond.Trap();
                 Navigate.Show.Invoke();
                 break;
             end;
         until Navigate.Next() = false;
 
         // [THEN] The correct test is opened with the correct test number and no retest number
-        LibraryAssert.AreEqual(QltyInspectionTestHeader."No.", QltyInspectionTestSecond."No.".Value(), 'Should be correct test.');
-        LibraryAssert.AreEqual('', QltyInspectionTestSecond."Retest No.".Value(), 'Should be correct test.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."No.", QltyInspectionSecond."No.".Value(), 'Should be corre      ct test.');
+        LibraryAssert.AreEqual('', QltyInspectionSecond."Retest No.".Value(), 'Should be correct test.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure HandleOnAfterShowRecords_MultipleTests()
     var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
-        QltyInspectionTestList: TestPage "Qlty. Inspection Test List";
-        Navigate: TestPage Navigate;
+                                                                                                                     // [GIVEN] A basic template and test instance are created
+                                                                                                                     QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ReQltyInspectionHeader: Record "Qlty. Inspection Header";
+                                                                                                                     // [GIVEN] A retest is created for the original test
+                                                                                                                     QltyInspectionList: TestPage "Qlty. Inspection List";
+                                                                                                                     Navigate: TestPage Navigate;
         Count: Integer;
-    begin
-        // [SCENARIO] Navigate to multiple Quality Inspection Test records (original and retest) from the Navigate page and verify both tests are shown
-
-        Initialize();
-
+    begi                                                                                                             // [WHEN] The Navigate page is opened from the test and QltyInspectionre shown
+                                                                                                                             // [SCENARIO] Navigate to multiple Quality Inspection records (original and retest) from the Navigate page and verify both tests are shown
+                                                                                                             
+                                                                                                                     Initialize();
+                                                                                                             
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
-
-        // [GIVEN] A basic template and test instance are created
-        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, QltyInspectionTemplateHdr);
-
-        // [GIVEN] A retest is created for the original test
-        QltyInspectionTestHeader.CreateReTest();
-        ReQltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", 1);
-
-        // [WHEN] The Navigate page is opened from the test and the test records are shown
-        QltyInspectionTest.OpenView();
-        QltyInspectionTest.GotoRecord(QltyInspectionTestHeader);
+        QltyInspectionsUtility.EnsureSetup();
+                                                                                                             
+                                                                                                                     // [GIVEN] A basic template and test instance are created
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, QltyInspectionTemplateHdr);
+                                                                                                             // [THENQltyInspectionl test and reteQltyInspectionthe same test number
+                                                                                                                     // [GIVEN] A retest is created for the original test
+                                                                                                                     QltyInspectionHeader.CreateReTest();
+        ReQltyInspectionHeader.Get(QltyInspectionHeader."No.", 1);
+                                                                                                         
+                                                                                                                     // [WHEN] The Navigate page is opened from the test and the test records are shown
+                                                                                                                     QltyInspection.OpenView();
+        QltyInspection.GotoRecord(QltyInspectionHeader);
         Navigate.Trap();
-        QltyInspectionTest.FindEntries.Invoke();
+        QltyInspection.FindEntries.Invoke();
         Navigate.First();
         repeat
-            if Navigate."Table Name".Value() = QltyInspectionTestHeader.TableCaption() then begin
-                QltyInspectionTestList.Trap();
+            if Navigate."Table Name".Value() = QltyInspectionHeader.TableCaption() then begin
+                QltyInspectionList.Trap();
                 Navigate.Show.Invoke();
                 break;
             end;
         until Navigate.Next() = false;
 
         // [THEN] Both the original test and retest are shown with the same test number
-        QltyInspectionTestList.First();
+        QltyInspectionList.First();
         repeat
-            LibraryAssert.AreEqual(QltyInspectionTestHeader."No.", QltyInspectionTestList."No.".Value(), 'Should be correct test.');
+            LibraryAssert.AreEqual(QltyInspectionHeader."No.", QltyInspectionList."No.".Value(), 'Should be correct test.');
             Count += 1;
-        until QltyInspectionTestList.Next() = false;
+        until QltyInspectionList.Next() = false;
         LibraryAssert.AreEqual(2, Count, 'Should be two tests.');
     end;
 
@@ -593,35 +594,35 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Location: Record Location;
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
         LotNoInformation: Record "Lot No. Information";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         Navigate: TestPage Navigate;
         LotNoInformationCard: TestPage "Lot No. Information Card";
     begin
-        // [SCENARIO] Navigate from a lot number to find associated Quality Inspection Test records and verify tracking records are found
+        // [SCENARIO] Navigate from a lot number to find associated Quality Inspection records and verify tracking records are found
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized and a full WMS location is created
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
 
         // [GIVEN] A lot-tracked item with a purchase order and reservation entry are created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
         // [GIVEN] A quality inspection template and rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        // [GIVEN] A quality inspection test is created with the purchase line and lot tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        // [GIVEN] A quality inspection is created with the purchase line and lot tracking
+        QltyInspectionsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] Lot number information is created for the tracked lot
         LotNoInformation.Init();
@@ -635,17 +636,17 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Navigate.Trap();
         LotNoInformationCard.Navigate.Invoke();
 
-        // [THEN] The Quality Inspection Test record is found with one matching record
+        // [THEN] The Quality Inspection record is found with one matching record
         Navigate.First();
         repeat
-            if Navigate."Table Name".Value() = QltyInspectionTestHeader.TableCaption() then begin
+            if Navigate."Table Name".Value() = QltyInspectionHeader.TableCaption() then begin
                 LibraryAssert.IsTrue(Navigate."No. of Records".Value() = '1', 'Should be one record.');
                 break;
             end;
         until Navigate.Next() = false;
 
         QltyInspectionTemplateHdr.Delete();
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -654,16 +655,16 @@ codeunit 139970 "Qlty. Codeunit Tests"
         PageManagement: Codeunit "Page Management";
         RecordRef: RecordRef;
     begin
-        // [SCENARIO] Get the conditional card page ID for a Quality Inspection Test Header record and verify correct page is returned
+        // [SCENARIO] Get the conditional card page ID for a Quality Inspection Header record and verify correct page is returned
 
         Initialize();
 
-        // [GIVEN] A record reference is opened for the Quality Inspection Test Header table
-        RecordRef.Open(Database::"Qlty. Inspection Test Header");
+        // [GIVEN] A record reference is opened for the Quality Inspection Header table
+        RecordRef.Open(Database::"Qlty. Inspection Header");
 
         // [WHEN] GetConditionalCardPageID is called for the record reference
-        // [THEN] The Quality Inspection Test card page ID is returned
-        LibraryAssert.AreEqual(Page::"Qlty. Inspection Test", PageManagement.GetConditionalCardPageID(RecordRef), 'Should be test card page.');
+        // [THEN] The Quality Inspection card page ID is returned
+        LibraryAssert.AreEqual(Page::"Qlty. Inspection", PageManagement.GetConditionalCardPageID(RecordRef), 'Should be test card page.');
     end;
 
     [Test]
@@ -672,22 +673,22 @@ codeunit 139970 "Qlty. Codeunit Tests"
         PageManagement: Codeunit "Page Management";
         RecordRef: RecordRef;
     begin
-        // [SCENARIO] Get the conditional list page ID for a Quality Inspection Test Header record and verify correct page is returned
+        // [SCENARIO] Get the conditional list page ID for a Quality Inspection Header record and verify correct page is returned
 
         Initialize();
 
-        // [GIVEN] A record reference is opened for the Quality Inspection Test Header table
-        RecordRef.Open(Database::"Qlty. Inspection Test Header");
+        // [GIVEN] A record reference is opened for the Quality Inspection Header table
+        RecordRef.Open(Database::"Qlty. Inspection Header");
 
         // [WHEN] GetConditionalListPageID is called for the record reference
-        // [THEN] The Quality Inspection Test List page ID is returned
-        LibraryAssert.AreEqual(Page::"Qlty. Inspection Test List", PageManagement.GetConditionalListPageID(RecordRef), 'Should be tests list page.');
+        // [THEN] The Quality Inspection List page ID is returned
+        LibraryAssert.AreEqual(Page::"Qlty. Inspection List", PageManagement.GetConditionalListPageID(RecordRef), 'Should be tests list page.');
     end;
 
     [Test]
     procedure HandleOnAfterGetPageSummary()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyUtilitiesIntegration: Codeunit "Qlty. Utilities Integration";
@@ -696,12 +697,12 @@ codeunit 139970 "Qlty. Codeunit Tests"
         FieldJsonToken: JsonToken;
         CaptionJsonToken: JsonToken;
     begin
-        // [SCENARIO] Get page summary for a Quality Inspection Test and verify brick headers are correctly populated from setup
+        // [SCENARIO] Get page summary for a Quality Inspection and verify brick headers are correctly populated from setup
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Brick headers are configured in Quality Management setup
@@ -709,26 +710,26 @@ codeunit 139970 "Qlty. Codeunit Tests"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A basic template and test instance are created
-        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, QltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
         // [GIVEN] A JSON array is prepared with brick field captions
-        FieldJsonObject.Add('caption', QltyInspectionTestHeader.FieldCaption("Brick Bottom Left"));
+        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Bottom Left"));
         JsonArray.Add(FieldJsonObject);
         Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionTestHeader.FieldCaption("Brick Bottom Right"));
+        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Bottom Right"));
         JsonArray.Add(FieldJsonObject);
         Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionTestHeader.FieldCaption("Brick Middle Left"));
+        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Middle Left"));
         JsonArray.Add(FieldJsonObject);
         Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionTestHeader.FieldCaption("Brick Middle Right"));
+        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Middle Right"));
         JsonArray.Add(FieldJsonObject);
         Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionTestHeader.FieldCaption("Brick Top Left"));
+        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Top Left"));
         JsonArray.Add(FieldJsonObject);
 
-        // [WHEN] The page summary handler is invoked for the Quality Inspection Test
-        QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary(Page::"Qlty. Inspection Test", QltyInspectionTestHeader.RecordId(), JsonArray);
+        // [WHEN] The page summary handler is invoked for the Quality Inspection
+        QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary(Page::"Qlty. Inspection", QltyInspectionHeader.RecordId(), JsonArray);
 
         // [THEN] All brick field captions are replaced with the configured brick headers from setup
         foreach FieldJsonToken in JsonArray do begin

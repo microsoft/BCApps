@@ -20,62 +20,62 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         }
         field(2; "All Open Tests"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where(Status = const(Open)));
+            CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open)));
             Caption = 'Open Tests (all)';
-            ToolTip = 'Specifies the count of quality inspection tests that are open.';
+            ToolTip = 'Specifies the count of quality inspections that are open.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(3; "My Open Tests"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where(Status = const(Open),
+            CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Assigned User ID" = filter('%me')));
             Caption = 'Open Tests (mine)';
-            ToolTip = 'Specifies the count of quality inspection tests that are open and assigned to you.';
+            ToolTip = 'Specifies the count of quality inspections that are open and assigned to you.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(4; "All Finished Tests"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where(Status = const(Finished)));
+            CalcFormula = count("Qlty. Inspection Header" where(Status = const(Finished)));
             Caption = 'Finished Tests (all)';
-            ToolTip = 'Specifies the count of quality inspection tests that are finished.';
+            ToolTip = 'Specifies the count of quality inspections that are finished.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(5; "My Finished Tests"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where(Status = const(Finished),
+            CalcFormula = count("Qlty. Inspection Header" where(Status = const(Finished),
                                                                      "Assigned User ID" = filter('%me')));
             Caption = 'Finished Tests (mine)';
-            ToolTip = 'Specifies the count of quality inspection tests that are finished and assigned to you.';
+            ToolTip = 'Specifies the count of quality inspections that are finished and assigned to you.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(6; "Unassigned Tests"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where("Assigned User ID" = filter('''''')));
+            CalcFormula = count("Qlty. Inspection Header" where("Assigned User ID" = filter('''''')));
             Caption = 'Unassigned Tests';
-            ToolTip = 'Specifies the count of quality inspection tests that are not assigned to any user.';
+            ToolTip = 'Specifies the count of quality inspections that are not assigned to any user.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(7; "All Open and Due Tests"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where(Status = const(Open),
+            CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Planned Start Date" = filter('<=T')));
             Caption = 'Open and Due Tests (all)';
-            ToolTip = 'Specifies the count of quality inspection tests that are open and due.';
+            ToolTip = 'Specifies the count of quality inspections that are open and due.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(8; "My Open and Due Tests"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where(Status = const(Open),
+            CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Assigned User ID" = filter('%me'),
                                                                      "Planned Start Date" = filter('<=T')));
             Caption = 'Open and Due Tests (mine)';
-            ToolTip = 'Specifies the count of quality inspection tests that are open, due, and assigned to you.';
+            ToolTip = 'Specifies the count of quality inspections that are open, due, and assigned to you.';
             Editable = false;
             FieldClass = FlowField;
         }

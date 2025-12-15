@@ -1937,7 +1937,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     procedure EditQITemplate_NoFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1945,7 +1945,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         // [WHEN] AssistEditQltyInspectionTemplate is called with no filter
         FoundTemplate := QltyFilterHelpers.AssistEditQltyInspectionTemplate(Template);
@@ -1960,7 +1960,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     procedure EditQITemplate_TemplateFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1968,7 +1968,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         Template := QltyInspectionTemplateHdr.Code;
         // [WHEN] AssistEditQltyInspectionTemplate is called with template filter

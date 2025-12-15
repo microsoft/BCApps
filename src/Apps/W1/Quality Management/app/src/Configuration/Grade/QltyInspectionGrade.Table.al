@@ -129,80 +129,80 @@ table 20411 "Qlty. Inspection Grade"
         }
         field(20; "Lot Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow sales transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow sales transactions.';
             Caption = 'Allow Sales';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows sales transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows sales transactions.';
         }
         field(21; "Lot Allow Assembly Consumption"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Assembly Consumption';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Assembly Consumption transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Assembly Consumption transactions.';
         }
         field(22; "Lot Allow Consumption"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Consumption';
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Consumption transactions.';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Consumption transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Consumption transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Consumption transactions.';
         }
         field(23; "Lot Allow Output"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Output';
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Output transactions.';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Output transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Output transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Output transactions.';
         }
         field(24; "Lot Allow Purchase"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Purchase transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Purchase transactions.';
             Caption = 'Allow Purchase';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Purchase transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Purchase transactions.';
         }
         field(25; "Lot Allow Transfer"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Transfer';
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Transfer transactions.';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Transfer transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Transfer transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Transfer transactions.';
         }
         field(26; "Lot Allow Assembly Output"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Assembly Output transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Assembly Output transactions.';
             Caption = 'Allow Assembly Output';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Assembly Output transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Assembly Output transactions.';
         }
         field(27; "Lot Allow Invt. Movement"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Inventory Movement transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Movement transactions.';
             Caption = 'Allow Inventory Movement';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Inventory Movement transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Inventory Movement transactions.';
         }
         field(28; "Lot Allow Invt. Pick"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Inventory Pick transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Pick transactions.';
             Caption = 'Allow Inventory Pick';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Inventory Pick transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Inventory Pick transactions.';
         }
         field(29; "Lot Allow Invt. Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Inventory Put-Away transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Put-Away transactions.';
             Caption = 'Allow Inventory Put-Away';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Inventory Put-Away transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Inventory Put-Away transactions.';
         }
         field(30; "Lot Allow Movement"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Warehouse Movement transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Warehouse Movement transactions.';
             Caption = 'Allow Movement';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Inventory Movement transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Inventory Movement transactions.';
         }
         field(31; "Lot Allow Pick"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Pick transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Pick transactions.';
             Caption = 'Allow Pick';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Pick transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Pick transactions.';
         }
         field(32; "Lot Allow Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
         {
-            Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow Put-Away transactions.';
+            Description = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Put-Away transactions.';
             Caption = 'Allow Put-Away';
-            ToolTip = 'Specifies whether a test for a lot/serial/package with this grade allows Put-Away transactions.';
+            ToolTip = 'Specifies whether a inspection for a lot/serial/package with this grade allows Put-Away transactions.';
         }
         field(50; "Override Style"; Text[100])
         {
@@ -234,7 +234,7 @@ table 20411 "Qlty. Inspection Grade"
         QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleOptionsTok: Label 'None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate', Locked = true;
-        CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection Test. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
+        CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
         PromptFirstExistingTestQst: Label 'This grade, although not set on a test, is available to previous tests. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This grade is currently defined on some Quality Inspection Templates. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingFieldQst: Label 'This grade is currently defined on some fields. Are you sure you want to remove this grade? This cannot be undone.';
@@ -269,19 +269,19 @@ table 20411 "Qlty. Inspection Grade"
 
     trigger OnDelete()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
     begin
         if Rec.Code = '' then
             exit;
 
-        QltyInspectionTestLine.SetRange("Grade Code", Rec.Code);
-        if not QltyInspectionTestLine.IsEmpty() then
+        QltyInspectionLine.SetRange("Grade Code", Rec.Code);
+        if not QltyInspectionLine.IsEmpty() then
             Error(CannotBeRemovedExistingTestErr);
 
-        QltyInspectionTestHeader.SetRange("Grade Code", Rec.Code);
-        if not QltyInspectionTestHeader.IsEmpty() then
+        QltyInspectionHeader.SetRange("Grade Code", Rec.Code);
+        if not QltyInspectionHeader.IsEmpty() then
             Error(CannotBeRemovedExistingTestErr);
 
         QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Test);

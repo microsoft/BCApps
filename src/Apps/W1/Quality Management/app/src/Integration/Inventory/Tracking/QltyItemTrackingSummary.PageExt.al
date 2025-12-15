@@ -17,7 +17,7 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
         {
             field(QltyInspectionGradeDescription; MostRecentQltyGradeDescription)
             {
-                AccessByPermission = tabledata "Qlty. Inspection Test Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
                 Caption = 'Quality Grade';
                 ToolTip = 'Specifies the most recent grade for this item tracking specification.';
@@ -25,18 +25,18 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
 
                 trigger OnDrillDown()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader.SetRange("Source Lot No.", Rec."Lot No.");
-                    QltyInspectionTestHeader.SetRange("Source Serial No.", Rec."Serial No.");
-                    QltyInspectionTestHeader.SetRange("Source Package No.", Rec."Package No.");
-                    if QltyInspectionTestHeader.FindFirst() then;
-                    Page.Run(Page::"Qlty. Inspection Test List", QltyInspectionTestHeader);
+                    QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
+                    QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
+                    QltyInspectionHeader.SetRange("Source Package No.", Rec."Package No.");
+                    if QltyInspectionHeader.FindFirst() then;
+                    Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
                 end;
             }
-            field("Qlty. Inspection Test Count"; Rec."Qlty. Inspection Test Count")
+            field("Qlty. Inspection Count"; Rec."Qlty. Inspection Count")
             {
-                AccessByPermission = tabledata "Qlty. Inspection Test Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
                 Editable = false;
             }

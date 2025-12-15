@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Document;
 /// <summary>
 /// Enum for tracking if a test could be created, could not be created, or intentionally skipped for scenarios when we need to know if it could be created but we intentionally chose not to.
 /// </summary>
-enum 20419 "Qlty. Insp. Test Create Status"
+enum 20419 "Qlty. Inspection Create Status"
 {
     Caption = 'Create Status';
     Extensible = true;

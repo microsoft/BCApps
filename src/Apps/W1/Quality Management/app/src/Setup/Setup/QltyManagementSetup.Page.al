@@ -36,24 +36,24 @@ page 20400 "Qlty. Management Setup"
                 {
                     Caption = 'Numbering';
 
-                    field("Quality Inspection Test Nos."; Rec."Quality Inspection Test Nos.")
+                    field("Quality Inspection Nos."; Rec."Quality Inspection Nos.")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'No. Series';
-                        AboutText = 'The default number series used for quality inspection test documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
+                        AboutText = 'The default number series used for quality inspection documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
                     }
                 }
                 group(SettingsForBehaviors)
                 {
                     Caption = 'Behaviors';
 
-                    field("Create Test Behavior"; Rec."Create Test Behavior")
+                    field("Create Inspection Behavior"; Rec."Create Inspection Behavior")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Create Test Behavior';
-                        AboutText = 'Dictates the behavior of when to create a new Quality Inspection Test when existing tests occur.';
+                        AboutTitle = 'Create Inspection Behavior';
+                        AboutText = 'Defines the behavior of when to create a new Quality Inspection when existing tests occur.';
                     }
                     field("Find Existing Behavior"; Rec."Find Existing Behavior")
                     {
@@ -93,15 +93,15 @@ page 20400 "Qlty. Management Setup"
                     group(SettingsForExplainShowTest)
                     {
                         Caption = 'Show Test';
-                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created tests immediately to the user, however for production scenarios in most circumstances automatically created tests will end up in a queue or dispatch for quality inspectors. Value "Only manually created tests" will let you see tests created manually with a button, and will just let automatically created tests be created without showing it.';
-                        field("Show Test Behavior"; Rec."Show Test Behavior")
+                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created tests immediately to the user, however for production scenarios in most circumstances automatically created tests will end up in a queue or dispatch for quality inspectors. Value "Only manually created inspections" will let you see tests created manually with a button, and will just let automatically created tests be created without showing it.';
+                        field("Show Inspection Behavior"; Rec."Show Inspection Behavior")
                         {
                             ApplicationArea = All;
                             Caption = 'Show Test';
                             ShowCaption = true;
                             Importance = Promoted;
                             AboutTitle = 'When To Show Tests';
-                            AboutText = 'Whether to show the Quality Inspection Test page after a test has been made.';
+                            AboutText = 'Whether to show the Quality Inspection page after a test has been made.';
                         }
                     }
                     field("Picture Upload Behavior"; Rec."Picture Upload Behavior")
@@ -134,7 +134,7 @@ page 20400 "Qlty. Management Setup"
                 group(SettingsForReceiveAutomation)
                 {
                     Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for how receipt tasks automatically create tests. You also need to create test generation rules to configure which templates will be used. Different triggers can be changed on the test generation rules.';
+                    InstructionalText = 'Define the default automation settings for how receipt tasks automatically create inspections. You also need to create inspection generation rules to configure which templates will be used. Different triggers can be changed on the inspection generation rules.';
                     AboutTitle = 'Receiving Related Automation Settings';
                     AboutText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create a test when a receipt is posted.';
 
@@ -187,14 +187,14 @@ page 20400 "Qlty. Management Setup"
             group(SettingsForProduction)
             {
                 Caption = 'Production';
-                InstructionalText = 'Production related settings are configured in this group. For example, you can choose to automatically create tests when output is created.';
+                InstructionalText = 'Production related settings are configured in this group. For example, you can choose to automatically create inspections when output is created.';
 
                 group(SettingsForProductionAutomation)
                 {
                     Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for test generation rules related to production output. Different triggers can be changed on the test generation rules.';
+                    InstructionalText = 'Define the default automation settings for inspection generation rules related to production output. Different triggers can be changed on the inspection generation rules.';
                     AboutTitle = 'Production Related Automation Settings';
-                    AboutText = 'Production related settings are configured in this group. You can choose to automatically create tests when output is created, whether or not to update the source, and other automatic features.';
+                    AboutText = 'Production related settings are configured in this group. You can choose to automatically create inspections when output is created, whether or not to update the source, and other automatic features.';
 
                     field("Production Trigger"; Rec."Production Trigger")
                     {
@@ -253,7 +253,7 @@ page 20400 "Qlty. Management Setup"
                 group(SettingsForWarehouseAutomation)
                 {
                     Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for test generation rules related to warehousing. Different triggers can be changed on the test generation rules.';
+                    InstructionalText = 'Define the default automation settings for inspection generation rules related to warehousing. Different triggers can be changed on the inspection generation rules.';
                     AboutTitle = 'Warehousing Related Automation Settings';
                     AboutText = 'Warehousing related settings are configured in this group. For example, you can choose to automatically create a test when a lot is moved to a specific bin.';
 
@@ -456,7 +456,7 @@ page 20400 "Qlty. Management Setup"
                         Rec.Modify();
                     end;
                 }
-                field(ChooseBrickUpdateExistingTests; 'Update Existing Tests')
+                field(ChooseBrickUpdateExistingInspection; 'Update Existing Tests')
                 {
                     ApplicationArea = All;
                     Caption = ' ';
@@ -466,7 +466,7 @@ page 20400 "Qlty. Management Setup"
 
                     trigger OnDrillDown()
                     begin
-                        Rec.UpdateBrickFieldsOnAllExistingTests();
+                        Rec.UpdateBrickFieldsOnAllExistingInspection();
                     end;
                 }
             }
@@ -491,12 +491,12 @@ page 20400 "Qlty. Management Setup"
             action(GenerationRules)
             {
                 ApplicationArea = All;
-                Caption = 'Test Generation Rules';
-                ToolTip = 'Specifies a Quality Inspection Test generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
+                Caption = 'Inspection Generation Rules';
+                ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
                 Image = EditFilter;
-                AboutTitle = 'Quality Inspection Test Generation Rule';
-                AboutText = 'A Quality Inspection Test generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
-                RunObject = Page "Qlty. In. Test Generat. Rules";
+                AboutTitle = 'Quality Inspection Generation Rule';
+                AboutText = 'A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
+                RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageMode = Edit;
             }
             action(Grades)

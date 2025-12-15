@@ -21,11 +21,11 @@ report 20401 "Qlty. Certificate of Analysis"
     Caption = 'Quality Management - Certificate of Analysis';
     DefaultRenderingLayout = QltyCertificateOfAnalysisDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'COA,Cert of Analysis,Test Report,Inspection Test Report,Quality Test Report,Printable Tests,Printable Certificate';
+    AdditionalSearchTerms = 'COA,Cert of Analysis,Test Report,Inspection Report,Quality Test Report,Printable Tests,Printable Certificate';
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Retest No.", "Template Code";
             column(QITemplate_Description; QltyInspectionTemplateHdr.Description) { }
@@ -33,8 +33,8 @@ report 20401 "Qlty. Certificate of Analysis"
             column(QITest_Status; Status) { }
             column(QITest_Grade_Code; "Grade Code") { }
             column(QITest_Grade_Description; "Grade Description") { }
-            column(QITest_No; CurrentTest."No.") { }
-            column(QITest_RetestNo; CurrentTest."Retest No.") { }
+            column(QITest_No; CurrentInspection."No.") { }
+            column(QITest_RetestNo; CurrentInspection."Retest No.") { }
             column(QITest_Finished_By_User_ID; "Finished By User ID") { }
             column(QITest_Finished_By_UserName; FinishedByUserName) { }
             column(QITest_Finished_By_Title; FinishedByUserName) { }
@@ -82,7 +82,7 @@ report 20401 "Qlty. Certificate of Analysis"
             column(COAContact_Row8; ContactInformationArray[8]) { }
             column(COAContact_All; AllContactInformation) { }
 
-            dataitem(CurrentTestLine; "Qlty. Inspection Test Line")
+            dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
                 DataItemLink = "Test No." = field("No."), "Retest No." = field("Retest No.");
                 RequestFilterFields = "Field Code";
@@ -100,16 +100,16 @@ report 20401 "Qlty. Certificate of Analysis"
                 column(Field_IfPersonTitle; OptionalTitleIfPerson) { }
                 column(Field_IfPersonEmail; OptionalEmailIfPerson) { }
                 column(Field_IfPersonPhone; OptionalPhoneIfPerson) { }
-                column(Field_ModifiedDateTime; CurrentTestLine.SystemModifiedAt) { }
+                column(Field_ModifiedDateTime; CurrentInspectionLine.SystemModifiedAt) { }
                 column(Field_ModifiedByUserID; TestLineModifiedByUserId) { }
                 column(Field_ModifiedByUserName; TestLineModifiedByUserName) { }
                 column(Field_ModifiedByUserJobTitle; TestLineModifiedByJobTitle) { }
                 column(Field_ModifiedByUserEmail; TestLineModifiedByEmail) { }
                 column(Field_ModifiedByUserPhone; TestLineModifiedByPhone) { }
-                column(Test_Value; CurrentTestLine.GetLargeText()) { }
+                column(Test_Value; CurrentInspectionLine.GetLargeText()) { }
                 column(Test_Grade; "Grade Code") { }
                 column(Test_GradeDescription; GradeDescription) { }
-                column(Field_LineCommentary; CurrentTestLine.GetMeasurementNote()) { }
+                column(Field_LineCommentary; CurrentInspectionLine.GetMeasurementNote()) { }
                 column(PromptedGradeCaption_1; MatrixArrayCaptionSet[1])
                 {
                 }
@@ -216,26 +216,26 @@ report 20401 "Qlty. Certificate of Analysis"
                     Clear(MatrixVisibleState);
                     GradeDescription := '';
 
-                    TestLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentTestLine.SystemModifiedBy);
+                    TestLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
                     if TestLinePreviousModifiedByUserId <> TestLineModifiedByUserId then
                         QltyMiscHelpers.GetBasicPersonDetails(TestLineModifiedByUserId, TestLineModifiedByUserName, TestLineModifiedByJobTitle, TestLineModifiedByEmail, TestLineModifiedByPhone, DummyRecordId);
                     TestLinePreviousModifiedByUserId := TestLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(CurrentTestLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
-                    FieldIsLabel := CurrentTestLine."Field Type" in [CurrentTestLine."Field Type"::"Field Type Label"];
-                    FieldIsText := CurrentTestLine."Field Type" in [CurrentTestLine."Field Type"::"Field Type Text"];
+                    FieldIsLabel := CurrentInspectionLine."Field Type" in [CurrentInspectionLine."Field Type"::"Field Type Label"];
+                    FieldIsText := CurrentInspectionLine."Field Type" in [CurrentInspectionLine."Field Type"::"Field Type Text"];
 
                     HasEnteredValue := not FieldIsLabel and
-                        ((CurrentTestLine."Test Value" <> '') and (CurrentTestLine.SystemCreatedAt <> CurrentTestLine.SystemModifiedAt));
+                        ((CurrentInspectionLine."Test Value" <> '') and (CurrentInspectionLine.SystemCreatedAt <> CurrentInspectionLine.SystemModifiedAt));
 
-                    GradeDescription := CurrentTestLine."Grade Description";
+                    GradeDescription := CurrentInspectionLine."Grade Description";
                     if GradeDescription = '' then
-                        GradeDescription := CurrentTestLine."Grade Code";
-                    QltyGradeConditionMgmt.GetPromotedGradesForTestLine(CurrentTestLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+                        GradeDescription := CurrentInspectionLine."Grade Code";
+                    QltyGradeConditionMgmt.GetPromotedGradesForTestLine(CurrentInspectionLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
 
                     if FieldIsLabel then
-                        LabelFieldDescription := CurrentTestLine.Description
+                        LabelFieldDescription := CurrentInspectionLine.Description
                     else
                         LabelFieldDescription := '';
                 end;
@@ -270,18 +270,18 @@ report 20401 "Qlty. Certificate of Analysis"
             var
                 DummyRecordId: RecordId;
             begin
-                if CurrentTest."Source Item No." = '' then
+                if CurrentInspection."Source Item No." = '' then
                     Item.Reset()
                 else
-                    Item.Get(CurrentTest."Source Item No.");
+                    Item.Get(CurrentInspection."Source Item No.");
 
-                if QltyInspectionTemplateHdr.Code <> CurrentTest."Template Code" then begin
+                if QltyInspectionTemplateHdr.Code <> CurrentInspection."Template Code" then begin
                     Clear(QltyInspectionTemplateHdr);
-                    if QltyInspectionTemplateHdr.Get(CurrentTest."Template Code") then;
+                    if QltyInspectionTemplateHdr.Get(CurrentInspection."Template Code") then;
                 end;
 
-                FinishedByUserName := CurrentTest."Finished By User ID";
-                QltyMiscHelpers.GetBasicPersonDetails(CurrentTest."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
+                FinishedByUserName := CurrentInspection."Finished By User ID";
+                QltyMiscHelpers.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
                 if (FinishedByTitle = '') and (FinishedByUserName <> '') then
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
             end;

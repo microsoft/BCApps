@@ -10,19 +10,19 @@ using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.Setup;
 
-page 20405 "Qlty. In. Test Generat. Rules"
+page 20405 "Qlty. Inspection Gen. Rules"
 {
-    Caption = 'Quality Inspection Test Generation Rules';
+    Caption = 'Quality Inspection Generation Rules';
     DataCaptionExpression = GetDataCaptionExpression();
     PageType = List;
-    SourceTable = "Qlty. In. Test Generation Rule";
+    SourceTable = "Qlty. Inspection Gen. Rule";
     PopulateAllFields = true;
     SourceTableView = sorting("Sort Order", Intent);
-    AdditionalSearchTerms = 'Assignments, Test Generation Parameters, Test Creation Criteria, Inspection Template Test Conditions, Quality Control Test Specification, Test Generation Guidelines, Test Triggering Parameters,Test Generation Rules';
+    AdditionalSearchTerms = 'Assignments, Test Generation Parameters, Test Creation Criteria, Inspection Template Test Conditions, Quality Control Test Specification, Test Generation Guidelines, Test Triggering Parameters,Inspection Generation Rules';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
-    AboutTitle = 'Quality Inspection Test Generation Rule';
-    AboutText = 'A Quality Inspection Test generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+    AboutTitle = 'Quality Inspection Generation Rule';
+    AboutText = 'A Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
 
     layout
     {
@@ -384,8 +384,8 @@ page 20405 "Qlty. In. Test Generat. Rules"
         WhseMovementStyle: Text;
         TransferStyle: Text;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
-        GenerationRulesCaptionLbl: Label 'Quality Inspection Test Generation Rules';
-        GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Test Generation Rules for %1', Comment = '%1=the template';
+        GenerationRulesCaptionLbl: Label 'Quality Inspection Generation Rules';
+        GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Generation Rules for %1', Comment = '%1=the template';
 
     trigger OnInit()
     begin
@@ -402,9 +402,9 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
     trigger OnOpenPage()
     var
-        QltyGenerationRuleMgmt: Codeunit "Qlty. Generation Rule Mgmt.";
+        QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
     begin
-        Rec.SetFilter("Table ID Filter", QltyGenerationRuleMgmt.GetFilterForAvailableConfigurations());
+        Rec.SetFilter("Table ID Filter", QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations());
         AttemptUpdateUnknownIntents();
         IdentifyIfPageStartedWithATemplate();
         SetTriggerColumnVisibleState();
@@ -553,7 +553,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
     local procedure SetTriggerColumnVisibleState()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         ShowAssemblyTrigger := false;
         ShowProductionTrigger := false;
@@ -563,38 +563,38 @@ page 20405 "Qlty. In. Test Generat. Rules"
         ShowWarehouseReceiveTrigger := false;
         ShowWarehouseMovementTrigger := false;
 
-        QltyInTestGenerationRule.CopyFilters(Rec);
-        QltyInTestGenerationRule.SetLoadFields(Intent);
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Assembly);
-        if not QltyInTestGenerationRule.IsEmpty() then
+        QltyInspectionGenRule.CopyFilters(Rec);
+        QltyInspectionGenRule.SetLoadFields(Intent);
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Assembly);
+        if not QltyInspectionGenRule.IsEmpty() then
             ShowAssemblyTrigger := true;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
-        if not QltyInTestGenerationRule.IsEmpty() then
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
+        if not QltyInspectionGenRule.IsEmpty() then
             ShowProductionTrigger := true;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Purchase);
-        if not QltyInTestGenerationRule.IsEmpty() then
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Purchase);
+        if not QltyInspectionGenRule.IsEmpty() then
             ShowPurchaseTrigger := true;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::"Sales Return");
-        if not QltyInTestGenerationRule.IsEmpty() then
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Sales Return");
+        if not QltyInspectionGenRule.IsEmpty() then
             ShowSalesReturnTrigger := true;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Transfer);
-        if not QltyInTestGenerationRule.IsEmpty() then
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Transfer);
+        if not QltyInspectionGenRule.IsEmpty() then
             ShowTransferTrigger := true;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::"Warehouse Receipt");
-        if not QltyInTestGenerationRule.IsEmpty() then
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
+        if not QltyInspectionGenRule.IsEmpty() then
             ShowWarehouseReceiveTrigger := true;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::"Warehouse Movement");
-        if not QltyInTestGenerationRule.IsEmpty() then
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Movement");
+        if not QltyInspectionGenRule.IsEmpty() then
             ShowWarehouseMovementTrigger := true;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Unknown);
-        if not QltyInTestGenerationRule.IsEmpty() then begin
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Unknown);
+        if not QltyInspectionGenRule.IsEmpty() then begin
             ShowAssemblyTrigger := true;
             ShowProductionTrigger := true;
             ShowPurchaseTrigger := true;
@@ -624,17 +624,17 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
     local procedure AttemptUpdateUnknownIntents()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if not QltyInTestGenerationRule.WritePermission() then
+        if not QltyInspectionGenRule.WritePermission() then
             exit;
 
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Unknown);
-        if not QltyInTestGenerationRule.IsEmpty() then
-            if QltyInTestGenerationRule.FindSet() then
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Unknown);
+        if not QltyInspectionGenRule.IsEmpty() then
+            if QltyInspectionGenRule.FindSet() then
                 repeat
-                    QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    if QltyInTestGenerationRule.Modify() then;
-                until QltyInTestGenerationRule.Next() = 0;
+                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    if QltyInspectionGenRule.Modify() then;
+                until QltyInspectionGenRule.Next() = 0;
     end;
 }

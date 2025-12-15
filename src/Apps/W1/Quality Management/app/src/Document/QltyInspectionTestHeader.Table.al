@@ -30,13 +30,13 @@ using System.Utilities;
 /// <summary>
 /// The document header for a quality order.
 /// </summary>
-table 20405 "Qlty. Inspection Test Header"
+table 20405 "Qlty. Inspection Header"
 {
-    Caption = 'Quality Inspection Test Header';
-    DrillDownPageID = "Qlty. Inspection Test List";
-    LookupPageID = "Qlty. Inspection Test List";
+    Caption = 'Quality Inspection Header';
+    DrillDownPageID = "Qlty. Inspection List";
+    LookupPageID = "Qlty. Inspection List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Test Line" = d;
+    Permissions = tabledata "Qlty. Inspection Line" = d;
 
     fields
     {
@@ -68,19 +68,19 @@ table 20405 "Qlty. Inspection Test Header"
         field(4; "Source RecordId"; RecordId)
         {
             Caption = 'Source Record';
-            Description = 'The source record this Quality Inspection Test is for.';
+            Description = 'The source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(5; "Trigger RecordId"; RecordId)
         {
             Caption = 'Trigger Record';
-            Description = 'The triggering record that caused this Quality Inspection Test to be created.';
+            Description = 'The triggering record that caused this Quality Inspection to be created.';
             NotBlank = true;
         }
         field(6; Description; Text[250])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies a description of the test itself.';
+            ToolTip = 'Specifies a description of the Quality Inspection itself.';
         }
         field(7; "Most Recent Picture"; Media)
         {
@@ -91,13 +91,13 @@ table 20405 "Qlty. Inspection Test Header"
         field(8; "Source RecordId 2"; RecordId)
         {
             Caption = 'Source Record 2';
-            Description = 'Secondary source record this Quality Inspection Test is for.';
+            Description = 'Secondary source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(9; "Source RecordId 3"; RecordId)
         {
             Caption = 'Source Record 3';
-            Description = 'Tertiary source record this Quality Inspection Test is for.';
+            Description = 'Tertiary source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(10; "Source Table No."; Integer)
@@ -136,27 +136,27 @@ table 20405 "Qlty. Inspection Test Header"
             NotBlank = true;
             Editable = false;
             OptimizeForTextSearch = true;
-            ToolTip = 'Specifies a reference to the document that this Quality Inspection Test is referring to. This typically refers to a production order document number.';
+            ToolTip = 'Specifies a reference to the document that this Quality Inspection is referring to. This typically refers to a production order document number.';
         }
         field(15; "Source Document Line No."; Integer)
         {
             Caption = 'Document Line No.';
             Editable = false;
-            ToolTip = 'Specifies a reference to the source document line no. that this Quality Inspection Test is referring to. This typically refers to a production order line no.';
+            ToolTip = 'Specifies a reference to the source document line no. that this Quality Inspection is referring to. This typically refers to a production order line no.';
         }
         field(16; "Source Item No."; Code[20])
         {
             Caption = 'Item No.';
             TableRelation = Item."No.";
             OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the item that the Quality Inspection Test is for. When used with production orders this typically refers to the item being produced.';
+            ToolTip = 'Specifies the item that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
         }
         field(17; "Source Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
             TableRelation = "Item Variant"."Code" where("Item No." = field("Source Item No."));
             OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the item variant that the Quality Inspection Test is for. When used with production orders this typically refers to the item being produced.';
+            ToolTip = 'Specifies the item variant that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
         }
         field(18; "Source Serial No."; Code[50])
         {
@@ -167,7 +167,7 @@ table 20405 "Qlty. Inspection Test Header"
             trigger OnValidate()
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Serial No." <> xRec."Source Serial No.") then
-                    Error(TrackingCannotChangeForFinishedTestErr, Rec."No.", Rec."Retest No.");
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Retest No.");
 
                 if not GetIsCreating() then
                     QltyPermissionMgmt.TestCanChangeTrackingNo();
@@ -182,7 +182,7 @@ table 20405 "Qlty. Inspection Test Header"
             trigger OnValidate()
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Lot No." <> xRec."Source Lot No.") then
-                    Error(TrackingCannotChangeForFinishedTestErr, Rec."No.", Rec."Retest No.");
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Retest No.");
 
                 if not GetIsCreating() then
                     QltyPermissionMgmt.TestCanChangeTrackingNo();
@@ -191,7 +191,7 @@ table 20405 "Qlty. Inspection Test Header"
         field(20; "Source Task No."; Code[20])
         {
             Caption = 'Task No.';
-            ToolTip = 'Specifies a reference to the source task no. that this Quality Inspection Test is referring to. This typically refers to an operation.';
+            ToolTip = 'Specifies a reference to the source task no. that this Quality Inspection is referring to. This typically refers to an operation.';
         }
         field(21; "Source Quantity (Base)"; Decimal)
         {
@@ -216,19 +216,19 @@ table 20405 "Qlty. Inspection Test Header"
         field(22; "Source Record Table No."; Integer)
         {
             Caption = 'Source Record Table No.';
-            Description = 'The table no. of the source record this Quality Inspection Test is for.';
+            Description = 'The table no. of the source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(23; "Trigger Record Table No."; Integer)
         {
             Caption = 'Trigger Record Table No.';
-            Description = 'The table no. of the triggering record that caused this Quality Inspection Test to be created.';
+            Description = 'The table no. of the triggering record that caused this Quality Inspection to be created.';
             NotBlank = true;
         }
         field(24; "Source RecordId 4"; RecordId)
         {
             Caption = 'Source Record 4';
-            Description = 'Fourth source record this Quality Inspection Test is for.';
+            Description = 'Fourth source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(25; "Source Package No."; Code[50])
@@ -241,7 +241,7 @@ table 20405 "Qlty. Inspection Test Header"
             trigger OnValidate()
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Package No." <> xRec."Source Package No.") then
-                    Error(TrackingCannotChangeForFinishedTestErr, Rec."No.", Rec."Retest No.");
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Retest No.");
 
                 if not GetIsCreating() then
                     QltyPermissionMgmt.TestCanChangeTrackingNo();
@@ -315,11 +315,11 @@ table 20405 "Qlty. Inspection Test Header"
             Editable = false;
             ToolTip = 'Specifies additional information from a source record.';
         }
-        field(40; Status; Enum "Qlty. Inspection Test Status")
+        field(40; Status; Enum "Qlty. Inspection Status")
         {
             Caption = 'Status';
             Editable = false;
-            ToolTip = 'Specifies the status of the test. No additional changes can be made to a finished Quality Inspection Test.';
+            ToolTip = 'Specifies the status of the test. No additional changes can be made to a finished Quality Inspection.';
 
             trigger OnValidate()
             var
@@ -347,7 +347,7 @@ table 20405 "Qlty. Inspection Test Header"
         }
         field(42; "Existing Tests This Record"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where("Source Table No." = field("Source Table No."),
+            CalcFormula = count("Qlty. Inspection Header" where("Source Table No." = field("Source Table No."),
                                                                      "Source Type" = field("Source Type"),
                                                                      "Source Sub Type" = field("Source Sub Type"),
                                                                      "Source Document No." = field("Source Document No."),
@@ -362,7 +362,7 @@ table 20405 "Qlty. Inspection Test Header"
         }
         field(43; "Existing Tests This Item"; Integer)
         {
-            CalcFormula = count("Qlty. Inspection Test Header" where("Source Item No." = field("Source Item No."),
+            CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Source Item No."),
                                                                      "Source Variant Code" = field("Source Variant Code"),
                                                                      "Source Serial No." = field("Source Serial No."),
                                                                      "Source Lot No." = field("Source Lot No."),
@@ -498,7 +498,7 @@ table 20405 "Qlty. Inspection Test Header"
         {
             Caption = 'Sample Size';
             Description = 'How many samples are included in this test. You can change this manually, however it can also be determined by configuring your AQL tables.';
-            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection Test when possible based on the other characteristics that were applied.';
+            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied.';
 
             trigger OnValidate()
             var
@@ -615,11 +615,11 @@ table 20405 "Qlty. Inspection Test Header"
         IsChangingStatus: Boolean;
 
     var
-        TrackingCannotChangeForFinishedTestErr: Label 'You cannot change item tracking on a finished test. %1-%2 is finished. Reopen this test to change the tracking.', Comment = '%1=Quality Inspection Test No., %2=Retest no.';
+        TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished test. %1-%2 is finished. Reopen this test to change the tracking.', Comment = '%1=Quality Inspection No., %2=Retest no.';
         SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the test %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this test to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the test, %3=the source quantity';
         YouCannotChangeTheAssignmentOfTheTestErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the test no, %3=the retest';
-        UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the test [%2], there should be one matching test line, there are %3', Comment = '%1=the field being set, %2=the record id of the test, %3=the count.';
-        PleaseConfigureNumberSeriesErr: Label 'Please configure a number series for the Quality Inspection Test Nos. field on the Quality Management Setup page, or set up a number series on the Quality Inspection Template.';
+        UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the test [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the test, %3=the count.';
+        PleaseConfigureNumberSeriesErr: Label 'Please configure a number series for the Quality Inspection Nos. field on the Quality Management Setup page, or set up a number series on the Quality Inspection Template.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the test. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
         ItemInsufficientPostedErr: Label 'The item [%1] is %2 tracked and requires posted inventory before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
         ItemInsufficientPostedOrUnpostedErr: Label 'The item [%1] is %2 tracked and requires either posted inventory or a reservation entry for it before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
@@ -654,19 +654,19 @@ table 20405 "Qlty. Inspection Test Header"
 
     trigger OnDelete()
     var
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
     begin
         case Rec.Status of
             Rec.Status::Open:
                 QltyPermissionMgmt.TestCanDeleteOpenTest();
             Rec.Status::Finished:
-                QltyPermissionMgmt.TestCanDeleteFinishedTest();
+                QltyPermissionMgmt.TestCanDeleteFinishedInspection();
         end;
 
-        QltyInspectionTestLine.SetRange("Test No.", Rec."No.");
-        QltyInspectionTestLine.SetRange("Retest No.", Rec."Retest No.");
-        QltyInspectionTestLine.DeleteAll();
+        QltyInspectionLine.SetRange("Test No.", Rec."No.");
+        QltyInspectionLine.SetRange("Retest No.", Rec."Retest No.");
+        QltyInspectionLine.DeleteAll();
 
         QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Test);
         QltyIGradeConditionConf.SetRange("Target Code", Rec."No.");
@@ -685,22 +685,22 @@ table 20405 "Qlty. Inspection Test Header"
     end;
 
     /// <summary>
-    /// Helper function to set a test line value.
+    /// Helper function to set a inspection line value.
     /// </summary>
     /// <param name="NumberOrNameOfFieldCode"></param>
     /// <param name="NumberOrNameOfFieldValue"></param>
     procedure SetTestValue(NumberOrNameOfFieldCode: Text; NumberOrNameOfFieldValue: Text)
     var
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
-        QltyInspectionTestLine.SetRange("Test No.", Rec."No.");
-        QltyInspectionTestLine.SetRange("Retest No.", Rec."Retest No.");
-        QltyInspectionTestLine.SetRange("Field Code", CopyStr(NumberOrNameOfFieldCode, 1, MaxStrLen(QltyInspectionTestLine."Field Code")));
-        if QltyInspectionTestLine.Count() <> 1 then
-            Error(UnableToSetTestValueErr, NumberOrNameOfFieldCode, Rec.GetFriendlyIdentifier(), QltyInspectionTestLine.Count);
-        QltyInspectionTestLine.FindFirst();
-        QltyInspectionTestLine.Validate("Test Value", CopyStr(NumberOrNameOfFieldValue, 1, MaxStrLen(QltyInspectionTestLine."Test Value")));
-        QltyInspectionTestLine.Modify(true);
+        QltyInspectionLine.SetRange("Test No.", Rec."No.");
+        QltyInspectionLine.SetRange("Retest No.", Rec."Retest No.");
+        QltyInspectionLine.SetRange("Field Code", CopyStr(NumberOrNameOfFieldCode, 1, MaxStrLen(QltyInspectionLine."Field Code")));
+        if QltyInspectionLine.Count() <> 1 then
+            Error(UnableToSetTestValueErr, NumberOrNameOfFieldCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
+        QltyInspectionLine.FindFirst();
+        QltyInspectionLine.Validate("Test Value", CopyStr(NumberOrNameOfFieldValue, 1, MaxStrLen(QltyInspectionLine."Test Value")));
+        QltyInspectionLine.Modify(true);
     end;
 
     /// <summary>
@@ -710,20 +710,20 @@ table 20405 "Qlty. Inspection Test Header"
     /// <param name="NumberOrNameOfFieldCode"></param>
     procedure AssistEditTestField(NumberOrNameOfFieldCode: Text)
     var
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        QltyInspectionTestLine.SetRange("Test No.", Rec."No.");
-        QltyInspectionTestLine.SetRange("Retest No.", Rec."Retest No.");
-        QltyInspectionTestLine.SetRange("Field Code", CopyStr(NumberOrNameOfFieldCode, 1, MaxStrLen(QltyInspectionTestLine."Field Code")));
-        if QltyInspectionTestLine.Count() <> 1 then
-            Error(UnableToSetTestValueErr, NumberOrNameOfFieldCode, Rec.GetFriendlyIdentifier(), QltyInspectionTestLine.Count);
-        QltyInspectionTestLine.SetAutoCalcFields("Field Type");
-        QltyInspectionTestLine.FindFirst();
-        if QltyInspectionTemplateLine.Get(QltyInspectionTestLine."Template Code", QltyInspectionTestLine."Template Line No.") then;
+        QltyInspectionLine.SetRange("Test No.", Rec."No.");
+        QltyInspectionLine.SetRange("Retest No.", Rec."Retest No.");
+        QltyInspectionLine.SetRange("Field Code", CopyStr(NumberOrNameOfFieldCode, 1, MaxStrLen(QltyInspectionLine."Field Code")));
+        if QltyInspectionLine.Count() <> 1 then
+            Error(UnableToSetTestValueErr, NumberOrNameOfFieldCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
+        QltyInspectionLine.SetAutoCalcFields("Field Type");
+        QltyInspectionLine.FindFirst();
+        if QltyInspectionTemplateLine.Get(QltyInspectionLine."Template Code", QltyInspectionLine."Template Line No.") then;
 
-        QltyInspectionTestLine.AssistEditTestValue();
-        QltyInspectionTestLine.Modify(true);
+        QltyInspectionLine.AssistEditTestValue();
+        QltyInspectionLine.Modify(true);
     end;
 
     /// <summary>
@@ -731,41 +731,41 @@ table 20405 "Qlty. Inspection Test Header"
     /// </summary>
     procedure UpdateGradeFromLines()
     var
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         Handled: Boolean;
     begin
-        QltyInspectionTestLine.SetRange("Test No.", Rec."No.");
-        QltyInspectionTestLine.SetRange("Retest No.", Rec."Retest No.");
-        QltyInspectionTestLine.SetFilter("Field Type", '<>%1', QltyInspectionTestLine."Field Type"::"Field Type Label");
-        QltyInspectionTestLine.SetCurrentKey("Grade Priority");
-        OnBeforeFindLineUpdateGradeFromLines(Rec, QltyInspectionTestLine, Handled);
+        QltyInspectionLine.SetRange("Test No.", Rec."No.");
+        QltyInspectionLine.SetRange("Retest No.", Rec."Retest No.");
+        QltyInspectionLine.SetFilter("Field Type", '<>%1', QltyInspectionLine."Field Type"::"Field Type Label");
+        QltyInspectionLine.SetCurrentKey("Grade Priority");
+        OnBeforeFindLineUpdateGradeFromLines(Rec, QltyInspectionLine, Handled);
         if Handled then
             exit;
 
-        QltyInspectionTestLine.SetRange("Failure State", QltyInspectionTestLine."Failure State"::"Failed from AQL");
-        if not QltyInspectionTestLine.FindFirst() then
-            QltyInspectionTestLine.SetRange("Failure State");
+        QltyInspectionLine.SetRange("Failure State", QltyInspectionLine."Failure State"::"Failed from AQL");
+        if not QltyInspectionLine.FindFirst() then
+            QltyInspectionLine.SetRange("Failure State");
 
-        if QltyInspectionTestLine.FindFirst() then
-            Rec.Validate("Grade Code", QltyInspectionTestLine."Grade Code")
+        if QltyInspectionLine.FindFirst() then
+            Rec.Validate("Grade Code", QltyInspectionLine."Grade Code")
         else
             Rec."Grade Code" := '';
 
-        OnAfterFindLineUpdateGradeFromLines(Rec, QltyInspectionTestLine);
+        OnAfterFindLineUpdateGradeFromLines(Rec, QltyInspectionLine);
     end;
 
     local procedure OnInsertUpdateRetestIterationState()
     var
-        OtherReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        OtherReQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         Rec."Retest Iteration State" := Rec."Retest Iteration State"::"Most recent";
-        OtherReQltyInspectionTestHeader.SetRange("No.", Rec."No.");
-        OtherReQltyInspectionTestHeader.SetFilter("Retest No.", '<>%1&<%1', Rec."Retest No.");
-        OtherReQltyInspectionTestHeader.ModifyAll("Retest Iteration State", OtherReQltyInspectionTestHeader."Retest Iteration State"::"Newer retest available", false);
+        OtherReQltyInspectionHeader.SetRange("No.", Rec."No.");
+        OtherReQltyInspectionHeader.SetFilter("Retest No.", '<>%1&<%1', Rec."Retest No.");
+        OtherReQltyInspectionHeader.ModifyAll("Retest Iteration State", OtherReQltyInspectionHeader."Retest Iteration State"::"Newer retest available", false);
     end;
 
     /// <summary>
-    /// InitEntryNoIfNeeded will initialize the document no. on the Quality Inspection Test if it's needed.
+    /// InitEntryNoIfNeeded will initialize the document no. on the Quality Inspection if it's needed.
     /// If it's already set then this will not be altered.
     /// </summary>
     /// <returns>Return value of type Code[20].</returns>
@@ -777,8 +777,8 @@ table 20405 "Qlty. Inspection Test Header"
             exit;
 
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Quality Inspection Test Nos." <> '' then
-            Rec."No." := ManagementNoSeries.GetNextNo(QltyManagementSetup."Quality Inspection Test Nos.", Today(), true)
+        if QltyManagementSetup."Quality Inspection Nos." <> '' then
+            Rec."No." := ManagementNoSeries.GetNextNo(QltyManagementSetup."Quality Inspection Nos.", Today(), true)
         else begin
             Message(PleaseConfigureNumberSeriesErr);
             Rec."No." := CopyStr(Format(CurrentDateTime(), 0, '<Year><Month,2><Day,2><Hours24,2><Minutes,2><Seconds,2><Second dec.>'), 1, MaxStrLen(Rec."No."));
@@ -1059,8 +1059,8 @@ table 20405 "Qlty. Inspection Test Header"
     /// </summary>
     procedure CreateReTest()
     var
-        NewlyCreatedReQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        NewlyCreatedReQltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Proceed: Boolean;
     begin
         QltyPermissionMgmt.TestCanCreateReTest();
@@ -1076,7 +1076,7 @@ table 20405 "Qlty. Inspection Test Header"
         else
             Proceed := true;
         if Proceed then
-            QltyInspectionTestCreate.CreateRetest(Rec, NewlyCreatedReQltyInspectionTestHeader);
+            QltyInspectionCreate.CreateRetest(Rec, NewlyCreatedReQltyInspectionHeader);
     end;
 
     /// <summary>
@@ -1085,11 +1085,11 @@ table 20405 "Qlty. Inspection Test Header"
     /// <returns></returns>
     procedure HasMoreRecentRetest(): Boolean
     var
-        RecencyCheckQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        RecencyCheckQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        RecencyCheckQltyInspectionTestHeader.SetRange("No.", Rec."No.");
-        RecencyCheckQltyInspectionTestHeader.SetFilter("Retest No.", '>%1', Rec."Retest No.");
-        exit(not RecencyCheckQltyInspectionTestHeader.IsEmpty());
+        RecencyCheckQltyInspectionHeader.SetRange("No.", Rec."No.");
+        RecencyCheckQltyInspectionHeader.SetFilter("Retest No.", '>%1', Rec."Retest No.");
+        exit(not RecencyCheckQltyInspectionHeader.IsEmpty());
     end;
 
     internal procedure IsItemTrackingUsed(): Boolean
@@ -1154,7 +1154,7 @@ table 20405 "Qlty. Inspection Test Header"
             TempTrackingSpecification."Item No." := Rec."Source Item No.";
             TempTrackingSpecification."Variant Code" := CopyStr(Rec."Source Variant Code", 1, MaxStrLen(TempTrackingSpecification."Variant Code"));
             TempTrackingSpecification."Lot No." := Rec."Source Lot No.";
-            TempTrackingSpecification."Source Type" := Database::"Qlty. Inspection Test Header";
+            TempTrackingSpecification."Source Type" := Database::"Qlty. Inspection Header";
             if OnlyForTheDocument then begin
                 if Rec."Source Document No." <> '' then begin
                     TempTrackingSpecification."Source ID" := Rec."Source Document No.";
@@ -1224,7 +1224,7 @@ table 20405 "Qlty. Inspection Test Header"
             TempTrackingSpecification."Item No." := Rec."Source Item No.";
             TempTrackingSpecification."Variant Code" := CopyStr(Rec."Source Variant Code", 1, MaxStrLen(TempTrackingSpecification."Variant Code"));
             TempTrackingSpecification."Package No." := Rec."Source Package No.";
-            TempTrackingSpecification."Source Type" := Database::"Qlty. Inspection Test Header";
+            TempTrackingSpecification."Source Type" := Database::"Qlty. Inspection Header";
             if OnlyForTheDocument then begin
                 if Rec."Source Document No." <> '' then begin
                     TempTrackingSpecification."Source ID" := Rec."Source Document No.";
@@ -1292,7 +1292,7 @@ table 20405 "Qlty. Inspection Test Header"
             TempTrackingSpecification."Item No." := Rec."Source Item No.";
             TempTrackingSpecification."Variant Code" := CopyStr(Rec."Source Variant Code", 1, MaxStrLen(TempTrackingSpecification."Variant Code"));
             TempTrackingSpecification."Serial No." := Rec."Source Serial No.";
-            TempTrackingSpecification."Source Type" := Database::"Qlty. Inspection Test Header";
+            TempTrackingSpecification."Source Type" := Database::"Qlty. Inspection Header";
             if OnlyForTheDocument then begin
                 if Rec."Source Document No." <> '' then
                     TempTrackingSpecification."Source ID" := Rec."Source Document No.";
@@ -1328,7 +1328,7 @@ table 20405 "Qlty. Inspection Test Header"
     end;
 
     /// <summary>
-    /// Call this procedure to update the brick fields on the Quality Inspection Test record.
+    /// Call this procedure to update the brick fields on the Quality Inspection record.
     /// </summary>
     procedure UpdateBrickFields()
     var
@@ -1437,7 +1437,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// <param name="UseDocument"></param>
     procedure SetRecordFiltersToFindTestFor(ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean)
     var
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
         Handled: Boolean;
@@ -1449,35 +1449,35 @@ table 20405 "Qlty. Inspection Test Header"
         if not QltyMiscHelpers.GetRecordRefFromVariant(RecordVariant, TargetRecordRef) then
             Error(UnableToFindRecordErr, RecordVariant);
 
-        if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionTestHeader, true, false) then
+        if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionHeader, true, false) then
             Error(UnableToFindRecordErr, TargetRecordRef.RecordId());
-        TempQltyInspectionTestHeader.SetRecFilter();
+        TempQltyInspectionHeader.SetRecFilter();
         if UseItem then begin
-            if (TempQltyInspectionTestHeader."Source Item No." = '') and ErrorIfMissingFilter then
+            if (TempQltyInspectionHeader."Source Item No." = '') and ErrorIfMissingFilter then
                 Error(UnableToIdentifyTheItemErr, TargetRecordRef.RecordId());
 
-            if TempQltyInspectionTestHeader."Source Item No." <> '' then
-                Rec.SetRange("Source Item No.", TempQltyInspectionTestHeader."Source Item No.");
+            if TempQltyInspectionHeader."Source Item No." <> '' then
+                Rec.SetRange("Source Item No.", TempQltyInspectionHeader."Source Item No.");
 
-            if TempQltyInspectionTestHeader."Source Variant Code" <> '' then
-                Rec.SetRange("Source Variant Code", TempQltyInspectionTestHeader."Source Variant Code");
+            if TempQltyInspectionHeader."Source Variant Code" <> '' then
+                Rec.SetRange("Source Variant Code", TempQltyInspectionHeader."Source Variant Code");
         end;
         if UseTracking then begin
-            if (TempQltyInspectionTestHeader."Source Lot No." = '') and (TempQltyInspectionTestHeader."Source Serial No." = '') and (TempQltyInspectionTestHeader."Source Package No." = '') and ErrorIfMissingFilter then
+            if (TempQltyInspectionHeader."Source Lot No." = '') and (TempQltyInspectionHeader."Source Serial No." = '') and (TempQltyInspectionHeader."Source Package No." = '') and ErrorIfMissingFilter then
                 Error(UnableToIdentifyTheTrackingErr, TargetRecordRef.RecordId());
-            if TempQltyInspectionTestHeader."Source Lot No." <> '' then
-                Rec.SetRange("Source Lot No.", TempQltyInspectionTestHeader."Source Lot No.");
-            if TempQltyInspectionTestHeader."Source Serial No." <> '' then
-                Rec.SetRange("Source Serial No.", TempQltyInspectionTestHeader."Source Serial No.");
-            if TempQltyInspectionTestHeader."Source Package No." <> '' then
-                Rec.SetRange("Source Package No.", TempQltyInspectionTestHeader."Source Package No.");
+            if TempQltyInspectionHeader."Source Lot No." <> '' then
+                Rec.SetRange("Source Lot No.", TempQltyInspectionHeader."Source Lot No.");
+            if TempQltyInspectionHeader."Source Serial No." <> '' then
+                Rec.SetRange("Source Serial No.", TempQltyInspectionHeader."Source Serial No.");
+            if TempQltyInspectionHeader."Source Package No." <> '' then
+                Rec.SetRange("Source Package No.", TempQltyInspectionHeader."Source Package No.");
         end;
         if UseDocument then begin
-            if (TempQltyInspectionTestHeader."Source Document No." = '') and ErrorIfMissingFilter then
+            if (TempQltyInspectionHeader."Source Document No." = '') and ErrorIfMissingFilter then
                 Error(UnableToIdentifyTheDocumentErr, TargetRecordRef.RecordId());
 
-            if TempQltyInspectionTestHeader."Source Document No." <> '' then
-                Rec.SetRange("Source Document No.", TempQltyInspectionTestHeader."Source Document No.");
+            if TempQltyInspectionHeader."Source Document No." <> '' then
+                Rec.SetRange("Source Document No.", TempQltyInspectionHeader."Source Document No.");
         end;
 
         OnAfterSetRecordFiltersToFindTestFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
@@ -1683,7 +1683,7 @@ table 20405 "Qlty. Inspection Test Header"
     end;
 
     /// <summary>
-    /// Initializes the Qlty. Related Transfers page with the Quality Inspection Test record and runs it
+    /// Initializes the Qlty. Related Transfers page with the Quality Inspection record and runs it
     /// </summary>
     procedure RunModalRelatedTransfers()
     var
@@ -1715,7 +1715,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// <summary>
     /// Use to supplement or replace default system behavior of finding related tests.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="ErrorIfMissingFilter"></param>
     /// <param name="RecordVariant"></param>
     /// <param name="UseItem"></param>
@@ -1723,70 +1723,70 @@ table 20405 "Qlty. Inspection Test Header"
     /// <param name="UseDocument"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetRecordFiltersToFindTestFor(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var Handled: Boolean)
+    local procedure OnBeforeSetRecordFiltersToFindTestFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Use to supplement existing behavior of finding related tests.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="ErrorIfMissingFilter"></param>
     /// <param name="RecordVariant"></param>
     /// <param name="UseItem"></param>
     /// <param name="UseTracking"></param>
     /// <param name="UseDocument"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetRecordFiltersToFindTestFor(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean)
+    local procedure OnAfterSetRecordFiltersToFindTestFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean)
     begin
     end;
 
     /// <summary>
     /// Triggers when the test has finished.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnTestFinished(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    local procedure OnTestFinished(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
     end;
 
     /// <summary>
     /// Triggers when a test re-opens.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnTestReopened(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    local procedure OnTestReopened(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
     end;
 
     /// <summary>
     /// OnBeforeReopenTest is called before a test is Reopened.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The quality inspection test involved</param>
+    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeReopenTest(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
+    local procedure OnBeforeReopenTest(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// OnBeforeFinishTest is called before a test is finished.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The quality inspection test involved</param>
+    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFinishTest(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
+    local procedure OnBeforeFinishTest(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Use this to change how a quality inspection document no. is generated.
     /// This is called via InitEntryNoIfNeeded.
-    /// Use this if you need to customize your document no. series used for quality inspection tests.
+    /// Use this if you need to customize your document no. series used for quality Inspections.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The quality inspection test involved</param>
+    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInitializeQltyInspectionDocumentNo(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    local procedure OnInitializeQltyInspectionDocumentNo(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
     end;
 
@@ -1794,10 +1794,10 @@ table 20405 "Qlty. Inspection Test Header"
     /// OnBeforeTakePicture occurs before a picture has been taken.
     /// Use this to replace with your own picture taking dialog.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header".</param>
+    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header".</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTakePicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
+    local procedure OnBeforeTakePicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 
@@ -1805,63 +1805,63 @@ table 20405 "Qlty. Inspection Test Header"
     /// OnAfterTakePicture occurs after a picture has been taken.
     /// Picture storage will depend on the "Picture Upload Behavior" setting.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header".</param>
+    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header".</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterTakePicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    local procedure OnAfterTakePicture(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
     end;
 
     /// <summary>
     /// OnBeforeAddPicture occurs before the supplied picture instream is added to the test.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header"</param>
+    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header"</param>
     /// <param name="PictureInStream">var InStream</param>
     /// <param name="PictureName">var Text</param>
     /// <param name="FileExtension">var Text</param>
     /// <param name="FullFileNameWithExtension">var Text</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text; var Handled: Boolean)
+    local procedure OnBeforeAddPicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// OnAfterAddPicture occurs after the supplied picture instream is added to the test.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header"</param>
+    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header"</param>
     /// <param name="PictureInStream">var InStream</param>
     /// <param name="PictureName">var Text</param>
     /// <param name="FileExtension">var Text</param>
     /// <param name="FullFileNameWithExtension">var Text</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text)
+    local procedure OnAfterAddPicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text)
     begin
     end;
 
     /// <summary>
-    /// This is called when the Quality Inspection Test header is being updated automatically based on the test lines.
+    /// This is called when the Quality Inspection header is being updated automatically based on the inspection lines.
     /// Use this to inspect or adjust the grade that the system automatically chose.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The quality inspection test involved</param>
-    /// <param name="QltyInspectionTestLine"></param>
+    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
+    /// <param name="QltyInspectionLine"></param>
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterFindLineUpdateGradeFromLines(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var QltyInspectionTestLine: Record "Qlty. Inspection Test Line")
+    local procedure OnAfterFindLineUpdateGradeFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line")
     begin
     end;
 
     /// <summary>
-    /// This is called when the Quality Inspection Test header is being updated automatically based on the test lines.
-    /// Use this to optionally alter the filters on the test line before the test has been found.
-    /// This can be used to influence how the test header automatically changes.
-    /// You can also avoid the test header changing by implementing this and just setting Handled to 'true'
+    /// This is called when the Quality Inspection header is being updated automatically based on the inspection lines.
+    /// Use this to optionally alter the filters on the inspection line before the test has been found.
+    /// This can be used to influence how the inspection header automatically changes.
+    /// You can also avoid the inspection header changing by implementing this and just setting Handled to 'true'
     /// causing it to exit immediately.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The quality inspection test involved</param>
-    /// <param name="QltyInspectionTestLine"></param>
+    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
+    /// <param name="QltyInspectionLine"></param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindLineUpdateGradeFromLines(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var Handled: Boolean)
+    local procedure OnBeforeFindLineUpdateGradeFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
     begin
     end;
 }

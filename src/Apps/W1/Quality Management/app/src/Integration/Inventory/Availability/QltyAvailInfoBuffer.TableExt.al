@@ -11,13 +11,13 @@ tableextension 20404 "Qlty. Avail. Info. Buffer" extends "Availability Info. Buf
 {
     fields
     {
-        field(20400; "Qlty. Inspection Test Count"; Integer)
+        field(20400; "Qlty. Inspection Count"; Integer)
         {
-            Caption = 'Quality Inspection Test Count';
-            ToolTip = 'Specifies the count of available quality inspection tests for the item tracking combination.';
+            Caption = 'Quality Inspection Count';
+            ToolTip = 'Specifies the count of available quality inspections for the item tracking combination.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("Qlty. Inspection Test Header" where("Source Item No." = field("Item No."),
+            CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
                                                                      "Source Variant Code" = field("Variant Code Filter"),
                                                                      "Source Lot No." = field("Lot No."),
                                                                      "Source Serial No." = field("Serial No."),
@@ -25,11 +25,11 @@ tableextension 20404 "Qlty. Avail. Info. Buffer" extends "Availability Info. Buf
         }
         field(20401; "Qlty. Insp. Test for Lot Count"; Integer)
         {
-            Caption = 'Quality Inspection Test Count';
-            ToolTip = 'Specifies the count of available quality inspection tests for the lot number.';
+            Caption = 'Quality Inspection Count';
+            ToolTip = 'Specifies the count of available quality inspections for the lot number.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("Qlty. Inspection Test Header" where("Source Item No." = field("Item No."),
+            CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
                                                                      "Source Variant Code" = field("Variant Code Filter"),
                                                                      "Source Lot No." = field("Lot No.")));
         }

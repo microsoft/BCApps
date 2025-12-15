@@ -21,16 +21,16 @@ using Microsoft.Warehouse.Structure;
 using System.Device;
 
 /// <summary>
-/// Primary location to enter Quality Inspection Test information.
+/// Primary location to enter Quality Inspection information.
 /// </summary>
-page 20406 "Qlty. Inspection Test"
+page 20406 "Qlty. Inspection"
 {
     UsageCategory = None;
-    Caption = 'Quality Inspection Test';
+    Caption = 'Quality Inspection';
     DataCaptionExpression = GetDataCaptionExpression();
     InsertAllowed = false;
     PageType = Card;
-    SourceTable = "Qlty. Inspection Test Header";
+    SourceTable = "Qlty. Inspection Header";
     RefreshOnActivate = true;
     ApplicationArea = QualityManagement;
 
@@ -205,7 +205,7 @@ page 20406 "Qlty. Inspection Test"
                     Importance = Additional;
                 }
             }
-            part(Lines; "Qlty. Inspection Test Subform")
+            part(Lines; "Qlty. Inspection Subform")
             {
                 Caption = 'Lines';
                 SubPageLink = "Test No." = field("No."),
@@ -230,14 +230,14 @@ page 20406 "Qlty. Inspection Test"
                     Caption = 'Source Record';
                     Visible = false;
                     Editable = false;
-                    ToolTip = 'Specifies the source record this Quality Inspection Test is for.';
+                    ToolTip = 'Specifies the source record this Quality Inspection is for.';
                 }
                 field("Trigger RecordId"; Format(Rec."Trigger RecordId"))
                 {
                     Caption = 'Trigger Record';
                     Visible = false;
                     Editable = false;
-                    ToolTip = 'Specifies the triggering record that caused this Quality Inspection Test to be created.';
+                    ToolTip = 'Specifies the triggering record that caused this Quality Inspection to be created.';
                     Importance = Additional;
                 }
                 group(SettingsForSourceTypeVisibility)
@@ -427,7 +427,7 @@ page 20406 "Qlty. Inspection Test"
             part("Attached Documents"; "Doc. Attachment List Factbox")
             {
                 Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::"Qlty. Inspection Test Header"),
+                SubPageLink = "Table ID" = const(Database::"Qlty. Inspection Header"),
                               "No." = field("No."),
                               "Line No." = field("Retest No.");
             }
@@ -523,11 +523,11 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    Report.Run(Report::"Qlty. Move Inventory", true, true, QltyInspectionTestHeader);
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    Report.Run(Report::"Qlty. Move Inventory", true, true, QltyInspectionHeader);
                 end;
             }
             action(CreateInternalPutAway)
@@ -538,11 +538,11 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    Report.Run(Report::"Qlty. Create Internal Put-away", true, true, QltyInspectionTestHeader);
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    Report.Run(Report::"Qlty. Create Internal Put-away", true, true, QltyInspectionHeader);
                 end;
             }
             action(Transfer)
@@ -553,11 +553,11 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    Report.Run(Report::"Qlty. Create Transfer Order", true, true, QltyInspectionTestHeader);
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    Report.Run(Report::"Qlty. Create Transfer Order", true, true, QltyInspectionHeader);
                 end;
             }
             action(CreateNegativeAdjustment)
@@ -568,11 +568,11 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    Report.Run(Report::"Qlty. Create Negative Adjmt.", true, true, QltyInspectionTestHeader);
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    Report.Run(Report::"Qlty. Create Negative Adjmt.", true, true, QltyInspectionHeader);
                 end;
             }
             action(ChangeItemTracking)
@@ -583,11 +583,11 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    Report.Run(Report::"Qlty. Change Item Tracking", true, true, QltyInspectionTestHeader);
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    Report.Run(Report::"Qlty. Change Item Tracking", true, true, QltyInspectionHeader);
                 end;
             }
             action(CreatePurchaseReturnOrder)
@@ -598,11 +598,11 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    Report.Run(Report::"Qlty. Create Purchase Return", true, true, QltyInspectionTestHeader);
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    Report.Run(Report::"Qlty. Create Purchase Return", true, true, QltyInspectionHeader);
                 end;
             }
         }
@@ -620,12 +620,12 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    QltyInspectionTestHeader.FindFirst();
-                    QltyInspectionTestHeader.PrintCertificateOfAnalysis();
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    QltyInspectionHeader.FindFirst();
+                    QltyInspectionHeader.PrintCertificateOfAnalysis();
                 end;
             }
             action(NonConformanceReport)
@@ -640,12 +640,12 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    QltyInspectionTestHeader.FindFirst();
-                    QltyInspectionTestHeader.PrintNonConformance();
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    QltyInspectionHeader.FindFirst();
+                    QltyInspectionHeader.PrintNonConformance();
                 end;
             }
             action(GeneralInspectionReport)
@@ -660,12 +660,12 @@ page 20406 "Qlty. Inspection Test"
 
                 trigger OnAction()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader := Rec;
-                    QltyInspectionTestHeader.SetRecFilter();
-                    QltyInspectionTestHeader.FindFirst();
-                    QltyInspectionTestHeader.PrintGeneralPurposeInspection();
+                    QltyInspectionHeader := Rec;
+                    QltyInspectionHeader.SetRecFilter();
+                    QltyInspectionHeader.FindFirst();
+                    QltyInspectionHeader.PrintGeneralPurposeInspection();
                 end;
             }
         }

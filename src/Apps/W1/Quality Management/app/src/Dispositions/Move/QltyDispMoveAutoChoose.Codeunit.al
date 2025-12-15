@@ -32,10 +32,10 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// Used as an interim shim to assist with obsoletions and refactoring.
     /// Consider using the disposition method that you want directly instead.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <returns></returns>
-    procedure PerformDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         Location: Record Location;
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -47,15 +47,15 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         Handled: Boolean;
     begin
-        OnBeforeProcessDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DidSomething, Handled);
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, Handled);
         if Handled then
             exit;
 
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with automatic choice";
-        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
+        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
         if not TempQuantityToActQltyDispositionBuffer.FindSet() then begin
-            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
             exit;
         end;
 
@@ -66,65 +66,65 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
 
             if Location."Directed Put-away and Pick" then begin
                 if (TempQuantityToActQltyDispositionBuffer."New Location Code" <> '') and (TempQuantityToActQltyDispositionBuffer."New Location Code" <> TempQuantityToActQltyDispositionBuffer."Location Filter") then
-                    Error(UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr, QltyInspectionTestHeader."No.", TempQuantityToActQltyDispositionBuffer."Location Filter", TempQuantityToActQltyDispositionBuffer."New Location Code");
+                    Error(UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr, QltyInspectionHeader."No.", TempQuantityToActQltyDispositionBuffer."Location Filter", TempQuantityToActQltyDispositionBuffer."New Location Code");
 
                 if BackwardsCompatibleFlagCallMoveInventoryFirstUseWorksheet then
-                    DidSomething := QltyDispMoveWorksheet.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer)
+                    DidSomething := QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer)
                 else
-                    DidSomething := WarehouseQltyDispMoveWhseReclass.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer);
+                    DidSomething := WarehouseQltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer);
             end else
                 if BackwardsCompatibleFlagCallMoveInventoryFirstUseWorksheet then
-                    DidSomething := mentQltyDispInternalMove.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer)
+                    DidSomething := mentQltyDispInternalMove.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer)
                 else
-                    DidSomething := QltyDispMoveItemReclass.PerformDisposition(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer);
+                    DidSomething := QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer);
 
         until TempQuantityToActQltyDispositionBuffer.Next() = 0;
 
-        OnAfterProcessDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DidSomething);
+        OnAfterProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething);
     end;
 
     /// <summary>
     /// Do not use directly for net new code.  This method is an interim shim to help with obsoletions and refactoring for dispositions.
     /// Instead use the new dispositions directly.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="UseMovement"></param>
     /// <returns></returns>
-    internal procedure MoveInventory(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; UseMovement: Boolean) DidSomething: Boolean
+    internal procedure MoveInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; UseMovement: Boolean) DidSomething: Boolean
     var
     begin
         if (TempInstructionQltyDispositionBuffer."New Location Code" = '') and (TempInstructionQltyDispositionBuffer."New Bin Code" = '') then
-            Error(ThereIsNothingToMoveToErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+            Error(ThereIsNothingToMoveToErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
         BackwardsCompatibleFlagCallMoveInventoryFirstUseWorksheet := UseMovement;
 
-        DidSomething := PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer);
+        DidSomething := PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
 
         if not DidSomething then
-            Error(RequestedInventoryMoveButUnableToFindSufficientDetailsErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+            Error(RequestedInventoryMoveButUnableToFindSufficientDetailsErr, QltyInspectionHeader.GetFriendlyIdentifier());
     end;
 
     /// <summary>
     /// Provides an opportunity to modify the instruction or replace it completely.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">Quality Inspection Test</param>
+    /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
     /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Provides an opportunity to extend the processing
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">Quality Inspection Test</param>
+    /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
     /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean)
     begin
     end;
 }

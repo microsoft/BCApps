@@ -198,8 +198,8 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
     /// Copy grade conditions from a template to a test.
     /// </summary>
     /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="QltyInspectionTestLine"></param>
-    procedure CopyGradeConditionsFromTemplateToTest(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; QltyInspectionTestLine: Record "Qlty. Inspection Test Line")
+    /// <param name="QltyInspectionLine"></param>
+    procedure CopyGradeConditionsFromTemplateToInspection(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; QltyInspectionLine: Record "Qlty. Inspection Line")
     var
         FromTemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         ToTestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
@@ -229,9 +229,9 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
             ToTestQltyIGradeConditionConf.Init();
             ToTestQltyIGradeConditionConf := FromTemplateQltyIGradeConditionConf;
             ToTestQltyIGradeConditionConf."Condition Type" := ToTestQltyIGradeConditionConf."Condition Type"::Test;
-            ToTestQltyIGradeConditionConf."Target Code" := QltyInspectionTestLine."Test No.";
-            ToTestQltyIGradeConditionConf."Target Retest No." := QltyInspectionTestLine."Retest No.";
-            ToTestQltyIGradeConditionConf."Target Line No." := QltyInspectionTestLine."Line No.";
+            ToTestQltyIGradeConditionConf."Target Code" := QltyInspectionLine."Test No.";
+            ToTestQltyIGradeConditionConf."Target Retest No." := QltyInspectionLine."Retest No.";
+            ToTestQltyIGradeConditionConf."Target Line No." := QltyInspectionLine."Line No.";
             ToTestQltyIGradeConditionConf.SetRecFilter();
             if not ToTestQltyIGradeConditionConf.FindFirst() then begin
                 ToTestQltyIGradeConditionConf.TransferFields(FromTemplateQltyIGradeConditionConf, false);
@@ -462,11 +462,11 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         end;
     end;
 
-    procedure GetPromotedGradesForTestLine(QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
+    procedure GetPromotedGradesForTestLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyField: Record "Qlty. Field";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
     begin
         Clear(MatrixArrayToSetConditionCellData);
@@ -474,32 +474,32 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
 
-        if QltyInspectionTestHeader.Get(QltyInspectionTestLine."Test No.", QltyInspectionTestLine."Retest No.") then;
+        if QltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionLine."Retest No.") then;
 
-        if QltyField.Get(QltyInspectionTestLine."Field Code") then;
+        if QltyField.Get(QltyInspectionLine."Field Code") then;
         if not (QltyField."Field Type" in [QltyField."Field Type"::"Field Type Label"]) then
-            if not QltyInspectionTemplateLine.Get(QltyInspectionTestLine."Template Code", QltyInspectionTestLine."Template Line No.") then begin
-                QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionTestLine."Template Code");
-                QltyInspectionTemplateLine.SetRange("Field Code", QltyInspectionTestLine."Field Code");
+            if not QltyInspectionTemplateLine.Get(QltyInspectionLine."Template Code", QltyInspectionLine."Template Line No.") then begin
+                QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionLine."Template Code");
+                QltyInspectionTemplateLine.SetRange("Field Code", QltyInspectionLine."Field Code");
                 if not QltyInspectionTemplateLine.FindFirst() then
                     exit;
             end;
 
         QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Test);
-        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionTestLine."Test No.");
-        QltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionTestLine."Retest No.");
-        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionTestLine."Line No.");
-        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionTestLine."Field Code");
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
+        QltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
         if QltyIGradeConditionConf.IsEmpty() then
-            CopyGradeConditionsFromTemplateToTest(QltyInspectionTemplateLine, QltyInspectionTestLine);
+            CopyGradeConditionsFromTemplateToInspection(QltyInspectionTemplateLine, QltyInspectionLine);
 
-        GetPromotedGrades(QltyIGradeConditionConf, MatrixSourceRecordId, MatrixArrayToSetConditionCellData, MatrixArrayToSetConditionDescriptionCellData, MatrixArrayToSetCaptionSet, MatrixVisibleStateToSet, QltyInspectionTestHeader, QltyInspectionTestLine);
+        GetPromotedGrades(QltyIGradeConditionConf, MatrixSourceRecordId, MatrixArrayToSetConditionCellData, MatrixArrayToSetConditionDescriptionCellData, MatrixArrayToSetCaptionSet, MatrixVisibleStateToSet, QltyInspectionHeader, QltyInspectionLine);
     end;
 
     local procedure GetPromotedGrades(var QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
     var
-        TempNotUsedOptionalQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        TempNotUsedOptionalQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
+        TempNotUsedOptionalQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        TempNotUsedOptionalQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
         GetPromotedGrades(
             QltyIGradeConditionConf,
@@ -508,8 +508,8 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
             MatrixArrayToSetConditionDescriptionCellData,
             MatrixArrayToSetCaptionSet,
             MatrixVisibleStateToSet,
-            TempNotUsedOptionalQltyInspectionTestHeader,
-            TempNotUsedOptionalQltyInspectionTestLine);
+            TempNotUsedOptionalQltyInspectionHeader,
+            TempNotUsedOptionalQltyInspectionLine);
     end;
 
     local procedure GetPromotedGrades(
@@ -519,8 +519,8 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text;
         var MatrixArrayToSetCaptionSet: array[10] of Text;
         var MatrixVisibleStateToSet: array[10] of Boolean;
-        var OptionalQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        var OptionalQltyInspectionTestLine: Record "Qlty. Inspection Test Line")
+        var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header";
+        var OptionalQltyInspectionLine: Record "Qlty. Inspection Line")
     var
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
@@ -548,9 +548,9 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
                         if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
                             MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
-                        if (not OptionalQltyInspectionTestHeader.IsTemporary()) and (OptionalQltyInspectionTestHeader."No." <> '') then
+                        if (not OptionalQltyInspectionHeader.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') then
                             if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
-                                MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionTestHeader, OptionalQltyInspectionTestLine);
+                                MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
 
                         MatrixSourceRecordId[Iterator] := QltyIGradeConditionConf.RecordId();
                     end else

@@ -45,7 +45,7 @@ page 20426 "Qlty. Manager Role Center"
 
                 part("Qlty. Inspection Activities"; "Qlty. Inspection Activities")
                 {
-                    Caption = 'Quality Inspection Tests';
+                    Caption = 'Quality Inspections';
                 }
             }
         }
@@ -93,12 +93,12 @@ page 20426 "Qlty. Manager Role Center"
             {
                 Caption = 'Analysis';
 
-                action(Qlty_Processing_QualityInspectionTestValues)
+                action(Qlty_Processing_InspectionValues)
                 {
                     Caption = 'Quality Test Values';
                     Image = AnalysisView;
-                    ToolTip = 'Historical Quality Inspection Test values. Use this with analysis mode.';
-                    RunObject = Page "Qlty. Inspection Test Lines";
+                    ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
+                    RunObject = Page "Qlty. Inspection Lines";
                 }
             }
             group(Qlty_Processing_SemiRegularSetup)
@@ -113,13 +113,13 @@ page 20426 "Qlty. Manager Role Center"
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
                 }
-                action(Qlty_Processing_ConfigureTestGenerationRules)
+                action(Qlty_Processing_ConfigureInspectionGenerationRules)
                 {
-                    Caption = 'Test Generation Rules';
+                    Caption = 'Inspection Generation Rules';
                     Image = MapDimensions;
-                    RunObject = Page "Qlty. In. Test Generat. Rules";
+                    RunObject = Page "Qlty. Inspection Gen. Rules";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Test generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
+                    ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
                 }
                 action(Qlty_Processing_ConfigureFields)
                 {
@@ -150,10 +150,10 @@ page 20426 "Qlty. Manager Role Center"
         {
             action(Qlty_Embedding_ShowTests)
             {
-                Caption = 'Quality Inspection Tests';
+                Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
-                ToolTip = 'See existing Quality Inspection Tests and create a new test.';
-                RunObject = Page "Qlty. Inspection Test List";
+                ToolTip = 'See existing Quality Inspections and create a new inspection.';
+                RunObject = Page "Qlty. Inspection List";
             }
             action(Qlty_Embedding_Items)
             {

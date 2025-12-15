@@ -18,65 +18,65 @@ pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionTestCreate)
+                action(Qlty_InspectionCreate)
                 {
                     ApplicationArea = QualityManagement;
                     Image = CreateForm;
-                    Caption = 'Create Quality Inspection Test';
-                    ToolTip = 'Creates a quality inspection test for this output journal line.';
-                    AboutTitle = 'Create Quality Inspection Test';
-                    AboutText = 'Create a quality inspection test for this output journal line.';
+                    Caption = 'Create Quality Inspection';
+                    ToolTip = 'Creates a quality inspection for this output journal line.';
+                    AboutTitle = 'Create Quality Inspection';
+                    AboutText = 'Create a quality inspection for this output journal line.';
                     Enabled = QltyShowCreateTest;
                     Visible = QltyShowCreateTest;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+                        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionTestCreate.CreateTestWithVariant(Rec, true);
+                        QltyInspectionCreate.CreateTestWithVariant(Rec, true);
                     end;
                 }
                 action(Qlty_InspectionShowTestsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item and Document';
-                    ToolTip = 'Shows quality inspection tests for this item and document.';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item and document.';
+                    Caption = 'Show Quality Inspections for Item and Document';
+                    ToolTip = 'Shows quality inspections for this item and document.';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item and document.';
                     Enabled = QltyReadTestResults;
                     Visible = QltyReadTestResults;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
+                        QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
                 action(Qlty_InspectionShowTestsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
-                    Caption = 'Show Quality Inspection Tests for Item';
-                    ToolTip = 'Shows Quality Inspection Tests for Item';
-                    AboutTitle = 'Show Quality Inspection Tests';
-                    AboutText = 'Shows quality inspection tests for this item.';
+                    Caption = 'Show Quality Inspections for Item';
+                    ToolTip = 'Shows Quality Inspections for Item';
+                    AboutTitle = 'Show Quality Inspections';
+                    AboutText = 'Shows quality inspections for this item.';
                     Enabled = QltyReadTestResults;
                     Visible = QltyReadTestResults;
 
                     trigger OnAction()
                     var
-                        QltyInspectionTestList: Page "Qlty. Inspection Test List";
+                        QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionTestList.RunModalSourceItemFilterWithRecord(Rec);
+                        QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
                     end;
                 }
             }
         }
         addafter("Explode &Routing_Promoted")
         {
-            actionref(Qlty_InspectionTestCreate_Promoted; Qlty_InspectionTestCreate)
+            actionref(Qlty_InspectionCreate_Promoted; Qlty_InspectionCreate)
             {
             }
         }
@@ -88,10 +88,10 @@ pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
 
     trigger OnOpenPage()
     var
-        CheckLicensePermissionQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        if not CheckLicensePermissionQltyInspectionTestHeader.WritePermission() then
+        if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
         QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();

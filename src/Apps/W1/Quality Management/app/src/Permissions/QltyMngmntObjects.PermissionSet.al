@@ -50,7 +50,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. - Warehouse Integration" = X,
         codeunit "Qlty. Application Area Mgmt." = X,
         codeunit "Qlty. Auto Configure" = X,
-        codeunit "Qlty. Inspection Test - Create" = X,
+        codeunit "Qlty. Inspection - Create" = X,
         codeunit "Qlty. Disp. Change Tracking" = X,
         codeunit "Qlty. Disp. Internal Put-away" = X,
         codeunit "Qlty. Disp. Move Auto Choose" = X,
@@ -59,7 +59,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Disp. Transfer" = X,
         codeunit "Qlty. Expression Mgmt." = X,
         codeunit "Qlty. Filter Helpers" = X,
-        codeunit "Qlty. Generation Rule Mgmt." = X,
+        codeunit "Qlty. Inspec. Gen. Rule Mgmt." = X,
         codeunit "Qlty. Grade Condition Mgmt." = X,
         codeunit "Qlty. Grade Evaluation" = X,
         codeunit "Qlty. Install" = X,
@@ -97,7 +97,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Field Number Card Part" = X,
         page "Qlty. Field Wizard" = X,
         page "Qlty. Fields" = X,
-        page "Qlty. In. Test Generat. Rules" = X,
+        page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Grade List" = X,
         page "Qlty. Lookup Code List" = X,
         page "Qlty. Lookup Code Part" = X,
@@ -113,15 +113,15 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Inspection Template List" = X,
         page "Qlty. Inspection Template Subf" = X,
         page "Qlty. Inspection Template" = X,
-        page "Qlty. Inspection Test Subform" = X,
-        page "Qlty. Inspection Test Lines" = X,
+        page "Qlty. Inspection Subform" = X,
+        page "Qlty. Inspection Lines" = X,
         page "Qlty. Inspection Activities" = X,
-        page "Qlty. Inspection Test List" = X,
+        page "Qlty. Inspection List" = X,
         page "Qlty. Whse. Gen. Rule Wizard" = X,
-        page "Qlty. Inspection Test" = X,
+        page "Qlty. Inspection" = X,
 
         // Queries  
-        query "Qlty. Inspection Test Values" = X,
+        query "Qlty. Inspection Values" = X,
         query "Qlty. Item Ledger By Location" = X,
 
         // Reports
@@ -129,7 +129,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         report "Qlty. Change Item Tracking" = X,
         report "Qlty. Create Purchase Return" = X,
         report "Qlty. Create Internal Put-away" = X,
-        report "Qlty. Create Inspection Test" = X,
+        report "Qlty. Create Inspection" = X,
         report "Qlty. Inspection Copy Template" = X,
         report "Qlty. General Purpose Inspect." = X,
         report "Qlty. Move Inventory" = X,
@@ -139,7 +139,7 @@ permissionset 20406 "QltyMngmnt - Objects"
 
         // Tables
         table "Qlty. Express Config. Value" = X,
-        table "Qlty. In. Test Generation Rule" = X,
+        table "Qlty. Inspection Gen. Rule" = X,
         table "Qlty. I. Grade Condition Conf." = X,
         table "Qlty. Inspection Grade" = X,
         table "Qlty. Lookup Code" = X,
@@ -150,7 +150,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         table "Qlty. Inspect. Source Config." = X,
         table "Qlty. Inspection Template Line" = X,
         table "Qlty. Inspection Template Hdr." = X,
-        table "Qlty. Inspection Test Line" = X,
-        table "Qlty. Inspection Test Header" = X,
+        table "Qlty. Inspection Line" = X,
+        table "Qlty. Inspection Header" = X,
         table "Qlty. Field" = X;
 }

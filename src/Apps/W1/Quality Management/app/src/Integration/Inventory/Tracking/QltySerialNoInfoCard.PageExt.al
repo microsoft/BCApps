@@ -27,16 +27,16 @@ pageextension 20414 "Qlty. Serial No. Info. Card" extends "Serial No. Informatio
 
                     trigger OnDrillDown()
                     var
-                        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                        QltyInspectionHeader: Record "Qlty. Inspection Header";
                     begin
-                        QltyInspectionTestHeader.SetRange("Source Item No.", Rec."Item No.");
-                        QltyInspectionTestHeader.SetRange("Source Variant Code", Rec."Variant Code");
-                        QltyInspectionTestHeader.SetRange("Source Serial No.", Rec."Serial No.");
-                        if QltyInspectionTestHeader.FindFirst() then;
-                        Page.Run(Page::"Qlty. Inspection Test List", QltyInspectionTestHeader);
+                        QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
+                        QltyInspectionHeader.SetRange("Source Variant Code", Rec."Variant Code");
+                        QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
+                        if QltyInspectionHeader.FindFirst() then;
+                        Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
                     end;
                 }
-                field("Qlty. Inspection Test Count"; Rec."Qlty. Inspection Test Count")
+                field("Qlty. Inspection Count"; Rec."Qlty. Inspection Count")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;

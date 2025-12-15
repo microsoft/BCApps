@@ -23,7 +23,7 @@ permissionset 20401 "QltyMngmnt - Read"
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        tabledata "Qlty. In. Test Generation Rule" = R,
+        tabledata "Qlty. Inspection Gen. Rule" = R,
         tabledata "Qlty. I. Grade Condition Conf." = R,
         tabledata "Qlty. Inspection Grade" = R,
         tabledata "Qlty. Lookup Code" = R,
@@ -34,7 +34,7 @@ permissionset 20401 "QltyMngmnt - Read"
         tabledata "Qlty. Inspect. Source Config." = R,
         tabledata "Qlty. Inspection Template Line" = R,
         tabledata "Qlty. Inspection Template Hdr." = R,
-        tabledata "Qlty. Inspection Test Line" = R,
-        tabledata "Qlty. Inspection Test Header" = R,
+        tabledata "Qlty. Inspection Line" = R,
+        tabledata "Qlty. Inspection Header" = R,
         tabledata "Qlty. Field" = R;
 }

@@ -583,7 +583,7 @@ page 20403 "Qlty. Inspection Template Subf"
     begin
         Expression := MatrixArrayConditionCellData[Matrix];
         QltyInspectionTemplateEdit.RestrictFieldsToThoseOnTemplate(Rec."Template Code");
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             MatrixArrayConditionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
             UpdateMatrixDataCondition(Matrix);
         end;
@@ -601,7 +601,7 @@ page 20403 "Qlty. Inspection Template Subf"
     begin
         Expression := MatrixArrayConditionDescriptionCellData[Matrix];
         QltyInspectionTemplateEdit.RestrictFieldsToThoseOnTemplate(Rec."Template Code");
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;

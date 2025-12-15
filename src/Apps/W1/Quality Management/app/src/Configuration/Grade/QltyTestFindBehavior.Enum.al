@@ -10,7 +10,7 @@ namespace Microsoft.QualityManagement.Configuration.Grade;
 /// </summary>
 enum 20437 "Qlty. Test Find Behavior"
 {
-    Caption = 'Quality Inspection Test Find Behavior';
+    Caption = 'Quality Inspection Find Behavior';
 
     value(0; Any)
     {

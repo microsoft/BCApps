@@ -70,15 +70,15 @@ page 20404 "Qlty. Inspection Template List"
             action(ViewGenerationRules)
             {
                 Scope = Repeater;
-                Caption = 'Test Generation Rules';
-                ToolTip = 'View existing Quality Inspection Test Generation Rules related to this template. A Quality Inspection Test generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                AboutTitle = 'Test Generation Rules';
-                AboutText = 'View existing Quality Inspection Test Generation Rules related to this template. A Quality Inspection Test generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                Caption = 'Inspection Generation Rules';
+                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                AboutTitle = 'Inspection Generation Rules';
+                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
                 Image = TaskList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
-                RunObject = Page "Qlty. In. Test Generat. Rules";
+                RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageLink = "Template Code" = field(Code);
                 RunPageMode = Edit;
             }
@@ -86,7 +86,7 @@ page 20404 "Qlty. Inspection Template List"
             {
                 Scope = Repeater;
                 Caption = 'Create Test';
-                ToolTip = 'Specifies to create a new Quality Inspection Test using this template.';
+                ToolTip = 'Specifies to create a new Quality Inspection using this template.';
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -96,10 +96,10 @@ page 20404 "Qlty. Inspection Template List"
 
                 trigger OnAction()
                 var
-                    QltyCreateInspectionTest: Report "Qlty. Create Inspection Test";
+                    QltyCreateInspection: Report "Qlty. Create Inspection";
                 begin
-                    QltyCreateInspectionTest.InitializeReportParameters(Rec.Code);
-                    QltyCreateInspectionTest.RunModal();
+                    QltyCreateInspection.InitializeReportParameters(Rec.Code);
+                    QltyCreateInspection.RunModal();
                 end;
             }
             action(CopyTemplate)
@@ -120,7 +120,7 @@ page 20404 "Qlty. Inspection Template List"
                     Report.Run(Report::"Qlty. Inspection Copy Template", true, true, ExistingQltyInspectionTemplateHdr);
                 end;
             }
-            action(ExistingTests)
+            action(ExistingInspection)
             {
                 Scope = Repeater;
                 Caption = 'Existing Tests';
@@ -130,7 +130,7 @@ page 20404 "Qlty. Inspection Template List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                RunObject = Page "Qlty. Inspection Test List";
+                RunObject = Page "Qlty. Inspection List";
                 RunPageLink = "Template Code" = field(Code);
                 RunPageMode = View;
             }

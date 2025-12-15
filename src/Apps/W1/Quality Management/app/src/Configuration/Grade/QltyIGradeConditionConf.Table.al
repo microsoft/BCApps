@@ -30,7 +30,7 @@ table 20412 "Qlty. I. Grade Condition Conf."
             NotBlank = true;
             TableRelation = if ("Condition Type" = const("Template")) "Qlty. Inspection Template Hdr.".Code
             else
-            if ("Condition Type" = const(Test)) "Qlty. Inspection Test Header"."No."
+            if ("Condition Type" = const(Test)) "Qlty. Inspection Header"."No."
             else
             if ("Condition Type" = const(Field)) "Qlty. Field".Code;
         }
@@ -43,11 +43,11 @@ table 20412 "Qlty. I. Grade Condition Conf."
         field(4; "Target Line No."; Integer)
         {
             Caption = 'Target Line No.';
-            Description = 'When the condition type is a template, then this is the template line no. When the condition is a test, then this refers to a specific test line no.';
+            Description = 'When the condition type is a template, then this is the template line no. When the condition is a test, then this refers to a specific inspection line no.';
             NotBlank = true;
             TableRelation = if ("Condition Type" = const("Template")) "Qlty. Inspection Template Line"."Line No." where("Template Code" = field("Target Code"))
             else
-            if ("Condition Type" = const(Test)) "Qlty. Inspection Test Line"."Line No." where("Test No." = field("Target Code"), "Retest No." = field("Target Retest No."));
+            if ("Condition Type" = const(Test)) "Qlty. Inspection Line"."Line No." where("Test No." = field("Target Code"), "Retest No." = field("Target Retest No."));
         }
         field(5; "Field Code"; Code[20])
         {

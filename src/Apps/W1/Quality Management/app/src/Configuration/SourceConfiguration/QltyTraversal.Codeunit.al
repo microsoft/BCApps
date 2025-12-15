@@ -23,7 +23,7 @@ codeunit 20408 "Qlty. Traversal"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         ControlInfoToVisibility: Dictionary of [Text, Boolean];
         ControlInfoToCaptionClass: Dictionary of [Text, Text];
-        SomethingUnexpectedChainErr: Label 'Something unexpected happened while trying to chain records together to create a Quality Inspection Test. Please review your Quality Inspection source configuration.';
+        SomethingUnexpectedChainErr: Label 'Something unexpected happened while trying to chain records together to create a Quality Inspection. Please review your Quality Inspection source configuration.';
         PleaseReviewSourceTableConfigErr: Label 'Please review your Quality Inspection Source configuration. It seems like the configuration might be recursive, duplicated, reversed, or incompatible. You might also just have too deeply nested connections. Open the Quality Inspection Source configuration and review your configuration.';
         UnexpectedApplyingSourceFieldsErr: Label 'Something unexpected went wrong populating source field information for the table %1. Please review your Quality Inspection source table configuration.', Comment = '%1 = the table number';
         ConfigurationNestingOrCircularErr: Label 'Please review your Quality Inspection Source Configuration. There could be excessive nesting or circular dependencies.', Locked = true;
@@ -115,7 +115,7 @@ codeunit 20408 "Qlty. Traversal"
     /// are available for the given table.
     /// 
     /// The procedure recursively searches through chained table relationships to find all
-    /// paths that lead to Quality Inspection Test Header records.
+    /// paths that lead to Quality Inspection Header records.
     /// </summary>
     /// <param name="InputTable">The source table number to find possible targets for</param>
     /// <param name="TempAvailableQltyInspectSourceConfig">Output: Temporary record containing all available source configurations</param>
@@ -135,7 +135,7 @@ codeunit 20408 "Qlty. Traversal"
 
         QltyInspectSourceConfig.SetRange(Enabled, true);
         QltyInspectSourceConfig.SetRange("From Table No.", InputTable);
-        QltyInspectSourceConfig.SetRange("To Table No.", Database::"Qlty. Inspection Test Header");
+        QltyInspectSourceConfig.SetRange("To Table No.", Database::"Qlty. Inspection Header");
         QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Test);
         if QltyInspectSourceConfig.FindSet() then
             repeat
@@ -185,18 +185,18 @@ codeunit 20408 "Qlty. Traversal"
     end;
 
     /// <summary>
-    /// Populates source fields in the Quality Inspection Test Header record based on the target record.
+    /// Populates source fields in the Quality Inspection Header record based on the target record.
     /// Uses source configuration to traverse parent records if necessary to populate all required fields.
     /// 
-    /// This procedure is essential for automatically filling in test header fields (like Source Item No.,
+    /// This procedure is essential for automatically filling in inspection header fields (like Source Item No.,
     /// Source Document No., etc.) from the originating document or record.
     /// </summary>
     /// <param name="TargetRecordRef">The main target record that the test will be created against (e.g., Purchase Line, Sales Line)</param>
-    /// <param name="QltyInspectionTestHeader">The Quality Inspection Test Header to populate with source field values</param>
+    /// <param name="QltyInspectionHeader">The Quality Inspection Header to populate with source field values</param>
     /// <param name="RaiseErrorIfNoConfigIsFound">If true, raises an error when no source configuration exists; if false, returns silently</param>
     /// <param name="ForceSetValues">If true, overwrites existing field values; if false, only sets empty fields</param>
     /// <returns>True if source fields could be applied; False otherwise</returns>
-    internal procedure ApplySourceFields(var TargetRecordRef: RecordRef; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; RaiseErrorIfNoConfigIsFound: Boolean; ForceSetValues: Boolean) CouldApply: Boolean
+    internal procedure ApplySourceFields(var TargetRecordRef: RecordRef; var QltyInspectionHeader: Record "Qlty. Inspection Header"; RaiseErrorIfNoConfigIsFound: Boolean; ForceSetValues: Boolean) CouldApply: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         TemporaryTestMatchRecordRef: RecordRef;
@@ -213,18 +213,18 @@ codeunit 20408 "Qlty. Traversal"
         TemporaryTestMatchRecordRef.open(TargetRecordRef.Number(), true);
         TemporaryTestMatchRecordRef.Copy(TargetRecordRef, false);
         if TemporaryTestMatchRecordRef.Insert(false) then;
-        QltyInspectionTestHeader.SetIsCreating(true);
+        QltyInspectionHeader.SetIsCreating(true);
         CouldApply := ApplySourceRecursive(
             QltyMiscHelpers.GetArbitraryMaximumRecursion(),
             TemporaryTestMatchRecordRef,
             TempAvailableQltyInspectSourceConfig,
-            QltyInspectionTestHeader,
+            QltyInspectionHeader,
             ForceSetValues);
-        QltyInspectionTestHeader.SetIsCreating(false);
+        QltyInspectionHeader.SetIsCreating(false);
     end;
 
     /// <summary>
-    /// Recursively applies source fields from parent records to the Quality Inspection Test Header.
+    /// Recursively applies source fields from parent records to the Quality Inspection Header.
     /// Traverses the configured chain of table relationships to populate all relevant source fields.
     /// 
     /// This is the internal recursive implementation that walks up the chain of parent records,
@@ -233,10 +233,10 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="CurrentRecursionDepth">Maximum recursion depth to prevent infinite loops (decremented with each call)</param>
     /// <param name="TargetRecordRef">Current record in the traversal chain</param>
     /// <param name="TempAvailableQltyInspectSourceConfig">Available source configurations for the current traversal level</param>
-    /// <param name="QltyInspectionTestHeader">The Quality Inspection Test Header being populated</param>
+    /// <param name="QltyInspectionHeader">The Quality Inspection Header being populated</param>
     /// <param name="ForceSetValues">If true, overwrites existing field values; if false, only sets empty fields</param>
     /// <returns>True if source fields could be applied at this level or any parent level; False otherwise</returns>
-    local procedure ApplySourceRecursive(CurrentRecursionDepth: Integer; var TargetRecordRef: RecordRef; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ForceSetValues: Boolean) CouldApply: Boolean
+    local procedure ApplySourceRecursive(CurrentRecursionDepth: Integer; var TargetRecordRef: RecordRef; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; ForceSetValues: Boolean) CouldApply: Boolean
     var
         LinkedQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         LinkedRecordRef: RecordRef;
@@ -260,7 +260,7 @@ codeunit 20408 "Qlty. Traversal"
                     TargetRecordRef.FilterGroup(0);
                 end;
                 if TargetRecordRef.FindFirst() then
-                    CouldApply := CouldApply or ApplySourceFieldsFrom(TargetRecordRef, TempAvailableQltyInspectSourceConfig, QltyInspectionTestHeader, ForceSetValues);
+                    CouldApply := CouldApply or ApplySourceFieldsFrom(TargetRecordRef, TempAvailableQltyInspectSourceConfig, QltyInspectionHeader, ForceSetValues);
 
                 TargetRecordRef.FilterGroup(20);
                 TargetRecordRef.SetView('');
@@ -279,25 +279,25 @@ codeunit 20408 "Qlty. Traversal"
                             CurrentRecursionDepth,
                             LinkedRecordRef,
                             LinkedQltyInspectSourceConfig,
-                            QltyInspectionTestHeader,
+                            QltyInspectionHeader,
                             ForceSetValues)
             until LinkedQltyInspectSourceConfig.Next() = 0;
     end;
 
     /// <summary>
-    /// Sets source fields in the Quality Inspection Test Header from a specific source record.
+    /// Sets source fields in the Quality Inspection Header from a specific source record.
     /// Applies field-level mappings defined in the source configuration to copy values from the
-    /// source record to corresponding test header fields.
+    /// source record to corresponding inspection header fields.
     /// 
     /// This is called for each parent record in the chain to populate relevant fields.
     /// Handles field priority settings to determine whether to overwrite existing values.
     /// </summary>
     /// <param name="FromRecordRef">The source record to copy field values from</param>
     /// <param name="TempQltyInspectSourceConfig">The source configuration defining field mappings</param>
-    /// <param name="QltyInspectionTestHeader">The Quality Inspection Test Header to populate</param>
+    /// <param name="QltyInspectionHeader">The Quality Inspection Header to populate</param>
     /// <param name="ForceSetValues">If true, overwrites existing field values; if false, respects priority settings</param>
     /// <returns>True if at least one source field was successfully applied; False otherwise</returns>
-    local procedure ApplySourceFieldsFrom(var FromRecordRef: RecordRef; var TempQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ForceSetValues: Boolean) CouldApply: Boolean
+    local procedure ApplySourceFieldsFrom(var FromRecordRef: RecordRef; var TempQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; ForceSetValues: Boolean) CouldApply: Boolean
     var
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         RecordRef: RecordRef;
@@ -318,7 +318,7 @@ codeunit 20408 "Qlty. Traversal"
         QltyInspectSrcFldConf.SetFilter("From Field No.", '<>0');
         QltyInspectSrcFldConf.SetLoadFields("From Field No.", "To Field No.", "Priority Field");
         if QltyInspectSrcFldConf.FindSet() then begin
-            RecordRef.GetTable(QltyInspectionTestHeader);
+            RecordRef.GetTable(QltyInspectionHeader);
             repeat
                 FromFieldRef := FromRecordRef.Field(QltyInspectSrcFldConf."From Field No.");
                 if FromFieldRef.Class = FromFieldRef.Class::FlowField then
@@ -371,28 +371,28 @@ codeunit 20408 "Qlty. Traversal"
                 end;
                 CouldApply := true;
             until QltyInspectSrcFldConf.Next() = 0;
-            RecordRef.SetTable(QltyInspectionTestHeader);
+            RecordRef.SetTable(QltyInspectionHeader);
         end;
     end;
 
     /// <summary>
     /// Retrieves the dynamic caption text for a control based on source configuration field mappings.
     /// Used to display field captions from source documents (e.g., "Item No." vs "Product Code") 
-    /// in the test header UI. Caches results for performance.
+    /// in the inspection header UI. Caches results for performance.
     /// </summary>
-    /// <param name="InputQltyInspectionTestHeader">The test header whose source configuration determines the caption</param>
+    /// <param name="InputQltyInspectionHeader">The inspection header whose source configuration determines the caption</param>
     /// <param name="Input">The field name or caption to resolve</param>
     /// <returns>The resolved caption text to display for the control, or empty string if not found</returns>
-    internal procedure GetControlCaptionClass(InputQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; Input: Text) ResultText: Text
+    internal procedure GetControlCaptionClass(InputQltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text) ResultText: Text
     var
         SourceKey: Text;
     begin
-        SourceKey := GetSourceKey(InputQltyInspectionTestHeader, Input);
+        SourceKey := GetSourceKey(InputQltyInspectionHeader, Input);
         if ControlInfoToCaptionClass.ContainsKey(SourceKey) then begin
             if ControlInfoToCaptionClass.Get(SourceKey, ResultText) then;
 
             if ResultText = '' then
-                ResultText := GetSourceFieldInfo(InputQltyInspectionTestHeader, Database::"Qlty. Inspection Test Header", Input, SourceKey);
+                ResultText := GetSourceFieldInfo(InputQltyInspectionHeader, Database::"Qlty. Inspection Header", Input, SourceKey);
         end;
     end;
 
@@ -401,49 +401,49 @@ codeunit 20408 "Qlty. Traversal"
     /// Controls are visible only if there's a valid field mapping from the source document.
     /// Caches visibility state for performance.
     /// </summary>
-    /// <param name="InputQltyInspectionTestHeader">The test header whose source configuration determines visibility</param>
+    /// <param name="InputQltyInspectionHeader">The inspection header whose source configuration determines visibility</param>
     /// <param name="Input">The field name or caption to check visibility for</param>
     /// <returns>True if the control should be visible; False otherwise</returns>
-    internal procedure GetControlVisibleState(InputQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; Input: Text) Visible: Boolean;
+    internal procedure GetControlVisibleState(InputQltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text) Visible: Boolean;
     var
         CurrentKey: Text;
     begin
-        CurrentKey := GetSourceKey(InputQltyInspectionTestHeader, Input);
+        CurrentKey := GetSourceKey(InputQltyInspectionHeader, Input);
 
         if not ControlInfoToVisibility.ContainsKey(CurrentKey) then
-            DetermineControlInformation(InputQltyInspectionTestHeader, Input);
+            DetermineControlInformation(InputQltyInspectionHeader, Input);
 
         if ControlInfoToVisibility.ContainsKey(CurrentKey) then
             if ControlInfoToVisibility.Get(CurrentKey, Visible) then;
     end;
 
-    local procedure GetSourceKey(InputQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; Input: Text): Text
+    local procedure GetSourceKey(InputQltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text): Text
     begin
-        exit(Format(InputQltyInspectionTestHeader.RecordId()) + Format(InputQltyInspectionTestHeader."Source RecordId") + Input);
+        exit(Format(InputQltyInspectionHeader.RecordId()) + Format(InputQltyInspectionHeader."Source RecordId") + Input);
     end;
 
     /// <summary>
     /// Clears cached control information and forces re-evaluation of caption and visibility.
-    /// Call this when source configuration or test header source records change to ensure
+    /// Call this when source configuration or inspection header source records change to ensure
     /// controls display current information. Removes stale cache entries and triggers refresh.
     /// </summary>
-    /// <param name="InputQltyInspectionTestHeader">The test header whose control information needs refresh</param>
+    /// <param name="InputQltyInspectionHeader">The inspection header whose control information needs refresh</param>
     /// <param name="Input">The field name or caption to refresh</param>
-    internal procedure DetermineControlInformation(InputQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; Input: Text)
+    internal procedure DetermineControlInformation(InputQltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text)
     var
         CurrentKey: Text;
     begin
-        CurrentKey := GetSourceKey(InputQltyInspectionTestHeader, Input);
+        CurrentKey := GetSourceKey(InputQltyInspectionHeader, Input);
 
         if ControlInfoToCaptionClass.ContainsKey(CurrentKey) then
             if ControlInfoToCaptionClass.Remove(CurrentKey) then;
         if ControlInfoToVisibility.ContainsKey(CurrentKey) then
             if ControlInfoToVisibility.Remove(CurrentKey) then;
 
-        GetSourceFieldInfo(InputQltyInspectionTestHeader, Database::"Qlty. Inspection Test Header", Input, CurrentKey);
+        GetSourceFieldInfo(InputQltyInspectionHeader, Database::"Qlty. Inspection Header", Input, CurrentKey);
     end;
 
-    local procedure GetSourceFieldInfo(InputQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; InputTable: Integer; Input: Text; CacheKey: Text) ResultText: Text
+    local procedure GetSourceFieldInfo(InputQltyInspectionHeader: Record "Qlty. Inspection Header"; InputTable: Integer; Input: Text; CacheKey: Text) ResultText: Text
     var
         SourceField: Record Field;
         TestText: Text;
@@ -463,17 +463,17 @@ codeunit 20408 "Qlty. Traversal"
                 exit;
         end;
 
-        if InputQltyInspectionTestHeader."Source RecordId".TableNo() > 0 then
-            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId".TableNo());
+        if InputQltyInspectionHeader."Source RecordId".TableNo() > 0 then
+            OFFromTableIds.Add(InputQltyInspectionHeader."Source RecordId".TableNo());
 
-        if InputQltyInspectionTestHeader."Source RecordId 2".TableNo() > 0 then
-            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId 2".TableNo());
+        if InputQltyInspectionHeader."Source RecordId 2".TableNo() > 0 then
+            OFFromTableIds.Add(InputQltyInspectionHeader."Source RecordId 2".TableNo());
 
-        if InputQltyInspectionTestHeader."Source RecordId 3".TableNo() > 0 then
-            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId 3".TableNo());
+        if InputQltyInspectionHeader."Source RecordId 3".TableNo() > 0 then
+            OFFromTableIds.Add(InputQltyInspectionHeader."Source RecordId 3".TableNo());
 
-        if InputQltyInspectionTestHeader."Source RecordId 4".TableNo() > 0 then
-            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId 4".TableNo());
+        if InputQltyInspectionHeader."Source RecordId 4".TableNo() > 0 then
+            OFFromTableIds.Add(InputQltyInspectionHeader."Source RecordId 4".TableNo());
 
         foreach FromTableIterator in OFFromTableIds do begin
             TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyMiscHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
@@ -695,7 +695,7 @@ codeunit 20408 "Qlty. Traversal"
     /// Uses early-exit pattern for improved readability and performance.
     /// 
     /// This procedure uses a custom search algorithm specific to Item lookups:
-    /// - Items can be found through "Source Item No." field in Quality Inspection Tests
+    /// - Items can be found through "Source Item No." field in Quality Inspections
     /// - Items have complex relationships through multiple document types
     /// - Direct Item records need immediate return without further lookup
     /// 
@@ -764,7 +764,7 @@ codeunit 20408 "Qlty. Traversal"
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         RecordRef: RecordRef;
         FromFieldReference: FieldRef;
         PossibleItemNo: Text;
@@ -778,11 +778,11 @@ codeunit 20408 "Qlty. Traversal"
             exit(Item.Get(Item."No."));
         end;
 
-        // Search through Quality Inspection Test configuration
+        // Search through Quality Inspection configuration
         QltyInspectSrcFldConf.SetRange("From Table No.", RecordRef.Number());
         QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
-        QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Test Header");
-        QltyInspectSrcFldConf.SetRange("To Field No.", TempQltyInspectionTestHeader.FieldNo("Source Item No."));
+        QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
+        QltyInspectSrcFldConf.SetRange("To Field No.", TempQltyInspectionHeader.FieldNo("Source Item No."));
         if QltyInspectSrcFldConf.FindSet() then
             repeat
                 if QltyInspectSourceConfig.Code <> QltyInspectSrcFldConf.Code then
@@ -1136,7 +1136,7 @@ codeunit 20408 "Qlty. Traversal"
             repeat
                 QltyInspectSrcFldConf.SetRange("From Table No.", RecordRef.Number());
                 QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
-                QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Test Header");
+                QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
                 QltyInspectSrcFldConf.SetRange("From Field No.", CurrentField."No.");
                 if QltyInspectSrcFldConf.FindSet() then
                     repeat
@@ -1308,7 +1308,7 @@ codeunit 20408 "Qlty. Traversal"
             repeat
                 QltyInspectSrcFldConf.SetRange("From Table No.", RecordRef.Number());
                 QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
-                QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Test Header");
+                QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
                 QltyInspectSrcFldConf.SetRange("From Field No.", CurrentField."No.");
                 if QltyInspectSrcFldConf.FindSet() then
                     repeat

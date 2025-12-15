@@ -33,8 +33,8 @@ codeunit 20416 "Qlty. Expression Mgmt."
         SpecialStringFunctionSelectstrTok: Label 'SELECTSTR', Locked = true;
         SpecialStringFunctionLookupTok: Label 'LOOKUP', Locked = true;
         SpecialStringFunctionFormatNumTok: Label 'FORMATNUM', Locked = true;
-        NotAnExpressionErr: Label 'The test line %1 for field %2 is not a text expression field.', Comment = '%1=the record id, %2=the field';
-        RecreateTestErr: Label 'The test line %1 for field %2 does not match the template %3. This means the template could have changed since this test was made. Re-create this test to evaluate the expression.', Comment = '%1=the record id, %2=the field, %3=the template filters';
+        NotAnExpressionErr: Label 'The inspection line %1 for field %2 is not a text expression field.', Comment = '%1=the record id, %2=the field';
+        RecreateTestErr: Label 'The inspection line %1 for field %2 does not match the template %3. This means the template could have changed since this test was made. Re-create this test to evaluate the expression.', Comment = '%1=the record id, %2=the field, %3=the template filters';
         BadReplacementExpressionTok: Label '?', Locked = true;
         UnableToGetTableValueTableNotFoundErr: Label 'Cannot find a table based on [%1]', Comment = '%1=the table name';
         UnableToGetFieldValueTableNotFoundErr: Label 'Cannot find a field [%1] in table [%2]', Comment = '%1=the field name, %2=the table name';
@@ -42,7 +42,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         UOMTok: Label 'UOM', Locked = true;
 
     /// <summary>
-    /// Evaluates a text expression on a test line for a specific test.
+    /// Evaluates a text expression on a inspection line for a specific test.
     /// Validates that the line is a text expression field type and matches its template configuration.
     /// 
     /// Behavior:
@@ -58,87 +58,87 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// 
     /// Common usage: Auto-calculating field values during test execution based on formulas.
     /// </summary>
-    /// <param name="QltyInspectionTestLine">The test line containing the expression to evaluate</param>
-    /// <param name="CurrentQltyInspectionTestHeader">The test header providing context for evaluation</param>
+    /// <param name="QltyInspectionLine">The inspection line containing the expression to evaluate</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header providing context for evaluation</param>
     /// <returns>The evaluated text result</returns>
-    procedure EvaluateTextExpression(var QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header") Result: Text
+    procedure EvaluateTextExpression(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header") Result: Text
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         Value: Text;
     begin
-        QltyInspectionTestLine.CalcFields("Field Type");
-        if QltyInspectionTestLine."Field Type" <> QltyInspectionTestLine."Field Type"::"Field Type Text Expression" then
-            Error(NotAnExpressionErr, QltyInspectionTestLine.RecordId(), QltyInspectionTestLine."Field Code");
+        QltyInspectionLine.CalcFields("Field Type");
+        if QltyInspectionLine."Field Type" <> QltyInspectionLine."Field Type"::"Field Type Text Expression" then
+            Error(NotAnExpressionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Field Code");
 
-        QltyInspectionTemplateLine.Get(QltyInspectionTestLine."Template Code", QltyInspectionTestLine."Template Line No.");
+        QltyInspectionTemplateLine.Get(QltyInspectionLine."Template Code", QltyInspectionLine."Template Line No.");
         QltyInspectionTemplateLine.SetRecFilter();
-        QltyInspectionTemplateLine.SetRange("Field Code", QltyInspectionTestLine."Field Code");
+        QltyInspectionTemplateLine.SetRange("Field Code", QltyInspectionLine."Field Code");
         if not QltyInspectionTemplateLine.FindFirst() then
-            Error(RecreateTestErr, QltyInspectionTestLine.RecordId(), QltyInspectionTestLine."Field Code", QltyInspectionTemplateLine.GetFilters());
+            Error(RecreateTestErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Field Code", QltyInspectionTemplateLine.GetFilters());
 
-        Value := EvaluateTextExpression(QltyInspectionTemplateLine."Expression Formula", CurrentQltyInspectionTestHeader, QltyInspectionTestLine);
-        OnEvaluateTextExpressionOnTestLine(QltyInspectionTestLine, CurrentQltyInspectionTestHeader, QltyInspectionTemplateLine, QltyInspectionTemplateLine."Expression Formula", Value);
+        Value := EvaluateTextExpression(QltyInspectionTemplateLine."Expression Formula", CurrentQltyInspectionHeader, QltyInspectionLine);
+        OnEvaluateTextExpressionOnTestLine(QltyInspectionLine, CurrentQltyInspectionHeader, QltyInspectionTemplateLine, QltyInspectionTemplateLine."Expression Formula", Value);
 
-        if (Value <> QltyInspectionTestLine."Test Value") or (QltyInspectionTestLine."Test Value" = '') then begin
-            QltyInspectionTestLine.Validate("Test Value", Value);
-            QltyInspectionTestLine.Modify();
+        if (Value <> QltyInspectionLine."Test Value") or (QltyInspectionLine."Test Value" = '') then begin
+            QltyInspectionLine.Validate("Test Value", Value);
+            QltyInspectionLine.Modify();
         end;
         Result := Value;
     end;
 
     /// <summary>
-    /// Evaluates a text expression, using fields on the quality inspection test as text replacement options.
+    /// Evaluates a text expression, using fields on the quality inspection as text replacement options.
     /// Does *not* evaluate embedded expressions.
-    /// Provides simplified overload with only test header context.
+    /// Provides simplified overload with only inspection header context.
     /// 
-    /// Token replacement: Replaces [FieldName] tokens with actual field values from test header.
+    /// Token replacement: Replaces [FieldName] tokens with actual field values from inspection header.
     /// Use case: Simple field substitution in templates, labels, or filter expressions.
     /// </summary>
     /// <param name="Input">The text expression containing [FieldName] tokens to replace</param>
-    /// <param name="CurrentQltyInspectionTestHeader">If the test doesn't exist pass in a blank empty temporary record instead.</param>
+    /// <param name="CurrentQltyInspectionHeader">If the test doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"): Text
+    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"): Text
     var
-        TempDummyQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
+        TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        exit(EvaluateTextExpression(Input, CurrentQltyInspectionTestHeader, TempDummyQltyInspectionTestLine));
+        exit(EvaluateTextExpression(Input, CurrentQltyInspectionHeader, TempDummyQltyInspectionLine));
     end;
 
     /// <summary>
-    /// Evaluates a text expression, using fields on the quality inspection test as text replacement options.
+    /// Evaluates a text expression, using fields on the quality inspection as text replacement options.
     /// Does *not* evaluate embedded expressions.
-    /// Supports both test header and test line field references.
+    /// Supports both inspection header and inspection line field references.
     /// 
-    /// Token replacement: Replaces [FieldName] tokens with actual field values from test header and line.
+    /// Token replacement: Replaces [FieldName] tokens with actual field values from inspection header and line.
     /// Use case: Field substitution with line-level context (e.g., measure-specific calculations).
     /// </summary>
     /// <param name="Input">The text expression containing [FieldName] tokens to replace</param>
-    /// <param name="CurrentQltyInspectionTestHeader">If the test doesn't exist pass in a blank empty temporary record instead.</param>
-    /// <param name="CurrentQltyInspectionTestLine">If the test line doesn't exist pass in a blank empty temporary record instead.</param>
+    /// <param name="CurrentQltyInspectionHeader">If the test doesn't exist pass in a blank empty temporary record instead.</param>
+    /// <param name="CurrentQltyInspectionLine">If the inspection line doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; CurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line"): Text
+    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentQltyInspectionLine: Record "Qlty. Inspection Line"): Text
     begin
-        exit(EvaluateTextExpression(Input, CurrentQltyInspectionTestHeader, CurrentQltyInspectionTestLine, false));
+        exit(EvaluateTextExpression(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, false));
     end;
 
     /// <summary>
-    /// Evaluates a text expression, using fields on the quality inspection test as text replacement options.
+    /// Evaluates a text expression, using fields on the quality inspection as text replacement options.
     /// Set EvaluateEmbeddedNumericExpressions to true to evaluate embedded expressions.
     /// Internal overload for controlling embedded expression evaluation without line context.
     /// </summary>
     /// <param name="Input">The text expression to evaluate</param>
-    /// <param name="CurrentQltyInspectionTestHeader">The test header providing field values for token replacement</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header providing field values for token replacement</param>
     /// <param name="EvaluateEmbeddedNumericExpressions">True to evaluate {expression} patterns; False to skip</param>
     /// <returns>The evaluated text with tokens replaced and optional embedded expressions evaluated</returns>
-    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; EvaluateEmbeddedNumericExpressions: Boolean): Text
+    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; EvaluateEmbeddedNumericExpressions: Boolean): Text
     var
-        TempDummySpecificQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
+        TempDummySpecificQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        exit(EvaluateTextExpression(Input, CurrentQltyInspectionTestHeader, TempDummySpecificQltyInspectionTestLine, EvaluateEmbeddedNumericExpressions));
+        exit(EvaluateTextExpression(Input, CurrentQltyInspectionHeader, TempDummySpecificQltyInspectionLine, EvaluateEmbeddedNumericExpressions));
     end;
 
     /// <summary>
-    /// Evaluates a text expression, using fields on the quality inspection test as text replacement options.
+    /// Evaluates a text expression, using fields on the quality inspection as text replacement options.
     /// Set EvaluateEmbeddedNumericExpressions to true to evaluate embedded expressions.
     /// Core evaluation method supporting full context and embedded expression evaluation.
     /// 
@@ -151,36 +151,36 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Common usage: Complex expression evaluation in templates with full test context.
     /// </summary>
     /// <param name="Input">The text expression to evaluate</param>
-    /// <param name="CurrentQltyInspectionTestHeader">The test header providing field values for token replacement</param>
-    /// <param name="SpecificQltyInspectionTestLine">When supplied, a specific test line providing additional context</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header providing field values for token replacement</param>
+    /// <param name="SpecificQltyInspectionLine">When supplied, a specific inspection line providing additional context</param>
     /// <param name="EvaluateEmbeddedNumericExpressions">True to evaluate {expression} patterns; False to skip</param>
     /// <returns>The fully evaluated text result</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; SpecificQltyInspectionTestLine: Record "Qlty. Inspection Test Line"; EvaluateEmbeddedNumericExpressions: Boolean) Result: Text
+    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; SpecificQltyInspectionLine: Record "Qlty. Inspection Line"; EvaluateEmbeddedNumericExpressions: Boolean) Result: Text
     var
-        InputCurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        InputCurrentQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         CustQltyField: Record "Qlty. Field";
         SearchFor: Text;
     begin
-        Input := TextReplace(Input, StrSubstNo(TokenReplacementTok, UOMTok), SpecificQltyInspectionTestLine."Unit of Measure Code");
-        Input := EvaluateBuiltInTableLookups(Input, CurrentQltyInspectionTestHeader, SpecificQltyInspectionTestLine);
-        InputCurrentQltyInspectionTestLine.SetRange("Line No.");
-        InputCurrentQltyInspectionTestLine.SetRange("Test No.", CurrentQltyInspectionTestHeader."No.");
-        InputCurrentQltyInspectionTestLine.SetRange("Retest No.", CurrentQltyInspectionTestHeader."Retest No.");
+        Input := TextReplace(Input, StrSubstNo(TokenReplacementTok, UOMTok), SpecificQltyInspectionLine."Unit of Measure Code");
+        Input := EvaluateBuiltInTableLookups(Input, CurrentQltyInspectionHeader, SpecificQltyInspectionLine);
+        InputCurrentQltyInspectionLine.SetRange("Line No.");
+        InputCurrentQltyInspectionLine.SetRange("Test No.", CurrentQltyInspectionHeader."No.");
+        InputCurrentQltyInspectionLine.SetRange("Retest No.", CurrentQltyInspectionHeader."Retest No.");
 
-        Result := EvaluateExpressionForRecord(Input, CurrentQltyInspectionTestHeader, false);
+        Result := EvaluateExpressionForRecord(Input, CurrentQltyInspectionHeader, false);
 
-        if (InputCurrentQltyInspectionTestLine.FindSet() and (CurrentQltyInspectionTestHeader."No." <> '') and (not CurrentQltyInspectionTestHeader.IsTemporary())) then
+        if (InputCurrentQltyInspectionLine.FindSet() and (CurrentQltyInspectionHeader."No." <> '') and (not CurrentQltyInspectionHeader.IsTemporary())) then
             repeat
-                SearchFor := StrSubstno(TokenReplacementTok, InputCurrentQltyInspectionTestLine."Field Code");
-                if InputCurrentQltyInspectionTestLine.IsNumericFieldType() then
-                    Result := TextReplace(Result, SearchFor, Format(InputCurrentQltyInspectionTestLine."Numeric Value", 0, 1), "Qlty. Case Sensitivity"::Insensitive)
+                SearchFor := StrSubstno(TokenReplacementTok, InputCurrentQltyInspectionLine."Field Code");
+                if InputCurrentQltyInspectionLine.IsNumericFieldType() then
+                    Result := TextReplace(Result, SearchFor, Format(InputCurrentQltyInspectionLine."Numeric Value", 0, 1), "Qlty. Case Sensitivity"::Insensitive)
                 else
-                    Result := TextReplace(Result, SearchFor, InputCurrentQltyInspectionTestLine."Test Value", "Qlty. Case Sensitivity"::Insensitive);
-            until InputCurrentQltyInspectionTestLine.Next() = 0
+                    Result := TextReplace(Result, SearchFor, InputCurrentQltyInspectionLine."Test Value", "Qlty. Case Sensitivity"::Insensitive);
+            until InputCurrentQltyInspectionLine.Next() = 0
         else begin
             QltyInspectionTemplateLine.Reset();
-            QltyInspectionTemplateLine.SetRange("Template Code", InputCurrentQltyInspectionTestLine.GetFilter("Template Code"));
+            QltyInspectionTemplateLine.SetRange("Template Code", InputCurrentQltyInspectionLine.GetFilter("Template Code"));
             QltyInspectionTemplateLine.SetLoadFields("Field Code");
             if QltyInspectionTemplateLine.FindSet() then
                 repeat
@@ -209,7 +209,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <returns></returns>
     procedure EvaluateExpressionForRecord(Input: Text; RecordVariant: Variant; FormatText: Boolean) Result: Text
     var
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         AlternateRecordRef: RecordRef;
         SearchForFieldRef: FieldRef;
@@ -237,7 +237,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
                 ReplaceWith := Format(SearchForFieldRef.Value(), 0, 9);
 
             if ReplaceWith = '0' then
-                if (AlternateRecordRef.Number() = Database::"Qlty. Inspection Test Header") and (SearchForFieldRef.Number() = TempQltyInspectionTestHeader.FieldNo("Retest No.")) then
+                if (AlternateRecordRef.Number() = Database::"Qlty. Inspection Header") and (SearchForFieldRef.Number() = TempQltyInspectionHeader.FieldNo("Retest No.")) then
                     ReplaceWith := '';
 
             Result := TextReplace(Result, SearchFor, ReplaceWith, "Qlty. Case Sensitivity"::Insensitive);
@@ -348,22 +348,22 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <returns>The text with validated function syntax (not fully evaluated)</returns>
     procedure TestEvaluateSpecialStringFunctions(Input: Text): Text
     var
-        TempCurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        TempDummyCurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
+        TempCurrentQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        TempDummyCurrentQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        exit(TestEvaluateSpecialStringFunctions(Input, TempCurrentQltyInspectionTestHeader, TempDummyCurrentQltyInspectionTestLine))
+        exit(TestEvaluateSpecialStringFunctions(Input, TempCurrentQltyInspectionHeader, TempDummyCurrentQltyInspectionLine))
     end;
 
     /// <summary>
     /// Only used for testing expressions.
     /// </summary>
     /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionTestHeader"></param>
+    /// <param name="CurrentQltyInspectionHeader"></param>
     /// <returns></returns>
-    local procedure TestEvaluateSpecialStringFunctions(Input: Text; var CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var CurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line") Result: Text
+    local procedure TestEvaluateSpecialStringFunctions(Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line") Result: Text
     begin
         Result := Input;
-        Result := EvaluateBuiltInTableLookups(Result, CurrentQltyInspectionTestHeader, CurrentQltyInspectionTestLine);
+        Result := EvaluateBuiltInTableLookups(Result, CurrentQltyInspectionHeader, CurrentQltyInspectionLine);
         Result := EvaluateStringOnlyFunctions(Result);
     end;
 
@@ -487,7 +487,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
             Result := QltyMiscHelpers.ReadFieldAsText(RecordRefToRead, NumberOrNameOfFieldToLookup, 1);
     end;
 
-    local procedure EvaluateBuiltInTableLookups(Input: Text; var CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var CurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line") Result: Text
+    local procedure EvaluateBuiltInTableLookups(Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line") Result: Text
     var
         Item: Record Item;
         TempRegexMatches: Record Matches temporary;
@@ -501,7 +501,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         Handled: Boolean;
         FormatKind: Integer;
     begin
-        OnBeforeEvaluateBuiltInTableLookups(Input, CurrentQltyInspectionTestHeader, CurrentQltyInspectionTestLine, Result, Handled);
+        OnBeforeEvaluateBuiltInTableLookups(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, Result, Handled);
         if Handled then
             exit;
 
@@ -556,13 +556,13 @@ codeunit 20416 "Qlty. Expression Mgmt."
                             SpecialTableItemTok:
                                 begin
                                     if Item."No." = '' then
-                                        CurrentQltyInspectionTestHeader.GetRelatedItem(Item);
+                                        CurrentQltyInspectionHeader.GetRelatedItem(Item);
                                     ValueToReplaceWith := QltyMiscHelpers.ReadFieldAsText(Item, FieldName, FormatKind)
                                 end;
                             SpecialTableItemAttributeTok:
-                                ValueToReplaceWith := CurrentQltyInspectionTestHeader.GetItemAttributeValue(FieldName);
+                                ValueToReplaceWith := CurrentQltyInspectionHeader.GetItemAttributeValue(FieldName);
                             else
-                                OnEvaluateCustomTableFieldInExpression(Input, CurrentQltyInspectionTestHeader, CurrentQltyInspectionTestLine, Result, TableName, FieldName, EntireFindText, ValueToReplaceWith);
+                                OnEvaluateCustomTableFieldInExpression(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, Result, TableName, FieldName, EntireFindText, ValueToReplaceWith);
                         end;
                         Result := TextReplace(Result, EntireFindText, ValueToReplaceWith);
                     end;
@@ -588,15 +588,15 @@ codeunit 20416 "Qlty. Expression Mgmt."
     end;
 
     /// <summary>
-    /// Occurs before a text expression is evaluated on a test line.
+    /// Occurs before a text expression is evaluated on a inspection line.
     /// </summary>
-    /// <param name="QltyInspectionTestLine"></param>
-    /// <param name="CurrentQltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionLine"></param>
+    /// <param name="CurrentQltyInspectionHeader"></param>
     /// <param name="QltyInspectionTemplateLine"></param>
     /// <param name="ExpressionInput"></param>
     /// <param name="ExpressionResultOutput"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnEvaluateTextExpressionOnTestLine(var QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; ExpressionInput: Text; var ExpressionResultOutput: Text)
+    local procedure OnEvaluateTextExpressionOnTestLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; ExpressionInput: Text; var ExpressionResultOutput: Text)
     begin
     end;
 
@@ -604,12 +604,12 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Allows system replacement before evaluation of built-in table lookups.
     /// </summary>
     /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionTestHeader"></param>
-    /// <param name="CurrentQltyInspectionTestLine"></param>
+    /// <param name="CurrentQltyInspectionHeader"></param>
+    /// <param name="CurrentQltyInspectionLine"></param>
     /// <param name="Result"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateBuiltInTableLookups(var Input: Text; var CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var CurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var Result: Text; var Handled: Boolean)
+    local procedure OnBeforeEvaluateBuiltInTableLookups(var Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line"; var Result: Text; var Handled: Boolean)
     begin
     end;
 
@@ -617,15 +617,15 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Integration event for evaluating custom table field references in expressions.
     /// </summary>
     /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionTestHeader"></param>
-    /// <param name="CurrentQltyInspectionTestLine"></param>
+    /// <param name="CurrentQltyInspectionHeader"></param>
+    /// <param name="CurrentQltyInspectionLine"></param>
     /// <param name="EntireTextBeingEvaluated"></param>
     /// <param name="TableName"></param>
     /// <param name="NumberOrNameOfFieldName"></param>
     /// <param name="EntireFindText"></param>
     /// <param name="EntireReplaceText"></param>
     [IntegrationEvent(false, false)]
-    procedure OnEvaluateCustomTableFieldInExpression(var Input: Text; var CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var CurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var EntireTextBeingEvaluated: Text; var TableName: Text; var NumberOrNameOfFieldName: Text; var EntireFindText: Text; var EntireReplaceText: Text)
+    procedure OnEvaluateCustomTableFieldInExpression(var Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line"; var EntireTextBeingEvaluated: Text; var TableName: Text; var NumberOrNameOfFieldName: Text; var EntireFindText: Text; var EntireReplaceText: Text)
     begin
     end;
 

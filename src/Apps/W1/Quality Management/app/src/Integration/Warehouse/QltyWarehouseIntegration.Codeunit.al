@@ -21,7 +21,7 @@ codeunit 20438 "Qlty. - Warehouse Integration"
     local procedure HandleOnAfterInsertWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         if (WarehouseEntry."Entry Type" <> WarehouseEntry."Entry Type"::Movement) or (WarehouseEntry.Quantity <= 0) then
             exit;
@@ -29,17 +29,17 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInTestGenerationRule.SetRange("Warehouse Movement Trigger", QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
-        QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
-        if not QltyInTestGenerationRule.IsEmpty() then
-            AttemptCreateTestWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, QltyInTestGenerationRule);
+        QltyInspectionGenRule.SetRange("Warehouse Movement Trigger", QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectionGenRule.IsEmpty() then
+            AttemptCreateTestWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, QltyInspectionGenRule);
     end;
 
-    local procedure AttemptCreateTestWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    local procedure AttemptCreateTestWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DoNotSendSourceVariant: Variant;
         Handled: Boolean;
         HasTest: Boolean;
@@ -62,18 +62,18 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
-                if QltyInspectionTestCreate.CreateTestWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInTestGenerationRule) then begin
+                if QltyInspectionCreate.CreateTestWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasTest := true;
-                    QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+                    QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
                 end;
             until TempTrackingSpecification.Next() = 0
         else
-            if QltyInspectionTestCreate.CreateTestWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInTestGenerationRule) then begin
+            if QltyInspectionCreate.CreateTestWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                 HasTest := true;
-                QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
             end;
 
-        OnAfterWarehouseAttemptCreateTestWithWhseJournalLine(HasTest, QltyInspectionTestHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);
+        OnAfterWarehouseAttemptCreateTestWithWhseJournalLine(HasTest, QltyInspectionHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);
     end;
 
     internal procedure GetOptionalSourceVariantForWarehouseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; var OptionalSourceRecordVariant: Variant) Result: Boolean
@@ -163,12 +163,12 @@ codeunit 20438 "Qlty. - Warehouse Integration"
     /// This occurs after a test has been created for a warehouse entry.
     /// </summary>
     /// <param name="HasTest"></param>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="WarehouseEntry"></param>
     /// <param name="WarehouseJournalLine"></param>
     /// <param name="poptionalSourceVariant"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterWarehouseAttemptCreateTestWithWhseJournalLine(var HasTest: Boolean; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; poptionalSourceVariant: Variant)
+    local procedure OnAfterWarehouseAttemptCreateTestWithWhseJournalLine(var HasTest: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; poptionalSourceVariant: Variant)
     begin
     end;
 

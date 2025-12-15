@@ -16,7 +16,7 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
         {
             field(QltyInspectionGradeDescription; MostRecentQltyGradeDescription)
             {
-                AccessByPermission = tabledata "Qlty. Inspection Test Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
                 Caption = 'Quality Grade';
                 ToolTip = 'Specifies the most recent grade for this lot number.';
@@ -24,22 +24,22 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
 
                 trigger OnDrillDown()
                 var
-                    QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                    QltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    QltyInspectionTestHeader.SetRange("Source Item No.", Rec."Item No.");
-                    QltyInspectionTestHeader.SetFilter("Source Variant Code", Rec."Variant Code Filter");
-                    QltyInspectionTestHeader.SetRange("Source Lot No.", Rec."Lot No.");
+                    QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
+                    QltyInspectionHeader.SetFilter("Source Variant Code", Rec."Variant Code Filter");
+                    QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
                     if Rec."Serial No." <> '' then
-                        QltyInspectionTestHeader.SetRange("Source Serial No.", Rec."Serial No.");
+                        QltyInspectionHeader.SetRange("Source Serial No.", Rec."Serial No.");
                     if Rec."Package No." <> '' then
-                        QltyInspectionTestHeader.SetRange("Source Package No.", Rec."Package No.");
-                    if QltyInspectionTestHeader.FindFirst() then;
-                    Page.Run(Page::"Qlty. Inspection Test List", QltyInspectionTestHeader);
+                        QltyInspectionHeader.SetRange("Source Package No.", Rec."Package No.");
+                    if QltyInspectionHeader.FindFirst() then;
+                    Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
                 end;
             }
             field("Qlty. Insp. Test for Lot Count"; Rec."Qlty. Insp. Test for Lot Count")
             {
-                AccessByPermission = tabledata "Qlty. Inspection Test Header" = R;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
                 Editable = false;
             }

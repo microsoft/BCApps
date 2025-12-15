@@ -11,18 +11,18 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
-/// Methods to assist with quality inspection test generation rule management.
+/// Methods to assist with quality inspection generation rule management.
 /// </summary>
-codeunit 20405 "Qlty. Generation Rule Mgmt."
+codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
 {
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyTraversal: Codeunit "Qlty. Traversal";
-        UnexpectedAndNoDetailsErr: Label 'Something unexpected went wrong trying to find a matching quality inspection test generation rule. Please review your Quality Inspection source table configuration.';
-        CouldNotFindGenerationRuleErr: Label 'Could not find any compatible test generation rules for the template %1. Navigate to Quality Inspection Test Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
+        UnexpectedAndNoDetailsErr: Label 'Something unexpected went wrong trying to find a matching quality inspection generation rule. Please review your Quality Inspection source table configuration.';
+        CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
         CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
-        UnexpectedUnableWithADetailErr: Label 'Cannot find a test to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Test Generation Rules.', Comment = '%1=the id/name';
-        NoGenRuleErr: Label 'Cannot find a test to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Test Generation Rules.', Comment = '%1=the id/name';
+        UnexpectedUnableWithADetailErr: Label 'Cannot find a test to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
+        NoGenRuleErr: Label 'Cannot find a test to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
 
     /// <summary>
     /// Sets the filter on the target configuration to sources that could match the supplied template.
@@ -32,7 +32,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// <param name="QltyInspectSourceConfig"></param>
     internal procedure SetFilterToApplicableTemplates(TemplateCode: Code[20]; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
     var
-        TempSearchQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary;
+        TempSearchQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         Filter: Text;
         KnownTableIds: List of [Integer];
@@ -40,22 +40,22 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
         CanCreateTestDirectly: Boolean;
         TablesToConfigure: Text;
     begin
-        if not FindAllCompatibleGenerationRules(TemplateCode, TempSearchQltyInTestGenerationRule) then
+        if not FindAllCompatibleGenerationRules(TemplateCode, TempSearchQltyInspectionGenRule) then
             Error(CouldNotFindGenerationRuleErr, TemplateCode);
 
-        TempSearchQltyInTestGenerationRule.Reset();
-        if TempSearchQltyInTestGenerationRule.FindSet() then begin
+        TempSearchQltyInspectionGenRule.Reset();
+        if TempSearchQltyInspectionGenRule.FindSet() then begin
             Filter := '0';
             repeat
                 TempAvailableQltyInspectSourceConfig.Reset();
                 TempAvailableQltyInspectSourceConfig.DeleteAll(false);
 
-                CanLoopDoTargets := QltyTraversal.FindPossibleTargetsBasedOnConfigRecursive(TempSearchQltyInTestGenerationRule."Source Table No.", TempAvailableQltyInspectSourceConfig);
+                CanLoopDoTargets := QltyTraversal.FindPossibleTargetsBasedOnConfigRecursive(TempSearchQltyInspectionGenRule."Source Table No.", TempAvailableQltyInspectSourceConfig);
                 if not CanLoopDoTargets then begin
                     if StrLen(TablesToConfigure) > 0 then
-                        TablesToConfigure += ', ' + Format(TempSearchQltyInTestGenerationRule."Source Table No.")
+                        TablesToConfigure += ', ' + Format(TempSearchQltyInspectionGenRule."Source Table No.")
                     else
-                        TablesToConfigure := Format(TempSearchQltyInTestGenerationRule."Source Table No.");
+                        TablesToConfigure := Format(TempSearchQltyInspectionGenRule."Source Table No.");
                 end else begin
                     TempAvailableQltyInspectSourceConfig.Reset();
                     if TempAvailableQltyInspectSourceConfig.FindSet() then
@@ -68,7 +68,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                             end;
                         until TempAvailableQltyInspectSourceConfig.Next() = 0;
                 end;
-            until TempSearchQltyInTestGenerationRule.Next() = 0;
+            until TempSearchQltyInspectionGenRule.Next() = 0;
             QltyInspectSourceConfig.SetFilter("From Table No.", Filter);
         end;
         if not CanCreateTestDirectly then
@@ -95,7 +95,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                     Filter += Format(AvailableQltyInspectSourceConfig."From Table No.");
                 end;
                 if not KnownTableIds.Contains(AvailableQltyInspectSourceConfig."To Table No.") and
-                  (AvailableQltyInspectSourceConfig."To Table No." <> Database::"Qlty. Inspection Test Header") then begin
+                  (AvailableQltyInspectSourceConfig."To Table No." <> Database::"Qlty. Inspection Header") then begin
                     KnownTableIds.Add(AvailableQltyInspectSourceConfig."To Table No.");
                     Filter += '|';
                     Filter += Format(AvailableQltyInspectSourceConfig."To Table No.");
@@ -110,9 +110,9 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// <param name="TargetRecordRef">target recordref for rules search</param>
     /// <param name="OptionalItem">optional item to filter rules search</param>
     /// <param name="OptionalSpecificTemplate">Optional template to filter rules search</param>
-    /// <param name="TempQltyInTestGenerationRule">Returned Generation Rule</param>
+    /// <param name="TempQltyInspectionGenRule">Returned Generation Rule</param>
     /// <returns>true if a matching Generation Rule was found</returns>
-    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary) Found: Boolean
+    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
@@ -130,7 +130,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                 TempAvailableQltyInspectSourceConfig,
                 TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig,
                 OptionalSpecificTemplate,
-                TempQltyInTestGenerationRule);
+                TempQltyInspectionGenRule);
     end;
 
     /// <summary>
@@ -141,9 +141,9 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// <param name="TargetRecordRef">target recordref for rules search</param>
     /// <param name="OptionalItem">optional item to filter rules search</param>
     /// <param name="OptionalSpecificTemplate">Optional template to filter rules search</param>
-    /// <param name="TempQltyInTestGenerationRule">Returned Generation Rule</param>
+    /// <param name="TempQltyInspectionGenRule">Returned Generation Rule</param>
     /// <returns>true if a matching Generation Rule was found</returns>
-    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary) Found: Boolean
+    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
@@ -161,12 +161,12 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
             TempAvailableQltyInspectSourceConfig,
             TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig,
             OptionalSpecificTemplate,
-            TempQltyInTestGenerationRule);
+            TempQltyInspectionGenRule);
     end;
 
     /// <summary>
     /// Finds the first matching generation rule and record.
-    /// Note that TempQltyInTestGenerationRule can be used to supply optional input filters, however it will be replaced upon output.
+    /// Note that TempQltyInspectionGenRule can be used to supply optional input filters, however it will be replaced upon output.
     /// </summary>
     /// <param name="CurrentRecursionDepth"></param>
     /// <param name="UseActivationFilter"></param>
@@ -176,11 +176,11 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// <param name="TempAvailableQltyInspectSourceConfig"></param>
     /// <param name="TempAlreadySearchedsQltyInspectSourceConfig"></param>
     /// <param name="OptionalSpecificTemplate"></param>
-    /// <param name="TempQltyInTestGenerationRule">Filters are copied from the input, but will be replaced on output.</param>
+    /// <param name="TempQltyInspectionGenRule">Filters are copied from the input, but will be replaced on output.</param>
     /// <returns></returns>
-    local procedure FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth: Integer; UseActivationFilter: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var TempAlreadySearchedsQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; OptionalSpecificTemplate: Code[20]; var TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary) Found: Boolean
+    local procedure FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth: Integer; UseActivationFilter: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var TempAlreadySearchedsQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         SearchItem: Record Item;
         FoundLinkRecordRef: RecordRef;
         TemporaryTestMatchRecordRef: RecordRef;
@@ -189,53 +189,53 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
         if CurrentRecursionDepth <= 0 then
             Error(UnexpectedAndNoDetailsErr);
 
-        QltyInTestGenerationRule.CopyFilters(TempQltyInTestGenerationRule);
-        QltyInTestGenerationRule.SetRange("Source Table No.", TargetRecordRef.Number());
+        QltyInspectionGenRule.CopyFilters(TempQltyInspectionGenRule);
+        QltyInspectionGenRule.SetRange("Source Table No.", TargetRecordRef.Number());
         if OptionalSpecificTemplate <> '' then
-            QltyInTestGenerationRule.SetRange("Template Code", OptionalSpecificTemplate);
+            QltyInspectionGenRule.SetRange("Template Code", OptionalSpecificTemplate);
 
         if UseActivationFilter then
             if IsManualCreation then
-                QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Manual only")
+                QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Manual only")
             else
-                QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
+                QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
 
-        QltyInTestGenerationRule.SetCurrentKey("Sort Order");
-        QltyInTestGenerationRule.Ascending(true);
-        if QltyInTestGenerationRule.FindSet() then
+        QltyInspectionGenRule.SetCurrentKey("Sort Order");
+        QltyInspectionGenRule.Ascending(true);
+        if QltyInspectionGenRule.FindSet() then
             repeat
                 Clear(TemporaryTestMatchRecordRef);
                 TemporaryTestMatchRecordRef.Open(TargetRecordRef.Number(), true);
                 TemporaryTestMatchRecordRef.Copy(TargetRecordRef);
                 if TemporaryTestMatchRecordRef.Insert(false) then;
                 TemporaryTestMatchRecordRef.Reset();
-                TemporaryTestMatchRecordRef.SetView(QltyInTestGenerationRule."Condition Filter");
+                TemporaryTestMatchRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
                 if TemporaryTestMatchRecordRef.FindFirst() then
-                    if (QltyInTestGenerationRule."Item Filter" <> '') and (OptionalItem."No." <> '') then begin
+                    if (QltyInspectionGenRule."Item Filter" <> '') and (OptionalItem."No." <> '') then begin
                         Clear(SearchItem);
                         SearchItem := OptionalItem;
                         SearchItem.SetRecFilter();
                         SearchItem.FilterGroup(20);
-                        SearchItem.SetView(QltyInTestGenerationRule."Item Filter");
+                        SearchItem.SetView(QltyInspectionGenRule."Item Filter");
                         if SearchItem.Count() > 0 then
-                            if DoesMatchItemAttributeFiltersOrNoFilter(QltyInTestGenerationRule, OptionalItem) then begin
-                                TempQltyInTestGenerationRule := QltyInTestGenerationRule;
-                                Found := TempQltyInTestGenerationRule.Insert();
+                            if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
+                                TempQltyInspectionGenRule := QltyInspectionGenRule;
+                                Found := TempQltyInspectionGenRule.Insert();
                             end;
 
                         OptionalItem.FilterGroup(0);
                         SearchItem.FilterGroup(0);
                     end else
-                        if (OptionalItem."No." <> '') and (QltyInTestGenerationRule."Item Attribute Filter" <> '') then begin
-                            if DoesMatchItemAttributeFiltersOrNoFilter(QltyInTestGenerationRule, OptionalItem) then begin
-                                TempQltyInTestGenerationRule := QltyInTestGenerationRule;
-                                Found := TempQltyInTestGenerationRule.Insert();
+                        if (OptionalItem."No." <> '') and (QltyInspectionGenRule."Item Attribute Filter" <> '') then begin
+                            if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
+                                TempQltyInspectionGenRule := QltyInspectionGenRule;
+                                Found := TempQltyInspectionGenRule.Insert();
                             end;
                         end else begin
-                            TempQltyInTestGenerationRule := QltyInTestGenerationRule;
-                            Found := TempQltyInTestGenerationRule.Insert();
+                            TempQltyInspectionGenRule := QltyInspectionGenRule;
+                            Found := TempQltyInspectionGenRule.Insert();
                         end;
-            until (QltyInTestGenerationRule.Next() = 0) or (Found);
+            until (QltyInspectionGenRule.Next() = 0) or (Found);
 
         if not Found then begin
             TempAvailableQltyInspectSourceConfig.Reset();
@@ -247,7 +247,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                         TempAlreadySearchedsQltyInspectSourceConfig := TempAvailableQltyInspectSourceConfig;
                         if TempAlreadySearchedsQltyInspectSourceConfig.Insert() then;
                         if QltyTraversal.FindFromTableLinkedRecordWithToTable(true, false, TempAvailableQltyInspectSourceConfig, TargetRecordRef, FoundLinkRecordRef) then
-                            if FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth, UseActivationFilter, IsManualCreation, FoundLinkRecordRef, OptionalItem, TempAvailableQltyInspectSourceConfig, TempAlreadySearchedsQltyInspectSourceConfig, OptionalSpecificTemplate, TempQltyInTestGenerationRule) then begin
+                            if FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth, UseActivationFilter, IsManualCreation, FoundLinkRecordRef, OptionalItem, TempAvailableQltyInspectSourceConfig, TempAlreadySearchedsQltyInspectSourceConfig, OptionalSpecificTemplate, TempQltyInspectionGenRule) then begin
                                 Found := true;
                                 TargetRecordRef := FoundLinkRecordRef;
                             end;
@@ -261,7 +261,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// If there is an item attribute filter, then it must match.
     /// </summary>
     /// <returns></returns>
-    internal procedure DoesMatchItemAttributeFiltersOrNoFilter(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var Item: Record Item): Boolean
+    internal procedure DoesMatchItemAttributeFiltersOrNoFilter(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var Item: Record Item): Boolean
     var
         TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary;
         TempsItem: Record Item temporary;
@@ -271,10 +271,10 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
         if Item."No." = '' then
             exit(false);
 
-        if QltyInTestGenerationRule."Item Attribute Filter" = '' then
+        if QltyInspectionGenRule."Item Attribute Filter" = '' then
             exit(true);
 
-        QltyFilterHelpers.DeserializeFilterIntoItemAttributesBuffer(QltyInTestGenerationRule."Item Attribute Filter", TempFilterItemAttributesBuffer);
+        QltyFilterHelpers.DeserializeFilterIntoItemAttributesBuffer(QltyInspectionGenRule."Item Attribute Filter", TempFilterItemAttributesBuffer);
         QltyFilterHelpers.SetItemFilterForItemAttributeFilterSearching(Item."No.");
         BindSubscription(QltyFilterHelpers);
         ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer, TempsItem);
@@ -284,19 +284,19 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
         exit(not TempsItem.IsEmpty());
     end;
 
-    internal procedure FindAllCompatibleGenerationRules(TemplateCode: Code[20]; var TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary) Found: Boolean
+    internal procedure FindAllCompatibleGenerationRules(TemplateCode: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        QltyInTestGenerationRule.SetRange("Template Code", TemplateCode);
-        QltyInTestGenerationRule.SetFilter("Activation Trigger", '<>%1', QltyInTestGenerationRule."Activation Trigger"::Disabled);
-        QltyInTestGenerationRule.SetCurrentKey("Sort Order");
-        QltyInTestGenerationRule.Ascending(true);
-        if QltyInTestGenerationRule.FindSet() then
+        QltyInspectionGenRule.SetRange("Template Code", TemplateCode);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '<>%1', QltyInspectionGenRule."Activation Trigger"::Disabled);
+        QltyInspectionGenRule.SetCurrentKey("Sort Order");
+        QltyInspectionGenRule.Ascending(true);
+        if QltyInspectionGenRule.FindSet() then
             repeat
-                TempQltyInTestGenerationRule := QltyInTestGenerationRule;
-                if TempQltyInTestGenerationRule.Insert() then;
+                TempQltyInspectionGenRule := QltyInspectionGenRule;
+                if TempQltyInspectionGenRule.Insert() then;
                 Found := true;
-            until QltyInTestGenerationRule.Next() = 0;
+            until QltyInspectionGenRule.Next() = 0;
     end;
 }

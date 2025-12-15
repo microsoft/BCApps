@@ -11,15 +11,15 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using System.Utilities;
 
-report 20400 "Qlty. Create Inspection Test"
+report 20400 "Qlty. Create Inspection"
 {
-    Caption = 'Create Quality Inspection Test';
+    Caption = 'Create Quality Inspection';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     Permissions =
-        tabledata "Qlty. Inspection Test Header" = Rim,
-        tabledata "Qlty. Inspection Test Line" = Rim;
+        tabledata "Qlty. Inspection Header" = Rim,
+        tabledata "Qlty. Inspection Line" = Rim;
 
     dataset
     {
@@ -29,7 +29,7 @@ report 20400 "Qlty. Create Inspection Test"
 
             trigger OnAfterGetRecord()
             begin
-                CreateQltyInspectionTest();
+                CreateQltyInspection();
             end;
         }
     }
@@ -43,7 +43,7 @@ report 20400 "Qlty. Create Inspection Test"
                 group(DidYouKnow)
                 {
                     Caption = 'Did you know';
-                    InstructionalText = 'Did you know that you can create tests from many subforms in Business Central already? You can create tests from the output journal, production order routing lines, consumption journal, purchase order sub form, sales return subform, and item tracking lines. You can also use power automate or easily extend existing pages to create tests.';
+                    InstructionalText = 'Did you know that you can create inspections from many subforms in Business Central already? You can create inspections from the output journal, production order routing lines, consumption journal, purchase order sub form, sales return subform, and item tracking lines. You can also use power automate or easily extend existing pages to create inspections.';
                 }
                 group(Parameters)
                 {
@@ -69,7 +69,7 @@ report 20400 "Qlty. Create Inspection Test"
                         Caption = 'Source';
                         ToolTip = 'Specifies a reference to which source should be used.';
                         ShowMandatory = true;
-                        
+
                         trigger OnLookup(var Text: Text): Boolean
                         var
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
@@ -81,7 +81,7 @@ report 20400 "Qlty. Create Inspection Test"
                             QltyInspectSourceConfig.SetFilter(Code, '<>%1', '');
                             QltyInspectSourceConfig.SetRange(Enabled, true);
                             QltyInspectSourceConfig.FilterGroup(0);
-                            QltyGenerationRuleMgmt.SetFilterToApplicableTemplates(QltInspectionTemplateToCreate, QltyInspectSourceConfig);
+                            QltyInspecGenRuleMgmt.SetFilterToApplicableTemplates(QltInspectionTemplateToCreate, QltyInspectSourceConfig);
                             QltyInspectSourceConfigList.LookupMode(true);
                             QltyInspectSourceConfigList.SetTableView(QltyInspectSourceConfig);
                             if QltyInspectSourceConfigList.RunModal() = Action::LookupOK then begin
@@ -110,7 +110,7 @@ report 20400 "Qlty. Create Inspection Test"
                     {
                         ApplicationArea = All;
                         Caption = 'Choose Record';
-                        Tooltip = 'Specifies which record you want to create a Quality Inspection Test for.';
+                        Tooltip = 'Specifies which record you want to create a Quality Inspection for.';
                         Visible = VisibleGetRecord;
                         ShowMandatory = true;
                         AssistEdit = true;
@@ -120,14 +120,14 @@ report 20400 "Qlty. Create Inspection Test"
                             AssistEditChooseRecord();
                         end;
                     }
-                    field(ChooseItemNo; TempQltyInspectionTestHeader."Source Item No.")
+                    field(ChooseItemNo; TempQltyInspectionHeader."Source Item No.")
                     {
                         ApplicationArea = All;
                         Caption = 'Item No.';
                         ToolTip = 'Specifies the Item No.';
                         Editable = false;
                     }
-                    field(ChooseSerialNo; TempQltyInspectionTestHeader."Source Serial No.")
+                    field(ChooseSerialNo; TempQltyInspectionHeader."Source Serial No.")
                     {
                         ApplicationArea = All;
                         Caption = 'Serial No.';
@@ -137,10 +137,10 @@ report 20400 "Qlty. Create Inspection Test"
 
                         trigger OnAssistEdit()
                         begin
-                            TempQltyInspectionTestHeader.AssistEditSerialNo();
+                            TempQltyInspectionHeader.AssistEditSerialNo();
                         end;
                     }
-                    field(ChooseLotNo; TempQltyInspectionTestHeader."Source Lot No.")
+                    field(ChooseLotNo; TempQltyInspectionHeader."Source Lot No.")
                     {
                         ApplicationArea = All;
                         Caption = 'Lot No.';
@@ -150,10 +150,10 @@ report 20400 "Qlty. Create Inspection Test"
 
                         trigger OnAssistEdit()
                         begin
-                            TempQltyInspectionTestHeader.AssistEditLotNo();
+                            TempQltyInspectionHeader.AssistEditLotNo();
                         end;
                     }
-                    field(ChoosePackageNo; TempQltyInspectionTestHeader."Source Package No.")
+                    field(ChoosePackageNo; TempQltyInspectionHeader."Source Package No.")
                     {
                         ApplicationArea = All;
                         Caption = 'Package No.';
@@ -163,10 +163,10 @@ report 20400 "Qlty. Create Inspection Test"
 
                         trigger OnAssistEdit()
                         begin
-                            TempQltyInspectionTestHeader.AssistEditPackageNo();
+                            TempQltyInspectionHeader.AssistEditPackageNo();
                         end;
                     }
-                    field(ChooseSourceQuantity; TempQltyInspectionTestHeader."Source Quantity (Base)")
+                    field(ChooseSourceQuantity; TempQltyInspectionHeader."Source Quantity (Base)")
                     {
                         ApplicationArea = All;
                         Caption = 'Source Quantity (base)';
@@ -207,9 +207,9 @@ report 20400 "Qlty. Create Inspection Test"
 
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        QltyGenerationRuleMgmt: Codeunit "Qlty. Generation Rule Mgmt.";
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         Target: RecordId;
         TargetRecordRef: RecordRef;
@@ -228,7 +228,7 @@ report 20400 "Qlty. Create Inspection Test"
         VisibleSourceQuantity: Boolean;
         DidChangeSourceQuantity: Boolean;
         NotAValidQltyInspectionTemplateErr: Label '''%1'' is not a valid Quality Inspection Template. Please re-configure the available Quality Inspection Templates.', Comment = '%1=The template that was expected';
-        PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection Test for, then try again.';
+        PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection for, then try again.';
 
     trigger OnPreReport()
     var
@@ -248,26 +248,26 @@ report 20400 "Qlty. Create Inspection Test"
     /// <param name="QltyInspectionTemplateCode">Code[20]. The quality inspection template code to default to.</param>
     procedure InitializeReportParameters(QltyInspectionTemplateCode: Code[20])
     var
-        TempCompatibleQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary;
+        TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
     begin
         QltInspectionTemplateToCreate := QltyInspectionTemplateCode;
-        OnAfterInitializeCreateTestReportParameters(QltInspectionTemplateToCreate, SourceTable, CustomFilter, Target, TargetRecordRef, TempQltyInspectionTestHeader);
+        OnAfterInitializeCreateTestReportParameters(QltInspectionTemplateToCreate, SourceTable, CustomFilter, Target, TargetRecordRef, TempQltyInspectionHeader);
 
         if (QltyInspectionTemplateCode <> '') and (SourceTable = '') then begin
             QltyInspectSourceConfig.Reset();
-            if QltyGenerationRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInTestGenerationRule) then begin
+            if QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then begin
                 QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Test);
                 QltyInspectSourceConfig.SetRange(Enabled, true);
-                if TempCompatibleQltyInTestGenerationRule.FindSet() then
+                if TempCompatibleQltyInspectionGenRule.FindSet() then
                     repeat
-                        QltyInspectSourceConfig.SetRange("From Table No.", TempCompatibleQltyInTestGenerationRule."Source Table No.");
+                        QltyInspectSourceConfig.SetRange("From Table No.", TempCompatibleQltyInspectionGenRule."Source Table No.");
                         if QltyInspectSourceConfig.FindFirst() then
                             SourceTable := QltyInspectSourceConfig.Code;
-                    until (TempCompatibleQltyInTestGenerationRule.Next() = 0) or (SourceTable <> '');
+                    until (TempCompatibleQltyInspectionGenRule.Next() = 0) or (SourceTable <> '');
 
                 if SourceTable = '' then begin
                     QltyInspectSourceConfig.Reset();
-                    QltyGenerationRuleMgmt.SetFilterToApplicableTemplates(QltInspectionTemplateToCreate, QltyInspectSourceConfig);
+                    QltyInspecGenRuleMgmt.SetFilterToApplicableTemplates(QltInspectionTemplateToCreate, QltyInspectSourceConfig);
                     QltyInspectSourceConfig.SetRange(Enabled, true);
                     if QltyInspectSourceConfig.FindFirst() then
                         SourceTable := QltyInspectSourceConfig.Code;
@@ -279,7 +279,7 @@ report 20400 "Qlty. Create Inspection Test"
 
     local procedure ClearParameters()
     begin
-        Clear(TempQltyInspectionTestHeader);
+        Clear(TempQltyInspectionHeader);
         Clear(CustomFilter);
         Clear(Target);
     end;
@@ -298,7 +298,7 @@ report 20400 "Qlty. Create Inspection Test"
         VisibleGetRecord := true;
     end;
 
-    local procedure CreateQltyInspectionTest()
+    local procedure CreateQltyInspection()
     var
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         NullCheckRecordId: RecordId;
@@ -314,20 +314,20 @@ report 20400 "Qlty. Create Inspection Test"
         TargetRecordRef.FindFirst();
 
         TempTrackingSpecification."Entry No." := 1;
-        TempTrackingSpecification."Item No." := TempQltyInspectionTestHeader."Source Item No.";
-        TempTrackingSpecification."Variant Code" := TempQltyInspectionTestHeader."Source Variant Code";
-        TempTrackingSpecification."Lot No." := TempQltyInspectionTestHeader."Source Lot No.";
-        TempTrackingSpecification."Serial No." := TempQltyInspectionTestHeader."Source Serial No.";
-        TempTrackingSpecification."Package No." := TempQltyInspectionTestHeader."Source Package No.";
+        TempTrackingSpecification."Item No." := TempQltyInspectionHeader."Source Item No.";
+        TempTrackingSpecification."Variant Code" := TempQltyInspectionHeader."Source Variant Code";
+        TempTrackingSpecification."Lot No." := TempQltyInspectionHeader."Source Lot No.";
+        TempTrackingSpecification."Serial No." := TempQltyInspectionHeader."Source Serial No.";
+        TempTrackingSpecification."Package No." := TempQltyInspectionHeader."Source Package No.";
         if DidChangeSourceQuantity then begin
-            TempTrackingSpecification."Quantity (Base)" := TempQltyInspectionTestHeader."Source Quantity (Base)";
-            TempTrackingSpecification."Qty. to Handle (Base)" := TempQltyInspectionTestHeader."Source Quantity (Base)";
-            TempTrackingSpecification."Qty. to Handle" := TempQltyInspectionTestHeader."Source Quantity (Base)";
+            TempTrackingSpecification."Quantity (Base)" := TempQltyInspectionHeader."Source Quantity (Base)";
+            TempTrackingSpecification."Qty. to Handle (Base)" := TempQltyInspectionHeader."Source Quantity (Base)";
+            TempTrackingSpecification."Qty. to Handle" := TempQltyInspectionHeader."Source Quantity (Base)";
         end;
 
         TempTrackingSpecification.Insert(false);
 
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(TargetRecordRef, TempTrackingSpecification, Dummy3Variant, Dummy4Variant, true, QltInspectionTemplateToCreate);
+        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(TargetRecordRef, TempTrackingSpecification, Dummy3Variant, Dummy4Variant, true, QltInspectionTemplateToCreate);
     end;
 
     local procedure AssistEditChooseRecord()
@@ -347,20 +347,20 @@ report 20400 "Qlty. Create Inspection Test"
                 TargetRecordRef := VariantForRecordRef;
                 Target := TargetRecordRef.RecordId();
 
-                TempQltyInspectionTestHeader.SetIsCreating(true);
-                if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionTestHeader, false, false) then
-                    Clear(TempQltyInspectionTestHeader);
+                TempQltyInspectionHeader.SetIsCreating(true);
+                if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionHeader, false, false) then
+                    Clear(TempQltyInspectionHeader);
 
                 TempItemTrackingSetup."Lot No. Required" := true;
                 TempItemTrackingSetup."Serial No. Required" := true;
                 TempItemTrackingSetup."Package No. Required" := true;
-                TempQltyInspectionTestHeader.IsItemTrackingUsed(TempItemTrackingSetup);
+                TempQltyInspectionHeader.IsItemTrackingUsed(TempItemTrackingSetup);
                 EditLotNo := TempItemTrackingSetup."Lot No. Required";
                 EditSerialNo := TempItemTrackingSetup."Serial No. Required";
                 EditPackageNo := TempItemTrackingSetup."Package No. Required";
             end;
             EditSourceQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
-            VisibleSourceQuantity := TempQltyInspectionTestHeader."Source Quantity (Base)" <> 0;
+            VisibleSourceQuantity := TempQltyInspectionHeader."Source Quantity (Base)" <> 0;
 
             TargetRecordRef.Close();
             ClearVariables();
@@ -375,9 +375,9 @@ report 20400 "Qlty. Create Inspection Test"
     /// <param name="CustomFilter">var Text.</param>
     /// <param name="Target">var RecordId.</param>
     /// <param name="TargetRecordRef">var RecordRef.</param>
-    /// <param name="TempQltyInspectionTestHeader">var Record "Qlty. Inspection Test Header" temporary.</param>
+    /// <param name="TempQltyInspectionHeader">var Record "Qlty. Inspection Header" temporary.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitializeCreateTestReportParameters(var QltyInspectionTemplateCode: Code[20]; var SourceTable: Code[20]; var CustomFilter: Text; var Target: RecordId; var TargetRecordRef: RecordRef; var TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary)
+    local procedure OnAfterInitializeCreateTestReportParameters(var QltyInspectionTemplateCode: Code[20]; var SourceTable: Code[20]; var CustomFilter: Text; var Target: RecordId; var TargetRecordRef: RecordRef; var TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary)
     begin
     end;
 }

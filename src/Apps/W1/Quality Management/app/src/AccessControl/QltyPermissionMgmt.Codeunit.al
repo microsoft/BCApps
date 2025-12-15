@@ -38,9 +38,9 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Return value of type Boolean, true if the current user can has permission to read test results in general</returns>
     procedure CanReadTestResults(): Boolean
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        exit(QltyInspectionTestHeader.ReadPermission());
+        exit(QltyInspectionHeader.ReadPermission());
     end;
 
     /// <summary>
@@ -104,7 +104,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// TestCanDeleteOpenTest will determine if the current user can delete an open test.
+    /// TestCanDeleteOpenTest will determine if the current user can delete an open inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
@@ -115,7 +115,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanDeleteOpenTest. True if the user  can delete an open test.
+    /// CanDeleteOpenTest. True if the user  can delete an open inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     procedure CanDeleteOpenTest(): Boolean
@@ -124,11 +124,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// TestCanDeleteFinishedTest will determine if the current user can delete a finished test.
+    /// TestCanDeleteFinishedInspection will determine if the current user can delete a finished test.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanDeleteFinishedTest()
+    procedure TestCanDeleteFinishedInspection()
     begin
         if not CanDeleteFinishedTest() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionDeleteFinishedTest());
@@ -230,9 +230,9 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>Whether or not auto-assignment should occur.</returns>
     procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        ShouldAssign := QltyInspectionTestHeader.WritePermission();
+        ShouldAssign := QltyInspectionHeader.WritePermission();
         ShouldPrompt := false;
     end;
 
@@ -254,23 +254,23 @@ codeunit 20406 "Qlty. Permission Mgmt."
             GetCaptionCreateTestAuto():
                 Result := true;
             GetCaptionCreateTestManual():
-                Result := GetCanInsertTableData(Database::"Qlty. Inspection Test Header");
+                Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
             GetCaptionCreateReTest():
-                Result := GetCanInsertTableData(Database::"Qlty. Inspection Test Header");
+                Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
             GetCaptionChangeOthersTests():
                 Result := GetIsSuperVisorRoleAssigned();
             GetCaptionDeleteFinishedTest():
-                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Test Header") and GetIsSuperVisorRoleAssigned();
+                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
             GetCaptionDeleteOpenTest():
-                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Test Header");
+                Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header");
             GetCaptionChangeTrackingNo():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header");
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
             GetCaptionFinishTest():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header");
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
             GetCaptionReopenTest():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header");
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
             GetCaptionChangeSourceQuantity():
-                Result := GetCanModifyTableData(Database::"Qlty. Inspection Test Header") and GetIsSuperVisorRoleAssigned();
+                Result := GetCanModifyTableData(Database::"Qlty. Inspection Header") and GetIsSuperVisorRoleAssigned();
             GetCaptionEditLineComments():
                 Result := GetCanModifyTableData(Database::"Record Link");
         end;

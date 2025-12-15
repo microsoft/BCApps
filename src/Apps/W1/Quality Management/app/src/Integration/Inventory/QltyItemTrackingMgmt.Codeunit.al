@@ -298,18 +298,18 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <summary>
     /// Gets the most recent expiration date for the given item,lot,serial/lot.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="LocationCode"></param>
     /// <returns></returns>   
-    procedure GetExpirationDate(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; LocationCode: Code[10]) ExpirationDate: Date
+    procedure GetExpirationDate(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]) ExpirationDate: Date
     begin
         exit(GetExpirationDate(
                 LocationCode,
-                QltyInspectionTestHeader."Source Item No.",
-                QltyInspectionTestHeader."Source Variant Code",
-                QltyInspectionTestHeader."Source Lot No.",
-                QltyInspectionTestHeader."Source Serial No.",
-                QltyInspectionTestHeader."Source Package No."));
+                QltyInspectionHeader."Source Item No.",
+                QltyInspectionHeader."Source Variant Code",
+                QltyInspectionHeader."Source Lot No.",
+                QltyInspectionHeader."Source Serial No.",
+                QltyInspectionHeader."Source Package No."));
     end;
 
     local procedure GetExpirationDate(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[20]; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]) ExpirationDate: Date
@@ -369,7 +369,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// To simplify a situation where the Purchase Order Return line may have multiple associated tracking lines from the originating Purchase Receipt line, or may be based off of a receipt line with the wrong 
     /// item tracking, this deletes all Reservation Entries for the line and creates a single entry with the updated quantity.
     /// </summary>
-    internal procedure DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ReturnOrderPurchaseLine: Record "Purchase Line"; QtyToReturn: Decimal)
+    internal procedure DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader: Record "Qlty. Inspection Header"; ReturnOrderPurchaseLine: Record "Purchase Line"; QtyToReturn: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -378,22 +378,22 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         TempItemTrackingSetup."Lot No. Required" := true;
         TempItemTrackingSetup."Serial No. Required" := true;
         TempItemTrackingSetup."Package No. Required" := true;
-        QltyInspectionTestHeader.IsItemTrackingUsed(TempItemTrackingSetup);
+        QltyInspectionHeader.IsItemTrackingUsed(TempItemTrackingSetup);
 
         ReservationEntry.SetRange("Location Code", ReturnOrderPurchaseLine."Location Code");
-        ReservationEntry.SetRange("Item No.", QltyInspectionTestHeader."Source Item No.");
+        ReservationEntry.SetRange("Item No.", QltyInspectionHeader."Source Item No.");
         ReservationEntry.SetRange("Source Type", Database::"Purchase Line");
         ReservationEntry.SetRange("Source ID", ReturnOrderPurchaseLine."Document No.");
         ReservationEntry.SetRange("Source Ref. No.", ReturnOrderPurchaseLine."Line No.");
         ReservationEntry.SetRange(Positive, false);
-        if QltyInspectionTestHeader."Source Variant Code" <> '' then
-            ReservationEntry.SetRange("Variant Code", QltyInspectionTestHeader."Source Variant Code");
+        if QltyInspectionHeader."Source Variant Code" <> '' then
+            ReservationEntry.SetRange("Variant Code", QltyInspectionHeader."Source Variant Code");
         if TempItemTrackingSetup."Lot No. Required" then
-            ReservationEntry.SetRange("Lot No.", QltyInspectionTestHeader."Source Lot No.");
+            ReservationEntry.SetRange("Lot No.", QltyInspectionHeader."Source Lot No.");
         if TempItemTrackingSetup."Serial No. Required" then
-            ReservationEntry.SetRange("Serial No.", QltyInspectionTestHeader."Source Serial No.");
+            ReservationEntry.SetRange("Serial No.", QltyInspectionHeader."Source Serial No.");
         if TempItemTrackingSetup."Package No. Required" then
-            ReservationEntry.SetRange("Package No.", QltyInspectionTestHeader."Source Package No.");
+            ReservationEntry.SetRange("Package No.", QltyInspectionHeader."Source Package No.");
         if ReservationEntry.FindFirst() then
             ExpirationDate := ReservationEntry."Expiration Date";
 
@@ -403,16 +403,16 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         ReservationEntry.SetRange("Package No.");
         if not ReservationEntry.IsEmpty() then
             ReservationEntry.DeleteAll();
-        CreatePurchaseReturnReservationEntries(ReturnOrderPurchaseLine, QltyInspectionTestHeader."Source Serial No.", QltyInspectionTestHeader."Source Lot No.", QltyInspectionTestHeader."Source Package No.", ExpirationDate, QtyToReturn);
+        CreatePurchaseReturnReservationEntries(ReturnOrderPurchaseLine, QltyInspectionHeader."Source Serial No.", QltyInspectionHeader."Source Lot No.", QltyInspectionHeader."Source Package No.", ExpirationDate, QtyToReturn);
     end;
 
     /// <summary>
     /// Create 
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="TransferLine"></param>
-    internal procedure CreateOutboundTransferLineReservationEntries(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TransferLine: Record "Transfer Line")
+    internal procedure CreateOutboundTransferLineReservationEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TransferLine: Record "Transfer Line")
     var
         Item: Record Item;
         InstructionForReservationEntry: Record "Reservation Entry";
@@ -425,7 +425,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         ReceiptDate: Date;
         ShipDate: Date;
     begin
-        if (QltyInspectionTestHeader."Source Serial No." = '') and (QltyInspectionTestHeader."Source Lot No." = '') and (QltyInspectionTestHeader."Source Package No." = '') then
+        if (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Package No." = '') then
             exit;
 
         if TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)" = 0 then
@@ -437,8 +437,8 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         Item.Get(TransferLine."Item No.");
         Item.TestField("Item Tracking Code");
 
-        if (TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)" > 1) and (QltyInspectionTestHeader."Source Serial No." <> '') then
-            Error(SerialNumberAlreadyEnteredErr, QltyInspectionTestHeader."Source Serial No.");
+        if (TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)" > 1) and (QltyInspectionHeader."Source Serial No." <> '') then
+            Error(SerialNumberAlreadyEnteredErr, QltyInspectionHeader."Source Serial No.");
 
         ExpirationDate := TempQuantityToActQltyDispositionBuffer."New Expiration Date";
         if ExpirationDate = 0D then
@@ -446,15 +446,15 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
                 TransferLine."Transfer-from Code",
                 TransferLine."Item No.",
                 TransferLine."Variant Code",
-                QltyInspectionTestHeader."Source Lot No.",
-                QltyInspectionTestHeader."Source Serial No.",
-                QltyInspectionTestHeader."Source Package No.");
+                QltyInspectionHeader."Source Lot No.",
+                QltyInspectionHeader."Source Serial No.",
+                QltyInspectionHeader."Source Package No.");
         if ExpirationDate <> 0D then
             CreateReservEntry.SetNewExpirationDate(ExpirationDate);
 
-        InstructionForReservationEntry."Serial No." := QltyInspectionTestHeader."Source Serial No.";
-        InstructionForReservationEntry."Lot No." := QltyInspectionTestHeader."Source Lot No.";
-        InstructionForReservationEntry."Package No." := QltyInspectionTestHeader."Source Package No.";
+        InstructionForReservationEntry."Serial No." := QltyInspectionHeader."Source Serial No.";
+        InstructionForReservationEntry."Lot No." := QltyInspectionHeader."Source Lot No.";
+        InstructionForReservationEntry."Package No." := QltyInspectionHeader."Source Package No.";
         if ExpirationDate <> 0D then
             InstructionForReservationEntry."Expiration Date" := ExpirationDate;
 
@@ -588,26 +588,26 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <summary>
     /// Creates a new warehouse journal line reservation entry
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
     /// <param name="WhseItemTrackingLine"></param>
-    procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         ExpirationDate: Date;
         Handled: Boolean;
         NextEntryNo: Integer;
     begin
         Clear(WhseItemTrackingLine);
-        OnBeforeCreateWarehouseJournalLineReservationEntry(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, Handled);
+        OnBeforeCreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, Handled);
         if Handled then
             exit;
 
         ExpirationDate := 0D;
-        if (QltyInspectionTestHeader."Source Lot No." <> '') or (QltyInspectionTestHeader."Source Serial No." <> '') or (QltyInspectionTestHeader."Source Package No." <> '') then
-            ExpirationDate := GetExpirationDate(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
+        if (QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Package No." <> '') then
+            ExpirationDate := GetExpirationDate(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
 
-        if (QltyInspectionTestHeader."Source Serial No." = '') and (QltyInspectionTestHeader."Source Lot No." = '') and (QltyInspectionTestHeader."Source Package No." = '') then
+        if (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Package No." = '') then
             exit;
 
         if TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)" = 0 then
@@ -616,8 +616,8 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         if not GetIsWarehouseTracked(WarehouseJournalLine."Item No.") then
             exit;
 
-        if (TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)" > 1) and (QltyInspectionTestHeader."Source Serial No." <> '') then
-            Error(SerialNumberAlreadyEnteredErr, QltyInspectionTestHeader."Source Serial No.");
+        if (TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)" > 1) and (QltyInspectionHeader."Source Serial No." <> '') then
+            Error(SerialNumberAlreadyEnteredErr, QltyInspectionHeader."Source Serial No.");
 
         WhseItemTrackingLine.Reset();
         NextEntryNo := 1 + WhseItemTrackingLine.GetLastEntryNo();
@@ -630,10 +630,10 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         WhseItemTrackingLine.Validate("Source Ref. No.", WarehouseJournalLine."Line No.");
         WhseItemTrackingLine.Validate("Item No.", WarehouseJournalLine."Item No.");
         WhseItemTrackingLine.Validate("Variant Code", WarehouseJournalLine."Variant Code");
-        WhseItemTrackingLine.Validate("Lot No.", QltyInspectionTestHeader."Source Lot No.");
-        WhseItemTrackingLine.Validate("Serial No.", QltyInspectionTestHeader."Source Serial No.");
+        WhseItemTrackingLine.Validate("Lot No.", QltyInspectionHeader."Source Lot No.");
+        WhseItemTrackingLine.Validate("Serial No.", QltyInspectionHeader."Source Serial No.");
 
-        WhseItemTrackingLine.Validate("Package No.", QltyInspectionTestHeader."Source Package No.");
+        WhseItemTrackingLine.Validate("Package No.", QltyInspectionHeader."Source Package No.");
         if ExpirationDate <> 0D then
             WhseItemTrackingLine.Validate("Expiration Date", ExpirationDate);
 
@@ -651,7 +651,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
             WhseItemTrackingLine.Validate("New Expiration Date", TempQuantityToActQltyDispositionBuffer."New Expiration Date");
         WhseItemTrackingLine.Insert(true);
 
-        OnAfterCreateWarehouseJournalLineReservationEntry(QltyInspectionTestHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, WhseItemTrackingLine);
+        OnAfterCreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, WhseItemTrackingLine);
     end;
 
     [IntegrationEvent(false, false)]
@@ -662,12 +662,12 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <summary>
     /// Occurs before a warehouse journal line reservation entry has been made as a result of a dispositoin.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WhseJnlWarehouseJournalLine"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateWarehouseJournalLineReservationEntry(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var Handled: Boolean)
     begin
     end;
 
@@ -697,12 +697,12 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <summary>
     /// Occurs after the creation of a warehouse journal line reservation entry.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WhseJnlWarehouseJournalLine"></param>
     /// <param name="WhseItemTrackingLine"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCreateWarehouseJournalLineReservationEntry(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    local procedure OnAfterCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     begin
     end;
 }

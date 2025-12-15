@@ -15,16 +15,16 @@ pageextension 20424 "Qlty. Posted Direct Transfer" extends "Posted Direct Transf
             group(Qlty_Management)
             {
                 ShowCaption = false;
-                Visible = (Rec."Qlty. Inspection Test No." <> '');
+                Visible = (Rec."Qlty. Inspection No." <> '');
 
-                field("Qlty. Inspection Test No."; Rec."Qlty. Inspection Test No.")
+                field("Qlty. Inspection No."; Rec."Qlty. Inspection No.")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;
 
                     trigger OnDrillDown()
                     begin
-                        Rec.QltyShowRelatedInspectionTest();
+                        Rec.QltyShowRelatedInspection();
                     end;
                 }
                 field("Qlty. Inspection Retest No."; Rec."Qlty. Inspection Retest No.")
@@ -34,7 +34,7 @@ pageextension 20424 "Qlty. Posted Direct Transfer" extends "Posted Direct Transf
 
                     trigger OnDrillDown()
                     begin
-                        Rec.QltyShowRelatedInspectionTest();
+                        Rec.QltyShowRelatedInspection();
                     end;
                 }
             }

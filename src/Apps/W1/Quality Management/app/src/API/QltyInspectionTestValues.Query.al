@@ -11,31 +11,31 @@ using Microsoft.QualityManagement.Document;
 /// Power automate friendly web service for quality inspections.
 /// This web service is used to help list test values.
 /// </summary>
-query 20401 "Qlty. Inspection Test Values"
+query 20401 "Qlty. Inspection Values"
 {
     QueryType = API;
-    Caption = 'Quality Inspection Test Values', Locked = true;
+    Caption = 'Quality Inspection Values', Locked = true;
     APIPublisher = 'microsoft';
     APIGroup = 'qualityInspection';
     APIVersion = 'v1.0';
-    EntityName = 'qualityInspectionTestValue';
-    EntityCaption = 'Quality Inspection Test Value';
-    EntitySetName = 'qualityInspectionTestValues';
-    EntitySetCaption = 'Quality Inspection Test Values';
+    EntityName = 'qualityInspectionValue';
+    EntityCaption = 'Quality Inspection Value';
+    EntitySetName = 'qualityInspectionValues';
+    EntitySetCaption = 'Quality Inspection Values';
     DataAccessIntent = ReadOnly;
     OrderBy = ascending(lineSystemModifiedAt);
 
     elements
     {
-        dataitem(QltyInspectionTestHeader; "Qlty. Inspection Test Header")
+        dataitem(QltyInspectionHeader; "Qlty. Inspection Header")
         {
             column(systemId; SystemId) { }
             column(templateCode; "Template Code") { }
-            column(testNo; "No.") { }
+            column(inspectionNo; "No.") { }
             column(retestNo; "Retest No.") { }
-            column(testStatus; Status)
+            column(inspectionStatus; Status)
             {
-                Caption = 'testStatus', Locked = true;
+                Caption = 'inspectionStatus', Locked = true;
             }
             column(systemCreatedBy; SystemCreatedBy) { }
             column(systemCreatedAt; SystemCreatedAt) { }
@@ -79,9 +79,9 @@ query 20401 "Qlty. Inspection Test Values"
             column(sourceCustom9; "Source Custom 9") { }
             column(sourceCustom10; "Source Custom 10") { }
 
-            dataitem(QltyInspectionTestLine; "Qlty. Inspection Test Line")
+            dataitem(QltyInspectionLine; "Qlty. Inspection Line")
             {
-                DataItemLink = "Test No." = QltyInspectionTestHeader."No.", "Retest No." = QltyInspectionTestHeader."Retest No.";
+                DataItemLink = "Inspection No." = QltyInspectionHeader."No.", "Retest No." = QltyInspectionHeader."Retest No.";
 
                 column(lineSystemId; SystemId) { }
                 column(lineNo; "Line No.") { }

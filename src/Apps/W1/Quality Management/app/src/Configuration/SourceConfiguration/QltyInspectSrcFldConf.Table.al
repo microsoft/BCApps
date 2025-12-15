@@ -130,7 +130,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
                             Error(TargetConfigErr);
 
                 if Rec."To Type" = Rec."To Type"::Test then
-                    Rec."To Table No." := Database::"Qlty. Inspection Test Header";
+                    Rec."To Table No." := Database::"Qlty. Inspection Header";
             end;
         }
         field(10; "Display As"; Text[80])
@@ -206,11 +206,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         FieldNumber: Integer;
     begin
         if GetFromFieldRecord(CurrentField) then begin
-            if (Rec."To Table No." = Database::"Qlty. Inspection Test Header") or (Rec."To Type" = Rec."To Type"::Test) then
+            if (Rec."To Table No." = Database::"Qlty. Inspection Header") or (Rec."To Type" = Rec."To Type"::Test) then
                 if CurrentField.Type = CurrentField.Type::Option then
-                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Test Header", -1, SourceTok)
+                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Header", -1, SourceTok)
                 else
-                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Test Header", CurrentField.Type, SourceTok)
+                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Header", CurrentField.Type, SourceTok)
             else
                 FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Rec."To Table No.", CurrentField.Type, '');
 

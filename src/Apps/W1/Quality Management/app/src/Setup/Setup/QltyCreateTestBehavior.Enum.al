@@ -5,16 +5,16 @@
 namespace Microsoft.QualityManagement.Setup.Setup;
 
 /// <summary>
-/// This behavior controls how tests should be created.
-/// If extending this make sure to implement OnCustomCreateTestBehavior
+/// This behavior controls how quality inspections should be created.
+/// If extending this make sure to implement OnCustomCreateInspectionBehavior
 /// </summary>
-enum 20402 "Qlty. Create Test Behavior"
+enum 20402 "Qlty. Create Inspect. Behavior"
 {
-    Caption = 'Quality Create Test Behavior';
+    Caption = 'Quality Create Inspection Behavior';
 
-    value(0; "Always create new test")
+    value(0; "Always create new inspection")
     {
-        Caption = 'Always create a new test';
+        Caption = 'Always create a new inspection';
     }
     value(1; "Create retest if matching test is finished")
     {
@@ -24,9 +24,9 @@ enum 20402 "Qlty. Create Test Behavior"
     {
         Caption = 'Always create a retest';
     }
-    value(3; "Use existing open test if available")
+    value(3; "Use existing open inspection if available")
     {
-        Caption = 'Use existing open test if available';
+        Caption = 'Use existing open inspection if available';
     }
     value(4; "Use any existing test if available")
     {

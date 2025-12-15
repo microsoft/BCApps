@@ -65,47 +65,47 @@ page 20438 "Qlty. Management Setup Wizard"
             }
             group(SettingsFor_StepWhatAreYouMakingQITestsFor)
             {
-                Caption = 'Where do you plan on using Quality Inspection Tests?';
+                Caption = 'Where do you plan on using Quality Inspections?';
                 Visible = (StepWhatAreYouMakingQITestsFor = CurrentStepCounter);
-                InstructionalText = 'Where do you plan on using Quality Inspection Tests?';
+                InstructionalText = 'Where do you plan on using Quality Inspections?';
 
                 group(SettingsFor_WhatFor_ProductionOutput)
                 {
                     Caption = 'Production';
-                    InstructionalText = 'I want to create tests when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
+                    InstructionalText = 'I want to create inspections when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
 
                     field(ChooseWhatFor_ProductionOutput; WhatForProduction)
                     {
                         ApplicationArea = Manufacturing;
                         ShowCaption = false;
-                        Caption = 'I want to create tests when recording production output.';
-                        ToolTip = 'I want to create tests when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
+                        Caption = 'I want to create inspections when recording production output.';
+                        ToolTip = 'I want to create inspections when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
                     }
                 }
                 group(SettingsFor_WhatFor_Receiving)
                 {
                     Caption = 'Receiving';
-                    InstructionalText = 'I want to create tests when receiving inventory.';
+                    InstructionalText = 'I want to create inspections when receiving inventory.';
 
                     field(ChooseWhatFor_Receiving; WhatForReceiving)
                     {
                         ApplicationArea = All;
                         ShowCaption = false;
-                        Caption = 'I want to create tests when receiving inventory.';
-                        ToolTip = 'I want to create tests when receiving inventory.';
+                        Caption = 'I want to create inspections when receiving inventory.';
+                        ToolTip = 'I want to create inspections when receiving inventory.';
                     }
                 }
                 group(SettingsFor_WhatFor_SomethingElse)
                 {
                     Caption = 'Something Else';
-                    InstructionalText = 'You can use Quality Management to create manual tests for effectively any table. Use this option if you want to create tests in other areas, or if you want to manually configure this later.';
+                    InstructionalText = 'You can use Quality Management to create manual tests for effectively any table. Use this option if you want to create inspections in other areas, or if you want to manually configure this later.';
 
                     field(ChooseWhatFor_SomethingElse; WhatForSomethingElse)
                     {
                         ApplicationArea = All;
                         ShowCaption = false;
-                        Caption = 'I want to create tests for something different.';
-                        ToolTip = 'I want to create tests for something different.';
+                        Caption = 'I want to create inspections for something different.';
+                        ToolTip = 'I want to create inspections for something different.';
                     }
                 }
             }
@@ -289,14 +289,14 @@ page 20438 "Qlty. Management Setup Wizard"
 
                 group(SettingsFor__Show_AutoAndManual)
                 {
-                    Caption = 'Show Automatic and Manually Created Tests';
+                    Caption = 'Show Automatic and manually created inspections';
                     InstructionalText = 'Use this when you want a test shown to the person who triggered the test. For example if you are creating tests automatically when posting then the test would show to the person who posted. Do not use this option if the person doing the activity triggering the test is not the person recording the data.';
 
                     field(ChooseShow_AutoAndManual; ShowAutoAndManual)
                     {
                         ApplicationArea = All;
                         ShowCaption = false;
-                        Caption = 'Show Automatic and Manually Created Tests';
+                        Caption = 'Show Automatic and manually created inspections';
                         ToolTip = 'Use this when you want a test shown to the person who triggered the test. For example if you are creating tests automatically when posting then the test would show to the person who posted. Do not use this option if the person doing the activity triggering the test is not the person recording the data.';
 
                         trigger OnValidate()
@@ -308,14 +308,14 @@ page 20438 "Qlty. Management Setup Wizard"
                 }
                 group(SettingsFor__Show_OnlyManual)
                 {
-                    Caption = 'Only Manually Created Tests';
+                    Caption = 'Only manually created inspections';
                     InstructionalText = 'Use this when you want tests that were created automatically to not show up immediately. If someone presses a button to create a test to make sure that those show up.';
 
                     field(ChooseShow_OnlyManual; ShowOnlyManual)
                     {
                         ApplicationArea = All;
                         ShowCaption = false;
-                        Caption = 'Only Manually Created Tests';
+                        Caption = 'Only manually created inspections';
                         ToolTip = 'Use this when you want tests that were created automatically to not show up immediately, however if someone presses a button to create a test to make sure that those show up.';
 
                         trigger OnValidate()
@@ -353,7 +353,7 @@ page 20438 "Qlty. Management Setup Wizard"
                 {
                     ShowCaption = false;
                     Visible = ShowHTMLHeader;
-                    InstructionalText = 'Thank you for installing Quality Management. Get started by navigating to Quality Inspection Templates and Test Generation Rules.';
+                    InstructionalText = 'Thank you for installing Quality Management. Get started by navigating to Quality Inspection Templates and Inspection Generation Rules.';
                 }
             }
         }
@@ -658,11 +658,11 @@ page 20438 "Qlty. Management Setup Wizard"
 
         case true of
             ShowAutoAndManual:
-                QltyManagementSetup."Show Test Behavior" := QltyManagementSetup."Show Test Behavior"::"Automatic and manually created tests";
+                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
             ShowOnlyManual:
-                QltyManagementSetup."Show Test Behavior" := QltyManagementSetup."Show Test Behavior"::"Only manually created tests";
+                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
             ShowNever:
-                QltyManagementSetup."Show Test Behavior" := QltyManagementSetup."Show Test Behavior"::"Do not show created tests";
+                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
         end;
 
         if QltyManagementSetup.Visibility = QltyManagementSetup.Visibility::Hide then
@@ -705,9 +705,9 @@ page 20438 "Qlty. Management Setup Wizard"
                 ReceiveCreateTestsAutomaticallyWarehouseReceipt or
                 ReceiveCreateTestsAutomaticallySalesReturn);
 
-            ShowAutoAndManual := QltyManagementSetup."Show Test Behavior" = QltyManagementSetup."Show Test Behavior"::"Automatic and manually created tests";
-            ShowOnlyManual := QltyManagementSetup."Show Test Behavior" = QltyManagementSetup."Show Test Behavior"::"Only manually created tests";
-            ShowNever := QltyManagementSetup."Show Test Behavior" = QltyManagementSetup."Show Test Behavior"::"Do not show created tests";
+            ShowAutoAndManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
+            ShowOnlyManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
+            ShowNever := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
         end
     end;
 }

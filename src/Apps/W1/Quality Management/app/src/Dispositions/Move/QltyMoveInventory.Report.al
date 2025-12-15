@@ -20,7 +20,7 @@ report 20404 "Qlty. Move Inventory"
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "Template Code";
 
@@ -30,12 +30,12 @@ report 20404 "Qlty. Move Inventory"
                 InventoryQltyDispMoveAutoChoose: Codeunit "Qlty. Disp. Move Auto Choose";
             begin
                 if (SpecificQuantity = 0) and (QltyQuantityBehavior = QltyQuantityBehavior::"Specific Quantity") then begin
-                    SpecificQuantity := CurrentTest."Source Quantity (Base)";
+                    SpecificQuantity := CurrentInspection."Source Quantity (Base)";
                     if SpecificQuantity = 0 then
                         Error(InventoryNeedsQuantityErr);
                 end;
 
-                if (QltyQuantityBehavior = QltyQuantityBehavior::"Sample Quantity") and (CurrentTest."Sample Size" <= 0) then
+                if (QltyQuantityBehavior = QltyQuantityBehavior::"Sample Quantity") and (CurrentInspection."Sample Size" <= 0) then
                     Error(SampleMoveErr);
 
                 TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with automatic choice";
@@ -49,7 +49,7 @@ report 20404 "Qlty. Move Inventory"
                 TempInstructionQltyDispositionBuffer."New Location Code" := DestinationLocationCode;
                 TempInstructionQltyDispositionBuffer."New Bin Code" := DestinationBinCode;
 
-                InventoryQltyDispMoveAutoChoose.MoveInventory(CurrentTest, TempInstructionQltyDispositionBuffer, UseMovement);
+                InventoryQltyDispMoveAutoChoose.MoveInventory(CurrentInspection, TempInstructionQltyDispositionBuffer, UseMovement);
             end;
         }
     }

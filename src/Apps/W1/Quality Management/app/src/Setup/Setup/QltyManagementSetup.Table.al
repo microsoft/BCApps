@@ -36,21 +36,21 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Primary Key';
         }
-        field(2; "Quality Inspection Test Nos."; Code[20])
+        field(2; "Quality Inspection Nos."; Code[20])
         {
-            Caption = 'Quality Inspection Test Nos.';
+            Caption = 'Quality Inspection Nos.';
             TableRelation = "No. Series";
-            ToolTip = 'Specifies the default number series used for quality inspection test documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
+            ToolTip = 'Specifies the default number series used for quality inspection documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
         }
-        field(3; "Show Test Behavior"; Enum "Qlty. Show Test Behavior")
+        field(3; "Show Inspection Behavior"; Enum "Qlty. Show Inspection Behavior")
         {
-            Caption = 'Show Test Behavior';
-            ToolTip = 'Specifies whether to show the Quality Inspection Test page after a test has been made.';
+            Caption = 'Show Inspection Behavior';
+            ToolTip = 'Specifies whether to show the Quality Inspection page after a test has been made.';
         }
-        field(4; "Create Test Behavior"; Enum "Qlty. Create Test Behavior")
+        field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
         {
-            Caption = 'Create Test Behavior';
-            ToolTip = 'Specifies the behavior of when to create a new Quality Inspection Test when existing tests occur.';
+            Caption = 'Create Inspection Behavior';
+            ToolTip = 'Specifies the behavior of when to create a new Quality Inspection when existing tests occur.';
         }
         field(5; "Find Existing Behavior"; Enum "Qlty. Find Existing Behavior")
         {
@@ -69,18 +69,18 @@ table 20400 "Qlty. Management Setup"
         {
             Description = 'Optionally choose a production related trigger to try and create a test.';
             Caption = 'Production Trigger';
-            ToolTip = 'Specifies a default production-related trigger value for Test Generation Rules to try and create a test.';
+            ToolTip = 'Specifies a default production-related trigger value for Inspection Generation Rules to try and create a test.';
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
                 if (Rec."Production Trigger" <> xRec."Production Trigger") and (xRec."Production Trigger" <> xRec."Production Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
-                    QltyInTestGenerationRule.SetRange("Production Trigger", xRec."Production Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Production Trigger", Rec."Production Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Production Trigger", Rec."Production Trigger", false);
+                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
+                    QltyInspectionGenRule.SetRange("Production Trigger", xRec."Production Trigger");
+                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Production Trigger", Rec."Production Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Production Trigger", Rec."Production Trigger", false);
                 end;
             end;
         }
@@ -130,32 +130,32 @@ table 20400 "Qlty. Management Setup"
         {
             Description = 'Optionally choose a warehouse related trigger to try and create a test.';
             Caption = 'Warehouse Trigger';
-            ToolTip = 'Specifies a default warehousing related trigger value for Test Generation Rules to try and create a test.';
+            ToolTip = 'Specifies a default warehousing related trigger value for Inspection Generation Rules to try and create a test.';
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
                 QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
             begin
                 if Rec."Warehouse Trigger" <> Rec."Warehouse Trigger"::NoTrigger then
                     QltyAutoConfigure.CreateDefaultWarehousingConfiguration();
 
                 if (Rec."Warehouse Trigger" <> xRec."Warehouse Trigger") and (xRec."Warehouse Trigger" <> xRec."Warehouse Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::"Warehouse Movement");
-                    QltyInTestGenerationRule.SetRange("Warehouse Movement Trigger", xRec."Warehouse Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Warehouse Trigger", Rec."Warehouse Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
+                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Movement");
+                    QltyInspectionGenRule.SetRange("Warehouse Movement Trigger", xRec."Warehouse Trigger");
+                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Trigger", Rec."Warehouse Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
                 end;
             end;
         }
         field(30; "Whse. Move Related Triggers"; Integer)
         {
-            CalcFormula = count("Qlty. In. Test Generation Rule" where(Intent = const("Warehouse Movement")));
+            CalcFormula = count("Qlty. Inspection Gen. Rule" where(Intent = const("Warehouse Movement")));
             Caption = 'Whse. Move Related Triggers';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the Test Generation Rules that are warehouse movement related.';
+            ToolTip = 'Specifies the Inspection Generation Rules that are warehouse movement related.';
         }
         field(60; "Brick Top Left Expression"; Text[200])
         {
@@ -220,21 +220,21 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
                 if Rec.Visibility <> Rec.Visibility::Hide then
                     exit;
 
-                QltyInTestGenerationRule.SetFilter("Activation Trigger", '<>%1', QltyInTestGenerationRule."Activation Trigger"::Disabled);
-                if QltyInTestGenerationRule.IsEmpty() then
+                QltyInspectionGenRule.SetFilter("Activation Trigger", '<>%1', QltyInspectionGenRule."Activation Trigger"::Disabled);
+                if QltyInspectionGenRule.IsEmpty() then
                     exit;
 
                 if not GuiAllowed() then
                     exit;
 
-                if Confirm(ShouldDisableTestGenerationRulesQst) then begin
-                    QltyInTestGenerationRule.ModifyAll("Activation Trigger", QltyInTestGenerationRule."Activation Trigger"::Disabled);
-                    Message(TestGenerationRulesHaveBeenDisabledMsg);
+                if Confirm(ShouldDisableInspectionGenerationRulesQst) then begin
+                    QltyInspectionGenRule.ModifyAll("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::Disabled);
+                    Message(InspectionGenerationRulesHaveBeenDisabledMsg);
                 end;
             end;
         }
@@ -414,20 +414,20 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Create Test On Warehouse Receive Trigger';
             Description = 'Provides automation to create a test when a warehouse receipt is created.';
-            ToolTip = 'Specifies a default warehouse receipt trigger value for Test Generation Rules to create a test.';
+            ToolTip = 'Specifies a default warehouse receipt trigger value for Inspection Generation Rules to create a test.';
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
                 SanityCheckReceiveSettings();
 
                 if (Rec."Warehouse Receive Trigger" <> xRec."Warehouse Receive Trigger") and (xRec."Warehouse Receive Trigger" <> xRec."Warehouse Receive Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::"Warehouse Receipt");
-                    QltyInTestGenerationRule.SetRange("Warehouse Receive Trigger", xRec."Warehouse Receive Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Warehouse Receive Trigger", Rec."Warehouse Receive Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Warehouse Receive Trigger", Rec."Warehouse Receive Trigger", false);
+                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
+                    QltyInspectionGenRule.SetRange("Warehouse Receive Trigger", xRec."Warehouse Receive Trigger");
+                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Receive Trigger", Rec."Warehouse Receive Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Warehouse Receive Trigger", Rec."Warehouse Receive Trigger", false);
                 end;
             end;
         }
@@ -435,18 +435,18 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Create Test On Purchase Trigger';
             Description = 'Provides automation to create a test when a purchase is received.';
-            ToolTip = 'Specifies a default purchase trigger value for Test Generation Rules to create a test.';
+            ToolTip = 'Specifies a default purchase trigger value for Inspection Generation Rules to create a test.';
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
                 if (Rec."Purchase Trigger" <> xRec."Purchase Trigger") and (xRec."Purchase Trigger" <> xRec."Purchase Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Purchase);
-                    QltyInTestGenerationRule.SetRange("Purchase Trigger", xRec."Purchase Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Purchase Trigger", Rec."Purchase Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Purchase Trigger", Rec."Purchase Trigger", false);
+                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Purchase);
+                    QltyInspectionGenRule.SetRange("Purchase Trigger", xRec."Purchase Trigger");
+                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Purchase Trigger", Rec."Purchase Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Purchase Trigger", Rec."Purchase Trigger", false);
                 end;
             end;
         }
@@ -454,18 +454,18 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Create Test On Sales Return Trigger';
             Description = 'Provides automation to create a test when a sales return is received.';
-            ToolTip = 'Specifies a default sales return trigger value for Test Generation Rules to create a test.';
+            ToolTip = 'Specifies a default sales return trigger value for Inspection Generation Rules to create a test.';
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
                 if (Rec."Sales Return Trigger" <> xRec."Sales Return Trigger") and (xRec."Sales Return Trigger" <> xRec."Sales Return Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::"Sales Return");
-                    QltyInTestGenerationRule.SetRange("Sales Return Trigger", xRec."Sales Return Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Sales Return Trigger", Rec."Sales Return Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Sales Return Trigger", Rec."Sales Return Trigger", false);
+                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Sales Return");
+                    QltyInspectionGenRule.SetRange("Sales Return Trigger", xRec."Sales Return Trigger");
+                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Sales Return Trigger", Rec."Sales Return Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Sales Return Trigger", Rec."Sales Return Trigger", false);
                 end;
             end;
         }
@@ -473,18 +473,18 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Create Test On Transfer Trigger';
             Description = 'Provides automation to create a test when a transfer order is received.';
-            ToolTip = 'Specifies a default transfer trigger value for Test Generation Rules to create a test.';
+            ToolTip = 'Specifies a default transfer trigger value for Inspection Generation Rules to create a test.';
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
                 if (Rec."Transfer Trigger" <> xRec."Transfer Trigger") and (xRec."Transfer Trigger" <> xRec."Transfer Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Transfer);
-                    QltyInTestGenerationRule.SetRange("Transfer Trigger", xRec."Transfer Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Transfer Trigger", Rec."Transfer Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Transfer Trigger", Rec."Transfer Trigger", false);
+                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Transfer);
+                    QltyInspectionGenRule.SetRange("Transfer Trigger", xRec."Transfer Trigger");
+                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Transfer Trigger", Rec."Transfer Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Transfer Trigger", Rec."Transfer Trigger", false);
                 end;
             end;
         }
@@ -492,18 +492,18 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Create Test On Assembly Trigger';
             Description = 'Provides automation to create a test when an assembly order creates output.';
-            ToolTip = 'Specifies a default assembly-related trigger value for Test Generation Rules to try and create a test.';
+            ToolTip = 'Specifies a default assembly-related trigger value for Inspection Generation Rules to try and create a test.';
 
             trigger OnValidate()
             var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
                 if (Rec."Assembly Trigger" <> xRec."Assembly Trigger") and (xRec."Assembly Trigger" <> xRec."Assembly Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Assembly);
-                    QltyInTestGenerationRule.SetRange("Assembly Trigger", xRec."Assembly Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Assembly Trigger", Rec."Assembly Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Assembly Trigger", Rec."Assembly Trigger", false);
+                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Assembly);
+                    QltyInspectionGenRule.SetRange("Assembly Trigger", xRec."Assembly Trigger");
+                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Assembly Trigger", Rec."Assembly Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Assembly Trigger", Rec."Assembly Trigger", false);
                 end;
             end;
         }
@@ -518,8 +518,8 @@ table 20400 "Qlty. Management Setup"
     }
 
     var
-        ShouldDisableTestGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the test generation rules. Do you want to disable your current enabled generation rules?';
-        TestGenerationRulesHaveBeenDisabledMsg: Label 'All test generation rules have been disabled.';
+        ShouldDisableInspectionGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the inspection generation rules. Do you want to disable your current enabled generation rules?';
+        InspectionGenerationRulesHaveBeenDisabledMsg: Label 'All inspection generation rules have been disabled.';
         ConfirmExistingRulesQst: Label 'You have %1 existing generation rules that used the "%2" setting. Do you want to change those to be "%3"?', Comment = '%1=the count, %2=the old setting, %3=the new setting.';
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
@@ -535,7 +535,7 @@ table 20400 "Qlty. Management Setup"
         DefaultBottomLeftLbl: Label 'Document', Locked = true;
         DefaultBottomRightLabelLbl: Label 'Status', Locked = true;
         ExcludeBrickFieldTok: Label '<>Brick*', Locked = true;
-        MobileFieldsHaveBeenUpdatedForAllExistingTestsMsg: Label 'The mobile fields have been updated for all existing tests.';
+        MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg: Label 'The mobile fields have been updated for all existing tests.';
 
     trigger OnInsert()
     begin
@@ -631,29 +631,29 @@ table 20400 "Qlty. Management Setup"
         TestRecordRef.FindFirst();
         TestFieldRef := TestRecordRef.Field(FieldNo);
         Template := TestFieldRef.Value();
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", ExcludeBrickFieldTok, Template) in [Action::LookupOK, Action::OK, Action::Yes] then begin
+        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", ExcludeBrickFieldTok, Template) in [Action::LookupOK, Action::OK, Action::Yes] then begin
             TestFieldRef.Validate(CopyStr(Template, 1, TestFieldRef.Length));
             TestRecordRef.Modify();
         end;
     end;
 
     /// <summary>
-    /// UpdateBrickFieldsOnAllExistingTests will update the brick fields on all existing tests.
+    /// UpdateBrickFieldsOnAllExistingInspection will update the brick fields on all existing tests.
     /// Use this if you need to adjust the brick summary on all tests.
     /// </summary>
-    procedure UpdateBrickFieldsOnAllExistingTests()
+    procedure UpdateBrickFieldsOnAllExistingInspection()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        if QltyInspectionTestHeader.FindSet(true) then
+        if QltyInspectionHeader.FindSet(true) then
             repeat
-                QltyInspectionTestHeader.UpdateBrickFields();
+                QltyInspectionHeader.UpdateBrickFields();
 #pragma warning disable AA0214
-                QltyInspectionTestHeader.Modify(false);
+                QltyInspectionHeader.Modify(false);
 #pragma warning restore AA0214
-            until QltyInspectionTestHeader.Next() = 0;
+            until QltyInspectionHeader.Next() = 0;
 
-        Message(MobileFieldsHaveBeenUpdatedForAllExistingTestsMsg);
+        Message(MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg);
     end;
 
     internal procedure GetAppGuid(): Guid

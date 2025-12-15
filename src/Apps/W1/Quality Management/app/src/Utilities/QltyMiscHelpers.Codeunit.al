@@ -110,7 +110,7 @@ codeunit 20599 "Qlty. Misc Helpers"
 
     /// <summary>
     /// Attempts to parse simple range notation (min..max) into separate minimum and maximum decimal values.
-    /// Handles the common 90% use case of range specifications in quality inspection tests.
+    /// Handles the common 90% use case of range specifications in quality inspections.
     /// 
     /// Examples:
     /// - "10..20" → OutMin=10, OutMax=20, returns true
@@ -145,20 +145,20 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// Retrieves available record values for a table lookup field configured on a test line, returned as CSV.
+    /// Retrieves available record values for a table lookup field configured on a inspection line, returned as CSV.
     /// Evaluates expressions and applies filters configured in the field definition to generate the list.
     /// 
     /// Common usage: Populating dropdown lists or validating user input against configured lookup values.
     /// </summary>
-    /// <param name="QltyInspectionTestLine">The test line containing the table field configuration</param>
+    /// <param name="QltyInspectionLine">The inspection line containing the table field configuration</param>
     /// <returns>Comma-separated string of available lookup codes</returns>
-    procedure GetRecordsForTableFieldAsCSV(var QltyInspectionTestLine: Record "Qlty. Inspection Test Line") CSVText: Text
+    procedure GetRecordsForTableFieldAsCSV(var QltyInspectionLine: Record "Qlty. Inspection Line") CSVText: Text
     var
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         NeedComma: Boolean;
     begin
-        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionTestLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyInspectionLine, TempBufferQltyLookupCode);
         if TempBufferQltyLookupCode.FindSet() then
             repeat
                 if NeedComma then
@@ -170,22 +170,22 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// Retrieves available records for a table lookup field configured on a test line.
+    /// Retrieves available records for a table lookup field configured on a inspection line.
     /// Evaluates expressions and applies configured table filters to populate the lookup buffer.
     /// 
-    /// This overload automatically loads the test header and field definition from the test line,
+    /// This overload automatically loads the inspection header and field definition from the inspection line,
     /// then calls the main GetRecordsForTableField procedure.
     /// </summary>
-    /// <param name="QltyInspectionTestLine">The test line containing the field code to look up</param>
+    /// <param name="QltyInspectionLine">The inspection line containing the field code to look up</param>
     /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer filled with available lookup codes and descriptions</param>
-    procedure GetRecordsForTableField(var QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    procedure GetRecordsForTableField(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyField: Record "Qlty. Field";
     begin
-        QltyInspectionTestHeader.Get(QltyInspectionTestLine."Test No.", QltyInspectionTestHeader."Retest No.");
-        QltyField.Get(QltyInspectionTestLine."Field Code");
-        GetRecordsForTableField(QltyField, QltyInspectionTestHeader, QltyInspectionTestLine, TempBufferQltyLookupCode);
+        QltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionHeader."Retest No.");
+        QltyField.Get(QltyInspectionLine."Field Code");
+        GetRecordsForTableField(QltyField, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
     end;
 
     /// <summary>
@@ -193,32 +193,32 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// This will evaluate expressions!
     /// </summary>
     /// <param name="QltyField"></param>
-    /// <param name="OptionalContextQltyInspectionTestHeader">Optional. Leave empty if you do not want search/replace fields.  Supply a test context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
+    /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields.  Supply a test context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
     /// <param name="TempBufferQltyLookupCode"></param>
-    internal procedure GetRecordsForTableField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    internal procedure GetRecordsForTableField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
-        TempDummyQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
+        TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        GetRecordsForTableField(QltyField, OptionalContextQltyInspectionTestHeader, TempDummyQltyInspectionTestLine, TempBufferQltyLookupCode);
+        GetRecordsForTableField(QltyField, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine, TempBufferQltyLookupCode);
     end;
 
     /// <summary>
     /// Retrieves lookup values for a quality field with context-sensitive filtering.
-    /// Evaluates dynamic table filters using inspection test context and populates temporary buffer with available choices.
+    /// Evaluates dynamic table filters using Inspection context and populates temporary buffer with available choices.
     /// 
     /// Behavior:
-    /// - Evaluates QltyField."Lookup Table Filter" using test header/line context for dynamic filtering
+    /// - Evaluates QltyField."Lookup Table Filter" using inspection header/line context for dynamic filtering
     /// - For Qlty. Lookup Code table: includes both Code and Description fields
     /// - For other tables: uses only the specified lookup field
     /// - Applies maximum row limit from setup to prevent excessive data retrieval
     /// 
-    /// Common usage: Populating dropdown lists in inspection test lines with context-aware options.
+    /// Common usage: Populating dropdown lists in inspection inspection lines with context-aware options.
     /// </summary>
     /// <param name="QltyField">The quality field configuration defining lookup table and filters</param>
-    /// <param name="OptionalContextQltyInspectionTestHeader">Test header providing context for filter expression evaluation</param>
-    /// <param name="OptionalContextQltyInspectionTestLine">Test line providing context for filter expression evaluation</param>
+    /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation</param>
+    /// <param name="OptionalContextQltyInspectionLine">Inspection line providing context for filter expression evaluation</param>
     /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values</param>
-    procedure GetRecordsForTableField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var OptionalContextQltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    procedure GetRecordsForTableField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         ReasonableMaximum: Integer;
@@ -227,7 +227,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     begin
         ReasonableMaximum := GetDefaultMaximumRowsFieldLookup();
 
-        TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyField."Lookup Table Filter", OptionalContextQltyInspectionTestHeader, OptionalContextQltyInspectionTestLine);
+        TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyField."Lookup Table Filter", OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine);
 
         if QltyField."Lookup Table No." = Database::"Qlty. Lookup Code" then
             GetRecordsForTableField(QltyField."Lookup Table No.", QltyField."Lookup Field No.", TempBufferQltyLookupCode.FieldNo(Description), TableFilter, ReasonableMaximum, TempBufferQltyLookupCode, DummyText)
@@ -436,7 +436,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Important: Returns false for positive values AND for non-boolean text.
     /// Use CanTextBeInterpretedAsBooleanIsh() first to validate if text is boolean-like.
     /// 
-    /// Common usage: Evaluating inspection test results for failure conditions.
+    /// Common usage: Evaluating Inspection results for failure conditions.
     /// </summary>
     /// <param name="ValueToCheckIfNegativeBoolean">The text value to check for negative boolean representation</param>
     /// <returns>True if text represents a negative boolean value; False otherwise (including positive values)</returns>
@@ -494,8 +494,8 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// Extracts person contact details from an inspection test line if it references a person-related record.
-    /// Validates that the test line is a table lookup type referencing a supported person table before retrieval.
+    /// Extracts person contact details from an inspection inspection line if it references a person-related record.
+    /// Validates that the inspection line is a table lookup type referencing a supported person table before retrieval.
     /// 
     /// Supported person tables (validated via Field configuration):
     /// - Contact, Employee, Resource, User, User Setup, Salesperson/Purchaser
@@ -508,14 +508,14 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// 
     /// Common usage: Displaying inspector/approver details in test forms and reports.
     /// </summary>
-    /// <param name="QltyInspectionTestLine">The inspection test line containing the person reference</param>
+    /// <param name="QltyInspectionLine">The inspection inspection line containing the person reference</param>
     /// <param name="FullName">Output: The person's full name</param>
     /// <param name="JobTitle">Output: The person's job title</param>
     /// <param name="EmailAddress">Output: The person's email address</param>
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source person record</param>
-    /// <returns>True if test line references a person and details were retrieved; False otherwise</returns>
-    procedure GetBasicPersonDetailsFromTestLine(QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
+    /// <returns>True if inspection line references a person and details were retrieved; False otherwise</returns>
+    procedure GetBasicPersonDetailsFromTestLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
         QltyField: Record "Qlty. Field";
     begin
@@ -525,13 +525,13 @@ codeunit 20599 "Qlty. Misc Helpers"
         Clear(PhoneNo);
         Clear(SourceRecordId);
 
-        if QltyInspectionTestLine."Test Value" = '' then
+        if QltyInspectionLine."Test Value" = '' then
             exit(false);
 
-        if not (QltyInspectionTestLine."Field Type" in [QltyInspectionTestLine."Field Type"::"Field Type Table Lookup"]) then
+        if not (QltyInspectionLine."Field Type" in [QltyInspectionLine."Field Type"::"Field Type Table Lookup"]) then
             exit(false);
 
-        if not QltyField.Get(QltyInspectionTestLine."Field Code") then
+        if not QltyField.Get(QltyInspectionLine."Field Code") then
             exit(false);
 
         if not (QltyField."Lookup Table No." in [
@@ -545,7 +545,7 @@ codeunit 20599 "Qlty. Misc Helpers"
             exit(false);
 
         exit(GetBasicPersonDetails(
-            QltyInspectionTestLine."Test Value",
+            QltyInspectionLine."Test Value",
             FullName,
             JobTitle,
             EmailAddress,
@@ -738,7 +738,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// Opens the source document associated with a quality inspection test in its appropriate page.
+    /// Opens the source document associated with a quality inspection in its appropriate page.
     /// Automatically determines the correct page to display based on the source record type.
     /// 
     /// Behavior:
@@ -747,11 +747,11 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// - Uses Page Management to find the appropriate page for the record type
     /// - Opens the page in modal mode displaying the source document
     /// 
-    /// Common usage: "View Source" button on inspection test pages to jump to originating document
+    /// Common usage: "View Source" button on Inspection pages to jump to originating document
     /// (e.g., Purchase Order, Sales Order, Production Order).
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The inspection test whose source document should be displayed</param>
-    procedure NavigateToSourceDocument(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    /// <param name="QltyInspectionHeader">The Inspection whose source document should be displayed</param>
+    procedure NavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         PageManagement: Codeunit "Page Management";
         RecordRefToNavigateTo: RecordRef;
@@ -759,21 +759,21 @@ codeunit 20599 "Qlty. Misc Helpers"
         CurrentPage: Integer;
         Handled: Boolean;
     begin
-        OnBeforeNavigateToSourceDocument(QltyInspectionTestHeader, Handled);
+        OnBeforeNavigateToSourceDocument(QltyInspectionHeader, Handled);
         if Handled then
             exit;
 
-        if QltyInspectionTestHeader."Source RecordId".TableNo() = 0 then
+        if QltyInspectionHeader."Source RecordId".TableNo() = 0 then
             exit;
 
-        RecordRefToNavigateTo := QltyInspectionTestHeader."Source RecordId".GetRecord();
+        RecordRefToNavigateTo := QltyInspectionHeader."Source RecordId".GetRecord();
         CurrentPage := PageManagement.GetPageID(RecordRefToNavigateTo);
         VariantContainer := RecordRefToNavigateTo;
         Page.RunModal(CurrentPage, VariantContainer);
     end;
 
     /// <summary>
-    /// Opens the Navigate page to find all related entries for an inspection test's source document.
+    /// Opens the Navigate page to find all related entries for an Inspection's source document.
     /// Pre-fills search criteria with test source information including item, document number, and tracking.
     /// 
     /// Populated Navigate criteria:
@@ -782,24 +782,24 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// - Source Lot No. (if tracked)
     /// - Source Serial No. (if tracked)
     /// - Source Package No. (if tracked)
-    /// - Source Table: Quality Inspection Test Header
+    /// - Source Table: Quality Inspection Header
     /// 
     /// Common usage: Finding all ledger entries, posted documents, and transactions related to
-    /// the item and document that triggered the inspection test.
+    /// the item and document that triggered the Inspection.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The inspection test whose related entries should be found</param>
-    internal procedure NavigateToFindEntries(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    /// <param name="QltyInspectionHeader">The Inspection whose related entries should be found</param>
+    internal procedure NavigateToFindEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         Navigate: Page Navigate;
     begin
-        TempItemTrackingSetup."Lot No." := QltyInspectionTestHeader."Source Lot No.";
-        TempItemTrackingSetup."Serial No." := QltyInspectionTestHeader."Source Serial No.";
-        TempItemTrackingSetup."Package No." := QltyInspectionTestHeader."Source Package No.";
+        TempItemTrackingSetup."Lot No." := QltyInspectionHeader."Source Lot No.";
+        TempItemTrackingSetup."Serial No." := QltyInspectionHeader."Source Serial No.";
+        TempItemTrackingSetup."Package No." := QltyInspectionHeader."Source Package No.";
 
-        Navigate.SetSource(0D, CopyStr(QltyInspectionTestHeader.TableCaption(), 1, 100), QltyInspectionTestHeader."No.", Database::"Qlty. Inspection Test Header", QltyInspectionTestHeader."Source Item No.");
+        Navigate.SetSource(0D, CopyStr(QltyInspectionHeader.TableCaption(), 1, 100), QltyInspectionHeader."No.", Database::"Qlty. Inspection Header", QltyInspectionHeader."Source Item No.");
         Navigate.SetTracking(TempItemTrackingSetup);
-        Navigate.SetDoc(0D, QltyInspectionTestHeader."Source Document No.");
+        Navigate.SetDoc(0D, QltyInspectionHeader."Source Document No.");
         Navigate.Run();
     end;
 
@@ -922,10 +922,10 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <summary>
     /// Provides an ability to override the handling of navigating to a source document.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader"></param>
+    /// <param name="QltyInspectionHeader"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
+    local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
     begin
     end;
 

@@ -33,7 +33,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
         Sources: Dictionary of [Enum "Prod. Order Source Type", boolean];
         ProdOrderStatus: Enum "Production Order Status";
         OrderLinesMin: Integer;
@@ -315,7 +315,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     var
         RoutingHeader: Record "Routing Header";
     begin
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionsUtility.CreateLotTrackedItem(Item);
 
         CreateBoM(Item);
         CreateSerialRouting(RoutingHeader);

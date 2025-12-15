@@ -11,13 +11,13 @@ tableextension 20403 "Qlty. Entry Summary" extends "Entry Summary"
 {
     fields
     {
-        field(20400; "Qlty. Inspection Test Count"; Integer)
+        field(20400; "Qlty. Inspection Count"; Integer)
         {
-            Caption = 'Quality Inspection Test Count';
-            ToolTip = 'Specifies the count of available quality inspection tests for the item tracking combination.';
+            Caption = 'Quality Inspection Count';
+            ToolTip = 'Specifies the count of available quality inspections for the item tracking combination.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("Qlty. Inspection Test Header" where("Source Lot No." = field("Lot No."),
+            CalcFormula = count("Qlty. Inspection Header" where("Source Lot No." = field("Lot No."),
                                                                      "Source Serial No." = field("Serial No."),
                                                                      "Source Package No." = field("Package No.")));
         }

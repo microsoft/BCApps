@@ -16,17 +16,17 @@ using System.Utilities;
 /// <summary>
 /// Contains the document lines for a quality order.
 /// </summary>
-table 20406 "Qlty. Inspection Test Line"
+table 20406 "Qlty. Inspection Line"
 {
-    Caption = 'Quality Inspection Test Line';
-    LookupPageId = "Qlty. Inspection Test Lines";
+    Caption = 'Quality Inspection Line';
+    LookupPageId = "Qlty. Inspection Lines";
     DataClassification = CustomerContent;
 
     fields
     {
         field(1; "Test No."; Code[20])
         {
-            Description = 'The test header';
+            Description = 'The inspection header';
             Editable = false;
             OptimizeForTextSearch = true;
             Caption = 'Test No.';
@@ -48,7 +48,7 @@ table 20406 "Qlty. Inspection Test Line"
         {
             Caption = 'Template Code';
             Editable = false;
-            TableRelation = "Qlty. Inspection Test Header"."Template Code";
+            TableRelation = "Qlty. Inspection Header"."Template Code";
             ToolTip = 'Specifies which template this test was created from.';
         }
         field(5; "Template Line No."; Integer)
@@ -212,7 +212,7 @@ table 20406 "Qlty. Inspection Test Line"
     }
 
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         BooleanChoiceListLbl: Label 'No,Yes';
 
     trigger OnModify()
@@ -240,7 +240,7 @@ table 20406 "Qlty. Inspection Test Line"
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
     begin
         GetTest();
-        QltyGradeEvaluation.ValidateTestLine(Rec, QltyInspectionTestHeader, true);
+        QltyGradeEvaluation.ValidateTestLine(Rec, QltyInspectionHeader, true);
     end;
 
     local procedure GetTest(): Boolean
@@ -248,13 +248,13 @@ table 20406 "Qlty. Inspection Test Line"
         if Rec.IsTemporary() then
             exit(false);
 
-        exit(QltyInspectionTestHeader.Get(Rec."Test No.", Rec."Retest No."));
+        exit(QltyInspectionHeader.Get(Rec."Test No.", Rec."Retest No."));
     end;
 
     local procedure TestStatusOpen()
     begin
         if GetTest() then
-            QltyInspectionTestHeader.TestField(Status, QltyInspectionTestHeader.Status::Open);
+            QltyInspectionHeader.TestField(Status, QltyInspectionHeader.Status::Open);
     end;
 
     /// <summary>
@@ -364,7 +364,7 @@ table 20406 "Qlty. Inspection Test Line"
             exit;
 
         if not GetTest() then;
-        QltyField.CollectAllowableValues(QltyInspectionTestHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
+        QltyField.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
     end;
 
     /// <summary>
@@ -397,7 +397,7 @@ table 20406 "Qlty. Inspection Test Line"
 
     procedure UpdateExpressionsInOtherTestLinesInSameTest()
     var
-        OthersInSameQltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
@@ -406,11 +406,11 @@ table 20406 "Qlty. Inspection Test Line"
         if not GetTest() then
             exit;
 
-        OthersInSameQltyInspectionTestLine.SetRange("Test No.", Rec."Test No.");
-        OthersInSameQltyInspectionTestLine.SetRange("Retest No.", Rec."Retest No.");
-        OthersInSameQltyInspectionTestLine.SetFilter("Field Type", '%1', QltyInspectionTemplateLine."Field Type"::"Field Type Text Expression");
-        OthersInSameQltyInspectionTestLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        OthersInSameQltyInspectionTestLine.SetAutoCalcFields("Field Type");
+        OthersInSameQltyInspectionLine.SetRange("Test No.", Rec."Test No.");
+        OthersInSameQltyInspectionLine.SetRange("Retest No.", Rec."Retest No.");
+        OthersInSameQltyInspectionLine.SetFilter("Field Type", '%1', QltyInspectionTemplateLine."Field Type"::"Field Type Text Expression");
+        OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+        OthersInSameQltyInspectionLine.SetAutoCalcFields("Field Type");
 
         QltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
         QltyInspectionTemplateLine.SetFilter("Field Type", '%1', QltyInspectionTemplateLine."Field Type"::"Field Type Text Expression");
@@ -418,16 +418,16 @@ table 20406 "Qlty. Inspection Test Line"
         QltyInspectionTemplateLine.SetAutoCalcFields("Field Type");
         if QltyInspectionTemplateLine.FindSet() then
             repeat
-                OthersInSameQltyInspectionTestLine.SetRange("Template Line No.", QltyInspectionTemplateLine."Line No.");
-                OthersInSameQltyInspectionTestLine.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
-                if OthersInSameQltyInspectionTestLine.FindSet() then
+                OthersInSameQltyInspectionLine.SetRange("Template Line No.", QltyInspectionTemplateLine."Line No.");
+                OthersInSameQltyInspectionLine.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+                if OthersInSameQltyInspectionLine.FindSet() then
                     repeat
-                        OfConsideredFieldCodes.Add(OthersInSameQltyInspectionTestLine."Field Code");
-                        case OthersInSameQltyInspectionTestLine."Field Type" of
-                            OthersInSameQltyInspectionTestLine."Field Type"::"Field Type Text Expression":
-                                OthersInSameQltyInspectionTestLine.EvaluateTextExpression(QltyInspectionTestHeader);
+                        OfConsideredFieldCodes.Add(OthersInSameQltyInspectionLine."Field Code");
+                        case OthersInSameQltyInspectionLine."Field Type" of
+                            OthersInSameQltyInspectionLine."Field Type"::"Field Type Text Expression":
+                                OthersInSameQltyInspectionLine.EvaluateTextExpression(QltyInspectionHeader);
                         end;
-                    until OthersInSameQltyInspectionTestLine.Next() = 0;
+                    until OthersInSameQltyInspectionLine.Next() = 0;
             until QltyInspectionTemplateLine.Next() = 0;
 
         QltyGradeEvaluation.GetTestLineConfigFilters(Rec, QltyIGradeConditionConf);
@@ -435,41 +435,41 @@ table 20406 "Qlty. Inspection Test Line"
         QltyIGradeConditionConf.SetFilter("Field Code", '<>%1', Rec."Field Code");
         QltyIGradeConditionConf.SetFilter("Condition", StrSubstNo('@*[%1]*', Rec."Field Code"));
         QltyIGradeConditionConf.SetLoadFields("Target Line No.", "Field Code");
-        OthersInSameQltyInspectionTestLine.Reset();
+        OthersInSameQltyInspectionLine.Reset();
         if QltyIGradeConditionConf.FindSet() then
             repeat
-                OthersInSameQltyInspectionTestLine.SetRange("Test No.", Rec."Test No.");
-                OthersInSameQltyInspectionTestLine.SetRange("ReTest No.", Rec."ReTest No.");
-                OthersInSameQltyInspectionTestLine.SetRange("Line No.", QltyIGradeConditionConf."Target Line No.");
-                OthersInSameQltyInspectionTestLine.SetRange("Field Code", QltyIGradeConditionConf."Field Code");
-                if OthersInSameQltyInspectionTestLine.FindFirst() then begin
-                    OfConsideredFieldCodes.Add(OthersInSameQltyInspectionTestLine."Field Code");
-                    OthersInSameQltyInspectionTestLine.ValidateTestValue();
+                OthersInSameQltyInspectionLine.SetRange("Test No.", Rec."Test No.");
+                OthersInSameQltyInspectionLine.SetRange("ReTest No.", Rec."ReTest No.");
+                OthersInSameQltyInspectionLine.SetRange("Line No.", QltyIGradeConditionConf."Target Line No.");
+                OthersInSameQltyInspectionLine.SetRange("Field Code", QltyIGradeConditionConf."Field Code");
+                if OthersInSameQltyInspectionLine.FindFirst() then begin
+                    OfConsideredFieldCodes.Add(OthersInSameQltyInspectionLine."Field Code");
+                    OthersInSameQltyInspectionLine.ValidateTestValue();
                 end;
             until QltyIGradeConditionConf.Next() = 0;
 
-        OthersInSameQltyInspectionTestLine.Reset();
-        OthersInSameQltyInspectionTestLine.SetRange("Test No.", Rec."Test No.");
-        OthersInSameQltyInspectionTestLine.SetRange("Retest No.", Rec."Retest No.");
-        OthersInSameQltyInspectionTestLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        OthersInSameQltyInspectionTestLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', Rec."Field Code"));
-        if OthersInSameQltyInspectionTestLine.FindSet(true) then
+        OthersInSameQltyInspectionLine.Reset();
+        OthersInSameQltyInspectionLine.SetRange("Test No.", Rec."Test No.");
+        OthersInSameQltyInspectionLine.SetRange("Retest No.", Rec."Retest No.");
+        OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+        OthersInSameQltyInspectionLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', Rec."Field Code"));
+        if OthersInSameQltyInspectionLine.FindSet(true) then
             repeat
-                if not OfConsideredFieldCodes.Contains(OthersInSameQltyInspectionTestLine."Field Code") then
-                    OthersInSameQltyInspectionTestLine.ValidateTestValue();
+                if not OfConsideredFieldCodes.Contains(OthersInSameQltyInspectionLine."Field Code") then
+                    OthersInSameQltyInspectionLine.ValidateTestValue();
 
-            until OthersInSameQltyInspectionTestLine.Next() = 0;
+            until OthersInSameQltyInspectionLine.Next() = 0;
     end;
 
-    internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
     begin
-        QltyExpressionMgmt.EvaluateTextExpression(Rec, EvaluateAgainstQltyInspectionTestHeader);
+        QltyExpressionMgmt.EvaluateTextExpression(Rec, EvaluateAgainstQltyInspectionHeader);
     end;
 
     /// <summary>
-    /// Reads the last measurement note for the specific test line.
+    /// Reads the last measurement note for the specific inspection line.
     /// If there are multiple notes it only reads the last one.
     /// </summary>
     /// <returns></returns>
@@ -487,7 +487,7 @@ table 20406 "Qlty. Inspection Test Line"
     end;
 
     /// <summary>
-    /// Sets the measurement note on the last associated note line for the test line.
+    /// Sets the measurement note on the last associated note line for the inspection line.
     /// If there is no note record yet (record link) then it will create a new one.
     /// </summary>
     /// <param name="Note"></param>
@@ -500,7 +500,7 @@ table 20406 "Qlty. Inspection Test Line"
         QltyPermissionMgmt.TestCanEditLineComments();
 
         GetTest();
-        QltyInspectionTestHeader.TestField(Status, QltyInspectionTestHeader.Status::Open);
+        QltyInspectionHeader.TestField(Status, QltyInspectionHeader.Status::Open);
 
         RecordLink.SetRange(Type, RecordLink.Type::Note);
         RecordLink.SetRange("Record ID", Rec.RecordId());
@@ -532,7 +532,7 @@ table 20406 "Qlty. Inspection Test Line"
         Note: Text;
     begin
         GetTest();
-        QltyInspectionTestHeader.TestField(Status, QltyInspectionTestHeader.Status::Open);
+        QltyInspectionHeader.TestField(Status, QltyInspectionHeader.Status::Open);
 
         Note := GetMeasurementNote();
         if QltyEditLargeText.RunModalWith(Note) in [Action::LookupOK, Action::OK, Action::Yes] then
@@ -554,10 +554,10 @@ table 20406 "Qlty. Inspection Test Line"
     /// <summary>
     /// Provides an opportunity to modify the evaluation of the Numeric Test Value from the Test Value.
     /// </summary>
-    /// <param name="QltyInspectionTestLine">Qlty. Test Line</param>
+    /// <param name="QltyInspectionLine">Qlty. Test Line</param>
     /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateNumericTestValue(var QltyInspectionTestLine: Record "Qlty. Inspection Test Line"; var Handled: Boolean)
+    local procedure OnBeforeEvaluateNumericTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
     begin
     end;
 }

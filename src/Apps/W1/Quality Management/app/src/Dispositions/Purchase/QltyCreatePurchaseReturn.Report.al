@@ -18,11 +18,11 @@ report 20411 "Qlty. Create Purchase Return"
     UsageCategory = Tasks;
     ProcessingOnly = true;
     AllowScheduling = false;
-    Description = 'Use this to create a Purchase Return Order from a Quality Inspection Test.';
+    Description = 'Use this to create a Purchase Return Order from a Quality Inspection.';
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
@@ -30,7 +30,7 @@ report 20411 "Qlty. Create Purchase Return"
             var
                 ReactionRetQltyDispPurchaseReturn: Codeunit "Qlty. Disp. Purchase Return";
             begin
-                ReactionRetQltyDispPurchaseReturn.PerformDisposition(CurrentTest, QltyQuantityBehavior, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, ReasonCode, OptionalVendorCreditMemoNo);
+                ReactionRetQltyDispPurchaseReturn.PerformDisposition(CurrentInspection, QltyQuantityBehavior, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, ReasonCode, OptionalVendorCreditMemoNo);
             end;
         }
     }
@@ -38,7 +38,7 @@ report 20411 "Qlty. Create Purchase Return"
     requestpage
     {
         AboutTitle = 'About Creating a Purchase Return Order';
-        AboutText = 'Use this to create a Purchase Return Order from a Quality Inspection Test.';
+        AboutText = 'Use this to create a Purchase Return Order from a Quality Inspection.';
 
         layout
         {

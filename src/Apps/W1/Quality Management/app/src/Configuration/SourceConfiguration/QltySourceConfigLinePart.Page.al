@@ -7,8 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// Used to visually configure in a part which source field a target field
-/// in the test maps to.
+/// Used to visually configure in a part which source field a target field in the inspection maps to.
 /// </summary>
 page 20411 "Qlty. Source Config Line Part"
 {
@@ -85,7 +84,7 @@ page 20411 "Qlty. Source Config Line Part"
         Rec."To Table No." := QltyInspectSourceConfig."To Table No.";
         if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Test then begin
             Rec."To Type" := Rec."To Type"::Test;
-            Rec."To Table No." := Database::"Qlty. Inspection Test Header";
+            Rec."To Table No." := Database::"Qlty. Inspection Header";
         end;
     end;
 }

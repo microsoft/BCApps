@@ -8,9 +8,9 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 
-report 20412 "Qlty. Schedule Inspection Test"
+report 20412 "Qlty. Schedule Inspection"
 {
-    Caption = 'Quality Management - Schedule Inspection Test';
+    Caption = 'Quality Management - Schedule Inspection';
     AdditionalSearchTerms = 'Periodic inspections, scheduled inspections,schedule test,schedule inspection';
     Description = 'This report is intended to be scheduled in the job queue to allow the ability to schedule tests.';
     ProcessingOnly = true;
@@ -20,19 +20,19 @@ report 20412 "Qlty. Schedule Inspection Test"
 
     dataset
     {
-        dataitem(CurrentTestGenerationRule; "Qlty. In. Test Generation Rule")
+        dataitem(CurrentInspectionGenerationRule; "Qlty. Inspection Gen. Rule")
         {
             RequestFilterFields = "Schedule Group", "Template Code", Description;
             DataItemTableView = where("Activation Trigger" = filter(<> Disabled), "Schedule Group" = filter(<> ''));
 
             trigger OnAfterGetRecord()
             begin
-                CreateTestsThatMatchRule(CurrentTestGenerationRule);
+                CreateTestsThatMatchRule(CurrentInspectionGenerationRule);
             end;
 
             trigger OnPreDataItem()
             begin
-                if CurrentTestGenerationRule.GetFilter("Schedule Group") = '' then
+                if CurrentInspectionGenerationRule.GetFilter("Schedule Group") = '' then
                     Error(ScheduleGroupIsMandatoryErr);
             end;
         }
@@ -48,7 +48,7 @@ report 20412 "Qlty. Schedule Inspection Test"
                 {
                     Caption = 'Warning';
                     Visible = ShowWarningIfCreateTest;
-                    InstructionalText = 'On your Quality Management Setup page you have the Create Test Behavior set to a setting that will cause tests to be created whenever this report is run even if there are already tests for that item and lot. Make sure this is compatible with the scenario you are solving.';
+                    InstructionalText = 'On your Quality Management Setup page you have the Create Inspection Behavior set to a setting that will cause tests to be created whenever this report is run even if there are already tests for that item and lot. Make sure this is compatible with the scenario you are solving.';
 
                     field(ChooseOpenQualityManagementSetup; 'Click here to open the Quality Management Setup page.')
                     {
@@ -58,7 +58,7 @@ report 20412 "Qlty. Schedule Inspection Test"
                         trigger OnDrillDown()
                         begin
                             QltyManagementSetup.Get();
-                            Page.RunModal(Page::"Qlty. Management Setup", QltyManagementSetup, QltyManagementSetup.FieldNo("Create Test Behavior"));
+                            Page.RunModal(Page::"Qlty. Management Setup", QltyManagementSetup, QltyManagementSetup.FieldNo("Create Inspection Behavior"));
                         end;
                     }
                 }
@@ -68,9 +68,9 @@ report 20412 "Qlty. Schedule Inspection Test"
 
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ShowWarningIfCreateTest: Boolean;
-        CreatedQltyInspectionTestIds: List of [Code[20]];
+        CreatedQltyInspectionIds: List of [Code[20]];
         ZeroTestsCreatedMsg: Label 'No tests were created.';
         SomeTestsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
         ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the test generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive test generation. ';
@@ -78,51 +78,51 @@ report 20412 "Qlty. Schedule Inspection Test"
     trigger OnInitReport()
     begin
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Create Test Behavior" in [QltyManagementSetup."Create Test Behavior"::"Always create new test", QltyManagementSetup."Create Test Behavior"::"Always create retest"] then
+        if QltyManagementSetup."Create Inspection Behavior" in [QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection", QltyManagementSetup."Create Inspection Behavior"::"Always create retest"] then
             ShowWarningIfCreateTest := true;
     end;
 
     trigger OnPreReport()
     begin
-        Clear(QltyInspectionTestCreate);
-        Clear(CreatedQltyInspectionTestIds);
+        Clear(QltyInspectionCreate);
+        Clear(CreatedQltyInspectionIds);
     end;
 
     trigger OnPostReport()
     begin
         if GuiAllowed() then
-            if CreatedQltyInspectionTestIds.Count() = 0 then
+            if CreatedQltyInspectionIds.Count() = 0 then
                 Message(ZeroTestsCreatedMsg)
             else
-                if Confirm(StrSubstNo(SomeTestsWereCreatedQst, CreatedQltyInspectionTestIds.Count())) then
-                    QltyInspectionTestCreate.DisplayTestsIfConfigured(true, CreatedQltyInspectionTestIds);
+                if Confirm(StrSubstNo(SomeTestsWereCreatedQst, CreatedQltyInspectionIds.Count())) then
+                    QltyInspectionCreate.DisplayTestsIfConfigured(true, CreatedQltyInspectionIds);
     end;
 
     /// <summary>
-    /// This will use the generation rule, and create tests that match the records found with that rule.
+    /// This will use the generation rule, and create inspections that match the records found with that rule.
     /// </summary>
-    /// <param name="QltyInTestGenerationRule"></param>
-    procedure CreateTestsThatMatchRule(QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    /// <param name="QltyInspectionGenRule"></param>
+    procedure CreateTestsThatMatchRule(QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
         SourceRecordRef: RecordRef;
     begin
-        if QltyInTestGenerationRule."Activation Trigger" = QltyInTestGenerationRule."Activation Trigger"::Disabled then
+        if QltyInspectionGenRule."Activation Trigger" = QltyInspectionGenRule."Activation Trigger"::Disabled then
             exit;
 
-        if QltyInTestGenerationRule."Schedule Group" = '' then
+        if QltyInspectionGenRule."Schedule Group" = '' then
             exit;
 
-        QltyJobQueueManagement.TestIfGenerationRuleCanBeScheduled(QltyInTestGenerationRule);
+        QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(QltyInspectionGenRule);
 
-        SourceRecordRef.Open(QltyInTestGenerationRule."Source Table No.");
-        if QltyInTestGenerationRule."Condition Filter" <> '' then
-            SourceRecordRef.SetView(QltyInTestGenerationRule."Condition Filter");
+        SourceRecordRef.Open(QltyInspectionGenRule."Source Table No.");
+        if QltyInspectionGenRule."Condition Filter" <> '' then
+            SourceRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
 
-        QltyInTestGenerationRule.SetRecFilter();
-        QltyInTestGenerationRule.SetRange("Schedule Group", QltyInTestGenerationRule."Schedule Group");
-        QltyInTestGenerationRule.SetRange("Template Code", QltyInTestGenerationRule."Template Code");
+        QltyInspectionGenRule.SetRecFilter();
+        QltyInspectionGenRule.SetRange("Schedule Group", QltyInspectionGenRule."Schedule Group");
+        QltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
         if SourceRecordRef.FindSet() then
-            QltyInspectionTestCreate.CreateMultipleTestsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInTestGenerationRule, CreatedQltyInspectionTestIds);
+            QltyInspectionCreate.CreateMultipleTestsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectionGenRule, CreatedQltyInspectionIds);
     end;
 }
