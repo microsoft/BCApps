@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 page 6105 "Inbound E-Documents"
 {
@@ -43,6 +44,16 @@ page 6105 "Inbound E-Documents"
                     trigger OnDrillDown()
                     begin
                         EDocumentHelper.OpenDraftPage(Rec);
+                    end;
+                }
+                field("Task"; TaskTxt)
+                {
+                    Caption = 'Task';
+                    ToolTip = 'Specifies the task number for the document.';
+
+                    trigger OnDrillDown()
+                    begin
+                        Message('The task pane will be opened here ----------------->');
                     end;
                 }
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
@@ -131,7 +142,6 @@ page 6105 "Inbound E-Documents"
                 AllowedFileExtensions = '.pdf';
                 AllowMultipleFiles = true;
                 Image = SendAsPDF;
-                Visible = false;
 
                 trigger OnAction(Files: List of [FileUpload])
                 begin
@@ -342,9 +352,11 @@ page 6105 "Inbound E-Documents"
     var
         EDocumentProcessing: Codeunit "E-Document Processing";
     begin
+        if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
         RecordLinkTxt := EDocumentProcessing.GetRecordLinkText(Rec);
         PopulateDocumentNameTxt();
         PopulateVendorNameTxt();
+        TaskTxt := 'Task #' + Format(Rec."Entry No");
         SetDocumentTypeStyleExpression();
 
         HasPdf := false;
@@ -364,13 +376,17 @@ page 6105 "Inbound E-Documents"
         else
             CaptionBuilder.Append('Draft document - ');
 
-        CaptionBuilder.Append(Format(Rec."Entry No"));
+        //CaptionBuilder.Append(Format(Rec."Entry No"));
+        if Rec."Bill-to/Pay-to Name" <> '' then begin
+            CaptionBuilder.Append(' - ');
+            CaptionBuilder.Append(Rec."Bill-to/Pay-to Name");
+        end;
         DocumentNameTxt := CaptionBuilder.ToText();
     end;
 
     local procedure PopulateVendorNameTxt()
     begin
-        VendorNameTxt := Rec."Bill-to/Pay-to Name";
+        VendorNameTxt := EDocumentPurchaseHeader."Vendor Company Name";
     end;
 
     trigger OnOpenPage()
@@ -494,8 +510,9 @@ page 6105 "Inbound E-Documents"
 
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, VendorNameTxt, DocumentNameTxt, DocumentTypeStyleTxt : Text;
+        RecordLinkTxt, VendorNameTxt, DocumentNameTxt, DocumentTypeStyleTxt, TaskTxt : Text;
         HasPdf: Boolean;
 #if not CLEAN27
         EmailVisibilityFlag: Boolean;
