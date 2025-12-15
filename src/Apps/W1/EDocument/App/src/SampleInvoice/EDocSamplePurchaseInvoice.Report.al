@@ -39,7 +39,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
             column(VendorInvoiceNo_Lbl; VendorInvoiceNoLbl)
             {
             }
-            column(VendorInvoiceNo; "Sales Invoice No.") // TODO: Figure out what to do for "No." control
+            column(VendorInvoiceNo; "Sales Invoice No.")
             {
             }
             column(PostingDate; "Document Date")

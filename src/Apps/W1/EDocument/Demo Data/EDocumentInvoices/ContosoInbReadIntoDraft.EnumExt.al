@@ -10,11 +10,11 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 /// <summary>
 /// Enum extension for E-Doc. Read into Draft to support Contoso Inbound E-Document invoices.
 /// </summary>
-enumextension 5391 "Contoso Inb. Read Into Draft" extends "E-Doc. Read into Draft"
+enumextension 5392 "Contoso Inb. Read Into Draft" extends "E-Doc. Read into Draft"
 {
     value(5370; "Demo Invoice")
     {
         Caption = 'Demo Invoice';
-        Implementation = IStructuredFormatReader = "Contoso Inb.Inv. Format Reader";
+        Implementation = IStructuredFormatReader = "Contoso Inb.Inv. Handler";
     }
 }

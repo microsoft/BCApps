@@ -48,6 +48,10 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
+        TempEDocPurchHeader.Reset();
+        TempEDocPurchHeader.DeleteAll();
+        TempEDocPurchLine.Reset();
+        TempEDocPurchLine.DeleteAll();
         InitSamplePurchInvHeader(TempEDocPurchHeader, VendorNo, GetSampleInvoicePostingDate(), ExternalDocNo, 0);
         TempEDocPurchHeader.Insert();
         SamplePurchInvFile."File Name" := GetSamplePurchInvFileName();
@@ -98,31 +102,15 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice line.
     /// </summary>
-    procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
-    begin
-        AddSamplePurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
-    end;
-
-    /// <summary>
-    /// Adds a sample purchase invoice line.
-    /// </summary>
     procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
     begin
-        AddSamplePurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
-    end;
-
-    /// <summary>
-    /// Adds a sample purchase invoice line.
-    /// </summary>
-    procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
-    begin
-        AddSamplePurchaseLine(LineType, No, TaxGroupCode, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
+        AddSamplePurchaseLine(LineType, No, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
     end;
 
     /// <summary>
     /// Adds a sample purchase invoice line to the current temporary header.
     /// </summary>
-    procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -140,30 +128,36 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
                         Description := GLAccount.Name;
                     end;
             end;
-        AddSamplePurchaseLine(TempEDocPurchHeader, LineType, No, TaxGroupCode, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
+        AddSamplePurchaseLine(TempEDocPurchLine, TempEDocPurchHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
     /// <summary>
     /// Adds a sample purchase invoice line to the specified header.
     /// </summary>
-    internal procedure AddSamplePurchaseLine(EDocPurchaseHeader: Record "E-Document Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    internal procedure AddSamplePurchaseLine(EDocPurchaseHeader: Record "E-Document Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         EDocPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        AddSamplePurchaseLine(EDocPurchaseLine, EDocPurchaseHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
+    end;
+
+    local procedure AddSamplePurchaseLine(var EDocPurchaseLine: Record "E-Document Purchase Line"; EDocPurchaseHeader: Record "E-Document Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    var
         UnitOfMeasure: Record "Unit of Measure";
         LineNo: Integer;
     begin
         EDocPurchaseHeader.TestField("[BC] Vendor No.");
 
-        EDocPurchaseLine.SetRange("E-Document Entry No.", 0);
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocPurchaseHeader."E-Document Entry No.");
         if EDocPurchaseLine.FindLast() then
             LineNo := EDocPurchaseLine."Line No.";
         LineNo += 10000;
 
-        EDocPurchaseLine."E-Document Entry No." := 0;
+        EDocPurchaseLine."E-Document Entry No." := EDocPurchaseHeader."E-Document Entry No.";
         EDocPurchaseLine."Line No." := LineNo;
         EDocPurchaseLine."[BC] Purchase Line Type" := LineType;
         EDocPurchaseLine."[BC] Purchase Type No." := No;
-        // TODO: Tax group is not used???
+        EDocPurchaseLine."Product Code" := No;
         EDocPurchaseLine.Description := Description;
         EDocPurchaseLine.Quantity := Quantity;
         if UnitOfMeasureCode <> '' then

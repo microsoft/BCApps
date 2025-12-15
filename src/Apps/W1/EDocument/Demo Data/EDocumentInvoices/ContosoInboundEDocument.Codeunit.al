@@ -9,6 +9,7 @@ using System.Utilities;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Purchases.Posting;
 
 /// <summary>
 /// The purpose of the codeunit is to generate inbound e-document invoices
@@ -43,35 +44,19 @@ codeunit 5429 "Contoso Inbound E-Document"
     /// <summary>
     /// Adds a purchase line for the inbound e-document invoice to be created.
     /// </summary>
-    procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
-    begin
-        AddEDocPurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
-    end;
-
-    /// <summary>
-    /// Adds a purchase line for the inbound e-document invoice to be created.
-    /// </summary>
     procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
     begin
-        AddEDocPurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
+        AddEDocPurchaseLine(LineType, No, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
     end;
 
     /// <summary>
     /// Adds a purchase line for the inbound e-document invoice to be created.
     /// </summary>
-    procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
-    begin
-        AddEDocPurchaseLine(LineType, No, TaxGroupCode, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
-    end;
-
-    /// <summary>
-    /// Adds a purchase line for the inbound e-document invoice to be created.
-    /// </summary>
-    procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     begin
         EDocPurchaseHeader.TestField("[BC] Vendor No.");
         EDocSamplePurchaseInvoice.AddSamplePurchaseLine(
-          EDocPurchaseHeader, LineType, No, TaxGroupCode, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
+          EDocPurchaseHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
     /// <summary>
@@ -92,7 +77,8 @@ codeunit 5429 "Contoso Inbound E-Document"
         EDocumentService := GetEDocService();
         TempBlob := SaveSamplePurchInvReportToPDF();
         EDocument := CreateEDocument(TempBlob, EDocumentService);
-        FinalizeEDocument(EDocument);
+        ProcessEDocument(EDocument);
+        PostPurchaseInvoice(EDocument."Entry No");
     end;
 
     local procedure SaveSamplePurchInvReportToPDF() TempBlob: Codeunit "Temp Blob"
@@ -126,8 +112,7 @@ codeunit 5429 "Contoso Inbound E-Document"
             EDocument, EDocumentService, Enum::"E-Doc. File Format"::PDF, FileName, ResInStream);
         EDocPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
         EDocPurchaseHeader.Insert();
-        EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice"; // TODO: Do i need this after reimplenentation?
-        EDocument."Read into Draft Impl." := Enum::"E-Doc. Read into Draft"::"Demo Invoice";
+        EDocument."Structure Data Impl." := Enum::"Structure Received E-Doc."::"Demo Invoice";
         EDocument."Structured Data Entry No." := InsertEDocDataStorageWithPurchHeaderTableView();
         EDocument.Modify();
 
@@ -139,17 +124,34 @@ codeunit 5429 "Contoso Inbound E-Document"
             NewEDocPurchaseLine.Insert();
             Total += EDocPurchaseLine."Sub Total";
         until EDocPurchaseLine.Next() = 0;
-        EDocPurchaseHeader.Total := Total;
+        EDocPurchaseHeader."Sub Total" := Total;
+        EDocPurchaseHeader.Total := EDocPurchaseHeader."Sub Total" + EDocPurchaseHeader."Total VAT";
+        EDocPurchaseHeader.Modify();
         EDocPurchaseLine.DeleteAll();
     end;
 
-    local procedure FinalizeEDocument(EDocument: Record "E-Document")
+    local procedure ProcessEDocument(EDocument: Record "E-Document")
     var
         EDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
     begin
         EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
         EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+    end;
+
+    local procedure PostPurchaseInvoice(EDocEntryNo: Integer)
+    var
+        PurchHeader: Record "Purchase Header";
+        EDocument: Record "E-Document";
+        PurchPost: Codeunit "Purch.-Post";
+    begin
+        EDocument.Get(EDocEntryNo);
+        EDocument.TestField("Document Record ID");
+        PurchHeader.Get(EDocument."Document Record ID");
+        PurchHeader.Invoice := true;
+        PurchHeader.Receive := true;
+        PurchHeader.Modify(true);
+        PurchPost.Run(PurchHeader);
     end;
 
     local procedure InsertEDocDataStorageWithPurchHeaderTableView(): Integer
