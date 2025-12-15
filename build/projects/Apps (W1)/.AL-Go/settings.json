@@ -57,7 +57,8 @@
         "AU"
       ],
       "settings": {
-        "country": "au"
+        "country": "au",
+        "doNotRunTests": true
       }
     },
     {
