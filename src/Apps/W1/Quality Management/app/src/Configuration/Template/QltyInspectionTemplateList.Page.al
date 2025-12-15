@@ -10,7 +10,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.
+/// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
 /// </summary>
 page 20404 "Qlty. Inspection Template List"
 {
@@ -22,9 +22,9 @@ page 20404 "Qlty. Inspection Template List"
     SourceTable = "Qlty. Inspection Template Hdr.";
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
-    AdditionalSearchTerms = 'Quality Test Template,Template,Quality Template,Quality Inspection,questions,types of tests,templates,quality inspector template,quality template,certificate design,SOP,standard operating procedures';
+    AdditionalSearchTerms = 'Quality Test Inspection,Template,Quality Template,Quality Inspection,questions,types of tests,templates,quality inspector template,quality template,certificate design,SOP,standard operating procedures';
     AboutTitle = 'Quality Inspection Template';
-    AboutText = 'A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+    AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
 
     layout
     {
@@ -82,17 +82,17 @@ page 20404 "Qlty. Inspection Template List"
                 RunPageLink = "Template Code" = field(Code);
                 RunPageMode = Edit;
             }
-            action(CreateTest)
+            action(CreateInspection)
             {
                 Scope = Repeater;
-                Caption = 'Create Test';
+                Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateTest;
+                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -141,12 +141,12 @@ page 20404 "Qlty. Inspection Template List"
     }
 
     var
-        CanCreateTest: Boolean;
+        CanCreateInspection: Boolean;
 
     trigger OnOpenPage()
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        CanCreateTest := QltyPermissionMgmt.CanCreateManualTest();
+        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
     end;
 }

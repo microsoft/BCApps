@@ -334,7 +334,7 @@ page 20480 "Qlty. Related Transfer Orders"
 
     var
         TestNo: Code[20];
-        RetestNo: Integer;
+        ReinspectionNo: Integer;
         IsTransferOrder: Boolean;
         IsTransferShipment: Boolean;
         IsTransferReceipt: Boolean;
@@ -387,7 +387,7 @@ page 20480 "Qlty. Related Transfer Orders"
     procedure InitializeWithTest(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         TestNo := QltyInspectionHeader."No.";
-        RetestNo := QltyInspectionHeader."Retest No.";
+        ReinspectionNo := QltyInspectionHeader."Reinspection No.";
     end;
 
     local procedure ReloadBuffer()
@@ -415,7 +415,7 @@ page 20480 "Qlty. Related Transfer Orders"
     begin
         TransferHeader.SetLoadFields(Status, "Transfer-from Code", "Transfer-to Code", "Posting Date");
         TransferHeader.SetRange("Qlty. Inspection No.", TestNo);
-        TransferHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        TransferHeader.SetRange("Qlty. Inspection Reinspection No.", ReinspectionNo);
         if TransferHeader.FindSet() then
             repeat
                 if TransferHeader.Status = TransferHeader.Status::Open then
@@ -440,7 +440,7 @@ page 20480 "Qlty. Related Transfer Orders"
     begin
         TransferShipmentHeader.SetLoadFields("Transfer-from Code", "Transfer-to Code", "Posting Date");
         TransferShipmentHeader.SetRange("Qlty. Inspection No.", TestNo);
-        TransferShipmentHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        TransferShipmentHeader.SetRange("Qlty. Inspection Reinspection No.", ReinspectionNo);
         if TransferShipmentHeader.FindSet() then
             repeat
                 AddToBuffer(TransferShipmentHeader."No.",
@@ -460,7 +460,7 @@ page 20480 "Qlty. Related Transfer Orders"
     begin
         TransferReceiptHeader.SetLoadFields("Transfer-from Code", "Transfer-to Code", "Posting Date");
         TransferReceiptHeader.SetRange("Qlty. Inspection No.", TestNo);
-        TransferReceiptHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        TransferReceiptHeader.SetRange("Qlty. Inspection Reinspection No.", ReinspectionNo);
         if TransferReceiptHeader.FindSet() then
             repeat
                 AddToBuffer(TransferReceiptHeader."No.",
@@ -480,7 +480,7 @@ page 20480 "Qlty. Related Transfer Orders"
     begin
         DirectTransHeader.SetLoadFields("Transfer-from Code", "Transfer-to Code", "Posting Date");
         DirectTransHeader.SetRange("Qlty. Inspection No.", TestNo);
-        DirectTransHeader.SetRange("Qlty. Inspection Retest No.", RetestNo);
+        DirectTransHeader.SetRange("Qlty. Inspection Reinspection No.", ReinspectionNo);
         if DirectTransHeader.FindSet() then
             repeat
                 AddToBuffer(DirectTransHeader."No.",

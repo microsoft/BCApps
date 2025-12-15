@@ -19,24 +19,24 @@ codeunit 20406 "Qlty. Permission Mgmt."
     var
         CurrentUserId: Text;
         ExpressOnlyCaptionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
-        ExpressOnlyCaptionCreateTestManualLbl: Label 'Create Test Manual';
-        ExpressOnlyCaptionCreateTestAutoLbl: Label 'Create Test Auto';
-        ExpressOnlyCaptionCreateRetestLbl: Label 'Create Retest';
+        ExpressOnlyCaptionCreateInspectionManualLbl: Label 'Create Inspection Manual';
+        ExpressOnlyCaptionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
+        ExpressOnlyCaptionCreateReinspectionLbl: Label 'Create Reinspection';
         ExpressOnlyCaptionDeleteOpenTestLbl: Label 'Delete Open Test';
         ExpressOnlyCaptionDeleteFinishedTestLbl: Label 'Delete Finished Test';
         ExpressOnlyCaptionChangeOthersTestsLbl: Label 'Change Others Tests';
         ExpressOnlyCaptionReopenTestLbl: Label 'Reopen Test';
-        ExpressOnlyCaptionFinishTestLbl: Label 'Finish Test';
+        ExpressOnlyCaptionFinishInspectionLbl: Label 'Finish Inspection';
         ExpressOnlyCaptionChangeTrackingNoLbl: Label 'Change Tracking No.';
         ExpressOnlyCaptionChangeSourceQuantityLbl: Label 'Change Source Quantity';
         ExpectedSupervisorRoleIDTxt: Label 'QltyGeneral', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2]. This can be changed by navigating to Quality Management Permissions.', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
-    /// CanReadTestResults returns true if the current user can has permission to read test results in general.
+    /// CanReadInspectionResults returns true if the current user can has permission to read inspection results in general.
     /// </summary>
-    /// <returns>Return value of type Boolean, true if the current user can has permission to read test results in general</returns>
-    procedure CanReadTestResults(): Boolean
+    /// <returns>Return value of type Boolean, true if the current user can has permission to read inspection results in general</returns>
+    procedure CanReadInspectionResults(): Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
@@ -44,23 +44,23 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// TestCanCreateManualTest will determine if the current user can create a manual test.
+    /// TestCanCreateManualInspection will determine if the current user can create a manual inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanCreateManualTest()
+    procedure TestCanCreateManualInspection()
     begin
-        if not CanCreateManualTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateTestManual());
+        if not CanCreateManualInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionManual());
     end;
 
     /// <summary>
-    /// CanCreateManualTest. True if the user can create a manual test
+    /// CanCreateManualInspection. True if the user can create a manual inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateManualTest(): Boolean
+    procedure CanCreateManualInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateTestManual()));
+        exit(LoadPermissionDetails(GetCaptionCreateInspectionManual()));
     end;
 
     /// <summary>
@@ -70,37 +70,37 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     procedure TestCanCreateAutoTest()
     begin
-        if not CanCreateAutoTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateTestAuto());
+        if not CanCreateAutoInspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateInspectionAuto());
     end;
 
     /// <summary>
-    /// CanCreateAutoTest. True if the user can create a manual test
+    /// CanCreateAutoInspection. True if the user can create a manual inspection
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateAutoTest(): Boolean
+    procedure CanCreateAutoInspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateTestAuto()));
+        exit(LoadPermissionDetails(GetCaptionCreateInspectionAuto()));
     end;
 
     /// <summary>
-    /// TestCanCreateReTest will determine if the current user can create a retest.
+    /// TestCanCreateReinspection will determine if the current user can create a reinspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanCreateReTest()
+    procedure TestCanCreateReinspection()
     begin
-        if not CanCreateReTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateReTest());
+        if not CanCreateReinspection() then
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionCreateReinspection());
     end;
 
     /// <summary>
-    /// CanCreateReTest. True if the user can create a retest.
+    /// CanCreateReinspection. True if the user can create a reinspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanCreateReTest(): Boolean
+    procedure CanCreateReinspection(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionCreateReTest()));
+        exit(LoadPermissionDetails(GetCaptionCreateReinspection()));
     end;
 
     /// <summary>
@@ -164,7 +164,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// TestCanReopenTest will determine if the current user can re-open a test.
+    /// TestCanReopenTest will determine if the current user can re-open an inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
@@ -175,7 +175,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanReopenTest. True if the user can re-open a test.
+    /// CanReopenTest. True if the user can re-open an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     procedure CanReopenTest(): Boolean
@@ -184,27 +184,27 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// TestCanFinishTest will determine if the current user can finish a test.
+    /// TestCanFinishTest will determine if the current user can finish an inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure TestCanFinishTest()
+    procedure TestCanFinishInspection()
     begin
         if not CanFinishTest() then
-            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionFinishTest());
+            Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionFinishInspection());
     end;
 
     /// <summary>
-    /// CanFinishTest. True if the user can can finish a test.
+    /// CanFinishTest. True if the user can can finish an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     procedure CanFinishTest(): Boolean
     begin
-        exit(LoadPermissionDetails(GetCaptionFinishTest()));
+        exit(LoadPermissionDetails(GetCaptionFinishInspection()));
     end;
 
     /// <summary>
-    /// TestCanChangeTrackingNo will determine if the current user can change the tracking on a test.
+    /// TestCanChangeTrackingNo will determine if the current user can change the tracking on an inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
@@ -215,7 +215,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanChangeTrackingNo. True if the user can change the tracking on a test.
+    /// CanChangeTrackingNo. True if the user can change the tracking on an inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     procedure CanChangeTrackingNo(): Boolean
@@ -251,11 +251,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
     procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
-            GetCaptionCreateTestAuto():
+            GetCaptionCreateInspectionAuto():
                 Result := true;
-            GetCaptionCreateTestManual():
+            GetCaptionCreateInspectionManual():
                 Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
-            GetCaptionCreateReTest():
+            GetCaptionCreateReinspection():
                 Result := GetCanInsertTableData(Database::"Qlty. Inspection Header");
             GetCaptionChangeOthersTests():
                 Result := GetIsSuperVisorRoleAssigned();
@@ -265,7 +265,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
                 Result := GetCanDeleteTableData(Database::"Qlty. Inspection Header");
             GetCaptionChangeTrackingNo():
                 Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
-            GetCaptionFinishTest():
+            GetCaptionFinishInspection():
                 Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
             GetCaptionReopenTest():
                 Result := GetCanModifyTableData(Database::"Qlty. Inspection Header");
@@ -383,19 +383,19 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(LoadPermissionDetails(GetCaptionEditLineComments()));
     end;
 
-    local procedure GetCaptionCreateTestManual(): Text
+    local procedure GetCaptionCreateInspectionManual(): Text
     begin
-        exit(ExpressOnlyCaptionCreateTestManualLbl);
+        exit(ExpressOnlyCaptionCreateInspectionManualLbl);
     end;
 
-    local procedure GetCaptionCreateTestAuto(): Text
+    local procedure GetCaptionCreateInspectionAuto(): Text
     begin
-        exit(ExpressOnlyCaptionCreateTestAutoLbl);
+        exit(ExpressOnlyCaptionCreateInspectionAutoLbl);
     end;
 
-    local procedure GetCaptionCreateReTest(): Text
+    local procedure GetCaptionCreateReinspection(): Text
     begin
-        exit(ExpressOnlyCaptionCreateRetestLbl);
+        exit(ExpressOnlyCaptionCreateReinspectionLbl);
     end;
 
     local procedure GetCaptionDeleteOpenTest(): Text
@@ -418,9 +418,9 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(ExpressOnlyCaptionReopenTestLbl);
     end;
 
-    local procedure GetCaptionFinishTest(): Text
+    local procedure GetCaptionFinishInspection(): Text
     begin
-        exit(ExpressOnlyCaptionFinishTestLbl);
+        exit(ExpressOnlyCaptionFinishInspectionLbl);
     end;
 
     local procedure GetCaptionChangeTrackingNo(): Text

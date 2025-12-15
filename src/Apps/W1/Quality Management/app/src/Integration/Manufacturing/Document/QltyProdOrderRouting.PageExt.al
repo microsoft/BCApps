@@ -24,13 +24,13 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
                     Image = TaskQualityMeasure;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Specifies to create a new quality inspection.';
-                    Enabled = QltyShowCreateTest;
+                    Enabled = QltyShowCreateInspection;
 
                     trigger OnAction()
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateTestWithVariant(Rec, true);
+                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
                 action(Qlty_InspectionShowTestsForItem)
@@ -53,7 +53,7 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
     }
 
     var
-        QltyShowCreateTest: Boolean;
+        QltyShowCreateInspection: Boolean;
         QltyReadTestResults: Boolean;
 
     trigger OnOpenPage()
@@ -64,7 +64,7 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
         if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
+        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
+        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
     end;
 }

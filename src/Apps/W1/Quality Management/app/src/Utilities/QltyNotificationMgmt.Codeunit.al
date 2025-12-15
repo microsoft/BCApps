@@ -32,13 +32,13 @@ codeunit 20437 "Qlty. Notification Mgmt."
         DocumentCreatedAnMsg: Label 'An %1 %2 has been created for test %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the test';
         DocumentNotAbleToBeCreatedAMsg: Label 'A %1 could not be created for test %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the test has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the test, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
         DocumentNotAbleToBeCreatedAnMsg: Label 'An %1 could not be created for test %2 for %3 %6 of %4. %5 Please make sure there is sufficient inventory available. Please verify that the test has sufficient details for the item, variant, lot, and serial. Make sure to define the quantity to move.', Comment = '%1=the document type, %2=the test, %3=the quantity, %4=the source details, %5=additional message details, %6=uom';
-        ChangeTrackingEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a journal entry to update the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=test no., %2=retest no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM,%7=optional location';
-        ChangeTrackingEntryPostedMsg: Label 'The Quality Inspection %1,%2 updated the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=test no., %2=retest no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM, %7=optional location';
+        ChangeTrackingEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a journal entry to update the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=test no., %2=reinspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM,%7=optional location';
+        ChangeTrackingEntryPostedMsg: Label 'The Quality Inspection %1,%2 updated the tracking information for %5 %6 of item %3 to%4%7.', Comment = '%1=test no., %2=reinspection no., %3=item and source tracking, %4=new item tracking,%5=quantity, %6=base UOM, %7=optional location';
         ChangeTrackingFailMsg: Label 'Unable to update tracking information to%1%2. Check batch setup on the Quality Management Setup page.', Comment = '%1=new item tracking information,%2=optional location';
         ExpDateMsg: Label ' Expiration Date: %1', Comment = '%1=expiration date';
         InLocationMsg: Label ' in location %1', Comment = '%1=the location';
-        MoveEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a %10 to move %3 %12 of item %4 from %5 %6 to %7 %8 in %11 %9.', Comment = '%1=test no., %2=retest no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=the batch or document, %10=the type of journal, %11=the type of the document or batch, %12=uom';
-        MoveEntryPostedMsg: Label 'The Quality Inspection %1,%2 moved %3 %9 of item %4 from %5 %6 to %7 %8.', Comment = '%1=test no., %2=retest no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=uom';
+        MoveEntryCreatedMsg: Label 'The Quality Inspection %1,%2 created a %10 to move %3 %12 of item %4 from %5 %6 to %7 %8 in %11 %9.', Comment = '%1=test no., %2=reinspection no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=the batch or document, %10=the type of journal, %11=the type of the document or batch, %12=uom';
+        MoveEntryPostedMsg: Label 'The Quality Inspection %1,%2 moved %3 %9 of item %4 from %5 %6 to %7 %8.', Comment = '%1=test no., %2=reinspection no., %3=quantity, %4=source item and tracking details, %5=from location, %6=from bin,%7=to location,%8=to bin, %9=uom';
         TypeJournalEntryLbl: Label 'journal entry';
         TypeWorksheetEntryLbl: Label 'worksheet entry';
         TypeMovementDocumentLbl: Label 'movement document';
@@ -46,8 +46,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         TypeJournalEntryBatchLbl: Label 'batch';
         LocationLbl: Label 'Location: %1', Comment = '%1= the location';
         BinLbl: Label ' Bin: %1', Comment = '%1= the bin';
-        NegativeEntriesCreatedMsg: Label 'The Quality Inspection %1,%2 created negative adjustment entries in batch %5 to reduce %3 in %6 by %4 %7.', Comment = '%1=test no., %2=retest no., %3=source item and tracking details, %4=quantity, %5=the batch name, %6=location and bin details., %7 = uom';
-        MoveEntriesPostedMsg: Label 'The Quality Inspection %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=test no., %2=retest no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
+        NegativeEntriesCreatedMsg: Label 'The Quality Inspection %1,%2 created negative adjustment entries in batch %5 to reduce %3 in %6 by %4 %7.', Comment = '%1=test no., %2=reinspection no., %3=source item and tracking details, %4=quantity, %5=the batch name, %6=location and bin details., %7 = uom';
+        MoveEntriesPostedMsg: Label 'The Quality Inspection %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=test no., %2=reinspection no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
         BlockedStateChangedLbl: Label 'Test %1 changed %2 %3 on item %4 to %5.', Comment = '%1=the test number, %2=the type, %3, %3= the type,%4 = the item,%5=the blocked state';
         BlockedLbl: Label 'blocked';
         UnBlockedLbl: Label 'un-blocked';
@@ -219,9 +219,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 OptionalLocation := StrSubstNo(InLocationMsg, TempInstructionQltyDispositionBuffer.GetFromLocationCode());
 
             if (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) and Success then
-                CurrentMessage := StrSubstNo(ChangeTrackingEntryPostedMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation)
+                CurrentMessage := StrSubstNo(ChangeTrackingEntryPostedMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation)
             else
-                CurrentMessage := StrSubstNo(ChangeTrackingEntryCreatedMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation);
+                CurrentMessage := StrSubstNo(ChangeTrackingEntryCreatedMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", Source, New, ChangedBaseQuantity, Item."Base Unit of Measure", OptionalLocation);
         end else
             CurrentMessage := StrSubstNo(ChangeTrackingFailMsg, New, OptionalLocation);
 
@@ -266,7 +266,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
             CurrentMessage := StrSubstNo(
                 MoveEntryPostedMsg,
                 QltyInspectionHeader."No.",
-                QltyInspectionHeader."Retest No.",
+                QltyInspectionHeader."Reinspection No.",
                 TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
                 Source,
                 TempInstructionQltyDispositionBuffer."Location Filter",
@@ -277,7 +277,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         else
             CurrentMessage := StrSubstNo(MoveEntryCreatedMsg,
                 QltyInspectionHeader."No.",
-                QltyInspectionHeader."Retest No.",
+                QltyInspectionHeader."Reinspection No.",
                 TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
                 Source,
                 TempInstructionQltyDispositionBuffer."Location Filter",
@@ -319,7 +319,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
             CurrentMessage := StrSubstNo(
                 MoveEntriesPostedMsg,
                 QltyInspectionHeader."No.",
-                QltyInspectionHeader."Retest No.",
+                QltyInspectionHeader."Reinspection No.",
                 Source,
                 Abs(TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)"),
                 LocationAndBinDetails,
@@ -328,7 +328,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
             CurrentMessage := StrSubstNo(
                 NegativeEntriesCreatedMsg,
                 QltyInspectionHeader."No.",
-                QltyInspectionHeader."Retest No.",
+                QltyInspectionHeader."Reinspection No.",
                 Source,
                 Abs(TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)"),
                 DocumentOrBatchName,

@@ -27,7 +27,7 @@ pageextension 20423 "Qlty. Transfer Order" extends "Transfer Order"
                         Rec.QltyShowRelatedInspection();
                     end;
                 }
-                field("Qlty. Inspection Retest No."; Rec."Qlty. Inspection Retest No.")
+                field("Qlty. Inspection Reinspection No."; Rec."Qlty. Inspection Reinspection No.")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;

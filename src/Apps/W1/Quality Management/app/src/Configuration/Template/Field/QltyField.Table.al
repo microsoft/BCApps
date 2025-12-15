@@ -97,7 +97,7 @@ table 20401 "Qlty. Field"
         {
             BlankZero = true;
             Caption = 'Lookup Field No.';
-            ToolTip = 'Specifies the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording a test, and choosing the test value they would then see as options the values from this field.';
+            ToolTip = 'Specifies the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording an inspection, and choosing the test value they would then see as options the values from this field.';
             MinValue = 0;
             TableRelation = Field."No." where(TableNo = field("Lookup Table No."));
 
@@ -215,7 +215,7 @@ table 20401 "Qlty. Field"
         DeleteQst: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
         DeleteErr: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
         FieldTypeErrTitleMsg: Label 'Field Type cannot be changed for a field that has been used in tests. ';
-        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on test %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
 
     /// <summary>
     /// Set a specific grade for the field. If AllowError is set to true it will error
@@ -391,7 +391,7 @@ table 20401 "Qlty. Field"
             Error(ExistingTestErr,
                 QltyInspectionLine."Field Code",
                 LineCount,
-                QltyInspectionLine."Test No.",
+                QltyInspectionLine."Inspection No.",
                 QltyInspectionLine."Template Code");
         end;
 
@@ -487,7 +487,7 @@ table 20401 "Qlty. Field"
     /// Custom 2 = lowercase value
     /// Custom 3 = uppercase value.
     /// </summary>
-    /// <param name="ContextQltyInspectionHeader">Supply if you want to give a test, this is useful for table lookups which can have additional values.</param>
+    /// <param name="ContextQltyInspectionHeader">Supply if you want to give an inspection, this is useful for table lookups which can have additional values.</param>
     /// <param name="TempBufferQltyLookupCode"></param>
     /// <param name="OptionalSetToValue">Leave empty to ignore. Supply a value to have the record auto-filtered to the supplied record that matches</param>
     procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
@@ -545,7 +545,7 @@ table 20401 "Qlty. Field"
     begin
         QltyInspectionLine.SetRange("Field Code", Rec.Code);
         if QltyInspectionLine.FindLast() then begin
-            if QltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionLine."Retest No.") then;
+            if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
             if AllowActionableError then
                 Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionHeader."No.")
             else

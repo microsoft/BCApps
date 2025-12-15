@@ -26,14 +26,14 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
                     ToolTip = 'Creates a quality inspection for this consumption journal line.';
                     AboutTitle = 'Create Quality Inspection';
                     AboutText = 'Create a quality inspection for this consumption journal line.';
-                    Enabled = QltyShowCreateTest;
-                    Visible = QltyShowCreateTest;
+                    Enabled = QltyShowCreateInspection;
+                    Visible = QltyShowCreateInspection;
 
                     trigger OnAction()
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateTestWithVariant(Rec, true);
+                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
                 action(Qlty_InspectionShowTestsForItemAndDocument)
@@ -83,7 +83,7 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
     }
 
     var
-        QltyShowCreateTest: Boolean;
+        QltyShowCreateInspection: Boolean;
         QltyReadTestResults: Boolean;
 
     trigger OnOpenPage()
@@ -94,7 +94,7 @@ pageextension 20408 "Qlty. Consumption Journal" extends "Consumption Journal"
         if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
+        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
+        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
     end;
 }

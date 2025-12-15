@@ -26,8 +26,8 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
                     ToolTip = 'Creates multiple quality inspections for the selected item tracking lines.';
                     AboutTitle = 'Create Quality Inspections for selected lines';
                     AboutText = 'Select multiple records, and then use this action to create multiple quality inspections for the selected item tracking lines.';
-                    Enabled = QltyShowCreateTest;
-                    Visible = QltyShowCreateTest;
+                    Enabled = QltyShowCreateInspection;
+                    Visible = QltyShowCreateInspection;
 
                     trigger OnAction()
                     var
@@ -62,7 +62,7 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
 
     var
         QltyReadTestResults: Boolean;
-        QltyShowCreateTest: Boolean;
+        QltyShowCreateInspection: Boolean;
 
     trigger OnOpenPage()
     var
@@ -72,7 +72,7 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
         if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
+        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
+        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
     end;
 }

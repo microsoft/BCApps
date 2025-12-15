@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
 /// <summary>
-/// The target of a source configuration. This can be either a chained table or a test, or only item tracking.
+/// The target of a source configuration. This can be either a chained table or an inspection, or only item tracking.
 /// </summary>
 enum 20400 "Qlty. Target Type"
 {

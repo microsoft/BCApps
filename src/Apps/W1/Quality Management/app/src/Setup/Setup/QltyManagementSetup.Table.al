@@ -45,7 +45,7 @@ table 20400 "Qlty. Management Setup"
         field(3; "Show Inspection Behavior"; Enum "Qlty. Show Inspection Behavior")
         {
             Caption = 'Show Inspection Behavior';
-            ToolTip = 'Specifies whether to show the Quality Inspection page after a test has been made.';
+            ToolTip = 'Specifies whether to show the Quality Inspection page after an inspection has been made.';
         }
         field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
         {
@@ -67,9 +67,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(10; "Production Trigger"; Enum "Qlty. Production Trigger")
         {
-            Description = 'Optionally choose a production related trigger to try and create a test.';
+            Description = 'Optionally choose a production related trigger to try and create an inspection.';
             Caption = 'Production Trigger';
-            ToolTip = 'Specifies a default production-related trigger value for Inspection Generation Rules to try and create a test.';
+            ToolTip = 'Specifies a default production-related trigger value for Inspection Generation Rules to try and create an inspection.';
 
             trigger OnValidate()
             var
@@ -99,9 +99,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(24; "Item Tracking Before Finishing"; Enum "Qlty. Item Tracking Behavior")
         {
-            Description = 'Whether to require item tracking before finishing a test.';
+            Description = 'Whether to require item tracking before finishing an inspection.';
             Caption = 'Item Tracking Before Finishing';
-            ToolTip = 'Specifies whether to require item tracking before finishing a test.';
+            ToolTip = 'Specifies whether to require item tracking before finishing an inspection.';
         }
         field(26; "Scheduler Template Code"; Code[20])
         {
@@ -120,7 +120,7 @@ table 20400 "Qlty. Management Setup"
                 SanityCheckPictureAndCameraSettings();
             end;
         }
-        field(28; "Conditional Lot Find Behavior"; Enum "Qlty. Test Find Behavior")
+        field(28; "Conditional Lot Find Behavior"; Enum "Qlty. Inspection Find Behavior")
         {
             Description = 'When evaluating if a document specific transactions are blocked, this determines which test(s) are considered.';
             Caption = 'Conditional Lot Find Behavior';
@@ -128,9 +128,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
-            Description = 'Optionally choose a warehouse related trigger to try and create a test.';
+            Description = 'Optionally choose a warehouse related trigger to try and create an inspection.';
             Caption = 'Warehouse Trigger';
-            ToolTip = 'Specifies a default warehousing related trigger value for Inspection Generation Rules to try and create a test.';
+            ToolTip = 'Specifies a default warehousing related trigger value for Inspection Generation Rules to try and create an inspection.';
 
             trigger OnValidate()
             var
@@ -318,7 +318,7 @@ table 20400 "Qlty. Management Setup"
         field(92; "Auto Output Configuration"; Enum "Qlty. Auto. Production Trigger")
         {
             Caption = 'Auto Output Configuration';
-            ToolTip = 'Specifies granular options for when a test should be created automatically during the production process.';
+            ToolTip = 'Specifies granular options for when an inspection should be created automatically during the production process.';
         }
         field(93; "Whse. Wksh. Name"; Code[10])
         {
@@ -412,9 +412,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(97; "Warehouse Receive Trigger"; Enum "Qlty. Whse. Receive Trigger")
         {
-            Caption = 'Create Test On Warehouse Receive Trigger';
-            Description = 'Provides automation to create a test when a warehouse receipt is created.';
-            ToolTip = 'Specifies a default warehouse receipt trigger value for Inspection Generation Rules to create a test.';
+            Caption = 'Create Inspection On Warehouse Receive Trigger';
+            Description = 'Provides automation to create an inspection when a warehouse receipt is created.';
+            ToolTip = 'Specifies a default warehouse receipt trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
@@ -433,9 +433,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(98; "Purchase Trigger"; Enum "Qlty. Purchase Trigger")
         {
-            Caption = 'Create Test On Purchase Trigger';
-            Description = 'Provides automation to create a test when a purchase is received.';
-            ToolTip = 'Specifies a default purchase trigger value for Inspection Generation Rules to create a test.';
+            Caption = 'Create Inspection On Purchase Trigger';
+            Description = 'Provides automation to create an inspection when a purchase is received.';
+            ToolTip = 'Specifies a default purchase trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
@@ -452,9 +452,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(99; "Sales Return Trigger"; Enum "Qlty. Sales Return Trigger")
         {
-            Caption = 'Create Test On Sales Return Trigger';
-            Description = 'Provides automation to create a test when a sales return is received.';
-            ToolTip = 'Specifies a default sales return trigger value for Inspection Generation Rules to create a test.';
+            Caption = 'Create Inspection On Sales Return Trigger';
+            Description = 'Provides automation to create an inspection when a sales return is received.';
+            ToolTip = 'Specifies a default sales return trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
@@ -471,9 +471,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(100; "Transfer Trigger"; Enum "Qlty. Transfer Trigger")
         {
-            Caption = 'Create Test On Transfer Trigger';
-            Description = 'Provides automation to create a test when a transfer order is received.';
-            ToolTip = 'Specifies a default transfer trigger value for Inspection Generation Rules to create a test.';
+            Caption = 'Create Inspection On Transfer Trigger';
+            Description = 'Provides automation to create an inspection when a transfer order is received.';
+            ToolTip = 'Specifies a default transfer trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
@@ -490,9 +490,9 @@ table 20400 "Qlty. Management Setup"
         }
         field(101; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
         {
-            Caption = 'Create Test On Assembly Trigger';
-            Description = 'Provides automation to create a test when an assembly order creates output.';
-            ToolTip = 'Specifies a default assembly-related trigger value for Inspection Generation Rules to try and create a test.';
+            Caption = 'Create Inspection On Assembly Trigger';
+            Description = 'Provides automation to create an inspection when an assembly order creates output.';
+            ToolTip = 'Specifies a default assembly-related trigger value for Inspection Generation Rules to try and create an inspection.';
 
             trigger OnValidate()
             var
@@ -524,7 +524,7 @@ table 20400 "Qlty. Management Setup"
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
-        DefaultTopLeftExpressionTxt: Label '[No.] [Retest No.]', Locked = true;
+        DefaultTopLeftExpressionTxt: Label '[No.] [Reinspection No.]', Locked = true;
         DefaultMiddleLeftExpressionTxt: Label '[Grade Description]', Locked = true;
         DefaultMiddleRightExpressionTxt: Label '[Description] [Source Item No.] [Source Lot No.]  [Source Serial No.]', Locked = true;
         DefaultBottomLeftExpressionTxt: Label '[Source Document No.]', Locked = true;

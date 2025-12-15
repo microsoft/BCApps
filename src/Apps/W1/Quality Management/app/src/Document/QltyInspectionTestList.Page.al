@@ -29,7 +29,7 @@ page 20408 "Qlty. Inspection List"
     Editable = false;
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
-    SourceTableView = sorting("No.", "Retest No.") order(descending);
+    SourceTableView = sorting("No.", "Reinspection No.") order(descending);
     AdditionalSearchTerms = 'Test Results,Certificates,Quality Tests,Inspections,inspection results';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
@@ -44,7 +44,7 @@ page 20408 "Qlty. Inspection List"
                 field("No."; Rec."No.")
                 {
                 }
-                field("Retest No."; Rec."Retest No.")
+                field("Reinspection No."; Rec."Reinspection No.")
                 {
                 }
                 field("Template Code"; Rec."Template Code")
@@ -146,14 +146,14 @@ page 20408 "Qlty. Inspection List"
             part("Most Recent Picture"; "Qlty. Most Recent Picture")
             {
                 Caption = 'Picture';
-                SubPageLink = "No." = field("No."), "Retest No." = field("Retest No.");
+                SubPageLink = "No." = field("No."), "Reinspection No." = field("Reinspection No.");
             }
             part("Attached Documents"; "Doc. Attachment List Factbox")
             {
                 Caption = 'Attachments';
                 SubPageLink = "Table ID" = const(Database::"Qlty. Inspection Header"),
                               "No." = field("No."),
-                              "Line No." = field("Retest No.");
+                              "Line No." = field("Reinspection No.");
             }
             part("Template Attached Documents"; "Doc. Attachment List Factbox")
             {
@@ -176,17 +176,17 @@ page 20408 "Qlty. Inspection List"
     {
         area(Processing)
         {
-            action(CreateTest)
+            action(CreateInspection)
             {
                 Scope = Repeater;
-                Caption = 'Create Test';
+                Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection.';
                 Image = CreateForm;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateTest;
+                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -194,23 +194,23 @@ page 20408 "Qlty. Inspection List"
                 begin
                     QltyCreateInspection.InitializeReportParameters(Rec."Template Code");
                     QltyCreateInspection.RunModal();
-                    CurrPage.Update(false); // after creating a test from a blank list this helps make sure the actions stay updated.
+                    CurrPage.Update(false); // after creating an inspection from a blank list this helps make sure the actions stay updated.
                 end;
             }
-            action(CreateRetest)
+            action(CreateReinspection)
             {
-                Caption = 'Create Retest';
+                Caption = 'Create Reinspection';
                 Image = Reuse;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Retest';
-                Enabled = CanCreateRetest;
+                ToolTip = 'Create Reinspection';
+                Enabled = CanCreateReinspection;
 
                 trigger OnAction()
                 begin
-                    Rec.CreateReTest();
+                    Rec.CreateReinspection();
                     CurrPage.Update(false);
                 end;
             }
@@ -244,7 +244,7 @@ page 20408 "Qlty. Inspection List"
                     CurrPage.SetSelectionFilter(TestsToFinishQualityOrder);
                     if TestsToFinishQualityOrder.FindSet(true) then
                         repeat
-                            TestsToFinishQualityOrder.FinishTest();
+                            TestsToFinishQualityOrder.FinishInspection();
                         until TestsToFinishQualityOrder.Next() = 0;
                     CurrPage.Update(false);
                 end;
@@ -622,27 +622,27 @@ page 20408 "Qlty. Inspection List"
         {
             Caption = 'Open (all)';
             Filters = where(Status = const(Open));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
         view(viewOpenAndDue)
         {
             Caption = 'Open and Due (all)';
             Filters = where(Status = const(Open),
                             "Planned Start Date" = filter('<=T'));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
         view(viewFinished)
         {
             Caption = 'Finished';
             Filters = where(Status = const(Finished));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
         view(viewMyOpen)
         {
             Caption = 'Open (mine)';
             Filters = where(Status = const(Open),
                             "Assigned User ID" = filter('%me'));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
         view(viewMyOpenAndDue)
         {
@@ -650,35 +650,35 @@ page 20408 "Qlty. Inspection List"
             Filters = where(Status = const(Open),
                             "Assigned User ID" = filter('%me'),
                             "Planned Start Date" = filter('<=T'));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
         view(viewMyFinished)
         {
             Caption = 'Finished (mine)';
             Filters = where(Status = const(Finished),
                             "Assigned User ID" = filter('%me'));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
         view(viewAssignedtoMe)
         {
             Caption = 'Assigned To Me';
             Filters = where("Assigned User ID" = filter('%me'));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
         view(viewUnassigned)
         {
             Caption = 'Unassigned';
             Filters = where("Assigned User ID" = filter(''''''));
-            OrderBy = descending("No.", "Retest No.");
+            OrderBy = descending("No.", "Reinspection No.");
         }
     }
 
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        CanCreateTest: Boolean;
+        CanCreateInspection: Boolean;
         CanAssignToSelf: Boolean;
-        CanCreateRetest: Boolean;
+        CanCreateReinspection: Boolean;
         CanUnassign: Boolean;
         CanFinish: Boolean;
         CanReopen: Boolean;
@@ -687,10 +687,10 @@ page 20408 "Qlty. Inspection List"
     trigger OnOpenPage()
     begin
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
+        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
+        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateRetest := RowActionsAreEnabled and QltyPermissionMgmt.CanCreateReTest();
+        CanCreateReinspection := RowActionsAreEnabled and QltyPermissionMgmt.CanCreateReinspection();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -698,7 +698,7 @@ page 20408 "Qlty. Inspection List"
         CanAssignToSelf := false;
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
+        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOthersTests()) then

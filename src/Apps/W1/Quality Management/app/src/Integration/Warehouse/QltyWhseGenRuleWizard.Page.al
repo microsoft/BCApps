@@ -231,7 +231,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                 group(SettingsFor_iStepDone_Instruction1)
                 {
                     Caption = ' ';
-                    InstructionalText = 'We have a Test Generation Rule ready. Click ''Finish'' to save this to the system.';
+                    InstructionalText = 'We have an Inspection Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
                 group(SettingsFor_iStepDone_Instruction2)
@@ -264,16 +264,16 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForbAutomaticallyCreateTest)
+                group(SettingsForbAutomaticallyCreateInspection)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'Do you want to automatically create a test when product is moved to a bin? This setting affects the entire company, not just this rule.';
+                    InstructionalText = 'Do you want to automatically create an inspection when product is moved to a bin? This setting affects the entire company, not just this rule.';
 
-                    field(ChooseeMoveAutomaticallyCreateTest; QltyWarehouseTrigger)
+                    field(ChooseeMoveAutomaticallyCreateInspection; QltyWarehouseTrigger)
                     {
                         ApplicationArea = All;
-                        Caption = 'Automatically Create Test';
-                        ToolTip = 'Specifies whether to automatically create a test when product is moved to this bin.';
+                        Caption = 'Automatically Create Inspection';
+                        ToolTip = 'Specifies whether to automatically create an inspection when product is moved to this bin.';
                     }
                 }
             }

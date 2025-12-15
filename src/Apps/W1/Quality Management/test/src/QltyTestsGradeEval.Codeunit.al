@@ -406,19 +406,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         QltyInspectionLine.FindFirst();
 
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -522,19 +522,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", DateTimeQltyField.Code);
         QltyInspectionLine.FindFirst();
 
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -613,19 +613,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", DateQltyField.Code);
         QltyInspectionLine.FindFirst();
 
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -700,19 +700,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", BooleanQltyField.Code);
         QltyInspectionLine.FindFirst();
 
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -782,19 +782,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", LabelQltyField.Code);
         QltyInspectionLine.FindFirst();
 
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -876,19 +876,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         QltyInspectionLine.FindFirst();
 
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -903,7 +903,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '8', NumericalMeasureQltyField."Case Sensitive"), 'slightly exceeding max inspection line grade');
         // [THEN] Value 5 (below minimum) evaluates to FAIL
         LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '5', NumericalMeasureQltyField."Case Sensitive"), 'slightly before min inspection line grade');
-        // [THEN] Value 6 (retest pass value) evaluates to PASS
+        // [THEN] Value 6 (reinspection pass value) evaluates to PASS
         LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"), 'pass value.');
         // [THEN] Blank value is not treated as zero and evaluates to INPROGRESS
         LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
@@ -988,19 +988,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - e');
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved with no blank grades
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", TextQltyField.Code);
         QltyInspectionLine.FindFirst();
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - f');
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -1030,7 +1030,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'C', TextQltyField."Case Sensitive"), 'original field');
         // [THEN] Value 'Monkey' (not in any condition) evaluates to FAIL
         LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'Monkey', TextQltyField."Case Sensitive"), 'A value not in any condition.');
-        // [THEN] Blank value retested evaluates to INPROGRESS
+        // [THEN] Blank value reinspectioned evaluates to INPROGRESS
         LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", '', TextQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
     end;
 
@@ -1110,20 +1110,20 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field (uses reference) is retrieved
-        UsesReferenceQltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        UsesReferenceQltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        UsesReferenceQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         UsesReferenceQltyInspectionLine.SetRange("Field Code", UsesReferenceInPassConditionQltyField.Code);
         UsesReferenceQltyInspectionLine.FindFirst();
 
         // [GIVEN] Test-level grade conditions are retrieved
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", UsesReferenceQltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", UsesReferenceQltyInspectionLine."Field Code");
 
@@ -1252,20 +1252,20 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field is retrieved with expression '1..{2+[FieldCode]}'
-        UsesReferenceQltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        UsesReferenceQltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        UsesReferenceQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         UsesReferenceQltyInspectionLine.SetRange("Field Code", UsesReferenceInPassConditionQltyField.Code);
         UsesReferenceQltyInspectionLine.FindFirst();
 
         // [GIVEN] Expected filters are manually configured for inspection line-specific grade conditions
         ExpectedQltyIGradeConditionConf.Reset();
-        ExpectedQltyIGradeConditionConf.SetRange("Condition Type", ExpectedQltyIGradeConditionConf."Condition Type"::Test);
-        ExpectedQltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Test No.");
-        ExpectedQltyIGradeConditionConf.SetRange("Target Retest No.", UsesReferenceQltyInspectionLine."Retest No.");
+        ExpectedQltyIGradeConditionConf.SetRange("Condition Type", ExpectedQltyIGradeConditionConf."Condition Type"::Inspection);
+        ExpectedQltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
+        ExpectedQltyIGradeConditionConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
         ExpectedQltyIGradeConditionConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
         ExpectedQltyIGradeConditionConf.SetRange("Field Code", UsesReferenceQltyInspectionLine."Field Code");
 
@@ -1801,12 +1801,12 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for test context validation
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", TextQltyField.Code);
         QltyInspectionLine.FindFirst();
 
@@ -1896,19 +1896,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved and grade conditions are set up
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         QltyInspectionLine.FindFirst();
 
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
@@ -2004,12 +2004,12 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for validation
-        NumericMeasureQltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        NumericMeasureQltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        NumericMeasureQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        NumericMeasureQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         NumericMeasureQltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         NumericMeasureQltyInspectionLine.FindFirst();
 
@@ -2131,12 +2131,12 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateTestWithVariantAndTemplate(ProdOrderRoutingLine, true, QltyInspectionTemplateHdr.Code);
+        QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLine, true, QltyInspectionTemplateHdr.Code);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for option field is retrieved
-        OptionListQltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        OptionListQltyInspectionLine.SetRange("ReTest No.", QltyInspectionHeader."Retest No.");
+        OptionListQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        OptionListQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         OptionListQltyInspectionLine.SetRange("Field Code", OptionListMeasureQltyField.Code);
         OptionListQltyInspectionLine.FindFirst();
 
@@ -2183,7 +2183,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     begin
         OutTemplateLineQltyIGradeConditionConf.SetRange("Condition Type", OutTemplateLineQltyIGradeConditionConf."Condition Type"::Template);
         OutTemplateLineQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
-        OutTemplateLineQltyIGradeConditionConf.SetRange("Target Retest No.");
+        OutTemplateLineQltyIGradeConditionConf.SetRange("Target Reinspection No.");
         OutTemplateLineQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
         OutTemplateLineQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
     end;
@@ -2192,7 +2192,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     begin
         OutTemplateLineQltyIGradeConditionConf.SetRange("Condition Type", OutTemplateLineQltyIGradeConditionConf."Condition Type"::Field);
         OutTemplateLineQltyIGradeConditionConf.SetRange("Target Code", QltyField.Code);
-        OutTemplateLineQltyIGradeConditionConf.SetRange("Target Retest No.");
+        OutTemplateLineQltyIGradeConditionConf.SetRange("Target Reinspection No.");
         OutTemplateLineQltyIGradeConditionConf.SetRange("Target Line No.");
         OutTemplateLineQltyIGradeConditionConf.SetRange("Field Code", QltyField.Code);
     end;

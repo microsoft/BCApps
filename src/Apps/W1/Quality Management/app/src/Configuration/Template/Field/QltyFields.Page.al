@@ -224,7 +224,7 @@ page 20401 "Qlty. Fields"
                 {
                     Visible = false;
                     AboutTitle = 'Lookup Field No.';
-                    AboutText = 'This is the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording a test, and choosing the test value they would then see as options the values from this field.';
+                    AboutText = 'This is the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, then you could use from the "Reason Code" table field "1" which represents the field "Code" on that table. When someone is recording an inspection, and choosing the test value they would then see as options the values from this field.';
                 }
                 field("Lookup Field Name"; Rec."Lookup Field Caption")
                 {

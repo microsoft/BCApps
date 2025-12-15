@@ -26,8 +26,8 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="OptionalSpecificQuantity">Optional specified quantity, updated based on chosen Move Behavior</param>
     /// <param name="QltyQuantityBehavior">Transfer a specific quantity, tracked quantity, sample size, or sample pass/fail quantity</param>
-    /// <param name="OptionalSourceLocationFilter">Optional additional location filter for item on test</param>
-    /// <param name="OptionalSourceBinFilter">Optional additional bin filter for item on test</param>   
+    /// <param name="OptionalSourceLocationFilter">Optional additional location filter for item on inspection</param>
+    /// <param name="OptionalSourceBinFilter">Optional additional bin filter for item on inspection</param>   
     /// <param name="DestinationLocationCode">Destination location for the transfer</param>
     /// <param name="OptionalInTransitLocationCode">The in-transit location to use</param>    
     /// <returns>Returns true if a transfer line was created</returns>
@@ -106,7 +106,7 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
             TransferHeader.Validate("In-Transit Code", TempQuantityToActQltyDispositionBuffer."In-Transit Location Code");
 
         TransferHeader."Qlty. Inspection No." := QltyInspectionHeader."No.";
-        TransferHeader."Qlty. Inspection Retest No." := QltyInspectionHeader."Retest No.";
+        TransferHeader."Qlty. Inspection Reinspection No." := QltyInspectionHeader."Reinspection No.";
         TransferHeader.Insert(true);
         TransferHeader.Validate("Direct Transfer", DirectTransfer);
     end;

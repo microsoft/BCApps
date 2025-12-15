@@ -1933,8 +1933,8 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     end;
 
     [Test]
-    [HandlerFunctions('LookupQITemplateListHandler')]
-    procedure EditQITemplate_NoFilter()
+    [HandlerFunctions('LookupQltyInspectionTemplateListHandler')]
+    procedure EditQltyInspectionTemplate_NoFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
@@ -1956,8 +1956,8 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     end;
 
     [Test]
-    [HandlerFunctions('LookupQITemplateListHandler')]
-    procedure EditQITemplate_TemplateFilter()
+    [HandlerFunctions('LookupQltyInspectionTemplateListHandler')]
+    procedure EditQltyInspectionTemplate_TemplateFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
@@ -2547,7 +2547,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     /// </summary>
     /// <param name="QltyInspectionTemplateList"></param>
     [ModalPageHandler]
-    procedure LookupQITemplateListHandler(var QltyInspectionTemplateList: TestPage "Qlty. Inspection Template List")
+    procedure LookupQltyInspectionTemplateListHandler(var QltyInspectionTemplateList: TestPage "Qlty. Inspection Template List")
     begin
         QltyInspectionTemplateList.OK().Invoke();
     end;

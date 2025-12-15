@@ -57,14 +57,14 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                 {
                     Caption = 'Templates and Rules';
 
-                    action(Qlty_ConfigureTestTemplates)
+                    action(Qlty_ConfigureInspectionTemplates)
                     {
                         ApplicationArea = QualityManagement;
-                        Caption = 'Test Templates';
+                        Caption = 'Test Inspections';
                         Image = Database;
                         RunObject = Page "Qlty. Inspection Template List";
                         RunPageMode = Edit;
-                        ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+                        ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                     }
                     action(Qlty_ConfigureInspectionGenerationRules)
                     {

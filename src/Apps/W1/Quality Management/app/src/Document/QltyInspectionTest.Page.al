@@ -46,7 +46,7 @@ page 20406 "Qlty. Inspection"
                 {
                     Editable = false;
                 }
-                field("Retest No."; Rec."Retest No.")
+                field("Reinspection No."; Rec."Reinspection No.")
                 {
                     Editable = false;
                 }
@@ -208,8 +208,8 @@ page 20406 "Qlty. Inspection"
             part(Lines; "Qlty. Inspection Subform")
             {
                 Caption = 'Lines';
-                SubPageLink = "Test No." = field("No."),
-                              "Retest No." = field("Retest No.");
+                SubPageLink = "Inspection No." = field("No."),
+                              "Reinspection No." = field("Reinspection No.");
             }
             group(ControlInfo)
             {
@@ -422,14 +422,14 @@ page 20406 "Qlty. Inspection"
             part("Most Recent Picture"; "Qlty. Most Recent Picture")
             {
                 Caption = 'Picture';
-                SubPageLink = "No." = field("No."), "Retest No." = field("Retest No.");
+                SubPageLink = "No." = field("No."), "Reinspection No." = field("Reinspection No.");
             }
             part("Attached Documents"; "Doc. Attachment List Factbox")
             {
                 Caption = 'Attachments';
                 SubPageLink = "Table ID" = const(Database::"Qlty. Inspection Header"),
                               "No." = field("No."),
-                              "Line No." = field("Retest No.");
+                              "Line No." = field("Reinspection No.");
             }
             part("Template Attached Documents"; "Doc. Attachment List Factbox")
             {
@@ -452,20 +452,20 @@ page 20406 "Qlty. Inspection"
     {
         area(Processing)
         {
-            action(CreateRetest)
+            action(CreateReinspection)
             {
-                Caption = 'Create Retest';
+                Caption = 'Create Reinspection';
                 Image = Reuse;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Retest';
-                Enabled = CanCreateRetest;
+                ToolTip = 'Create Reinspection';
+                Enabled = CanCreateReinspection;
 
                 trigger OnAction()
                 begin
-                    Rec.CreateReTest();
+                    Rec.CreateReinspection();
                     CurrPage.Update(false);
                 end;
             }
@@ -482,7 +482,7 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 begin
-                    Rec.FinishTest();
+                    Rec.FinishInspection();
                     CurrPage.Update(false);
                 end;
             }
@@ -810,7 +810,7 @@ page 20406 "Qlty. Inspection"
         CameraAvailable: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
-        CanCreateRetest: Boolean;
+        CanCreateReinspection: Boolean;
         CanChangeLotTracking: Boolean;
         CanChangeSerialTracking: Boolean;
         CanChangePackageTracking: Boolean;
@@ -850,9 +850,9 @@ page 20406 "Qlty. Inspection"
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        CanReopen := QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
+        CanReopen := QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentReinspection();
         CanFinish := QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateRetest := QltyPermissionMgmt.CanCreateRetest();
+        CanCreateReinspection := QltyPermissionMgmt.CanCreateReinspection();
         if Rec.Status = Rec.Status::Open then
             if QltyPermissionMgmt.CanChangeTrackingNo() then begin
                 TempItemTrackingSetup."Lot No. Required" := true;

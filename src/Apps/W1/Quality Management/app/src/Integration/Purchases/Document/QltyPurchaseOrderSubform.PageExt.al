@@ -26,14 +26,14 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                     ToolTip = 'Creates a quality inspection for this purchase order line.';
                     AboutTitle = 'Create Quality Inspection';
                     AboutText = 'Create a quality inspection for this purchase order line.';
-                    Enabled = QltyShowCreateTest;
-                    Visible = QltyShowCreateTest;
+                    Enabled = QltyShowCreateInspection;
+                    Visible = QltyShowCreateInspection;
 
                     trigger OnAction()
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateTestWithVariant(Rec, true);
+                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
                 action(Qlty_InspectionShowTestsForItemAndDocument)
@@ -77,7 +77,7 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
     }
 
     var
-        QltyShowCreateTest: Boolean;
+        QltyShowCreateInspection: Boolean;
         QltyReadTestResults: Boolean;
 
     trigger OnOpenPage()
@@ -88,7 +88,7 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
         if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
             exit;
 
-        QltyShowCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadTestResults();
+        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
+        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
     end;
 }

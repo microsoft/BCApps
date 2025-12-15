@@ -27,41 +27,41 @@ report 20403 "Qlty. Non-Conformance"
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Retest No.", "Template Code";
-            column(QITemplate_Description; QltyInspectionTemplateHdr.Description) { }
-            column(QITest_Description; Description) { }
-            column(QITest_Status; Status) { }
-            column(QITest_Grade_Code; "Grade Code") { }
-            column(QITest_Grade_Description; "Grade Description") { }
-            column(QITest_No; CurrentInspection."No.") { }
-            column(QITest_RetestNo; CurrentInspection."Retest No.") { }
-            column(QITest_Finished_By_User_ID; "Finished By User ID") { }
-            column(QITest_Finished_By_UserName; FinishedByUserName) { }
-            column(QITest_Finished_By_Title; FinishedByUserName) { }
-            column(QITest_Finished_By_Email; FinishedByEmail) { }
-            column(QITest_Finished_By_Phone; FinishedByPhone) { }
-            column(QITest_Director_Title; DirectorTitle) { }
-            column(QITest_Director_Name; DirectorName) { }
-            column(QITest_Finished_Date; "Finished Date") { }
-            column(QITest_Source_Item_No_; "Source Item No.") { }
-            column(QITest_Source_Item_Description; Item.Description) { }
-            column(QITest_Source_Item_Description2; Item."Description 2") { }
-            column(QITest_Source_Variant_Code; "Source Variant Code") { }
-            column(QITest_Source_Lot_No_; "Source Lot No.") { }
-            column(QITest_Source_Serial_No_; "Source Serial No.") { }
-            column(QITest_Source_Package_No_; "Source Package No.") { }
-            column(QITest_Source_Document_No_; "Source Document No.") { }
-            column(QITest_Source_Task_No_; "Source Task No.") { }
-            column(QITest_Source_Custom_1; "Source Custom 1") { }
-            column(QITest_Source_Custom_2; "Source Custom 2") { }
-            column(QITest_Source_Custom_3; "Source Custom 3") { }
-            column(QITest_Source_Custom_4; "Source Custom 4") { }
-            column(QITest_Source_Custom_5; "Source Custom 5") { }
-            column(QITest_Source_Custom_6; "Source Custom 6") { }
-            column(QITest_Source_Custom_7; "Source Custom 7") { }
-            column(QITest_Source_Custom_8; "Source Custom 8") { }
-            column(QITest_Source_Custom_9; "Source Custom 9") { }
-            column(QITest_Source_Custom_10; "Source Custom 10") { }
+            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Reinspection No.", "Template Code";
+            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
+            column(QltyInspection_Description; Description) { }
+            column(QltyInspection_Status; Status) { }
+            column(QltyInspection_Grade_Code; "Grade Code") { }
+            column(QltyInspection_Grade_Description; "Grade Description") { }
+            column(QltyInspection_No; CurrentInspection."No.") { }
+            column(QltyInspection_ReinspectionNo; CurrentInspection."Reinspection No.") { }
+            column(QltyInspection_Finished_By_User_ID; "Finished By User ID") { }
+            column(QltyInspection_Finished_By_UserName; FinishedByUserName) { }
+            column(QltyInspection_Finished_By_Title; FinishedByUserName) { }
+            column(QltyInspection_Finished_By_Email; FinishedByEmail) { }
+            column(QltyInspection_Finished_By_Phone; FinishedByPhone) { }
+            column(QltyInspection_Director_Title; DirectorTitle) { }
+            column(QltyInspection_Director_Name; DirectorName) { }
+            column(QltyInspection_Finished_Date; "Finished Date") { }
+            column(QltyInspection_Source_Item_No_; "Source Item No.") { }
+            column(QltyInspection_Source_Item_Description; Item.Description) { }
+            column(QltyInspection_Source_Item_Description2; Item."Description 2") { }
+            column(QltyInspection_Source_Variant_Code; "Source Variant Code") { }
+            column(QltyInspection_Source_Lot_No_; "Source Lot No.") { }
+            column(QltyInspection_Source_Serial_No_; "Source Serial No.") { }
+            column(QltyInspection_Source_Package_No_; "Source Package No.") { }
+            column(QltyInspection_Source_Document_No_; "Source Document No.") { }
+            column(QltyInspection_Source_Task_No_; "Source Task No.") { }
+            column(QltyInspection_Source_Custom_1; "Source Custom 1") { }
+            column(QltyInspection_Source_Custom_2; "Source Custom 2") { }
+            column(QltyInspection_Source_Custom_3; "Source Custom 3") { }
+            column(QltyInspection_Source_Custom_4; "Source Custom 4") { }
+            column(QltyInspection_Source_Custom_5; "Source Custom 5") { }
+            column(QltyInspection_Source_Custom_6; "Source Custom 6") { }
+            column(QltyInspection_Source_Custom_7; "Source Custom 7") { }
+            column(QltyInspection_Source_Custom_8; "Source Custom 8") { }
+            column(QltyInspection_Source_Custom_9; "Source Custom 9") { }
+            column(QltyInspection_Source_Custom_10; "Source Custom 10") { }
 
             column(CompanyInformation_Row1; CompanyInformationArray[1]) { }
             column(CompanyInformation_Row2; CompanyInformationArray[2]) { }
@@ -85,7 +85,7 @@ report 20403 "Qlty. Non-Conformance"
 
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
-                DataItemLink = "Test No." = field("No."), "Retest No." = field("Retest No.");
+                DataItemLink = "Inspection No." = field("No."), "Reinspection No." = field("Reinspection No.");
                 RequestFilterFields = "Field Code";
                 CalcFields = "Grade Description";
 

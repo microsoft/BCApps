@@ -21,8 +21,8 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         UnexpectedAndNoDetailsErr: Label 'Something unexpected went wrong trying to find a matching quality inspection generation rule. Please review your Quality Inspection source table configuration.';
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
         CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
-        UnexpectedUnableWithADetailErr: Label 'Cannot find a test to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
-        NoGenRuleErr: Label 'Cannot find a test to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
+        UnexpectedUnableWithADetailErr: Label 'Cannot find an inspection to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
+        NoGenRuleErr: Label 'Cannot find an inspection to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
 
     /// <summary>
     /// Sets the filter on the target configuration to sources that could match the supplied template.
@@ -37,7 +37,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         Filter: Text;
         KnownTableIds: List of [Integer];
         CanLoopDoTargets: Boolean;
-        CanCreateTestDirectly: Boolean;
+        CanCreateInspectionDirectly: Boolean;
         TablesToConfigure: Text;
     begin
         if not FindAllCompatibleGenerationRules(TemplateCode, TempSearchQltyInspectionGenRule) then
@@ -64,14 +64,14 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                                 KnownTableIds.Add(TempAvailableQltyInspectSourceConfig."From Table No.");
                                 Filter += '|';
                                 Filter += Format(TempAvailableQltyInspectSourceConfig."From Table No.");
-                                CanCreateTestDirectly := true;
+                                CanCreateInspectionDirectly := true;
                             end;
                         until TempAvailableQltyInspectSourceConfig.Next() = 0;
                 end;
             until TempSearchQltyInspectionGenRule.Next() = 0;
             QltyInspectSourceConfig.SetFilter("From Table No.", Filter);
         end;
-        if not CanCreateTestDirectly then
+        if not CanCreateInspectionDirectly then
             Error(CouldNotFindSourceErr, TemplateCode, TablesToConfigure);
     end;
 

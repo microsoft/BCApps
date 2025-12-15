@@ -16,7 +16,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     var
         InspectionGenerationRuleDataItemTok: Label '/ReportParameters/DataItems/DataItem[@name=''CurrentInspectionGenerationRule'']', Locked = true;
         DataItemOfInspectionGenerationRuleTok: Label 'CurrentInspectionGenerationRule', Locked = true;
-        FilterMandatoryErr: Label 'It is mandatory that a test generation rule have at least one filter defined to help prevent inadvertent over-generation of tests. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
+        FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of tests. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
         DoYouWantToDeleteJobQueueEntryQst: Label 'There are no rules that are configured to use the job queue entry of %1. Do you want to delete the related job queue entry?', Comment = '%1=the schedule group';
         ThereAreMultipleJobQueueEntriesPleaseReviewMsg: Label 'There are multiple job queue entries that appear related to the group of %1. Please review and adjust the job queue entry configuration if necessary.', Comment = '%1=the schedule group';
@@ -246,7 +246,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     end;
 
     /// <summary>
-    /// Validates that a test generation rule has required filters before allowing scheduled execution.
+    /// Validates that an inspection generation rule has required filters before allowing scheduled execution.
     /// Throws an error if the rule lacks mandatory filters to prevent inadvertent over-generation of tests.
     /// 
     /// Validation logic:

@@ -38,7 +38,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         IsInitialized: Boolean;
 
     [Test]
-    procedure AttemptCreateTestWithPurchaseLineAndTracking_LotTracked()
+    procedure AttemptCreateInspectionWithPurchaseLineAndTracking_LotTracked()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -95,7 +95,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithPurchaseLineAndTracking_OnPurchPost()
+    procedure AttemptCreateInspectionWithPurchaseLineAndTracking_OnPurchPost()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -152,7 +152,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithWhseJournalLine_LotTracked_OnReceiptPost()
+    procedure AttemptCreateInspectionWithWhseJournalLine_LotTracked_OnReceiptPost()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -210,7 +210,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithWhseJournalLine_LotTracked_OnReceiptCreate()
+    procedure AttemptCreateInspectionWithWhseJournalLine_LotTracked_OnReceiptCreate()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -266,7 +266,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithWhseJournalLine()
+    procedure AttemptCreateInspectionWithWhseJournalLine()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -323,7 +323,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithReceiptLine_LotTracked_OnReceiptPost()
+    procedure AttemptCreateInspectionWithReceiptLine_LotTracked_OnReceiptPost()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -381,7 +381,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithReceiptLine_LotTracked_OnReceiptCreate()
+    procedure AttemptCreateInspectionWithReceiptLine_LotTracked_OnReceiptCreate()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -438,7 +438,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithReceiptLine()
+    procedure AttemptCreateInspectionWithReceiptLine()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -494,7 +494,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestOnSalesReturnPost_LotTracked()
+    procedure AttemptCreateInspectionOnSalesReturnPost_LotTracked()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -581,7 +581,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestOnSalesReturnPost()
+    procedure AttemptCreateInspectionOnSalesReturnPost()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -664,7 +664,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure AttemptCreateTestOn_OnTransferReceivePost_LotTracked_Direct()
+    procedure AttemptCreateInspectionOn_OnTransferReceivePost_LotTracked_Direct()
     var
         FromLocation: Record Location;
         ToLocation: Record Location;
@@ -743,7 +743,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure AttemptCreateTestOn_OnTransferReceivePost_Direct()
+    procedure AttemptCreateInspectionOn_OnTransferReceivePost_Direct()
     var
         FromLocation: Record Location;
         ToLocation: Record Location;
@@ -819,7 +819,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestOn_OnTransferReceivePost_LotTracked()
+    procedure AttemptCreateInspectionOn_OnTransferReceivePost_LotTracked()
     var
         FromLocation: Record Location;
         ToLocation: Record Location;
@@ -893,7 +893,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestOn_OnTransferReceivePost()
+    procedure AttemptCreateInspectionOn_OnTransferReceivePost()
     var
         FromLocation: Record Location;
         ToLocation: Record Location;
@@ -965,7 +965,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure WarehouseIntegration_AttemptCreateTestWithWhseJournalLine()
+    procedure WarehouseIntegration_AttemptCreateInspectionWithWhseJournalLine()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -1069,7 +1069,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure WarehouseIntegration_CreateTestDuringReceive()
+    procedure WarehouseIntegration_CreateInspectionDuringReceive()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -1326,7 +1326,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithPurchaseLineAndTracking_MultiLot_OnPurchRelease()
+    procedure AttemptCreateInspectionWithPurchaseLineAndTracking_MultiLot_OnPurchRelease()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1390,7 +1390,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithPurchaseLineAndTracking_LotTracked_Unassigned_OnPurchRelease()
+    procedure AttemptCreateInspectionWithPurchaseLineAndTracking_LotTracked_Unassigned_OnPurchRelease()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1449,7 +1449,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithPurchaseLine_Untracked_OnPurchRelease()
+    procedure AttemptCreateInspectionWithPurchaseLine_Untracked_OnPurchRelease()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1507,7 +1507,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
-    procedure AttemptCreateTestWithPurchaseLineAndTracking_SerialTracked_OnPurchRelease()
+    procedure AttemptCreateInspectionWithPurchaseLineAndTracking_SerialTracked_OnPurchRelease()
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";

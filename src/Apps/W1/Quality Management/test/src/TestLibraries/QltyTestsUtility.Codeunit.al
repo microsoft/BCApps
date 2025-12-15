@@ -50,7 +50,7 @@ codeunit 139950 "Qlty. Inspections - Utility"
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
     end;
 
-    procedure CreateABasicTemplateAndInstanceOfATest(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
+    procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
@@ -82,7 +82,7 @@ codeunit 139950 "Qlty. Inspections - Utility"
         BeforeCount := OutCreatedQltyInspectionHeader.Count();
 
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedATestWasCreated := QltyInspectionCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedATestWasCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
 
         OutCreatedQltyInspectionHeader.Reset();
         AfterCount := OutCreatedQltyInspectionHeader.Count();
@@ -451,7 +451,7 @@ codeunit 139950 "Qlty. Inspections - Utility"
     /// <param name="PurOrdPurchaseLine"></param>
     /// <param name="ReservationEntry"></param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine: Record "Purchase Line"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    procedure CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine: Record "Purchase Line"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -462,7 +462,7 @@ codeunit 139950 "Qlty. Inspections - Utility"
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        TestCreated := QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        TestCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
@@ -475,7 +475,7 @@ codeunit 139950 "Qlty. Inspections - Utility"
     /// <param name="WarehouseEntry"></param>
     /// <param name="ReservationEntry"></param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateTestWithWarehouseEntryAndTracking(WarehouseEntry: Record "Warehouse Entry"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    procedure CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry: Record "Warehouse Entry"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -486,7 +486,7 @@ codeunit 139950 "Qlty. Inspections - Utility"
     begin
         RecordRef.GetTable(WarehouseEntry);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        TestCreated := QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        TestCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
@@ -499,14 +499,14 @@ codeunit 139950 "Qlty. Inspections - Utility"
     /// <param name="PurOrdPurchaseLine"></param>
     /// <param name="SpecificTemplate">The specific template to use.</param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateTestWithPurchaseLine(PurOrdPurchaseLine: Record "Purchase Line"; SpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    procedure CreateInspectionWithPurchaseLine(PurOrdPurchaseLine: Record "Purchase Line"; SpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         PurchaseLineRecordRef: RecordRef;
         TestCreated: Boolean;
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
-        TestCreated := QltyInspectionCreate.CreateTestWithSpecificTemplate(PurchaseLineRecordRef, true, SpecificTemplate);
+        TestCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(PurchaseLineRecordRef, true, SpecificTemplate);
         LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
@@ -518,14 +518,14 @@ codeunit 139950 "Qlty. Inspections - Utility"
     /// </summary>
     /// <param name="WarehouseEntry"></param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateTestWithWarehouseEntry(WarehouseEntry: Record "Warehouse Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    procedure CreateInspectionWithWarehouseEntry(WarehouseEntry: Record "Warehouse Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
         TestCreated: Boolean;
     begin
         RecordRef.GetTable(WarehouseEntry);
-        TestCreated := QltyInspectionCreate.CreateTest(RecordRef, true);
+        TestCreated := QltyInspectionCreate.CreateInspection(RecordRef, true);
         LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);

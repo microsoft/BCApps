@@ -19,8 +19,8 @@ enum 20414 "Qlty. Grade Condition Type"
     {
         Caption = 'Template';
     }
-    value(2; Test)
+    value(2; Inspection)
     {
-        Caption = 'Test';
+        Caption = 'Inspection';
     }
 }

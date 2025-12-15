@@ -64,14 +64,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
         InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
         ExpressionFormulaTok: Label '[No.]';
-        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on test %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         VendorFilterCountryTok: Label 'WHERE(Country/Region Code=FILTER(CA))', Locked = true;
         VendorFilterNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Vendor No.', Locked = true;
         ThereIsNoGradeErr: Label 'There is no grade called "%1". Please add the grade, or change the existing grade conditions.', Comment = '%1=the grade';
         ReviewGradesErr: Label 'Advanced configuration required. Please review the grade configurations for field "%1", for grade "%2".', Comment = '%1=the field, %2=the grade';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.', Locked = true;
-        FilterMandatoryErr: Label 'It is mandatory that a test generation rule have at least one filter defined to help prevent inadvertent over-generation of tests. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
+        FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of tests. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
         ConditionFilterItemNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
         ConditionFilterAttributeTok: Label '"%1"=Filter(%2)', Comment = '%1 = Attribute Name, %2 = Attribute Value', Locked = true;
         UnableToFindRecordErr: Label 'Unable to show tests with the supplied record. [%1]', Comment = '%1=the record being supplied.';
@@ -80,8 +80,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
         ExpressionFormulaFieldCodeTok: Label '[%1]', Comment = '%1=The first field code', Locked = true;
-        TargetErr: Label 'When the target of the source configuration is a test, then all target fields must also refer to the test. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
-        CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is a test';
+        TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the test. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
+        CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is an inspection';
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
@@ -331,10 +331,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Changing a field type should error if the field is already used in an existing test
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] The first inspection line is retrieved
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
 
         // [GIVEN] The field used in the inspection line is retrieved
         ToLoadQltyField.Get(QltyInspectionLine."Field Code");
@@ -1393,7 +1393,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Negative Source Quantity value is converted to absolute positive value
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [WHEN] Source Quantity (Base) is validated with a negative value (-100)
         QltyInspectionHeader.Validate("Source Quantity (Base)", -100);
@@ -1411,7 +1411,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Pass Quantity can be set to match Source Quantity
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [WHEN] Pass Quantity is validated with the Source Quantity value
         QltyInspectionHeader.Validate("Pass Quantity", QltyInspectionHeader."Source Quantity (Base)");
@@ -1429,7 +1429,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Ensure that pass and fail quantity combined do not exceed the source quantity.
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [WHEN] Pass Quantity exceeds the source quantity it should fail.
         ClearLastError();
@@ -1473,7 +1473,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Fail Quantity can be set to match Source Quantity
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [WHEN] Fail Quantity is validated with the Source Quantity value
         QltyInspectionHeader.Validate("Fail Quantity", QltyInspectionHeader."Source Quantity (Base)");
@@ -1493,7 +1493,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] GetRelatedItem retrieves item from source document when Source Item No. is blank
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Source Item No. is cleared and the record is modified
         QltyInspectionHeader."Source Item No." := '';
@@ -1680,8 +1680,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionHeader.Insert();
 
         // [GIVEN] A inspection line is initialized with header keys and line number
-        QltyInspectionLine."Test No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Retest No." := QltyInspectionHeader."Retest No.";
+        QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
 
         // [WHEN] The inspection line is inserted
@@ -1707,10 +1707,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionsUtility.EnsureSetup();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Retest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, theres hould be a inspection line.');
         repeat
             QltyInspectionHeader.SetTestValue(QltyInspectionLine."Field Code", '1');
@@ -1720,7 +1720,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         Clear(ToLoadQltyIGradeConditionConf);
         ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Test);
         ToLoadQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionHeader."No.");
-        ToLoadQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionHeader."Retest No.");
+        ToLoadQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionGrade.SetRange("Copy Behavior", QltyInspectionGrade."Copy Behavior"::"Automatically copy the grade");
         LibraryAssert.AreEqual(
             1 * (QltyInspectionGrade.Count() * QltyInspectionLine.Count()),
@@ -1734,7 +1734,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         Clear(ToLoadQltyIGradeConditionConf);
         ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Test);
         ToLoadQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionHeader."No.");
-        ToLoadQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionHeader."Retest No.");
+        ToLoadQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
         ToLoadQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         LibraryAssert.AreEqual(0, ToLoadQltyIGradeConditionConf.Count(), 'Should be no grade condition config lines for the inspection line.');
         ToLoadQltyIGradeCondi                              tionConf.SetRange("Target Line No.");
@@ -1754,10 +1754,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] User can edit measurement note via modal editor on inspection line
 
                                                            // [GIVEN] A basic template and test instance ar   e created
-        QltyInspectionsUtility.Crea                              teABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.Crea                              teABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] The inspection line is retrieved and the test subform page is opened
-        QltyInspectionLine.Ge                              t(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Ge                              t(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
                                                            QltyInspectionSubform.OpenEdit();
         QltyInspectionSubform.GoToRecord(QltyInspectionL   ine);
 
@@ -1805,12 +1805,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A generation rule is created and a test is created from the purchase line
+        // [GIVEN] A generation rule is created and an inspection is created from the purchase line
         QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-        QltyInspectionsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved and the test page is opened
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);c
                                                            c       QltyInspection.Lines.GoToRecord(QltyInspectionLine);
@@ -1820,11 +1820,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
                                                            QltyInspection.Close();
 
                                                            // [GIVEN] A purchase order is created, released, and c
-                                                           c                                                          c                                                          c                                                          c                                                          QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+                                                           c                                                          c                                                          c                                                          c                                                          QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
                                                            LibraryAssert.AreEqual('Option1', QltyInspectionLine."Test Value", 'Test value should be set.');
                                                    
         QltyInspectionGenRule.Delete();
-                                                           // [GIVEN] A generation rule is created and a test is created from the purchase line
+                                                           // [GIVEN] A generation rule is created and an inspection is created from the purchase line
                                                        end;
                                                    
     [Test]                   
@@ -1865,12 +1865,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A generation rule is created and a test is created from the purchase line
+        // [GIVEN] A generation rule is created and an inspection is created from the purchase line
         QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-        QltyInspectionsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved and the test page is opened
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
         QltyInspection.Lines.GoToRecord(QltyInspectionLine);
@@ -1883,7 +1883,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection.Close();
 
         // [THEN] The Test Value is set to the selected location code from the lookup
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
         LibraryAssert.AreEqual(Location.Code, QltyInspectionLine."Test Value", 'Test value should be set.');
 
         QltyInspectionGenRule.Delete();
@@ -1941,12 +1941,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A generation rule is created and a test is created from the purchase line
+        // [GIVEN] A generation rule is created and an inspection is created from the purchase line
         QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-        QltyInspectionsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line for the text field is retrieved and the test page is opened
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
         QltyInspection.Lines.GoToRecord(QltyInspectionLine);
@@ -1956,11 +1956,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection.Close();
 
         // [THEN] The text field's Test Value is set to 'test'
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
         LibraryAssert.AreEqual('test', QltyInspectionLine."Test Value", 'Test value should be set.');
 
         // [THEN] The text expression field's Test Value is also automatically set to 'test'
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 20000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 20000);
         LibraryAssert.AreEqual('test', QltyInspectionLine."Test Value", 'Test value should be set.');
 
         QltyInspectionGenRule.Delete();

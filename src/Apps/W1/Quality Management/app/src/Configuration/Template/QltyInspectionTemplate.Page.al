@@ -11,7 +11,7 @@ using Microsoft.QualityManagement.Document;
 using System.Telemetry;
 
 /// <summary>
-/// A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.
+/// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
 /// </summary>
 page 20402 "Qlty. Inspection Template"
 {
@@ -23,7 +23,7 @@ page 20402 "Qlty. Inspection Template"
     SourceTable = "Qlty. Inspection Template Hdr.";
     AdditionalSearchTerms = 'Test Plan,Quality Inspection,design an inspection,quality inspection template,questions,types of tests,template,quality inspector template,quality template,certificate design,SOP,standard operating procedures';
     AboutTitle = 'Quality Inspection Template';
-    AboutText = 'A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+    AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
     PromotedActionCategories = 'New,Process,Report';
     ApplicationArea = QualityManagement;
 
@@ -165,9 +165,9 @@ page 20402 "Qlty. Inspection Template"
                 RunPageMode = Edit;
                 PromotedOnly = true;
             }
-            action(CreateTest)
+            action(CreateInspection)
             {
-                Caption = 'Create Test';
+                Caption = 'Create Inspection';
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
 
                 Image = CreateForm;
@@ -175,7 +175,7 @@ page 20402 "Qlty. Inspection Template"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateTest;
+                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -222,7 +222,7 @@ page 20402 "Qlty. Inspection Template"
 
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-        CanCreateTest: Boolean;
+        CanCreateInspection: Boolean;
         ShowSampleSizeFixedQuantity: Boolean;
         ShowSampleSizePercentage: Boolean;
         QualityManagementTok: Label 'Quality Management', Locked = true;
@@ -237,7 +237,7 @@ page 20402 "Qlty. Inspection Template"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000QIA', QualityManagementTok, Enum::"Feature Uptake Status"::Used);
-        CanCreateTest := QltyPermissionMgmt.CanCreateManualTest();
+        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
         UpdateControls();
     end;
 

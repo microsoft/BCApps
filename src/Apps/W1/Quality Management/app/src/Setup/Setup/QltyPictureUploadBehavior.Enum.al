@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Setup.Setup;
 
 /// <summary>
-/// This is used to help determine what to do when a picture is uploaded to a test.
+/// This is used to help determine what to do when a picture is uploaded to an inspection.
 /// </summary>
 enum 20420 "Qlty. Picture Upload Behavior"
 {

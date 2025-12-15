@@ -18,40 +18,40 @@ page 20425 "Qlty. Inspection Activities"
     {
         area(Content)
         {
-            cuegroup("Current Tests")
+            cuegroup("Current Inspections")
             {
                 Caption = 'Current Tests';
 
-                field("Unassigned Tests"; Rec."Unassigned Tests")
+                field("Unassigned Inspections"; Rec."Unassigned Inspections")
                 {
                     DrillDownPageID = "Qlty. Inspection List";
                 }
-                field("My Open Tests"; Rec."My Open Tests")
+                field("My Open Inspections"; Rec."My Open Inspections")
                 {
                     DrillDownPageID = "Qlty. Inspection List";
                 }
-                field("My Open and Due Tests"; Rec."My Open and Due Tests")
+                field("My Open and Due Inspections"; Rec."My Open and Due Inspections")
                 {
                     DrillDownPageID = "Qlty. Inspection List";
                 }
-                field("All Open Tests"; Rec."All Open Tests")
+                field("All Open Inspections"; Rec."All Open Inspections")
                 {
                     DrillDownPageID = "Qlty. Inspection List";
                 }
-                field("All Open and Due Tests"; Rec."All Open and Due Tests")
+                field("All Open and Due Inspections"; Rec."All Open and Due Inspections")
                 {
                     DrillDownPageID = "Qlty. Inspection List";
                 }
             }
-            cuegroup("Finished Tests")
+            cuegroup("Finished Inspections")
             {
                 Caption = 'Finished Tests';
 
-                field("My Finished Tests"; Rec."My Finished Tests")
+                field("My Finished Inspections"; Rec."My Finished Inspections")
                 {
                     DrillDownPageID = "Qlty. Inspection List";
                 }
-                field("All Finished Tests"; Rec."All Finished Tests")
+                field("All Finished Inspections"; Rec."All Finished Inspections")
                 {
                     DrillDownPageID = "Qlty. Inspection List";
                 }

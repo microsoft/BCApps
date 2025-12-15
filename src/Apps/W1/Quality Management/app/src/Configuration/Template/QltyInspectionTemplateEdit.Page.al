@@ -75,8 +75,8 @@ page 20440 "Qlty. Inspection Template Edit"
                             QltyInspectionList.GetRecord(QltyInspectionHeader);
                             ChooseTestRecordId := QltyInspectionHeader.RecordId();
                             Clear(ChooseTestLineChooseTestRecordId);
-                            QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-                            QltyInspectionLine.SetRange("Retest No.", QltyInspectionHeader."Retest No.");
+                            QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+                            QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
                             if QltyInspectionLine.FindFirst() then
                                 ChooseTestLineChooseTestRecordId := QltyInspectionLine.RecordId();
 
@@ -95,15 +95,15 @@ page 20440 "Qlty. Inspection Template Edit"
                     var
                         QltyInspectionHeader: Record "Qlty. Inspection Header";
                         QltyInspectionLine: Record "Qlty. Inspection Line";
-                        LinesQltyTestValues: Page "Qlty. Inspection Lines";
+                        QltyInspectionLines: Page "Qlty. Inspection Lines";
                     begin
                         QltyInspectionLine.Ascending(false);
                         if not QltyInspectionHeader.Get(ChooseTestRecordId) then
                             Error(ChooseAValidTestFirstBeforeChoosingLineErr);
-                        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-                        QltyInspectionLine.SetRange("Retest No.", QltyInspectionHeader."Retest No.");
+                        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+                        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
                         if QltyInspectionLine.Get(ChooseTestLineChooseTestRecordId) then begin
-                            LinesQltyTestValues.SetRecord(QltyInspectionLine);
+                            QltyInspectionLines.SetRecord(QltyInspectionLine);
                             QltyInspectionLine.SetRecFilter();
                             if QltyInspectionLine.FindSet() then;
                             QltyInspectionLine.SetRange("Field Code");
@@ -112,11 +112,11 @@ page 20440 "Qlty. Inspection Template Edit"
                         if LimitedToTemplateCode <> '' then
                             QltyInspectionLine.SetRange("Template Code", LimitedToTemplateCode);
 
-                        LinesQltyTestValues.SetTableView(QltyInspectionLine);
+                        QltyInspectionLines.SetTableView(QltyInspectionLine);
 
-                        LinesQltyTestValues.LookupMode(true);
-                        if LinesQltyTestValues.RunModal() in [Action::LookupOK, Action::OK] then begin
-                            LinesQltyTestValues.GetRecord(QltyInspectionLine);
+                        QltyInspectionLines.LookupMode(true);
+                        if QltyInspectionLines.RunModal() in [Action::LookupOK, Action::OK] then begin
+                            QltyInspectionLines.GetRecord(QltyInspectionLine);
                             ChooseTestLineChooseTestRecordId := QltyInspectionLine.RecordId();
                         end;
                     end;

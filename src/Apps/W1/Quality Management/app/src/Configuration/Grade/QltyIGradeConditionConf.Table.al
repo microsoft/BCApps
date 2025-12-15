@@ -26,28 +26,28 @@ table 20412 "Qlty. I. Grade Condition Conf."
         field(2; "Target Code"; Code[20])
         {
             Caption = 'Target No.';
-            Description = 'When the condition type is a template, then this is the template code should be set. When the condition is a test, then this refers to a specific Retest.';
+            Description = 'When the condition type is a template, then this is the template code should be set. When the condition is an inspection, then this refers to a specific Reinspection.';
             NotBlank = true;
             TableRelation = if ("Condition Type" = const("Template")) "Qlty. Inspection Template Hdr.".Code
             else
-            if ("Condition Type" = const(Test)) "Qlty. Inspection Header"."No."
+            if ("Condition Type" = const(Inspection)) "Qlty. Inspection Header"."No."
             else
             if ("Condition Type" = const(Field)) "Qlty. Field".Code;
         }
-        field(3; "Target Retest No."; Integer)
+        field(3; "Target Reinspection No."; Integer)
         {
-            Caption = 'Retest No. (tests)';
-            Description = 'Only applicable for Retests. Does not apply to field configurations or template configurations.';
+            Caption = 'Reinspection No. (tests)';
+            Description = 'Only applicable for Reinspections. Does not apply to field configurations or template configurations.';
             BlankZero = true;
         }
         field(4; "Target Line No."; Integer)
         {
             Caption = 'Target Line No.';
-            Description = 'When the condition type is a template, then this is the template line no. When the condition is a test, then this refers to a specific inspection line no.';
+            Description = 'When the condition type is a template, then this is the template line no. When the condition is an inspection, then this refers to a specific inspection line no.';
             NotBlank = true;
             TableRelation = if ("Condition Type" = const("Template")) "Qlty. Inspection Template Line"."Line No." where("Template Code" = field("Target Code"))
             else
-            if ("Condition Type" = const(Test)) "Qlty. Inspection Line"."Line No." where("Test No." = field("Target Code"), "Retest No." = field("Target Retest No."));
+            if ("Condition Type" = const(Inspection)) "Qlty. Inspection Line"."Line No." where("Inspection No." = field("Target Code"), "Reinspection No." = field("Target Reinspection No."));
         }
         field(5; "Field Code"; Code[20])
         {
@@ -119,14 +119,14 @@ table 20412 "Qlty. I. Grade Condition Conf."
 
     keys
     {
-        key(Key1; "Condition Type", "Target Code", "Target Retest No.", "Target Line No.", "Field Code", "Grade Code")
+        key(Key1; "Condition Type", "Target Code", "Target Reinspection No.", "Target Line No.", "Field Code", "Grade Code")
         {
             Clustered = true;
         }
-        key(SortByPriority; "Condition Type", Priority, "Target Code", "Target Retest No.", "Target Line No.")
+        key(SortByPriority; "Condition Type", Priority, "Target Code", "Target Reinspection No.", "Target Line No.")
         {
         }
-        key(SortByVisibility; "Condition Type", "Grade Visibility", Priority, "Target Code", "Target Retest No.", "Target Line No.")
+        key(SortByVisibility; "Condition Type", "Grade Visibility", Priority, "Target Code", "Target Reinspection No.", "Target Line No.")
         {
         }
     }

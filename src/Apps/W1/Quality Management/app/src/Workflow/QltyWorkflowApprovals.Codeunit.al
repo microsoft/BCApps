@@ -114,7 +114,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
     /// 
     /// Handles both:
     /// - Quality Inspection Header: Returns table caption and "No." field
-    /// - Quality Inspection Line: Returns header table caption and "Test No." field
+    /// - Quality Inspection Line: Returns header table caption and "Inspection No." field
     /// 
     /// Without this handler, Quality Inspections would not be properly recognized in the approval system.
     /// </summary>
@@ -141,7 +141,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
             Database::"Qlty. Inspection Line":
                 begin
                     DocumentType := QltyInspectionHeader.TableCaption();
-                    DocumentNo := Format(RecRef.Field(QltyInspectionLine.FieldNo("Test No.")).Value());
+                    DocumentNo := Format(RecRef.Field(QltyInspectionLine.FieldNo("Inspection No.")).Value());
                     IsHandled := true;
                 end;
         end;

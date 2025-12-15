@@ -30,7 +30,7 @@ codeunit 20412 "Qlty. Assembly Integration"
         MgtItemTrackingDocManagement: Codeunit "Item Tracking Doc. Management";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
-        HasTest: Boolean;
+        HasInspection: Boolean;
         Handled: Boolean;
     begin
         QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
@@ -39,29 +39,29 @@ codeunit 20412 "Qlty. Assembly Integration"
             exit;
 
         MgtItemTrackingDocManagement.FindShptRcptEntries(TempSpecTrackingSpecification, Database::"Posted Assembly Header", 0, PostedAssemblyHeader."No.", '', 0, 0, '');
-        OnBeforeAttemptCreateTestFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, Handled);
+        OnBeforeAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, Handled);
         if Handled then
             exit;
 
         if not TempSpecTrackingSpecification.IsEmpty() then
             repeat
-                HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(PostedAssemblyHeader, TempSpecTrackingSpecification, AssemblyHeader, UnusedVariant1, false, QltyInspectionGenRule);
-                if HasTest then begin
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, TempSpecTrackingSpecification, AssemblyHeader, UnusedVariant1, false, QltyInspectionGenRule);
+                if HasInspection then begin
                     QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
                     QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
                     QltyInspectionHeader.Modify(false);
                 end;
-                OnAfterAttemptCreateTestFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
+                OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
             until TempSpecTrackingSpecification.Next(-1) = 0
         else begin
             TempQltyInspectionGenRule.CopyFilters(QltyInspectionGenRule);
-            OnBeforeAttemptCreateTestFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, Handled);
+            OnBeforeAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, Handled);
             if Handled then
                 exit;
-            HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
-            if HasTest then
+            HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
+            if HasInspection then
                 QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
-            OnAfterAttemptCreateTestFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
+            OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
         end;
     end;
 
@@ -74,7 +74,7 @@ codeunit 20412 "Qlty. Assembly Integration"
     /// <param name="QltyInspectionHeader">Quality Inspection to be created</param>
     /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeAttemptCreateTestFromPostedAssembly(var AssemblyHeader: Record "Assembly Header"; var PostedAssemblyHeader: Record "Posted Assembly Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean);
+    procedure OnBeforeAttemptCreateInspectionFromPostedAssembly(var AssemblyHeader: Record "Assembly Header"; var PostedAssemblyHeader: Record "Posted Assembly Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean);
     begin
     end;
 
@@ -86,7 +86,7 @@ codeunit 20412 "Qlty. Assembly Integration"
     /// <param name="TempTrackingSpecification">Tracking Specification</param>
     /// <param name="QltyInspectionHeader">created Quality Inspection</param>
     [IntegrationEvent(false, false)]
-    procedure OnAfterAttemptCreateTestFromPostedAssembly(var AssemblyHeader: Record "Assembly Header"; var PostedAssemblyHeader: Record "Posted Assembly Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header");
+    procedure OnAfterAttemptCreateInspectionFromPostedAssembly(var AssemblyHeader: Record "Assembly Header"; var PostedAssemblyHeader: Record "Posted Assembly Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header");
     begin
     end;
 }

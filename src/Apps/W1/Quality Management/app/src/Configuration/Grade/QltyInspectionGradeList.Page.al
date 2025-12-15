@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Grade;
 
 /// <summary>
-/// Grades are effectively the incomplete/pass/fail state of a test. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
+/// Grades are effectively the incomplete/pass/fail state of an inspection. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
 /// </summary>
 page 20416 "Qlty. Inspection Grade List"
 {
@@ -16,7 +16,7 @@ page 20416 "Qlty. Inspection Grade List"
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
     AboutTitle = 'About Grades';
-    AboutText = 'Grades are effectively the incomplete/pass/fail state of a test. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
+    AboutText = 'Grades are effectively the incomplete/pass/fail state of an inspection. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
 
     layout
     {
@@ -62,7 +62,7 @@ page 20416 "Qlty. Inspection Grade List"
                 field("Finish Allowed"; Rec."Finish Allowed")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'Specifies if a test can be finished given the applicable grade.';
+                    AboutText = 'Specifies if an inspection can be finished given the applicable grade.';
                 }
                 field("Default Number Condition"; Rec."Default Number Condition")
                 {

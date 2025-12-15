@@ -27,8 +27,8 @@ codeunit 20410 "Qlty. Grade Evaluation"
     var
         OptionalQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        if (not Rec.IsTemporary()) and (Rec."Test No." <> '') then
-            OptionalQltyInspectionHeader.Get(Rec."Test No.", Rec."Retest No.");
+        if (not Rec.IsTemporary()) and (Rec."Inspection No." <> '') then
+            OptionalQltyInspectionHeader.Get(Rec."Inspection No.", Rec."Reinspection No.");
         ValidateTestLine(Rec, OptionalQltyInspectionHeader, true);
     end;
 
@@ -144,8 +144,8 @@ codeunit 20410 "Qlty. Grade Evaluation"
     var
         OptionalQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        if (not QltyInspectionLine.IsTemporary()) and (QltyInspectionLine."Test No." <> '') then
-            if OptionalQltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionLine."Retest No.") then;
+        if (not QltyInspectionLine.IsTemporary()) and (QltyInspectionLine."Inspection No." <> '') then
+            if OptionalQltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
         ValidateTestLine(QltyInspectionLine, OptionalQltyInspectionHeader, true);
     end;
 
@@ -206,7 +206,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
         if Modify then
             QltyInspectionLine.Modify(true);
 
-        if (not QltyInspectionLine.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') and (QltyInspectionLine."Test No." <> '') then begin
+        if (not QltyInspectionLine.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') and (QltyInspectionLine."Inspection No." <> '') then begin
             OptionalQltyInspectionHeader.UpdateGradeFromLines();
             OptionalQltyInspectionHeader.Validate("Grade Code");
             if Modify then
@@ -216,9 +216,9 @@ codeunit 20410 "Qlty. Grade Evaluation"
 
     procedure GetTestLineConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TemplateLineQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.")
     begin
-        TemplateLineQltyIGradeConditionConf.SetRange("Condition Type", TemplateLineQltyIGradeConditionConf."Condition Type"::Test);
-        TemplateLineQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TemplateLineQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TemplateLineQltyIGradeConditionConf.SetRange("Condition Type", TemplateLineQltyIGradeConditionConf."Condition Type"::Inspection);
+        TemplateLineQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TemplateLineQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TemplateLineQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TemplateLineQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
     end;
@@ -226,22 +226,22 @@ codeunit 20410 "Qlty. Grade Evaluation"
     local procedure GetTestGradeConditionConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.")
     begin
         TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Test);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        TestQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
+        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         if TestQltyIGradeConditionConf.IsEmpty() then begin
             TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Template);
             TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Template Code");
-            TestQltyIGradeConditionConf.SetRange("Target Retest No.");
+            TestQltyIGradeConditionConf.SetRange("Target Reinspection No.");
             TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Template Line No.");
             TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
             if TestQltyIGradeConditionConf.IsEmpty() then begin
                 TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Field);
                 TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Field Code");
-                TestQltyIGradeConditionConf.SetRange("Target Retest No.");
+                TestQltyIGradeConditionConf.SetRange("Target Reinspection No.");
                 TestQltyIGradeConditionConf.SetRange("Target Line No.");
                 TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
             end;

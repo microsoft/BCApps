@@ -70,7 +70,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         // [THEN] The document attachment is correctly linked to the inspection header with proper table ID and identifiers
         LibraryAssert.AreEqual(Database::"Qlty. Inspection Header", DocumentAttachment."Table ID", 'Should be test.');
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", DocumentAttachment."No.", 'Should be correct test.');
-        LibraryAssert.AreEqual(QltyInspectionHeader."Retest No.", DocumentAttachment."Line No.", 'Should be correct test.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."Reinspection No.", DocumentAttachment."Line No.", 'Should be correct test.');
     end;
 
     [Test]
@@ -164,8 +164,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
 
         // [GIVEN] A Quality Inspection Line is created for the inspection header
         QltyInspectionLine.Init();
-        QltyInspectionLine."Test No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Retest No." := QltyInspectionHeader."Retest No.";
+        QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine.Insert(true);
 
         // [GIVEN] A file content is prepared in a temporary blob
@@ -178,7 +178,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
 
         // [THEN] The document attachment is correctly linked to the inspection line with proper table ID and identifiers
         LibraryAssert.AreEqual(Database::"Qlty. Inspection Line", DocumentAttachment."Table ID", 'Should be inspection line.');
-        LibraryAssert.AreEqual(QltyInspectionLine."Test No.", DocumentAttachment."No.", 'Should be correct inspection line.');
+        LibraryAssert.AreEqual(QltyInspectionLine."Inspection No.", DocumentAttachment."No.", 'Should be correct inspection line.');
         LibraryAssert.AreEqual(QltyInspectionLine."Line No.", DocumentAttachment."Line No.", 'Should be correct inspection line.');
     end;
 
@@ -231,7 +231,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         SecondDocumentAttachment: Record "Document Attachment";
         QltyInspection: TestPage "Qlty. Inspection";
     begin
-        // [SCENARIO] Open attachments age for a test record and verify correct attachment filtering
+        // [SCENARIO] Open attachments age for an inspection record and verify correct attachment filtering
 
         // [GIVEN] Quality Management setup is initialized
 
@@ -249,7 +249,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         FirstDocumentAttachment.Init();
         FirstDocumentAttachment."Table ID" := Database::"Qlty. Inspection Header";
         FirstDocumentAttachment."No." := QltyInspectionHeader."No.";
-        FirstDocumentAttachment."Line No." := QltyInspectionHeader."Retest No.";
+        FirstDocumentAttachment."Line No." := QltyInspectionHeader."Reinspection No.";
         FirstDocumentAttachment."File Name" := FirstFileNameTxt;
         FirstDocumentAttachment.Insert();
 
@@ -257,7 +257,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         SecondDocumentAttachment.Init();
         SecondDocumentAttachment."Table ID" := Database::"Qlty. Inspection Header";
         SecondDocumentAttachment."No." := SecondQltyInspectionHeader."No.";
-        SecondDocumentAttachment."Line No." := SecondQltyInspectionHeader."Retest No.";
+        SecondDocumentAttachment."Line No." := SecondQltyInspectionHeader."Reinspection No.";
         SecondDocumentAttachment."File Name" := SecondFileNameTxt;
         SecondDocumentAttachment.Insert();
 
@@ -433,8 +433,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
 
         // [GIVEN] A Quality Inspection Line is created for the inspection header
         QltyInspectionLine.Init();
-        QltyInspectionLine."Test No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Retest No." := QltyInspectionHeader."Retest No.";
+        QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine.Insert();
 
@@ -442,7 +442,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         DocumentAttachment.Init();
         DocumentAttachment."Table ID" := Database::"Qlty. Inspection Line";
         DocumentAttachment."File Name" := FileNameTxt;
-        DocumentAttachment."No." := QltyInspectionLine."Test No.";
+        DocumentAttachment."No." := QltyInspectionLine."Inspection No.";
         DocumentAttachment."Line No." := QltyInspectionLine."Line No.";
         DocumentAttachment.Insert();
 
@@ -451,7 +451,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         DocumentAttachmentMgmt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachment, RecordRef);
 
         // [THEN] The document attachment is filtered to the correct test number and line number
-        LibraryAssert.AreEqual(QltyInspectionLine."Test No.", DocumentAttachment.GetFilter("No."), 'Should be filtered to test no.');
+        LibraryAssert.AreEqual(QltyInspectionLine."Inspection No.", DocumentAttachment.GetFilter("No."), 'Should be filtered to test no.');
         LibraryAssert.AreEqual(Format(QltyInspectionLine."Line No."), DocumentAttachment.GetFilter("Line No."), 'Should be filtered to line no.');
     end;
 
@@ -518,7 +518,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
                                                                         
         / [G;
                                                                                 VEN] A basic template and tes t instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
         break;
  ltyInspection.OpenView();
@@ -534,9 +534,9 @@ codeunit 139970 "Qlty. Codeunit Tests"
             end;
         until Navigate.Next() = false;
 
-        // [THEN] The correct test is opened with the correct test number and no retest number
+        // [THEN] The correct test is opened with the correct test number and no reinspection number
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", QltyInspectionSecond."No.".Value(), 'Should be corre      ct test.');
-        LibraryAssert.AreEqual('', QltyInspectionSecond."Retest No.".Value(), 'Should be correct test.');
+        LibraryAssert.AreEqual('', QltyInspectionSecond."Reinspection No.".Value(), 'Should be correct test.');
     end;
 
     [Test]
@@ -546,12 +546,12 @@ codeunit 139970 "Qlty. Codeunit Tests"
                                                                                                                      // [GIVEN] A basic template and test instance are created
                                                                                                                      QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
-                                                                                                                     // [GIVEN] A retest is created for the original test
+                                                                                                                     // [GIVEN] A reinspection is created for the original test
                                                                                                                      QltyInspectionList: TestPage "Qlty. Inspection List";
                                                                                                                      Navigate: TestPage Navigate;
         Count: Integer;
     begi                                                                                                             // [WHEN] The Navigate page is opened from the test and QltyInspectionre shown
-                                                                                                                             // [SCENARIO] Navigate to multiple Quality Inspection records (original and retest) from the Navigate page and verify both tests are shown
+                                                                                                                             // [SCENARIO] Navigate to multiple Quality Inspection records (original and reinspection) from the Navigate page and verify both tests are shown
                                                                                                              
                                                                                                                      Initialize();
                                                                                                              
@@ -559,10 +559,10 @@ codeunit 139970 "Qlty. Codeunit Tests"
         QltyInspectionsUtility.EnsureSetup();
                                                                                                              
                                                                                                                      // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
                                                                                                              // [THENQltyInspectionl test and reteQltyInspectionthe same test number
-                                                                                                                     // [GIVEN] A retest is created for the original test
-                                                                                                                     QltyInspectionHeader.CreateReTest();
+                                                                                                                     // [GIVEN] A reinspection is created for the original test
+                                                                                                                     QltyInspectionHeader.CreateReinspection();
         ReQltyInspectionHeader.Get(QltyInspectionHeader."No.", 1);
                                                                                                          
                                                                                                                      // [WHEN] The Navigate page is opened from the test and the test records are shown
@@ -579,7 +579,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
             end;
         until Navigate.Next() = false;
 
-        // [THEN] Both the original test and retest are shown with the same test number
+        // [THEN] Both the original test and reinspection are shown with the same test number
         QltyInspectionList.First();
         repeat
             LibraryAssert.AreEqual(QltyInspectionHeader."No.", QltyInspectionList."No.".Value(), 'Should be correct test.');
@@ -622,7 +622,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A quality inspection is created with the purchase line and lot tracking
-        QltyInspectionsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] Lot number information is created for the tracked lot
         LotNoInformation.Init();
@@ -710,7 +710,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
         // [GIVEN] A JSON array is prepared with brick field captions
         FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Bottom Left"));

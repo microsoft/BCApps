@@ -89,7 +89,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A purchase order with Inspection created and received
-        ReUsableQltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        ReUsableQltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
         PurchaseLine.Get(PurchaseLine."Document Type"::Order, QltyInspectionHeader."Source Document No.", QltyInspectionHeader."Source Document Line No.");
         ReUsableQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
@@ -100,7 +100,7 @@ codeunit 139969 "Qlty. Test Workflows"
         ReturnReason.Code := CopyStr(Reason, 1, MaxStrLen(ReturnReason.Code));
         ReturnReason.Insert();
 
-        // [GIVEN] A workflow is configured to create purchase return on test finished event
+        // [GIVEN] A workflow is configured to create purchase return on inspection finished event
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreatePurchaseReturn(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreatePurchaseReturn(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
@@ -166,9 +166,9 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A purchase order with lot tracked item and Inspection created
-        ReUsableQltyPurOrderGenerator.CreateTestFromPurchaseWithLotTrackedItem(Location, 100, PurchaseHeader, PurchaseLine, OriginalQltyInspectionHeader, ReservationEntry);
+        ReUsableQltyPurOrderGenerator.CreateInspectionFromPurchaseWithLotTrackedItem(Location, 100, PurchaseHeader, PurchaseLine, OriginalQltyInspectionHeader, ReservationEntry);
 
-        // [GIVEN] A test-to-test source configuration with field mappings
+        // [GIVEN] An inspection-to-test source configuration with field mappings
         QltyInspectionsUtility.GenerateRandomCharacters(20, SourceConfig);
         SpecificQltyInspectSourceConfig.Init();
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
@@ -207,7 +207,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection";
         QltyManagementSetup.Modify();
 
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateTest(), true);
+        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateInspection(), true);
         BeforeCount := QltyInspectionHeader.Count();
         OriginalQltyInspectionHeader.SetRange(Status, OriginalQltyInspectionHeader.Status::Open);
 
@@ -292,9 +292,9 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to create internal put-away on test reopened event
+        // [GIVEN] A workflow configured to create internal put-away on inspection reopened event
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestReopensEvent(), QltyWorkflowSetup.GetWorkflowResponseInternalPutAway(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseInternalPutAway(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
@@ -378,7 +378,7 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        QltyInspectionsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] A reason code and item journal batch for adjustments
         QltyInspectionsUtility.GenerateRandomCharacters(20, ReasonCodeToTest);
@@ -394,7 +394,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A workflow configured to create and post inventory adjustment on test finished
+        // [GIVEN] A workflow configured to create and post inventory adjustment on inspection finished
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseInventoryAdjustment(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseInventoryAdjustment(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
@@ -474,9 +474,9 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        QltyInspectionsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to create transfer for failed quantity on test change
+        // [GIVEN] A workflow configured to create transfer for failed quantity on inspection change
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestHasChangedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateTransfer(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreateTransfer(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
@@ -557,9 +557,9 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to set database value (blocking purchasing) on test finished
+        // [GIVEN] A workflow configured to set database value (blocking purchasing) on inspection finished
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
@@ -652,7 +652,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
         QltyInspectionHeader."Pass Quantity" := 10;
         QltyInspectionHeader.Modify();
@@ -662,7 +662,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Bin.SetFilter(Code, '<>%1', WarehouseEntry."Bin Code");
         Bin.FindFirst();
 
-        // [GIVEN] A workflow configured to move passed quantity using worksheet on test finished
+        // [GIVEN] A workflow configured to move passed quantity using worksheet on inspection finished
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), true);
@@ -752,7 +752,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
         QltyInspectionHeader."Sample Size" := 10;
         QltyInspectionHeader.Modify();
@@ -762,7 +762,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Bin.SetFilter(Code, '<>%1', WarehouseEntry."Bin Code");
         Bin.FindFirst();
 
-        // [GIVEN] A workflow configured to move sample quantity using reclassification journal on test finished
+        // [GIVEN] A workflow configured to move sample quantity using reclassification journal on inspection finished
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), false);
@@ -856,7 +856,7 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        QltyInspectionsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         Bin.SetRange("Location Code", Location.Code);
         Bin.SetFilter(Code, '<>%1', PurchaseLine."Bin Code");
@@ -865,7 +865,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyInspectionHeader."Fail Quantity" := 3;
         QltyInspectionHeader.Modify();
 
-        // [GIVEN] A workflow configured to move failed quantity using internal movement on test finished
+        // [GIVEN] A workflow configured to move failed quantity using internal movement on inspection finished
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), true);
@@ -949,7 +949,7 @@ codeunit 139969 "Qlty. Test Workflows"
         PurchaseLine.Modify();
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
-        QltyInspectionsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] A reclassification journal is posted to move 50 units to an intermediate bin
         QltyInspectionsUtility.SetCurrLocationWhseEmployee(Location.Code);
@@ -980,7 +980,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Bin.SetFilter(Code, '<>%1&<>%2', PurchaseLine."Bin Code", InitialChangeBin);
         Bin.FindFirst();
 
-        // [GIVEN] A workflow configured to move tracked quantity with source bin filter on test finished
+        // [GIVEN] A workflow configured to move tracked quantity with source bin filter on inspection finished
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), false);
@@ -1077,9 +1077,9 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to change item tracking (lot and expiration date) on test finished
+        // [GIVEN] A workflow configured to change item tracking (lot and expiration date) on inspection finished
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), QuantityBehavior::"Item Tracked Quantity");
@@ -1126,7 +1126,7 @@ codeunit 139969 "Qlty. Test Workflows"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure CreateRetest()
+    procedure CreateReinspection()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -1147,7 +1147,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         CreatedTests: Integer;
     begin
-        // [SCENARIO] Automatically create a retest when a quality inspection is finished
+        // [SCENARIO] Automatically create a reinspection when a quality inspection is finished
 
         Initialize();
 
@@ -1166,12 +1166,12 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to create retest on test finished event
+        // [GIVEN] A workflow configured to create reinspection on inspection finished event
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateRetest(), false);
-        CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreateRetest(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
+        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateReinspection(), false);
+        CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreateReinspection(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         Workflow.Enabled := true;
         Workflow.Modify();
         CreatedTests := CreatedQltyInspectionHeader.Count();
@@ -1180,10 +1180,10 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
-        // [THEN] A new retest is created with same test number but incremented retest number
+        // [THEN] A new reinspection is created with same test number but incremented reinspection number
         LibraryAssert.AreEqual(CreatedTests + 1, CreatedQltyInspectionHeader.Count(), 'Should be one more test created.');
         CreatedQltyInspectionHeader.SetRange("No.", QltyInspectionHeader."No.");
-        LibraryAssert.AreEqual(2, CreatedQltyInspectionHeader.Count(), 'Should be 2 tests (one original and one retest)');
+        LibraryAssert.AreEqual(2, CreatedQltyInspectionHeader.Count(), 'Should be 2 tests (one original and one reinspection)');
 
         QltyInspectionGenRule.Delete();
         DeleteWorkflows();
@@ -1225,7 +1225,7 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateTest(RecordRef, true);
+        QltyInspectionCreate.CreateInspection(RecordRef, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] A purchase approval workflow configured to finish test after approval
@@ -1241,7 +1241,7 @@ codeunit 139969 "Qlty. Test Workflows"
             ApprovalsMgmt.OnSendPurchaseDocForApproval(PurchaseHeader);
 
         // [THEN] The Inspection status is automatically set to finished
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Test status should be finished.');
 
         QltyInspectionGenRule.Delete();
@@ -1284,9 +1284,9 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateTest(RecordRef, true);
+        QltyInspectionCreate.CreateInspection(RecordRef, true);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
-        QltyInspectionHeader.FinishTest();
+        QltyInspectionHeader.FinishInspection();
 
         // [GIVEN] A purchase approval workflow configured to reopen inspection after approval
         QltyManagementSetup.Get();
@@ -1301,7 +1301,7 @@ codeunit 139969 "Qlty. Test Workflows"
             ApprovalsMgmt.OnSendPurchaseDocForApproval(PurchaseHeader);
 
         // [THEN] The Inspection status is automatically set to open
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Test status should be open.');
 
         QltyInspectionGenRule.Delete();
@@ -1347,9 +1347,9 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to block lot on test finished with failing grade condition
+        // [GIVEN] A workflow configured to block lot on inspection finished with failing grade condition
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
@@ -1408,14 +1408,14 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         LibraryItemTracking.CreateLotNoInformation(LotNoInformation, Item."No.", '', ReservationEntry."Lot No.");
         LotNoInformation.Blocked := true;
         LotNoInformation.Modify();
         LibraryAssert.IsTrue(LotNoInformation.Blocked, 'Should be blocked.');
 
-        // [GIVEN] A workflow configured to unblock lot on test finished with passing grade condition
+        // [GIVEN] A workflow configured to unblock lot on inspection finished with passing grade condition
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
 
@@ -1473,10 +1473,10 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
 
-        // [GIVEN] A workflow configured to block serial on test finished with failing grade condition
+        // [GIVEN] A workflow configured to block serial on inspection finished with failing grade condition
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
 
@@ -1535,14 +1535,14 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         LibraryItemTracking.CreateSerialNoInformation(SerialNoInformation, Item."No.", '', ReservationEntry."Serial No.");
         SerialNoInformation.Blocked := true;
         SerialNoInformation.Modify();
         LibraryAssert.IsTrue(SerialNoInformation.Blocked, 'Should be blocked.');
 
-        // [GIVEN] A workflow configured to unblock serial on test finished with passing grade condition
+        // [GIVEN] A workflow configured to unblock serial on inspection finished with passing grade condition
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
 
@@ -1600,10 +1600,10 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
 
-        // [GIVEN] A workflow configured to block package on test finished with failing grade condition
+        // [GIVEN] A workflow configured to block package on inspection finished with failing grade condition
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
 
@@ -1662,7 +1662,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         if not PackageNoInformation.Get(Item."No.", '', ReservationEntry."Package No.") then
             LibraryItemTracking.CreatePackageNoInformation(PackageNoInformation, Item."No.", ReservationEntry."Package No.");
@@ -1670,7 +1670,7 @@ codeunit 139969 "Qlty. Test Workflows"
         PackageNoInformation.Modify();
         LibraryAssert.IsTrue(PackageNoInformation.Blocked, 'Should be blocked.');
 
-        // [GIVEN] A workflow configured to unblock package on test finished with passing grade condition
+        // [GIVEN] A workflow configured to unblock package on inspection finished with passing grade condition
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
 

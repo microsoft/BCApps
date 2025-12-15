@@ -5,35 +5,35 @@
 namespace Microsoft.QualityManagement.Configuration.Grade;
 
 /// <summary>
-/// Used to help determine which test to use when conditional optional lot/serial item tracking based blocking.
-/// When evaluating if a document specific transactions are blocked, this determines which test(s) are considered.
+/// Used to help determine which inspection to use when conditional optional lot/serial item tracking based blocking.
+/// When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.
 /// </summary>
-enum 20437 "Qlty. Test Find Behavior"
+enum 20437 "Qlty. Inspection Find Behavior"
 {
     Caption = 'Quality Inspection Find Behavior';
 
     value(0; Any)
     {
-        Caption = 'Any test that matches';
+        Caption = 'Any inspection that matches';
     }
     value(1; MostRecentModified)
     {
-        Caption = 'Only the most recently modified test';
+        Caption = 'Only the most recently modified inspection';
     }
-    value(2; HighestRetestNumber)
+    value(2; HighestReinspectionNumber)
     {
-        Caption = 'Only the newest test/re-test';
+        Caption = 'Only the newest inspection/reinspection';
     }
     value(3; AnyFinished)
     {
-        Caption = 'Any finished test that matches';
+        Caption = 'Any finished inspection that matches';
     }
     value(4; MostRecentFinishedModified)
     {
-        Caption = 'Only the most recently modified finished test';
+        Caption = 'Only the most recently modified finished inspection';
     }
-    value(5; HighestFinishedRetestNumber)
+    value(5; HighestFinishedReinspectionNumber)
     {
-        Caption = 'Only the newest finished test/re-test';
+        Caption = 'Only the newest finished inspection/reinspection';
     }
 }

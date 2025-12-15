@@ -265,7 +265,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
         QltyInspectionsUtility.EnsureSetup();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
         // [WHEN] Expression is evaluated with lowercase field name
         // [THEN] The template code is correctly retrieved

@@ -57,13 +57,13 @@ page 20421 "Qlty. Manager RC"
             {
                 Caption = 'Templates and Rules';
 
-                action(Qlty_ConfigureTestTemplates)
+                action(Qlty_ConfigureInspectionTemplates)
                 {
                     Caption = 'Quality Inspection Templates';
                     Image = Database;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+                    ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                 }
                 action(Qlty_ConfigureInspectionGenerationRules)
                 {
@@ -106,7 +106,7 @@ page 20421 "Qlty. Manager RC"
                         Image = CodesList;
                         RunObject = Page "Qlty. Inspection Grade List";
                         RunPageMode = Edit;
-                        ToolTip = 'Grades are effectively the incomplete/pass/fail state of a test. The document specific lot blocking available with grades is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
+                        ToolTip = 'Grades are effectively the incomplete/pass/fail state of an inspection. The document specific lot blocking available with grades is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
                     }
                 }
             }

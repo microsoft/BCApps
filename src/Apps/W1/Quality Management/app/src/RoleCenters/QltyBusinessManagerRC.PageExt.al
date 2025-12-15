@@ -59,14 +59,14 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                     Caption = 'Templates and Rules';
                     Tooltip = 'Configure the Quality Inspection Templates and Rules';
 
-                    action(Qlty_ConfigureTestTemplates)
+                    action(Qlty_ConfigureInspectionTemplates)
                     {
                         ApplicationArea = QualityManagement;
-                        Caption = 'Test Templates';
+                        Caption = 'Test Inspections';
                         Image = Database;
                         RunObject = Page "Qlty. Inspection Template List";
                         RunPageMode = Edit;
-                        ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+                        ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                     }
                     action(Qlty_ConfigureInspectionGenerationRules)
                     {

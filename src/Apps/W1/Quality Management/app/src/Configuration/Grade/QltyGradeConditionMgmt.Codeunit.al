@@ -195,14 +195,14 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
     end;
 
     /// <summary>
-    /// Copy grade conditions from a template to a test.
+    /// Copy grade conditions from a template to an inspection.
     /// </summary>
     /// <param name="QltyInspectionTemplateLine"></param>
     /// <param name="QltyInspectionLine"></param>
     procedure CopyGradeConditionsFromTemplateToInspection(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; QltyInspectionLine: Record "Qlty. Inspection Line")
     var
         FromTemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        ToTestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToCheckQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyField: Record "Qlty. Field";
     begin
         if QltyInspectionTemplateLine."Field Code" = '' then
@@ -225,20 +225,20 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
                 exit;
         end;
         repeat
-            Clear(ToTestQltyIGradeConditionConf);
-            ToTestQltyIGradeConditionConf.Init();
-            ToTestQltyIGradeConditionConf := FromTemplateQltyIGradeConditionConf;
-            ToTestQltyIGradeConditionConf."Condition Type" := ToTestQltyIGradeConditionConf."Condition Type"::Test;
-            ToTestQltyIGradeConditionConf."Target Code" := QltyInspectionLine."Test No.";
-            ToTestQltyIGradeConditionConf."Target Retest No." := QltyInspectionLine."Retest No.";
-            ToTestQltyIGradeConditionConf."Target Line No." := QltyInspectionLine."Line No.";
-            ToTestQltyIGradeConditionConf.SetRecFilter();
-            if not ToTestQltyIGradeConditionConf.FindFirst() then begin
-                ToTestQltyIGradeConditionConf.TransferFields(FromTemplateQltyIGradeConditionConf, false);
-                ToTestQltyIGradeConditionConf.Insert();
+            Clear(ToCheckQltyIGradeConditionConf);
+            ToCheckQltyIGradeConditionConf.Init();
+            ToCheckQltyIGradeConditionConf := FromTemplateQltyIGradeConditionConf;
+            ToCheckQltyIGradeConditionConf."Condition Type" := ToCheckQltyIGradeConditionConf."Condition Type"::Inspection;
+            ToCheckQltyIGradeConditionConf."Target Code" := QltyInspectionLine."Inspection No.";
+            ToCheckQltyIGradeConditionConf."Target Reinspection No." := QltyInspectionLine."Reinspection No.";
+            ToCheckQltyIGradeConditionConf."Target Line No." := QltyInspectionLine."Line No.";
+            ToCheckQltyIGradeConditionConf.SetRecFilter();
+            if not ToCheckQltyIGradeConditionConf.FindFirst() then begin
+                ToCheckQltyIGradeConditionConf.TransferFields(FromTemplateQltyIGradeConditionConf, false);
+                ToCheckQltyIGradeConditionConf.Insert();
             end else begin
-                ToTestQltyIGradeConditionConf.TransferFields(FromTemplateQltyIGradeConditionConf, false);
-                ToTestQltyIGradeConditionConf.Modify();
+                ToCheckQltyIGradeConditionConf.TransferFields(FromTemplateQltyIGradeConditionConf, false);
+                ToCheckQltyIGradeConditionConf.Modify();
             end;
 
         until FromTemplateQltyIGradeConditionConf.Next() = 0;
@@ -474,7 +474,7 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
 
-        if QltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionLine."Retest No.") then;
+        if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
 
         if QltyField.Get(QltyInspectionLine."Field Code") then;
         if not (QltyField."Field Type" in [QltyField."Field Type"::"Field Type Label"]) then
@@ -485,9 +485,9 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
                     exit;
             end;
 
-        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Test);
-        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Test No.");
-        QltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionLine."Retest No.");
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
         if QltyIGradeConditionConf.IsEmpty() then
@@ -531,7 +531,7 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
         QltyIGradeConditionConf.SetRange("Grade Visibility", QltyIGradeConditionConf."Grade Visibility"::Promoted);
-        QltyIGradeConditionConf.SetCurrentKey("Condition Type", "Grade Visibility", Priority, "Target Code", "Target Retest No.", "Target Line No.");
+        QltyIGradeConditionConf.SetCurrentKey("Condition Type", "Grade Visibility", Priority, "Target Code", "Target Reinspection No.", "Target Line No.");
         QltyIGradeConditionConf.Ascending(false);
         if QltyIGradeConditionConf.FindSet() then
             repeat

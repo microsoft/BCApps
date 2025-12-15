@@ -17,13 +17,13 @@ using Microsoft.QualityManagement.Utilities;
 using Microsoft.Utilities;
 
 /// <summary>
-/// The purpose of this reaction is to create a purchase return as a reaction to a test result.
+/// The purpose of this reaction is to create a purchase return as a reaction to an inspection result.
 /// </summary>
 codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
 {
     var
         TempCreatedBufferPurchaseHeader: Record "Purchase Header" temporary;
-        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the test source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=test,%3=retest';
+        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the test source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=test,%3=reinspection';
         DocumentTypeLbl: Label 'Purchase Return';
 
     /// <summary>
@@ -32,8 +32,8 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="QltyQuantityBehavior">Use a specific quantity, tracked quantity, sample size, or pass/fail quantity</param>
     /// <param name="OptionalSpecificQuantity">The specific quantity(base) to use, if designated</param>
-    /// <param name="OptionalSourceLocationFilter">Optional additional location filter for item on test</param>
-    /// <param name="OptionalSourceBinFilter">Optional additional bin filter for item on test</param>
+    /// <param name="OptionalSourceLocationFilter">Optional additional location filter for item on inspection</param>
+    /// <param name="OptionalSourceBinFilter">Optional additional bin filter for item on inspection</param>
     /// <param name="ReasonCode">Optional Return Reason code</param>
     /// <param name="ExternalDocumentNo">Optional Vendor Credit Memo No.</param>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReasonCode: Code[10]; ExternalDocumentNo: Code[35]): Boolean
@@ -74,7 +74,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         end;
 
         if not FindPurchaseReceiptLineForTest(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, PurchRcptLine) then
-            Error(NoPurchRcptLineErr, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+            Error(NoPurchRcptLineErr, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         TempQuantityToActQltyDispositionBuffer.FindSet();
         repeat
             if CreatedReturnOrderPurchaseHeader."No." = '' then

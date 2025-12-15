@@ -107,7 +107,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Control information is determined for Source Custom field
         QltyInspectionHeader.DetermineControlInformation(SourceCustomTok);
@@ -131,7 +131,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Control information is determined for Source Custom field
         QltyInspectionHeader.DetermineControlInformation(SourceCustomTok);
@@ -158,7 +158,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
     begin
-        // [SCENARIO] GetRelatedItem successfully retrieves the item associated with a test
+        // [SCENARIO] GetRelatedItem successfully retrieves the item associated with an inspection
 
         Initialize();
 
@@ -177,8 +177,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with the item is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A test is created from the purchase line
-        QltyInspectionsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from the purchase line
+        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [WHEN] GetRelatedItem is called
         // [THEN] The method finds the item and returns the correct item number
@@ -200,7 +200,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] A test with no assigned user can be assigned to the current user
+        // [SCENARIO] An inspection with no assigned user can be assigned to the current user
 
         Initialize();
 
@@ -213,8 +213,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
@@ -242,7 +242,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
-        // [SCENARIO] A test assigned to another user can be reassigned to the current user using AssignToSelf
+        // [SCENARIO] An inspection assigned to another user can be reassigned to the current user using AssignToSelf
 
         Initialize();
 
@@ -255,12 +255,12 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A test user is created if it doesn't exist
+        // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
         if not User.FindFirst() then
             LibraryPermissions.CreateUser(User, UserTok, false);
@@ -290,7 +290,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
-        // [SCENARIO] A test can be reassigned from one user to another without persisting the change
+        // [SCENARIO] An inspection can be reassigned from one user to another without persisting the change
 
         Initialize();
 
@@ -303,12 +303,12 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A test user is created if it doesn't exist
+        // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
         if not User.FindFirst() then
             LibraryPermissions.CreateUser(User, UserTok, false);
@@ -337,7 +337,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
-        // [SCENARIO] A test assigned to another user can be reassigned to the current user after persisting
+        // [SCENARIO] An inspection assigned to another user can be reassigned to the current user after persisting
 
         Initialize();
 
@@ -350,12 +350,12 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A test user is created if it doesn't exist
+        // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
         if not User.FindFirst() then
             LibraryPermissions.CreateUser(User, UserTok, false);
@@ -400,8 +400,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with source quantity of 100
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with source quantity of 100
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [WHEN] Sample Size is validated with value 101 (larger than source)
         QltyInspectionHeader.Validate("Sample Size", 101);
@@ -444,8 +444,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [WHEN] A test is created from purchase with source quantity of 200
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [WHEN] An inspection is created from purchase with source quantity of 200
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size equals the fixed quantity (5)
         LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr."Sample Fixed Amount", QltyInspectionHeader."Sample Size", 'Sample size should be the fixed quantity defined ');
@@ -485,8 +485,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [WHEN] A test is created from purchase with source quantity of 200
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [WHEN] An inspection is created from purchase with source quantity of 200
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size is capped at source quantity (200)
         LibraryAssert.AreEqual(200, QltyInspectionHeader."Sample Size", 'Sample size should have maxed out to the highest source quantity.');
@@ -526,8 +526,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [WHEN] A test is created from purchase with source quantity of 200
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [WHEN] An inspection is created from purchase with source quantity of 200
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size equals 198 (99% of 200, rounded)
         LibraryAssert.AreEqual(198, QltyInspectionHeader."Sample Size", 'Sample size should be a rounded up discrete amount based on the input size against the percentage defined on the template. ');
@@ -559,8 +559,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
@@ -569,7 +569,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [THEN] The test no longer exists in the database
         FoundQltyInspectionHeader.SetRange("No.", QltyInspectionHeader."No.");
-        LibraryAssert.IsTrue(FoundQltyInspectionHeader.IsEmpty(), 'Should not find a test.');
+        LibraryAssert.IsTrue(FoundQltyInspectionHeader.IsEmpty(), 'Should not find an inspection.');
     end;
 
     [Test]
@@ -586,7 +586,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] AssistEditTestField allows editing a test field value through a modal page
+        // [SCENARIO] AssistEditTestField allows editing an inspection field value through a modal page
 
         Initialize();
 
@@ -602,17 +602,17 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
 
         // [WHEN] AssistEditTestField is called on the field code
         QltyInspectionHeader.AssistEditTestField(QltyInspectionLine."Field Code");
 
         // [THEN] The test value is updated through the modal page handler
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
         LibraryAssert.AreEqual(TestValueT;
         Q Q Q Q Q Q Q Q Q
         QltyInspectionGenRule.Delete();
@@ -643,7 +643,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
-        // [SCENARIO] AssistEditLotNo allows changing the lot number on a test through item tracking summary
+        // [SCENARIO] AssistEditLotNo allows changing the lot number on an inspection through item tracking summary
 
         Initialize();
 
@@ -672,10 +672,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 100);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line with its lot number
+        // [GIVEN] An inspection is created from the second purchase line with its lot number
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -712,7 +712,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
-        // [SCENARIO] AssistEditSerialNo allows changing the serial number on a test through item tracking summary
+        // [SCENARIO] AssistEditSerialNo allows changing the serial number on an inspection through item tracking summary
 
         Initialize();
 
@@ -737,10 +737,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created with serial tracking
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with its serial number
+        // [GIVEN] An inspection is created from the purchase line with its serial number
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -751,7 +751,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number through modal page handler
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
         QltyInspectionGenRule.Delete();
@@ -783,7 +783,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
-        // [SCENARIO] AssistEditPackageNo allows changing the package number on a test through item tracking summary
+        // [SCENARIO] AssistEditPackageNo allows changing the package number on an inspection through item tracking summary
 
         Initialize();
 
@@ -812,10 +812,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 10);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line with its package number
+        // [GIVEN] An inspection is created from the second purchase line with its package number
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -826,7 +826,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to the first package number through modal page handler
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
         QltyInspectionGenRule.Delete();
@@ -884,10 +884,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 100);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line
+        // [GIVEN] An inspection is created from the second purchase line
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -898,7 +898,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to first lot number from same document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
         QltyInspectionGenRule.Delete();
@@ -953,10 +953,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with serial tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line
+        // [GIVEN] An inspection is created from the purchase line
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -967,7 +967,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
         QltyInspectionGenRule.Delete();
@@ -1026,10 +1026,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 10);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line
+        // [GIVEN] An inspection is created from the second purchase line
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -1040,7 +1040,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to first package number from same document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
         QltyInspectionGenRule.Delete();
@@ -1098,10 +1098,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', FirstPurchaseHeader, FirstPurchaseLine, FirstReservationEntry);
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', SecondPurchaseHeader, SecondPurchaseLine, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase order
+        // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -1112,7 +1112,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to lot number from different document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
         QltyInspectionGenRule.Delete();
@@ -1171,10 +1171,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', FirstPurchaseHeader, FirstPurchaseLine, FirstReservationEntry);
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', SecondPurchaseHeader, SecondPurchaseLine, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase order
+        // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -1185,7 +1185,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to serial number from different document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be other source serial no.');
 
         QltyInspectionGenRule.Delete();
@@ -1244,10 +1244,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', FirstPurchaseHeader, FirstPurchaseLine, FirstReservationEntry);
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', SecondPurchaseHeader, SecondPurchaseLine, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase order
+        // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] The test page is opened
@@ -1258,7 +1258,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to first package number from different document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
         QltyInspectionGenRule.Delete();
@@ -1410,10 +1410,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with lot tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with tracking
+        // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
@@ -1474,10 +1474,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with serial tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with tracking
+        // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
@@ -1538,10 +1538,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with package tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with tracking
+        // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
@@ -1683,8 +1683,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with no assigned user
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] Test has no assigned user initially
         LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
@@ -1694,7 +1694,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Modify(true);
 
         // [THEN] Test is automatically assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
     end;
 
@@ -1723,8 +1723,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from a purchase line
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from a purchase line
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
@@ -1916,7 +1916,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Current document attachment count is recorded
         BeforeCount := DocumentAttachment.Count();
@@ -1935,7 +1935,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnbindSubscription(CameraTestLibrary);
 
         // [THEN] Inspection header now has a most recent picture
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader."Most Recent Picture".HasValue(), 'Should have added picture.');
 
         // [THEN] A new document attachment is created
@@ -2098,7 +2098,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] Finish action on test page changes test status to Finished
+        // [SCENARIO] Finish action on inspection page changes test status to Finished
 
         Initialize();
 
@@ -2112,8 +2112,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with Open status
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with Open status
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] Test list page is opened and positioned on the test
         QltyInspectionList.OpenView();
@@ -2123,7 +2123,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.ChangeStatusFinish.Invoke();
 
         // [THEN] Test status is changed to Finished
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Test should be finished.');
 
         // [GIVEN] Cleanup generation rule
@@ -2144,7 +2144,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] Reopen action on test page changes test status from Finished to Open
+        // [SCENARIO] Reopen action on inspection page changes test status from Finished to Open
 
         Initialize();
 
@@ -2158,8 +2158,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] Test status is set to Finished
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
@@ -2173,7 +2173,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.ChangeStatusReopen.Invoke();
 
         // [THEN] Test status is changed to Open
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Test should be open.');
 
         // [GIVEN] Cleanup generation rule
@@ -2193,7 +2193,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] AssignToSelf action on test page assigns test to current user
+        // [SCENARIO] AssignToSelf action on inspection page assigns test to current user
 
         Initialize();
 
@@ -2207,8 +2207,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase with no assigned user
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] Test list page is opened and positioned on the test
         QltyInspectionList.OpenView();
@@ -2218,7 +2218,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.AssignToSelf.Invoke();
 
         // [THEN] Test is assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'Test should be assigned to user.');
 
         // [GIVEN] Cleanup generation rule
@@ -2238,7 +2238,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] Unassign action on test page clears assigned user
+        // [SCENARIO] Unassign action on inspection page clears assigned user
 
         Initialize();
 
@@ -2252,8 +2252,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] Test is assigned to current user
         QltyInspectionHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(QltyInspectionHeader."Assigned User ID"));
@@ -2267,7 +2267,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.Unassign.Invoke();
 
         // [THEN] Test assigned user is cleared
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Test should not be assigned to a user.');
 
         // [GIVEN] Cleanup generation rule
@@ -2287,11 +2287,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] First inspection line is retrieved
-        QltyInspectionLine.SetRange("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Retest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine.FindFirst();
 
         // [WHEN] Measurement note is set
@@ -2505,8 +2505,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A inspection line using the field is created
         QltyInspectionLine.Init();
-        QltyInspectionLine.Validate("Test No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.Validate("Retest No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionLine.Validate("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.Validate("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine."Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
         QltyInspectionLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateLine."Template Code";
         QltyInspectionLine."Template Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
@@ -3479,8 +3479,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Test brick field is calculated using expression
         LibraryAssert.AreEqual(QltyInspectionHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Table Name"), 'Expressions should match.');
@@ -3517,8 +3517,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase before expression is set
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        // [GIVEN] An inspection is created from purchase before expression is set
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [WHEN] Source table is Warehouse Receipt Line
         AssistEditTemplateValue := DefaultExpressionTok;
@@ -4389,8 +4389,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Insert();
 
         // [GIVEN] A inspection line is created with the grade code
-        QltyInspectionLine."Test No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Retest No." := QltyInspectionHeader."Retest No.";
+        QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine."Grade Code" := ToLoadQltyInspectionGrade.Code;
         QltyInspectionLine.Insert();
@@ -4471,8 +4471,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
         // [GIVEN] A inspection line is created
-        QltyInspectionLine."Test No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Retest No." := QltyInspectionHeader."Retest No.";
+        QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
         QltyInspectionLine."Grade Code" := ToLoadQltyInspectionGrade.Code;
@@ -4481,7 +4481,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A grade condition is created for the test
         ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Test;
         ToLoadQltyIGradeConditionConf."Target Code" := QltyInspectionHeader."No.";
-        ToLoadQltyIGradeConditionConf."Target Retest No." := QltyInspectionHeader."Retest No.";
+        ToLoadQltyIGradeConditionConf."Target Reinspection No." := QltyInspectionHeader."Reinspection No.";
         ToLoadQltyIGradeConditionConf."Target Line No." := QltyInspectionLine."Line No.";
         ToLoadQltyIGradeConditionConf."Field Code" := QltyInspectionLine."Field Code";
         ToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;

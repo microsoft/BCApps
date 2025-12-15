@@ -9,17 +9,17 @@ using Microsoft.QualityManagement.Document;
 using System.Reflection;
 
 /// <summary>
-/// A source configuration defines how to map a table, such as a production order line to a test.
+/// A source configuration defines how to map a table, such as a production order line to an inspection.
 /// Multiple tables can be defined because there are conditional filters that make this applicable.
 /// For example, you could have a conditional filter on a warehouse pick line based on the source type or source document type.
-/// When the to type is a test, the to table number is automatically associated with a test document.
+/// When the to type is an inspection, the to table number is automatically associated with an inspection document.
 /// When the to type is a chaintable, that allows chaining multiple tables together.
 /// How you can use chained tables:
 ///     - grab additional fields for related records:
 ///         - example 1 : grab the item no. from the prod order line even though the test might be against a prod order routing line.)
 ///             (use case being: visibility into seeing the item no., without having to add a flowfield to fetch the item no.)
 ///         - example 2 : grab the item category or item attribute from the item card or item attribute card.
-///             (use case being: we only want to create a test when the item attributes or item category is xyz.)
+///             (use case being: we only want to create an inspection when the item attributes or item category is xyz.)
 ///         - example 3 : grab the customer card, for customer specific filters.
 ///             (Use case being: we only want this test for items made or shipped to a specific customer)
 /// </summary>
@@ -51,7 +51,7 @@ table 20407 "Qlty. Inspect. Source Config."
             NotBlank = true;
             BlankZero = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
-            ToolTip = 'Specifies the from table. As an example for production related tests this should be 5409.';
+            ToolTip = 'Specifies the from table. As an example for production related inspection this should be 5409.';
 
             trigger OnValidate()
             begin
@@ -103,7 +103,7 @@ table 20407 "Qlty. Inspect. Source Config."
         {
             InitValue = Test;
             Caption = 'To Type';
-            ToolTip = 'Specifies whether this connects to a test, or a chained table.';
+            ToolTip = 'Specifies whether this connects to an inspection, or a chained table.';
 
             trigger OnValidate()
             begin

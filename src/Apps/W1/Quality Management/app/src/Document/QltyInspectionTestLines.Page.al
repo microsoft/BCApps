@@ -14,7 +14,7 @@ page 20413 "Qlty. Inspection Lines"
     Caption = 'Quality Inspection Values';
     PageType = List;
     SourceTable = "Qlty. Inspection Line";
-    SourceTableView = sorting("Test No.", "Retest No.", "Line No.") order(descending);
+    SourceTableView = sorting("Inspection No.", "Reinspection No.", "Line No.") order(descending);
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
 
@@ -27,10 +27,10 @@ page 20413 "Qlty. Inspection Lines"
                 field("Template Code"; Rec."Template Code")
                 {
                 }
-                field("Test No."; Rec."Test No.")
+                field("Inspection No."; Rec."Inspection No.")
                 {
                 }
-                field("Retest No."; Rec."Retest No.")
+                field("Reinspection No."; Rec."Reinspection No.")
                 {
                 }
                 field("Line No."; Rec."Line No.")

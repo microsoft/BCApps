@@ -63,18 +63,18 @@ codeunit 20415 "Qlty. Tracking Integration"
                     if not QltyInspectionHeader.FindSet() then
                         exit;
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestRetestNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::HighestReinspectionNumber:
                 begin
-                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedRetestNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedReinspectionNumber:
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
-                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
@@ -213,18 +213,18 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestRetestNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::HighestReinspectionNumber:
                 begin
-                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedRetestNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedReinspectionNumber:
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
-                    QltyInspectionHeader.SetCurrentKey("No.", "Retest No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
@@ -443,7 +443,7 @@ codeunit 20415 "Qlty. Tracking Integration"
 
     /// <summary>
     /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
-    /// This occurs after a test has been found.
+    /// This occurs after an inspection has been found.
     /// Used for assembly consumption, assembly output, consumption, output, purchase, sale, transfer
     /// </summary>
     /// <param name="ItemJournalLine"></param>
@@ -471,7 +471,7 @@ codeunit 20415 "Qlty. Tracking Integration"
 
     /// <summary>
     /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
-    /// This occurs after a test has been found.
+    /// This occurs after an inspection has been found.
     /// Used for inventory movements, inventory picks, inventory putaways, movements, picks, putaways.
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>

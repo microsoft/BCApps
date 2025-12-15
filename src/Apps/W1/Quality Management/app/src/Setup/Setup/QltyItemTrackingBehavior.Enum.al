@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Setup.Setup;
 
 /// <summary>
-/// Determines the item tracking behavior, and can be used to help determine whether to require item tracking before finishing a test.
+/// Determines the item tracking behavior, and can be used to help determine whether to require item tracking before finishing an inspection.
 /// </summary>
 enum 20418 "Qlty. Item Tracking Behavior"
 {

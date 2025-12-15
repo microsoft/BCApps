@@ -9,7 +9,7 @@ using Microsoft.QualityManagement.Document;
 /// <summary>
 /// A grade in it's simplest form would be something like PASS,FAIL,INPROGRESS
 /// You could have multiple passing grades, and multiple failing grades.
-/// Grades are effectively the incomplete/pass/fail state of a test. 
+/// Grades are effectively the incomplete/pass/fail state of an inspection. 
 /// It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. 
 /// The grades with a lower number for the priority field are evaluated first. 
 /// If you are not sure what to configure here then use the three defaults. 
@@ -124,7 +124,7 @@ table 20411 "Qlty. Inspection Grade"
         field(14; "Finish Allowed"; Enum "Qlty. Grade Finish Allowed")
         {
             Caption = 'Finish Allowed';
-            ToolTip = 'Specifies if a test can be finished given the applicable grade.';
+            ToolTip = 'Specifies if an inspection can be finished given the applicable grade.';
             InitValue = "Allow Finish";
         }
         field(20; "Lot Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
@@ -235,7 +235,7 @@ table 20411 "Qlty. Inspection Grade"
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleOptionsTok: Label 'None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate', Locked = true;
         CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
-        PromptFirstExistingTestQst: Label 'This grade, although not set on a test, is available to previous tests. Are you sure you want to remove this grade? This cannot be undone.';
+        PromptFirstExistingTestQst: Label 'This grade, although not set on an inspection, is available to previous tests. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This grade is currently defined on some Quality Inspection Templates. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingFieldQst: Label 'This grade is currently defined on some fields. Are you sure you want to remove this grade? This cannot be undone.';
         DefaultGradeInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
@@ -284,7 +284,7 @@ table 20411 "Qlty. Inspection Grade"
         if not QltyInspectionHeader.IsEmpty() then
             Error(CannotBeRemovedExistingTestErr);
 
-        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Test);
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
         QltyIGradeConditionConf.SetRange("Grade Code", Rec.Code);
         if not QltyIGradeConditionConf.IsEmpty() then
             if not Confirm(PromptFirstExistingTestQst) then

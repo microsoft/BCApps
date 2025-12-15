@@ -23,7 +23,7 @@ report 20410 "Qlty. Create Transfer Order"
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Reinspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
@@ -37,7 +37,7 @@ report 20410 "Qlty. Create Transfer Order"
     requestpage
     {
         AboutTitle = 'About Creating a Transfer';
-        AboutText = 'Use this to transfer inventory from a testing location to another location.';
+        AboutText = 'Use this to transfer inventory from an inspectioning location to another location.';
 
         layout
         {

@@ -101,7 +101,7 @@ page 20400 "Qlty. Management Setup"
                             ShowCaption = true;
                             Importance = Promoted;
                             AboutTitle = 'When To Show Tests';
-                            AboutText = 'Whether to show the Quality Inspection page after a test has been made.';
+                            AboutText = 'Whether to show the Quality Inspection page after an inspection has been made.';
                         }
                     }
                     field("Picture Upload Behavior"; Rec."Picture Upload Behavior")
@@ -129,14 +129,14 @@ page 20400 "Qlty. Management Setup"
             group(SettingsForReceiving)
             {
                 Caption = 'Receiving';
-                InstructionalText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create a test when a receipt is posted.';
+                InstructionalText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
 
                 group(SettingsForReceiveAutomation)
                 {
                     Caption = 'Automation';
                     InstructionalText = 'Define the default automation settings for how receipt tasks automatically create inspections. You also need to create inspection generation rules to configure which templates will be used. Different triggers can be changed on the inspection generation rules.';
                     AboutTitle = 'Receiving Related Automation Settings';
-                    AboutText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create a test when a receipt is posted.';
+                    AboutText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
 
                     field("Warehouse Receive Trigger"; Rec."Warehouse Receive Trigger")
                     {
@@ -198,11 +198,11 @@ page 20400 "Qlty. Management Setup"
 
                     field("Production Trigger"; Rec."Production Trigger")
                     {
-                        Caption = 'Production - Create Test';
+                        Caption = 'Production - Create Inspection';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
                         AboutTitle = 'Production related trigger';
-                        AboutText = 'Optionally choose a production-related trigger to try and create a test.';
+                        AboutText = 'Optionally choose a production-related trigger to try and create an inspection.';
                     }
                     field("Auto Output Configuration"; Rec."Auto Output Configuration")
                     {
@@ -210,15 +210,15 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
                         AboutTitle = 'Auto Output Configuration';
-                        AboutText = 'Provides granular options for when a test should be created automatically during the production process.';
+                        AboutText = 'Provides granular options for when an inspection should be created automatically during the production process.';
                     }
                     field("Assembly Trigger"; Rec."Assembly Trigger")
                     {
-                        Caption = 'Assembly - Create Test';
+                        Caption = 'Assembly - Create Inspection';
                         ApplicationArea = Assembly;
                         ShowCaption = true;
                         AboutTitle = 'Assembly related trigger';
-                        AboutText = 'Optionally choose an assembly-related trigger to try and create a test.';
+                        AboutText = 'Optionally choose an assembly-related trigger to try and create an inspection.';
                     }
                     field(ChooseCreateNewRule_Production; 'Click here to create a new generation rule...')
                     {
@@ -255,15 +255,15 @@ page 20400 "Qlty. Management Setup"
                     Caption = 'Automation';
                     InstructionalText = 'Define the default automation settings for inspection generation rules related to warehousing. Different triggers can be changed on the inspection generation rules.';
                     AboutTitle = 'Warehousing Related Automation Settings';
-                    AboutText = 'Warehousing related settings are configured in this group. For example, you can choose to automatically create a test when a lot is moved to a specific bin.';
+                    AboutText = 'Warehousing related settings are configured in this group. For example, you can choose to automatically create an inspection when a lot is moved to a specific bin.';
 
                     field("Warehouse Trigger"; Rec."Warehouse Trigger")
                     {
-                        Caption = 'Create Test';
+                        Caption = 'Create Inspection';
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'Warehouse related trigger';
-                        AboutText = 'Optionally choose a warehousing related trigger to try and create a test.';
+                        AboutText = 'Optionally choose a warehousing related trigger to try and create an inspection.';
                     }
                     field("Whse. Move Related Triggers"; Rec."Whse. Move Related Triggers")
                     {
@@ -352,7 +352,7 @@ page 20400 "Qlty. Management Setup"
                 group(SettingsForTrackingInstruction2)
                 {
                     Caption = 'Posted Item Tracking Only';
-                    InstructionalText = 'Use this if all lot/serial numbers must be posted in the system before a test can be finished. For example if you are doing tests on finished goods then the lot/serial should exist, or if you are doing tests when lots are moved to a bin then the lot/serial must exist.';
+                    InstructionalText = 'Use this if all lot/serial numbers must be posted in the system before an inspection can be finished. For example if you are doing tests on finished goods then the lot/serial should exist, or if you are doing tests when lots are moved to a bin then the lot/serial must exist.';
                 }
                 group(SettingsForTrackingInstruction3)
                 {
@@ -480,8 +480,8 @@ page 20400 "Qlty. Management Setup"
             action(Templates)
             {
                 ApplicationArea = All;
-                Caption = 'Test Templates';
-                ToolTip = 'View a list of Quality Inspection Templates. A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+                Caption = 'Test Inspections';
+                ToolTip = 'View a list of Quality Inspection Templates. A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                 Image = TaskQualityMeasure;
                 AboutTitle = 'Quality Inspection Template';
                 AboutText = 'A Quality Inspection Template is a set of questions and data points that you want to collect.';
@@ -503,10 +503,10 @@ page 20400 "Qlty. Management Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Grades';
-                ToolTip = 'View the Quality Inspection Grades. Grades are effectively the incomplete/pass/fail state of a test. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
+                ToolTip = 'View the Quality Inspection Grades. Grades are effectively the incomplete/pass/fail state of an inspection. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 Image = Permission;
                 AboutTitle = 'Grades';
-                AboutText = 'Grades are effectively the incomplete/pass/fail state of a test. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
+                AboutText = 'Grades are effectively the incomplete/pass/fail state of an inspection. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 RunObject = Page "Qlty. Inspection Grade List";
                 RunPageMode = Edit;
             }

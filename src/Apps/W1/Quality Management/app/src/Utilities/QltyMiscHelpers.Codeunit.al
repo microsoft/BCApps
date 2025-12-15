@@ -183,7 +183,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyField: Record "Qlty. Field";
     begin
-        QltyInspectionHeader.Get(QltyInspectionLine."Test No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionHeader."Reinspection No.");
         QltyField.Get(QltyInspectionLine."Field Code");
         GetRecordsForTableField(QltyField, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
     end;
@@ -193,7 +193,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// This will evaluate expressions!
     /// </summary>
     /// <param name="QltyField"></param>
-    /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields.  Supply a test context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
+    /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields.  Supply an inspection context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
     /// <param name="TempBufferQltyLookupCode"></param>
     internal procedure GetRecordsForTableField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var

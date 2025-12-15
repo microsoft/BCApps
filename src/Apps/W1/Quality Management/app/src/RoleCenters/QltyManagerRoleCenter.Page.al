@@ -105,13 +105,13 @@ page 20426 "Qlty. Manager Role Center"
             {
                 Caption = 'Templates and Rules';
 
-                action(Qlty_Processing_ConfigureTestTemplates)
+                action(Qlty_Processing_ConfigureInspectionTemplates)
                 {
-                    Caption = 'Test Templates';
+                    Caption = 'Test Inspections';
                     Image = Database;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.';
+                    ToolTip = 'Specifies a Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                 }
                 action(Qlty_Processing_ConfigureInspectionGenerationRules)
                 {

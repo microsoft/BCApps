@@ -180,14 +180,14 @@ codeunit 139951 "Qlty. Pur. Order Generator"
     end;
 
     /// <summary>
-    /// Creates an item without tracking, creates a purchase order for that item, then creates a test
+    /// Creates an item without tracking, creates a purchase order for that item, then creates an inspection
     /// </summary>
     /// <param name="Location"></param>
     ///<param name="PurchaseQuantity"></param>
     /// <param name="PurchaseHeader"></param>
     /// <param name="PurchaseLine"></param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateTestFromPurchaseWithUntrackedItem(var Location: Record Location; PurchaseQuantity: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    procedure CreateInspectionFromPurchaseWithUntrackedItem(var Location: Record Location; PurchaseQuantity: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         Item: Record Item;
         LibraryInventory: Codeunit "Library - Inventory";
@@ -203,12 +203,12 @@ codeunit 139951 "Qlty. Pur. Order Generator"
 
         CreatePurchaseOrder(PurchaseQuantity, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseLine);
-        if QltyInspectionCreate.CreateTest(RecordRef, false) then
+        if QltyInspectionCreate.CreateInspection(RecordRef, false) then
             QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
     end;
 
     /// <summary>
-    /// Creates an item with lot tracking, creates a purchase order for that item, then creates a test
+    /// Creates an item with lot tracking, creates a purchase order for that item, then creates an inspection
     /// </summary>
     /// <param name="Location"></param>
     /// <param name="PurchaseQuantity"></param>
@@ -216,7 +216,7 @@ codeunit 139951 "Qlty. Pur. Order Generator"
     /// <param name="PurchaseLine"></param>
     /// <param name="OutQltyInspectionHeader"></param>
     /// <param name="OutReservationEntry"></param>
-    procedure CreateTestFromPurchaseWithLotTrackedItem(var Location: Record Location; PurchaseQuantity: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutReservationEntry: Record "Reservation Entry")
+    procedure CreateInspectionFromPurchaseWithLotTrackedItem(var Location: Record Location; PurchaseQuantity: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutReservationEntry: Record "Reservation Entry")
     var
         Item: Record Item;
         Vendor: Record Vendor;
@@ -239,7 +239,7 @@ codeunit 139951 "Qlty. Pur. Order Generator"
         CreatePurchaseOrder(PurchaseQuantity, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, OutReservationEntry);
         RecordRef.GetTable(PurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(OutReservationEntry);
-        if QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
             QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
     end;
 }

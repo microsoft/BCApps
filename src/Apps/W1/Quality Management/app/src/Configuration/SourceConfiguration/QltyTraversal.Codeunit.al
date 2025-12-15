@@ -111,7 +111,7 @@ codeunit 20408 "Qlty. Traversal"
 
     /// <summary>
     /// Finds all possible target configurations recursively based on a source table number.
-    /// This is used when manually creating a test to determine which source configurations
+    /// This is used when manually creating an inspection to determine which source configurations
     /// are available for the given table.
     /// 
     /// The procedure recursively searches through chained table relationships to find all

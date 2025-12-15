@@ -324,13 +324,13 @@
                                 <PaddingBottom>2pt</PaddingBottom>
                               </Style>
                             </Textbox>
-                            <Textbox Name="QITest_No3">
+                            <Textbox Name="QltyInspection_No3">
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=Fields!QITest_No.Value</Value>
+                                      <Value>=Fields!QltyInspection_No.Value</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -342,7 +342,7 @@
                                   </Style>
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_No2</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_No2</rd:DefaultName>
                               <Top>0.94695in</Top>
                               <Left>1.91514in</Left>
                               <Height>0.34735in</Height>
@@ -395,14 +395,14 @@
                                 <PaddingBottom>2pt</PaddingBottom>
                               </Style>
                             </Textbox>
-                            <Textbox Name="QITest_Source_Item_No_2">
+                            <Textbox Name="QltyInspection_Source_Item_No_2">
                               <CanGrow>true</CanGrow>
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=Fields!QITest_Source_Item_No_.Value &amp; " " &amp; Fields!QITest_Source_Variant_Code.Value &amp; " "' Fields!QITest_Source_Item_Description.Value &amp; " "' Fields!QITest_Source_Item_Description2.Value</Value>
+                                      <Value>=Fields!QltyInspection_Source_Item_No_.Value &amp; " " &amp; Fields!QltyInspection_Source_Variant_Code.Value &amp; " "' Fields!QltyInspection_Source_Item_Description.Value &amp; " "' Fields!QltyInspection_Source_Item_Description2.Value</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -414,7 +414,7 @@
                                   </Style>
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_Source_Item_No_</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_Source_Item_No_</rd:DefaultName>
                               <Top>1.36374in</Top>
                               <Left>1.91514in</Left>
                               <Height>0.35273in</Height>
@@ -467,13 +467,13 @@
                                 <PaddingBottom>2pt</PaddingBottom>
                               </Style>
                             </Textbox>
-                            <Textbox Name="QITest_Source_Lot_No_2">
+                            <Textbox Name="QltyInspection_Source_Lot_No_2">
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=Fields!QITest_Source_Lot_No_.Value &amp; " " &amp; Fields!QITest_Source_Serial_No_.Value</Value>
+                                      <Value>=Fields!QltyInspection_Source_Lot_No_.Value &amp; " " &amp; Fields!QltyInspection_Source_Serial_No_.Value</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -485,7 +485,7 @@
                                   </Style>
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_Source_Lot_No_</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_Source_Lot_No_</rd:DefaultName>
                               <Top>1.77202in</Top>
                               <Left>1.91514in</Left>
                               <Height>0.33544in</Height>
@@ -508,7 +508,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QITemplate_Description.Value)</Value>
+                                      <Value>=First(Fields!QltyInspectionTemplate_Description.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -542,7 +542,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QITest_Description.Value)</Value>
+                                      <Value>=First(Fields!QltyInspection_Description.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -594,13 +594,13 @@
                       <CellContents>
                         <Rectangle Name="Rectangle2">
                           <ReportItems>
-                            <Textbox Name="QITest_RetestNo2">
+                            <Textbox Name="QltyInspection_ReinspectionNo2">
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=Fields!QITest_RetestNo.Value</Value>
+                                      <Value>=Fields!QltyInspection_ReinspectionNo.Value</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -612,7 +612,7 @@
                                   </Style>
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_RetestNo1</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_ReinspectionNo1</rd:DefaultName>
                               <Top>0in</Top>
                               <Left>1.92245in</Left>
                               <Height>0.25in</Height>
@@ -633,7 +633,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>Retest sequence:</Value>
+                                      <Value>Reinspection sequence:</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -662,13 +662,13 @@
                                 <PaddingBottom>2pt</PaddingBottom>
                               </Style>
                             </Textbox>
-                            <Textbox Name="QITest_Status1">
+                            <Textbox Name="QltyInspection_Status1">
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QITest_Status.Value)</Value>
+                                      <Value>=First(Fields!QltyInspection_Status.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -678,7 +678,7 @@
                                   <Style />
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_Status1</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_Status1</rd:DefaultName>
                               <Top>0in</Top>
                               <Left>3.18787in</Left>
                               <Height>0.25in</Height>
@@ -694,13 +694,13 @@
                                 <PaddingBottom>2pt</PaddingBottom>
                               </Style>
                             </Textbox>
-                            <Textbox Name="QITest_Test_Result1">
+                            <Textbox Name="QltyInspection_Test_Result1">
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QITest_Grade_Description.Value)</Value>
+                                      <Value>=First(Fields!QltyInspection_Grade_Description.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -710,7 +710,7 @@
                                   <Style />
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_Test_Result1</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_Test_Result1</rd:DefaultName>
                               <Top>0in</Top>
                               <Left>4.81818in</Left>
                               <Height>0.25in</Height>
@@ -726,13 +726,13 @@
                                 <PaddingBottom>2pt</PaddingBottom>
                               </Style>
                             </Textbox>
-                            <Textbox Name="QITest_Finished_By_User_ID1">
+                            <Textbox Name="QltyInspection_Finished_By_User_ID1">
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QITest_Finished_By_User_ID.Value)</Value>
+                                      <Value>=First(Fields!QltyInspection_Finished_By_User_ID.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -742,7 +742,7 @@
                                   <Style />
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_Finished_By_User_ID1</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_Finished_By_User_ID1</rd:DefaultName>
                               <Top>0.25in</Top>
                               <Left>1.92245in</Left>
                               <Height>0.25in</Height>
@@ -758,13 +758,13 @@
                                 <PaddingBottom>2pt</PaddingBottom>
                               </Style>
                             </Textbox>
-                            <Textbox Name="QITest_Finished_Date1">
+                            <Textbox Name="QltyInspection_Finished_Date1">
                               <KeepTogether>true</KeepTogether>
                               <Paragraphs>
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QITest_Finished_Date.Value)</Value>
+                                      <Value>=First(Fields!QltyInspection_Finished_Date.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -774,7 +774,7 @@
                                   <Style />
                                 </Paragraph>
                               </Paragraphs>
-                              <rd:DefaultName>QITest_Finished_Date1</rd:DefaultName>
+                              <rd:DefaultName>QltyInspection_Finished_Date1</rd:DefaultName>
                               <Top>0.25in</Top>
                               <Left>3.52049in</Left>
                               <Height>0.25in</Height>
@@ -1682,9 +1682,9 @@
             <TablixRowHierarchy>
               <TablixMembers>
                 <TablixMember>
-                  <Group Name="QITest_No">
+                  <Group Name="QltyInspection_No">
                     <GroupExpressions>
-                      <GroupExpression>=Fields!QITest_No.Value</GroupExpression>
+                      <GroupExpression>=Fields!QltyInspection_No.Value</GroupExpression>
                     </GroupExpressions>
                     <PageBreak>
                       <BreakLocation>Between</BreakLocation>
@@ -1692,7 +1692,7 @@
                   </Group>
                   <SortExpressions>
                     <SortExpression>
-                      <Value>=Fields!QITest_No.Value</Value>
+                      <Value>=Fields!QltyInspection_No.Value</Value>
                     </SortExpression>
                   </SortExpressions>
                   <TablixHeader>
@@ -1896,14 +1896,14 @@
                       <KeepWithGroup>After</KeepWithGroup>
                     </TablixMember>
                     <TablixMember>
-                      <Group Name="QITest_RetestNo">
+                      <Group Name="QltyInspection_ReinspectionNo">
                         <GroupExpressions>
-                          <GroupExpression>=Fields!QITest_RetestNo.Value</GroupExpression>
+                          <GroupExpression>=Fields!QltyInspection_ReinspectionNo.Value</GroupExpression>
                         </GroupExpressions>
                       </Group>
                       <SortExpressions>
                         <SortExpression>
-                          <Value>=Fields!QITest_RetestNo.Value</Value>
+                          <Value>=Fields!QltyInspection_ReinspectionNo.Value</Value>
                         </SortExpression>
                       </SortExpressions>
                       <TablixHeader>
@@ -2126,110 +2126,110 @@ End Function
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
-        <Field Name="QITemplate_Description">
-          <DataField>QITemplate_Description</DataField>
+        <Field Name="QltyInspectionTemplate_Description">
+          <DataField>QltyInspectionTemplate_Description</DataField>
         </Field>
-        <Field Name="QITest_Description">
-          <DataField>QITest_Description</DataField>
+        <Field Name="QltyInspection_Description">
+          <DataField>QltyInspection_Description</DataField>
         </Field>
-        <Field Name="QITest_Status">
-          <DataField>QITest_Status</DataField>
+        <Field Name="QltyInspection_Status">
+          <DataField>QltyInspection_Status</DataField>
         </Field>
-        <Field Name="QITest_Grade_Code">
-          <DataField>QITest_Grade_Code</DataField>
+        <Field Name="QltyInspection_Grade_Code">
+          <DataField>QltyInspection_Grade_Code</DataField>
         </Field>
-        <Field Name="QITest_Grade_Description">
-          <DataField>QITest_Grade_Description</DataField>
+        <Field Name="QltyInspection_Grade_Description">
+          <DataField>QltyInspection_Grade_Description</DataField>
         </Field>
-        <Field Name="QITest_No">
-          <DataField>QITest_No</DataField>
+        <Field Name="QltyInspection_No">
+          <DataField>QltyInspection_No</DataField>
         </Field>
-        <Field Name="QITest_RetestNo">
-          <DataField>QITest_RetestNo</DataField>
+        <Field Name="QltyInspection_ReinspectionNo">
+          <DataField>QltyInspection_ReinspectionNo</DataField>
         </Field>
-        <Field Name="QITest_Finished_By_User_ID">
-          <DataField>QITest_Finished_By_User_ID</DataField>
+        <Field Name="QltyInspection_Finished_By_User_ID">
+          <DataField>QltyInspection_Finished_By_User_ID</DataField>
         </Field>
-        <Field Name="QITest_Finished_By_UserName">
-          <DataField>QITest_Finished_By_UserName</DataField>
+        <Field Name="QltyInspection_Finished_By_UserName">
+          <DataField>QltyInspection_Finished_By_UserName</DataField>
         </Field>
-        <Field Name="QITest_Finished_By_Title">
-          <DataField>QITest_Finished_By_Title</DataField>
+        <Field Name="QltyInspection_Finished_By_Title">
+          <DataField>QltyInspection_Finished_By_Title</DataField>
         </Field>
-        <Field Name="QITest_Finished_By_Email">
-          <DataField>QITest_Finished_By_Email</DataField>
+        <Field Name="QltyInspection_Finished_By_Email">
+          <DataField>QltyInspection_Finished_By_Email</DataField>
         </Field>
-        <Field Name="QITest_Finished_By_Phone">
-          <DataField>QITest_Finished_By_Phone</DataField>
+        <Field Name="QltyInspection_Finished_By_Phone">
+          <DataField>QltyInspection_Finished_By_Phone</DataField>
         </Field>
-        <Field Name="QITest_Director_Title">
-          <DataField>QITest_Director_Title</DataField>
+        <Field Name="QltyInspection_Director_Title">
+          <DataField>QltyInspection_Director_Title</DataField>
         </Field>
-        <Field Name="QITest_Director_Name">
-          <DataField>QITest_Director_Name</DataField>
+        <Field Name="QltyInspection_Director_Name">
+          <DataField>QltyInspection_Director_Name</DataField>
         </Field>
-        <Field Name="QITest_Finished_Date">
-          <DataField>QITest_Finished_Date</DataField>
+        <Field Name="QltyInspection_Finished_Date">
+          <DataField>QltyInspection_Finished_Date</DataField>
         </Field>
-        <Field Name="QITest_Source_Item_No_">
-          <DataField>QITest_Source_Item_No_</DataField>
+        <Field Name="QltyInspection_Source_Item_No_">
+          <DataField>QltyInspection_Source_Item_No_</DataField>
         </Field>
-        <Field Name="QITest_Source_Item_Description">
-          <DataField>QITest_Source_Item_Description</DataField>
+        <Field Name="QltyInspection_Source_Item_Description">
+          <DataField>QltyInspection_Source_Item_Description</DataField>
         </Field>
-        <Field Name="QITest_Source_Item_Description2">
-          <DataField>QITest_Source_Item_Description2</DataField>
+        <Field Name="QltyInspection_Source_Item_Description2">
+          <DataField>QltyInspection_Source_Item_Description2</DataField>
         </Field>
-        <Field Name="QITest_Source_Variant_Code">
-          <DataField>QITest_Source_Variant_Code</DataField>
+        <Field Name="QltyInspection_Source_Variant_Code">
+          <DataField>QltyInspection_Source_Variant_Code</DataField>
         </Field>
-        <Field Name="QITest_Source_Lot_No_">
-          <DataField>QITest_Source_Lot_No_</DataField>
+        <Field Name="QltyInspection_Source_Lot_No_">
+          <DataField>QltyInspection_Source_Lot_No_</DataField>
         </Field>
-        <Field Name="QITest_Source_Serial_No_">
-          <DataField>QITest_Source_Serial_No_</DataField>
+        <Field Name="QltyInspection_Source_Serial_No_">
+          <DataField>QltyInspection_Source_Serial_No_</DataField>
         </Field>
-        <Field Name="QITest_Source_Document_No_">
-          <DataField>QITest_Source_Document_No_</DataField>
+        <Field Name="QltyInspection_Source_Document_No_">
+          <DataField>QltyInspection_Source_Document_No_</DataField>
         </Field>
-        <Field Name="QITest_Source_Task_No_">
-          <DataField>QITest_Source_Task_No_</DataField>
+        <Field Name="QltyInspection_Source_Task_No_">
+          <DataField>QltyInspection_Source_Task_No_</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_1">
-          <DataField>QITest_Source_Custom_1</DataField>
+        <Field Name="QltyInspection_Source_Custom_1">
+          <DataField>QltyInspection_Source_Custom_1</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_2">
-          <DataField>QITest_Source_Custom_2</DataField>
+        <Field Name="QltyInspection_Source_Custom_2">
+          <DataField>QltyInspection_Source_Custom_2</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_3">
-          <DataField>QITest_Source_Custom_3</DataField>
+        <Field Name="QltyInspection_Source_Custom_3">
+          <DataField>QltyInspection_Source_Custom_3</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_4">
-          <DataField>QITest_Source_Custom_4</DataField>
+        <Field Name="QltyInspection_Source_Custom_4">
+          <DataField>QltyInspection_Source_Custom_4</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_5">
-          <DataField>QITest_Source_Custom_5</DataField>
+        <Field Name="QltyInspection_Source_Custom_5">
+          <DataField>QltyInspection_Source_Custom_5</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_6">
-          <DataField>QITest_Source_Custom_6</DataField>
+        <Field Name="QltyInspection_Source_Custom_6">
+          <DataField>QltyInspection_Source_Custom_6</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_7">
-          <DataField>QITest_Source_Custom_7</DataField>
+        <Field Name="QltyInspection_Source_Custom_7">
+          <DataField>QltyInspection_Source_Custom_7</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_8">
-          <DataField>QITest_Source_Custom_8</DataField>
+        <Field Name="QltyInspection_Source_Custom_8">
+          <DataField>QltyInspection_Source_Custom_8</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_9">
-          <DataField>QITest_Source_Custom_9</DataField>
+        <Field Name="QltyInspection_Source_Custom_9">
+          <DataField>QltyInspection_Source_Custom_9</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_9Format">
-          <DataField>QITest_Source_Custom_9Format</DataField>
+        <Field Name="QltyInspection_Source_Custom_9Format">
+          <DataField>QltyInspection_Source_Custom_9Format</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_10">
-          <DataField>QITest_Source_Custom_10</DataField>
+        <Field Name="QltyInspection_Source_Custom_10">
+          <DataField>QltyInspection_Source_Custom_10</DataField>
         </Field>
-        <Field Name="QITest_Source_Custom_10Format">
-          <DataField>QITest_Source_Custom_10Format</DataField>
+        <Field Name="QltyInspection_Source_Custom_10Format">
+          <DataField>QltyInspection_Source_Custom_10Format</DataField>
         </Field>
         <Field Name="CompanyInformation_Row1">
           <DataField>CompanyInformation_Row1</DataField>

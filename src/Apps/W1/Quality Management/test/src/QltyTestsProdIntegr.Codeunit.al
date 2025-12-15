@@ -39,7 +39,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         CreateQltyInspectionTemplateMsg: Label 'Create or Update a Quality Inspection Template from these quality measures.';
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_Output()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -108,7 +108,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -173,7 +173,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_NoOutputOrScrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_NoOutputOrScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -229,7 +229,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyOutput_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyOutput_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -295,7 +295,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_Output()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -359,7 +359,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -424,7 +424,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -489,7 +489,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_AnyQuantity_NoOutputOrScrap_NoTest()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_NoOutputOrScrap_NoTest()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -545,7 +545,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -602,7 +602,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_Output()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -667,7 +667,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -733,7 +733,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithQuantity_NoOutputOrScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithQuantity_NoOutputOrScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -789,7 +789,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_Output()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_Output()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -845,7 +845,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_Scrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_Scrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -910,7 +910,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_OutputAndScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_OutputAndScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -979,7 +979,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterPostOutput_OnlyWithScrap_NoOutputOrScrap()
+    procedure CreateInspectionOnAfterPostOutput_OnlyWithScrap_NoOutputOrScrap()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1038,7 +1038,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderRoutingLine()
+    procedure CreateInspectionOnAfterRelease_ProdOrderRoutingLine()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -1097,7 +1097,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderLine()
+    procedure CreateInspectionOnAfterRelease_ProdOrderLine()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -1162,7 +1162,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderRoutingLine_TrackedItem()
+    procedure CreateInspectionOnAfterRelease_ProdOrderRoutingLine_TrackedItem()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -1221,7 +1221,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
     [Test]
     [HandlerFunctions('ProdOrderStatusReleasedFormModalPageHandler,MessageHandler')]
-    procedure CreateTestOnAfterRelease_ProdOrderLine_TrackedItem()
+    procedure CreateInspectionOnAfterRelease_ProdOrderLine_TrackedItem()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -1321,7 +1321,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1340,7 +1340,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1390,7 +1390,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1409,7 +1409,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1459,7 +1459,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All source record IDs have "Released" status (note: third ID is not checked due to variant ordering)
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1478,7 +1478,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1527,7 +1527,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1546,7 +1546,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1596,7 +1596,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1615,7 +1615,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1676,7 +1676,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1695,7 +1695,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1756,7 +1756,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1775,7 +1775,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1836,7 +1836,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1855,7 +1855,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Test source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Retest No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1870,7 +1870,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure CreateTestOnAfterPost_Assembly_TrackedItem()
+    procedure CreateInspectionOnAfterPost_Assembly_TrackedItem()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -1916,7 +1916,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
-        // [GIVEN] A test generation rule is created for Posted Assembly Header table
+        // [GIVEN] An inspection generation rule is created for Posted Assembly Header table
         QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
@@ -1966,7 +1966,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure CreateTestOnAfterPost_Assembly_UntrackedItem()
+    procedure CreateInspectionOnAfterPost_Assembly_UntrackedItem()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -2007,7 +2007,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
-        // [GIVEN] A test generation rule is created for Posted Assembly Header table
+        // [GIVEN] An inspection generation rule is created for Posted Assembly Header table
         QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
@@ -2039,7 +2039,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [Test]
-    procedure CreateTestOnAfterRefreshProdOrder()
+    procedure CreateInspectionOnAfterRefreshProdOrder()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -2059,7 +2059,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] A test generation rule is created for Prod. Order Routing Line with OnReleasedProductionOrderRefresh trigger
+        // [GIVEN] An inspection generation rule is created for Prod. Order Routing Line with OnReleasedProductionOrderRefresh trigger
         QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
         QltyInspectionGenRule.Validate("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnReleasedProductionOrderRefresh);
         QltyInspectionGenRule.Modify(true);
@@ -2118,7 +2118,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality test is created for the production order with Released status
         RecordRef.GetTable(ProdProductionOrder);
-        QltyInspectionCreate.CreateTest(RecordRef, false);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
         RecordId := Format(TestQualityOrder."Source RecordId");
 
@@ -2136,7 +2136,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
+        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Reinspection No.");
         RecordId := Format(TestQualityOrder."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
@@ -2178,7 +2178,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality test is created for the production order line with Released status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateTest(RecordRef, false);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
         RecordId := Format(TestQualityOrder."Source RecordId");
 
@@ -2196,7 +2196,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
+        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Reinspection No.");
         RecordId := Format(TestQualityOrder."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
@@ -2238,7 +2238,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality test is created for the production order routing line with Released status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateTest(RecordRef, false);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
         RecordId := Format(TestQualityOrder."Source RecordId");
 
@@ -2256,7 +2256,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
+        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Reinspection No.");
         RecordId := Format(TestQualityOrder."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
@@ -2369,7 +2369,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     end;
 
     [ModalPageHandler]
-    procedure AutomatedTestTemplateModalPageHandler(var QltyInspectionTemplate: TestPage "Qlty. Inspection Template")
+    procedure AutomatedInspectionTemplateModalPageHandler(var QltyInspectionTemplate: TestPage "Qlty. Inspection Template")
     begin
     end;
 }

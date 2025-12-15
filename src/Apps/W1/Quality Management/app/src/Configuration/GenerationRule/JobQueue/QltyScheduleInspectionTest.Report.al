@@ -27,7 +27,7 @@ report 20412 "Qlty. Schedule Inspection"
 
             trigger OnAfterGetRecord()
             begin
-                CreateTestsThatMatchRule(CurrentInspectionGenerationRule);
+                CreateInspectionsThatMatchRule(CurrentInspectionGenerationRule);
             end;
 
             trigger OnPreDataItem()
@@ -47,7 +47,7 @@ report 20412 "Qlty. Schedule Inspection"
                 group(SettingsForWarning)
                 {
                     Caption = 'Warning';
-                    Visible = ShowWarningIfCreateTest;
+                    Visible = ShowWarningIfCreateInspection;
                     InstructionalText = 'On your Quality Management Setup page you have the Create Inspection Behavior set to a setting that will cause tests to be created whenever this report is run even if there are already tests for that item and lot. Make sure this is compatible with the scenario you are solving.';
 
                     field(ChooseOpenQualityManagementSetup; 'Click here to open the Quality Management Setup page.')
@@ -69,7 +69,7 @@ report 20412 "Qlty. Schedule Inspection"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        ShowWarningIfCreateTest: Boolean;
+        ShowWarningIfCreateInspection: Boolean;
         CreatedQltyInspectionIds: List of [Code[20]];
         ZeroTestsCreatedMsg: Label 'No tests were created.';
         SomeTestsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
@@ -78,8 +78,8 @@ report 20412 "Qlty. Schedule Inspection"
     trigger OnInitReport()
     begin
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Create Inspection Behavior" in [QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection", QltyManagementSetup."Create Inspection Behavior"::"Always create retest"] then
-            ShowWarningIfCreateTest := true;
+        if QltyManagementSetup."Create Inspection Behavior" in [QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection", QltyManagementSetup."Create Inspection Behavior"::"Always create reinspection"] then
+            ShowWarningIfCreateInspection := true;
     end;
 
     trigger OnPreReport()
@@ -102,7 +102,7 @@ report 20412 "Qlty. Schedule Inspection"
     /// This will use the generation rule, and create inspections that match the records found with that rule.
     /// </summary>
     /// <param name="QltyInspectionGenRule"></param>
-    procedure CreateTestsThatMatchRule(QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    procedure CreateInspectionsThatMatchRule(QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
         SourceRecordRef: RecordRef;

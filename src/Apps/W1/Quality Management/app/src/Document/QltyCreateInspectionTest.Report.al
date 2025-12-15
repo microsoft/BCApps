@@ -48,7 +48,7 @@ report 20400 "Qlty. Create Inspection"
                 group(Parameters)
                 {
                     Caption = 'Parameters';
-                    field(ChooseQITemplateCode; QltInspectionTemplateToCreate)
+                    field(ChooseQltyInspectionTemplateCode; QltInspectionTemplateToCreate)
                     {
                         ApplicationArea = All;
                         Caption = 'Template Code';
@@ -239,11 +239,10 @@ report 20400 "Qlty. Create Inspection"
     end;
 
     /// <summary>
-    /// InitializeReportParameters can be used to specify a specific desired quality inspection template code
-    /// to create the test from.
-    /// Use this if you're using this report to let the user decide what kind of test they want, and just want 
-    /// to express a preference.   This will not limit them to this template, it just sets the default.
-    /// This will also fire OnAfterInitializeCreateTestReportParameters
+    /// InitializeReportParameters can be used to specify a specific desired quality inspection template code to create the inspection from.
+    /// Use this if you're using this report to let the user decide what kind of inspection they want, and just want 
+    /// to express a preference. This will not limit them to this template, it just sets the default.
+    /// This will also fire OnAfterInitializeCreateInspectionReportParameters
     /// </summary>
     /// <param name="QltyInspectionTemplateCode">Code[20]. The quality inspection template code to default to.</param>
     procedure InitializeReportParameters(QltyInspectionTemplateCode: Code[20])
@@ -251,7 +250,7 @@ report 20400 "Qlty. Create Inspection"
         TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
     begin
         QltInspectionTemplateToCreate := QltyInspectionTemplateCode;
-        OnAfterInitializeCreateTestReportParameters(QltInspectionTemplateToCreate, SourceTable, CustomFilter, Target, TargetRecordRef, TempQltyInspectionHeader);
+        OnAfterInitializeCreateInspectionReportParameters(QltInspectionTemplateToCreate, SourceTable, CustomFilter, Target, TargetRecordRef, TempQltyInspectionHeader);
 
         if (QltyInspectionTemplateCode <> '') and (SourceTable = '') then begin
             QltyInspectSourceConfig.Reset();
@@ -327,7 +326,7 @@ report 20400 "Qlty. Create Inspection"
 
         TempTrackingSpecification.Insert(false);
 
-        QltyInspectionCreate.CreateTestWithMultiVariantsAndTemplate(TargetRecordRef, TempTrackingSpecification, Dummy3Variant, Dummy4Variant, true, QltInspectionTemplateToCreate);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(TargetRecordRef, TempTrackingSpecification, Dummy3Variant, Dummy4Variant, true, QltInspectionTemplateToCreate);
     end;
 
     local procedure AssistEditChooseRecord()
@@ -368,7 +367,7 @@ report 20400 "Qlty. Create Inspection"
     end;
 
     /// <summary>
-    /// Provides an opportunity to create defaults in the Create Test report page.
+    /// Provides an opportunity to create defaults in the Create Inspection report page.
     /// </summary>
     /// <param name="QltyInspectionTemplateCode">var Code[20].</param>
     /// <param name="SourceTable">var Code[20].</param>
@@ -377,7 +376,7 @@ report 20400 "Qlty. Create Inspection"
     /// <param name="TargetRecordRef">var RecordRef.</param>
     /// <param name="TempQltyInspectionHeader">var Record "Qlty. Inspection Header" temporary.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitializeCreateTestReportParameters(var QltyInspectionTemplateCode: Code[20]; var SourceTable: Code[20]; var CustomFilter: Text; var Target: RecordId; var TargetRecordRef: RecordRef; var TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary)
+    local procedure OnAfterInitializeCreateInspectionReportParameters(var QltyInspectionTemplateCode: Code[20]; var SourceTable: Code[20]; var CustomFilter: Text; var Target: RecordId; var TargetRecordRef: RecordRef; var TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary)
     begin
     end;
 }

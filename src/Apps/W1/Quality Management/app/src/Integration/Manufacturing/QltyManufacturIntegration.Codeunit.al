@@ -29,7 +29,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         UnknownRecordTok: Label 'Unknown record', Locked = true;
 
     /// <summary>
-    /// We subscribe to OnAfterPostOutput to see if we need to create a test related to the output.
+    /// We subscribe to OnAfterPostOutput to see if we need to create an inspection related to the output.
     /// This will get called a minimum of 1 per output journal line, and 'n' times per item tracking line.
     /// For example, if you have an item journal line that has 2 item tracking lines, this will get called twice, where the ItemLedgerEntry
     /// will change on each subsequent call.
@@ -87,7 +87,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateTestPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
+            AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnBeforeChangeStatusOnProdOrder', '', true, true)]
@@ -127,7 +127,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateTestReleased(ToProdOrder, QltyInspectionGenRule);
+            AttemptCreateInspectionReleased(ToProdOrder, QltyInspectionGenRule);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderLineModify', '', true, true)]
@@ -176,7 +176,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnReleasedProductionOrderRefresh);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateTestReleased(ProductionOrder, QltyInspectionGenRule);
+            AttemptCreateInspectionReleased(ProductionOrder, QltyInspectionGenRule);
     end;
 
     /// <summary>
@@ -397,7 +397,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
     /// <param name="OptionalFiltersQltyInspectionGenRule">Optional generation rule filters.</param>
-    local procedure AttemptCreateTestReleased(var ProductionOrder: Record "Production Order"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    local procedure AttemptCreateInspectionReleased(var ProductionOrder: Record "Production Order"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderLine: Record "Prod. Order Line";
@@ -440,7 +440,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                                 TempTrackingSpecification.Insert();
 
-                                MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInspectionGenRule);
+                                MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInspectionGenRule);
 
                                 if MadeTest then begin
                                     QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
@@ -449,7 +449,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 end;
                             until ReservationEntry.Next() = 0;
                         end else begin
-                            MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                            MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
                             if MadeTest then begin
                                 QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
@@ -469,7 +469,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                             TempTrackingSpecification.Insert();
 
-                            MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                            MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
                             if MadeTest then begin
                                 QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
@@ -479,7 +479,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                         until ReservationEntry.Next() = 0;
                     end else begin
-                        MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                        MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
                         if MadeTest then begin
                             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
                             OfTestIds.Add(QltyInspectionHeader.RecordId());
@@ -489,7 +489,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             until ProdOrderLine.Next() = 0;
         end;
         if (not CreatedAtLeastOneTestForOrderLine) and (not CreatedAtLeastOneTestForRoutingLine) then begin
-            MadeTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+            MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
             if MadeTest then begin
                 QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
                 OfTestIds.Add(QltyInspectionHeader.RecordId());
@@ -508,12 +508,12 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine"></param>
     /// <param name="ItemJournalLine"></param>
-    local procedure AttemptCreateTestPosting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    local procedure AttemptCreateInspectionPosting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Handled: Boolean;
-        HasTest: Boolean;
+        HasInspection: Boolean;
         DummyVariant: Variant;
     begin
         OnBeforeProductionAttemptCreatePostAutomaticTest(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine, Handled);
@@ -521,15 +521,15 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             exit;
 
         if (ItemLedgerEntry."Entry Type" <> ItemLedgerEntry."Entry Type"::Output) or (ItemLedgerEntry."Item No." = '') then
-            HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule)
+            HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule)
 
         else
             if ProdOrderRoutingLine."Operation No." <> '' then
-                HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(ItemLedgerEntry, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, OptionalFiltersQltyInspectionGenRule)
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, OptionalFiltersQltyInspectionGenRule)
             else
-                HasTest := QltyInspectionCreate.CreateTestWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
-        if HasTest then
+        if HasInspection then
             QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         OnAfterProductionAttemptCreateAutomaticTest(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
@@ -560,7 +560,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// OnBeforeProductionAttemptCreatePostAutomaticTest is called before attempting to automatically create a test for production related events prior to posting to posting.
+    /// OnBeforeProductionAttemptCreatePostAutomaticTest is called before attempting to automatically create an inspection for production related events prior to posting to posting.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the tests are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
@@ -573,7 +573,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// OnAfterProductionAttemptCreateAutomaticTest is called after attempting to automatically create a test for production.
+    /// OnAfterProductionAttemptCreateAutomaticTest is called after attempting to automatically create an inspection for production.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the tests are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
@@ -585,7 +585,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// OnBeforeProductionAttemptCreateReleaseAutomaticTest is called before attempting to automatically create a test for production related releasing.
+    /// OnBeforeProductionAttemptCreateReleaseAutomaticTest is called before attempting to automatically create an inspection for production related releasing.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
@@ -595,7 +595,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// OnAfterProductionAttemptCreateReleaseAutomaticTest is called before attempting to automatically create a test for production related releasing.
+    /// OnAfterProductionAttemptCreateReleaseAutomaticTest is called before attempting to automatically create an inspection for production related releasing.
     /// Use this if you need to collect multiple tests that could be created as part of a posting sequence.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>

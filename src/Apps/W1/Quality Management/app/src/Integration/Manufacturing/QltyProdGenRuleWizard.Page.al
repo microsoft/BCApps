@@ -67,7 +67,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Orders';
-                    ToolTip = 'Specifies to create a test generation rule for Production Orders';
+                    ToolTip = 'Specifies to create an inspection generation rule for Production Orders';
 
                     trigger OnValidate()
                     begin
@@ -79,7 +79,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                 {
                     ApplicationArea = Assembly;
                     Caption = 'Assembly Orders';
-                    ToolTip = 'Specifies to create a test generation rule for Assembly Orders';
+                    ToolTip = 'Specifies to create an inspection generation rule for Assembly Orders';
 
                     trigger OnValidate()
                     begin
@@ -393,7 +393,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                 group(SettingsFor_iStepDone_Instruction1)
                 {
                     Caption = ' ';
-                    InstructionalText = 'We have a Test Generation Rule ready. Click ''Finish'' to save this to the system.';
+                    InstructionalText = 'We have an Inspection Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
                 group(SettingsFor_iStepDone_Instruction2)
@@ -450,7 +450,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForbAutomaticallyCreateTest)
+                group(SettingsForbAutomaticallyCreateInspection)
                 {
                     ShowCaption = false;
                     InstructionalText = 'Do you want to automatically create inspections when these are produced?  This will set the activation trigger for this rule and set the default trigger value for inspection generation rules of this record type.';
@@ -463,8 +463,8 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         field(ChooseeAutomaticallyCreateProductionTest; QltyProductionTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is produced.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is produced.';
                         }
                     }
                     group(SettingsForAutoAssemblyProductionTriggerWrapper)
@@ -475,8 +475,8 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         field(ChooseeAutomaticallyCreateAssemblyTest; QltyAssemblyTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is produced.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is produced.';
                         }
                     }
                 }

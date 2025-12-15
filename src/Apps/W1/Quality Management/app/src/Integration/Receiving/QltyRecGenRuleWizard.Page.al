@@ -411,7 +411,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                 group(SettingsFor_iStepDone_Instruction1)
                 {
                     Caption = ' ';
-                    InstructionalText = 'We have a Test Generation Rule ready. Click ''Finish'' to save this to the system.';
+                    InstructionalText = 'We have an Inspection Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
                 group(SettingsFor_iStepDone_Instruction2)
@@ -504,7 +504,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         AssistEditFullItemFilter();
                     end;
                 }
-                group(SettingsForbAutomaticallyCreateTest)
+                group(SettingsForbAutomaticallyCreateInspection)
                 {
                     ShowCaption = false;
                     InstructionalText = 'Do you want to automatically create inspections when these are received?  This will set the activation trigger for this rule and set the default trigger value for new inspection generation rules of this record type.';
@@ -514,11 +514,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         ShowCaption = false;
                         Visible = IsPurchaseLine;
 
-                        field(ChooseeAutomaticallyCreateTestPurchase; QltyPurchaseTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionPurchase; QltyPurchaseTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a purchase order.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a purchase order.';
                         }
                     }
                     group(SettingsForWrapAutoTransferLine)
@@ -526,11 +526,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         ShowCaption = false;
                         Visible = IsTransferLine;
 
-                        field(ChooseeAutomaticallyCreateTestTransfer; QltyTransferTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionTransfer; QltyTransferTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a transfer order.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a transfer order.';
                         }
                     }
                     group(SettingsForWrapAutoWarehouseReceipt)
@@ -538,11 +538,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         ShowCaption = false;
                         Visible = IsWarehouseReceipt;
 
-                        field(ChooseeAutomaticallyCreateTestWarehouseReceipt; QltyWhseReceiveTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionWarehouseReceipt; QltyWhseReceiveTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a warehouse receipt.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a warehouse receipt.';
                         }
                     }
                     group(SettingsForWrapAutoSalesReturn)
@@ -550,11 +550,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         ShowCaption = false;
                         Visible = IsReturnReceipt;
 
-                        field(ChooseeAutomaticallyCreateTestSalesReturn; QltySalesReturnTrigger)
+                        field(ChooseeAutomaticallyCreateInspectionSalesReturn; QltySalesReturnTrigger)
                         {
                             ApplicationArea = All;
-                            Caption = 'Automatically Create Test';
-                            ToolTip = 'Specifies whether to automatically create a test when product is received via a sales return.';
+                            Caption = 'Automatically Create Inspection';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a sales return.';
                         }
                     }
                 }

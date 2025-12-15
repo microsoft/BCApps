@@ -18,7 +18,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         {
             Caption = 'Primary Key';
         }
-        field(2; "All Open Tests"; Integer)
+        field(2; "All Open Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open)));
             Caption = 'Open Tests (all)';
@@ -26,7 +26,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(3; "My Open Tests"; Integer)
+        field(3; "My Open Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Assigned User ID" = filter('%me')));
@@ -35,7 +35,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(4; "All Finished Tests"; Integer)
+        field(4; "All Finished Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Finished)));
             Caption = 'Finished Tests (all)';
@@ -43,7 +43,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(5; "My Finished Tests"; Integer)
+        field(5; "My Finished Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Finished),
                                                                      "Assigned User ID" = filter('%me')));
@@ -52,7 +52,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(6; "Unassigned Tests"; Integer)
+        field(6; "Unassigned Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where("Assigned User ID" = filter('''''')));
             Caption = 'Unassigned Tests';
@@ -60,7 +60,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(7; "All Open and Due Tests"; Integer)
+        field(7; "All Open and Due Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Planned Start Date" = filter('<=T')));
@@ -69,7 +69,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(8; "My Open and Due Tests"; Integer)
+        field(8; "My Open and Due Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Assigned User ID" = filter('%me'),

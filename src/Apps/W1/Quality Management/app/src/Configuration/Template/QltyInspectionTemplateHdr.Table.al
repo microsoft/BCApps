@@ -9,7 +9,7 @@ using Microsoft.QualityManagement.Document;
 
 /// 
 /// <summary>
-/// A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.
+/// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
 /// A place where the contents of what goes in an inspection are defined.
 /// </summary>
 table 20402 "Qlty. Inspection Template Hdr."

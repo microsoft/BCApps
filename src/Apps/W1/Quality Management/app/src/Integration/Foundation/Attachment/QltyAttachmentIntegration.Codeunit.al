@@ -59,7 +59,7 @@ codeunit 20414 "Qlty. Attachment Integration"
                 end;
             Database::"Qlty. Inspection Line":
                 begin
-                    FieldNo := TempQltyInspectionLine.FieldNo("Test No.");
+                    FieldNo := TempQltyInspectionLine.FieldNo("Inspection No.");
                     Result := true;
                 end;
         end;
@@ -102,15 +102,15 @@ codeunit 20414 "Qlty. Attachment Integration"
         TestNo: Code[20];
         QltyFieldCode: Code[20];
         LineNo: Integer;
-        RetestNo: Integer;
+        ReinspectionNo: Integer;
     begin
         case RecRef.Number() of
             Database::"Qlty. Inspection Header":
                 begin
                     TestNo := CopyStr(Format(RecRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(TestNo));
-                    RetestNo := RecRef.Field(TempQltyInspectionHeader.FieldNo("Retest No.")).Value();
+                    ReinspectionNo := RecRef.Field(TempQltyInspectionHeader.FieldNo("Reinspection No.")).Value();
                     DocumentAttachment."No." := TestNo;
-                    DocumentAttachment."Line No." := RetestNo;
+                    DocumentAttachment."Line No." := ReinspectionNo;
                 end;
             Database::"Qlty. Inspection Template Hdr.":
                 begin
@@ -124,7 +124,7 @@ codeunit 20414 "Qlty. Attachment Integration"
                 end;
             Database::"Qlty. Inspection Line":
                 begin
-                    TestNo := CopyStr(Format(RecRef.Field(TempQltyInspectionLine.FieldNo("Test No.")).Value()), 1, MaxStrLen(TestNo));
+                    TestNo := CopyStr(Format(RecRef.Field(TempQltyInspectionLine.FieldNo("Inspection No.")).Value()), 1, MaxStrLen(TestNo));
                     LineNo := RecRef.Field(TempQltyInspectionLine.FieldNo("Line No.")).Value();
                     DocumentAttachment."No." := TestNo;
                     DocumentAttachment."Line No." := LineNo;
@@ -161,7 +161,7 @@ codeunit 20414 "Qlty. Attachment Integration"
         CurrentField: Code[20];
         Template: Code[20];
         TestNo: Code[20];
-        RetestNo: Integer;
+        ReinspectionNo: Integer;
         LineNo: Integer;
     begin
         case RecordRef.Number() of
@@ -173,13 +173,13 @@ codeunit 20414 "Qlty. Attachment Integration"
             Database::"Qlty. Inspection Header":
                 begin
                     TestNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(TestNo));
-                    RetestNo := RecordRef.Field(TempQltyInspectionHeader.FieldNo("Retest No.")).Value();
+                    ReinspectionNo := RecordRef.Field(TempQltyInspectionHeader.FieldNo("Reinspection No.")).Value();
                     DocumentAttachment.SetRange("No.", TestNo);
-                    DocumentAttachment.SetRange("Line No.", RetestNo);
+                    DocumentAttachment.SetRange("Line No.", ReinspectionNo);
                 end;
             Database::"Qlty. Inspection Line":
                 begin
-                    TestNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionLine.FieldNo("Test No.")).Value()), 1, MaxStrLen(TestNo));
+                    TestNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionLine.FieldNo("Inspection No.")).Value()), 1, MaxStrLen(TestNo));
                     LineNo := RecordRef.Field(TempQltyInspectionLine.FieldNo("Line No.")).Value();
                     DocumentAttachment.SetRange("No.", TestNo);
                     DocumentAttachment.SetRange("Line No.", LineNo);
@@ -220,7 +220,7 @@ codeunit 20414 "Qlty. Attachment Integration"
             Database::"Qlty. Inspection Header":
                 begin
                     QltyInspectionHeader.SetRange("No.", DocumentAttachment."No.");
-                    QltyInspectionHeader.SetRange("Retest No.", DocumentAttachment."Line No.");
+                    QltyInspectionHeader.SetRange("Reinspection No.", DocumentAttachment."Line No.");
                     if QltyInspectionHeader.FindLast() then begin
                         QltyInspectionHeader.SetRecFilter();
                         FoundRecordRef.GetTable(QltyInspectionHeader);
@@ -229,7 +229,7 @@ codeunit 20414 "Qlty. Attachment Integration"
                 end;
             Database::"Qlty. Inspection Line":
                 begin
-                    QltyInspectionLine.SetRange("Test No.", DocumentAttachment."No.");
+                    QltyInspectionLine.SetRange("Inspection No.", DocumentAttachment."No.");
                     QltyInspectionLine.SetRange("Line No.", DocumentAttachment."Line No.");
                     if QltyInspectionLine.FindLast() then begin
                         QltyInspectionLine.SetRecFilter();
