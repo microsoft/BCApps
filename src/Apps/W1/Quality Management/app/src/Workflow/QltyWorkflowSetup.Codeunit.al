@@ -68,18 +68,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowDescriptionOptionalSuffixLbl: Label ' - Foundation', Locked = true;
 
     /// <summary>
-    /// IsWorkflowIntegrationEnabledAndSufficientPermission returns true if workflow integration is enabled and the current user has sufficient permission to use it.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    procedure IsWorkflowIntegrationEnabledAndSufficientPermission(): Boolean
-    begin
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit(false);
-
-        exit(QltyManagementSetup."Workflow Integration Enabled");
-    end;
-
-    /// <summary>
     /// Returns the token for a workflow response to create a test.
     /// </summary>
     /// <returns>Return value of type Text.</returns>
@@ -321,9 +309,6 @@ codeunit 20423 "Qlty. Workflow Setup"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowTableRelationsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowTableRelationsToLibrary()
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         AddEmployeeUserRelationships();
     end;
 
@@ -347,9 +332,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
         OptionalSuffix: Text;
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowEvent.SetFilter("Function Name", QltyPrefixTok + '*');
         WorkflowEvent.DeleteAll(false);
 
@@ -369,9 +351,6 @@ codeunit 20423 "Qlty. Workflow Setup"
     var
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         case EventFunctionName of
             'RUNWORKFLOWONAPPROVEAPPROVALREQUEST',
             'RUNWORKFLOWONREJECTAPPROVALREQUEST',
@@ -396,9 +375,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         QualityEventIds: List of [Text];
         QualityEvent: Text;
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         FunctionName := ResponseFunctionName;
 
         QualityEventIds.Add(GetTestCreatedEvent());
@@ -422,9 +398,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         QualityResponse: Text;
         OptionalSuffix: Text;
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowResponse.SetFilter("Function Name", QltyPrefixTok + '*');
         if WorkflowResponse.FindSet() then
             repeat

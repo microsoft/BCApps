@@ -36,27 +36,18 @@ codeunit 20425 "Qlty. Workflow Approvals"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnRejectApprovalRequest', '', true, true)]
     local procedure RunWorkflowOnRejectTimeCardApproval(var ApprovalEntry: Record "Approval Entry")
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetTestRejectEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnDelegateApprovalRequest', '', true, true)]
     local procedure RunWorkflowOnDelegateTimeCardApproval(var ApprovalEntry: Record "Approval Entry")
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetTestDelegateEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnApproveApprovalRequest', '', true, true)]
     local procedure HandleOnApproveTheApprovalRequestOnApproveTimeCardApproval(var ApprovalEntry: Record "Approval Entry")
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetTestApproveEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
@@ -83,9 +74,6 @@ codeunit 20425 "Qlty. Workflow Approvals"
         SSalespersonPurchaser: Record "Salesperson/Purchaser";
     begin
         if RecRef.Number() <> Database::"Qlty. Inspection Test Header" then
-            exit;
-
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
         RecRef.SetTable(QltyInspectionTestHeader);
@@ -201,9 +189,6 @@ codeunit 20425 "Qlty. Workflow Approvals"
         if RecRef.Number() <> Database::"Qlty. Inspection Test Header" then
             exit;
 
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         RecRef.SetTable(QltyInspectionTestHeader);
         QltyInspectionTestHeader.Validate(Status, QltyInspectionTestHeader.Status::Finished);
         QltyInspectionTestHeader.Modify();
@@ -234,9 +219,6 @@ codeunit 20425 "Qlty. Workflow Approvals"
             exit;
 
         if RecRef.Number() <> Database::"Qlty. Inspection Test Header" then
-            exit;
-
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
         RecRef.SetTable(QltyInspectionTestHeader);
