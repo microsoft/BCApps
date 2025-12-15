@@ -24,6 +24,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Receivables;
+using System.Environment;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Test;
@@ -285,9 +286,12 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SupplierName: Text;
         SupplierSchemeID: Text;
     begin
+        LibraryERM.FindCountryRegion(CountryRegion);
+
         // Setup
         CompanyInfo.Get();
         CompanyInfo.GLN := '';
+        CompanyInfo."Country/Region Code" := CountryRegion.Code;
         CompanyInfo."Use GLN in Electronic Document" := true;
         CompanyInfo."VAT Registration No." := LibraryUtility.GenerateGUID();
         CompanyInfo.Modify(false);
@@ -1630,7 +1634,9 @@ codeunit 139235 "PEPPOL30 Management Tests"
     procedure GetLegalMonetaryInfo()
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         InvoiceNo: Code[20];
+        DecimalWithoutTableRelation: Decimal;
     begin
         // [FEATURE] [Prices Excl. VAT] [UT]
         // [SCENARIO 292657] COD 1605 PEPPOLMgt.GetLegalMonetaryInfo() returns "LineExtensionAmount" = line amount excluding vat + invoice discount
@@ -1648,7 +1654,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         InvoiceNo := CreatePostSalesInvoiceFCY(false);
         VerifyGetLegalMonetaryInfo(InvoiceNo);
         FindSalesInvoiceLine(SalesInvoiceLine, InvoiceNo);
-        VerifyGetLinePriceInfo(InvoiceNo, Format(SalesInvoiceLine."Unit Price", 0, 9));
+        SalesLine.TransferFields(SalesInvoiceLine);
+        VerifyGetLinePriceInfo(InvoiceNo, Format(SalesLine."Unit Price", 0, 9));
     end;
 
     [Test]
@@ -3320,7 +3327,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     local procedure Initialize()
-
+    var
+        CountryRegion: Record "Country/Region";
     begin
         LibrarySetupStorage.Restore();
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"PEPPOL30 Management Tests");
@@ -3328,10 +3336,17 @@ codeunit 139235 "PEPPOL30 Management Tests"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"PEPPOL30 Management Tests");
 
+        LibraryERM.FindCountryRegion(CountryRegion);
+
         CompanyInformation.Get();
+        CompanyInformation.Name := 'PEPPOL Test Company';
+        CompanyInformation.Address := '1 PEPPOL Street';
+        CompanyInformation.City := 'London';
+        CompanyInformation."Post Code" := 'E1 8QS';
         CompanyInformation.Validate(IBAN, 'GB29NWBK60161331926819');
         CompanyInformation.Validate("SWIFT Code", 'MIDLGB22Z0K');
         CompanyInformation.Validate("Bank Branch No.", '1234');
+        CompanyInformation."Country/Region Code" := CountryRegion.Code;
 
         if CompanyInformation."VAT Registration No." = '' then
             CompanyInformation."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CompanyInformation."Country/Region Code");
@@ -3422,6 +3437,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         if DocumentType = SalesHeader."Document Type"::"Credit Memo" then
             SalesHeader.Validate("Shipment Date", WorkDate());
 
+        SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
     end;
 
@@ -3578,10 +3594,12 @@ codeunit 139235 "PEPPOL30 Management Tests"
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
         SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.ShipToAddressEqualsSellToAddress();
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(
           SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(1000, 2));
+
         SalesLine.Modify(true);
 
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
