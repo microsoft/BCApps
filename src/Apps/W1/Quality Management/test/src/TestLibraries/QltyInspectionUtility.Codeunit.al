@@ -28,7 +28,7 @@ using System.Reflection;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
-codeunit 139950 "Qlty. Inspections - Utility"
+codeunit 139950 "Qlty. Inspection Utility"
 {
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -53,7 +53,7 @@ codeunit 139950 "Qlty. Inspections - Utility"
     procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
@@ -63,11 +63,11 @@ codeunit 139950 "Qlty. Inspections - Utility"
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
-        QltyInspectionsUtility.CreateTemplate(OutQltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreateTemplate(OutQltyInspectionTemplateHdr, 3);
 
-        QltyInspectionsUtility.CreatePrioritizedRule(OutQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(OutQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         QltyProdOrderGenerator.Init(100);
         QltyProdOrderGenerator.ToggleAllSources(false);

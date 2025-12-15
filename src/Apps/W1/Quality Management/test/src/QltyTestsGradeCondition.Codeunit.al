@@ -16,7 +16,7 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using System.TestLibraries.Utilities;
 
-codeunit 139956 "Qlty. Test Grade Condition"
+codeunit 139956 "Qlty. Tests - Grade Condition"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -26,7 +26,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         QltyField: Record "Qlty. Field";
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         CondManagementQltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryAssert: Codeunit "Library Assert";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -59,15 +59,15 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A quality field with decimal type and initial grade condition is created
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Decimal");
         QltyField.Insert();
@@ -117,15 +117,15 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A quality field with decimal type and initial grade condition is created
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Decimal");
         QltyField.Insert();
@@ -172,12 +172,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with decimal type is created and grade conditions are copied from default
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Decimal");
         QltyField.Insert(true);
@@ -211,12 +211,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with decimal type is created and grade conditions are copied from default
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Decimal");
         QltyField.Insert();
@@ -250,12 +250,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with text type is created and grade conditions are copied from default
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Text");
         QltyField.Insert();
@@ -288,12 +288,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with text type is created and grade conditions are copied from default
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Text");
         QltyField.Insert();
@@ -327,12 +327,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with boolean type is created and grade conditions are copied from default
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Boolean");
         QltyField.Insert();
@@ -365,12 +365,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with boolean type is created and grade conditions are copied from default
         Clear(QltyField);
         QltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
         QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
         QltyField.Validate("Field Type", QltyField."Field Type"::"Field Type Boolean");
         QltyField.Insert();
@@ -409,15 +409,15 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A first quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A quality field with decimal type is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
@@ -434,7 +434,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         ToLoadQltyIGradeConditionConf.Modify();
 
         // [GIVEN] A second quality inspection template is created with a template line using default grade condition
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadSecondQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadSecondQltyInspectionTemplateHdr, 0);
         ConfigurationToLoadSecondQltyInspectionTemplateLine.Init();
         ConfigurationToLoadSecondQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadSecondQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadSecondQltyInspectionTemplateLine.InitLineNoIfNeeded();
@@ -473,13 +473,13 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A first quality inspection template is created with a custom grade condition
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
@@ -495,7 +495,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         ToLoadQltyIGradeConditionConf.Modify();
 
         // [GIVEN] A second quality inspection template is created without ensuring grades
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadSecondQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadSecondQltyInspectionTemplateHdr, 0);
         ConfigurationToLoadSecondQltyInspectionTemplateLine.Init();
         ConfigurationToLoadSecondQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadSecondQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadSecondQltyInspectionTemplateLine.InitLineNoIfNeeded();
@@ -535,26 +535,26 @@ codeunit 139956 "Qlty. Test Grade Condition"
         UnusedVariant: Code[10];
         FieldCode: Text;
     begin
-        // [SCENARIO] Copy grade conditions from a template line to an inspection when the test has no existing config line
+        // [SCENARIO] Copy grade conditions from a template line to an inspection when the inspection has no existing config line
 
         Initialize();
 
         // [GIVEN] A quality inspection template with a prioritized rule for purchase lines is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
 
         // [GIVEN] A quality field with decimal type and default grade conditions is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
         CondManagementQltyGradeConditionMgmt.CopyGradeConditionsFromDefaultToField(ToLoadQltyField.Code);
 
         // [GIVEN] A template with a template line is created for the field
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
@@ -572,7 +572,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
-        // [WHEN] Grade conditions are copied from the template line to the test
+        // [WHEN] Grade conditions are copied from the template line to the inspection
         CondManagementQltyGradeConditionMgmt.CopyGradeConditionsFromTemplateToInspection(ConfigurationToLoadQltyInspectionTemplateLine, QltyInspectionLine);
 
         // [THEN] The test receives the grade condition configuration with the default value
@@ -599,12 +599,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with decimal type and custom grade condition is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
@@ -643,12 +643,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with decimal type and no custom grade condition is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
@@ -684,12 +684,12 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality field with decimal type and custom grade condition is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
@@ -701,7 +701,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         ToLoadQltyIGradeConditionConf.Modify();
 
         // [GIVEN] A quality inspection template is created with a template line and grades are ensured
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
@@ -741,18 +741,18 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A decimal type quality field without custom grade conditions is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
 
         // [GIVEN] A quality inspection template with a template line is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Field Code", ToLoadQltyField.Code);
@@ -787,10 +787,10 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality inspection template with a template line without a field is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
@@ -834,17 +834,17 @@ codeunit 139956 "Qlty. Test Grade Condition"
         UnusedVariant: Code[10];
         FieldCode: Text;
     begin
-        // [SCENARIO] Get promoted grades for a inspection line and verify the grade information from the test is returned correctly
+        // [SCENARIO] Get promoted grades for an inspection line and verify the grade information from the test is returned correctly
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A decimal type quality field with custom grade condition is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
@@ -856,8 +856,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         ToLoadQltyIGradeConditionConf.Modify();
 
         // [GIVEN] A quality inspection template with a template line and ensured grades is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
@@ -866,7 +866,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.EnsureGrades(false);
 
         // [GIVEN] A purchase order with item and vendor is created and a quality inspection is created from the purchase line
-        LibraryWarehouse.CreateLocation(Location)
+        LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
         UnusedVariant := '';
@@ -915,24 +915,24 @@ codeunit 139956 "Qlty. Test Grade Condition"
         UnusedVariant: Code[10];
         FieldCode: Text;
     begin
-        // [SCENARIO] Get default promoted grades for a inspection line when no custom conditions exist at test level
+        // [SCENARIO] Get default promoted grades for an inspection line when no custom conditions exist at test level
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A decimal type quality field without custom grade conditions is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
 
         // [GIVEN] A quality inspection template with a template line and ensured grades is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
@@ -947,8 +947,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         UnusedVariant := '';
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, fan
-          QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
+        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
 
         // [WHEN] Promoted grades for the inspection line are retrieved
@@ -987,34 +987,34 @@ codeunit 139956 "Qlty. Test Grade Condition"
         UnusedVariant: Code[10];
         FieldCode: Text;
     begin
-        // [SCENARIO] Get promoted grades for a inspection line that has no associated template line
+        // [SCENARIO] Get promoted grades for an inspection line that has no associated template line
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A decimal type quality field is created
         Clear(ToLoadQltyField);
         ToLoadQltyField.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
         ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
         ToLoadQltyField.Insert();
 
         // [GIVEN] A quality inspection template without template lines is created
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
 
         // [GIVEN] A purchase order with item and vendor is created and a quality inspection is created with a manually inserted inspection line
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
         UnusedVariant := '';
-        QltyPurOrderGenerator.CreatePurcha seOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.CreateInspection(Re;
-        Q QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
+        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         QltyInspectionLine.Init();
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
         QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";

@@ -256,16 +256,16 @@ codeunit 139961 "Qlty. Tests - Expressions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
     begin
         // [SCENARIO] Validate that expression evaluation for records is case-insensitive
 
         // [GIVEN] Quality management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A basic template and test instance are created
-        QltyInspectionsUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
         // [WHEN] Expression is evaluated with lowercase field name
         // [THEN] The template code is correctly retrieved

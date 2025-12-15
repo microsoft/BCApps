@@ -25,7 +25,7 @@ using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.TestLibraries.Utilities;
 
-codeunit 139962 "Qlty. Tests - FilterHelpers"
+codeunit 139962 "Qlty. Tests - Filter Helpers"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -1937,7 +1937,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     procedure EditQltyInspectionTemplate_NoFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1945,7 +1945,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         // [WHEN] AssistEditQltyInspectionTemplate is called with no filter
         FoundTemplate := QltyFilterHelpers.AssistEditQltyInspectionTemplate(Template);
@@ -1960,7 +1960,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     procedure EditQltyInspectionTemplate_TemplateFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1968,7 +1968,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         Template := QltyInspectionTemplateHdr.Code;
         // [WHEN] AssistEditQltyInspectionTemplate is called with template filter

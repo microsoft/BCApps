@@ -36,7 +36,7 @@ using System.Reflection;
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
-codeunit 139969 "Qlty. Test Workflows"
+codeunit 139969 "Qlty. Tests - Workflows"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -45,7 +45,7 @@ codeunit 139969 "Qlty. Test Workflows"
     var
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ReUsableQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWorkflow: Codeunit "Library - Workflow";
         LibraryAssert: Codeunit "Library Assert";
@@ -84,18 +84,18 @@ codeunit 139969 "Qlty. Test Workflows"
 
         // [GIVEN] A warehouse location and quality management setup with inspection template and generation rule
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        // [GIVEN] A purchase order with Inspection created and received
+        // [GIVEN] A purchase order with inspection created and received
         ReUsableQltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
         PurchaseLine.Get(PurchaseLine."Document Type"::Order, QltyInspectionHeader."Source Document No.", QltyInspectionHeader."Source Document Line No.");
         ReUsableQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] A return reason code and credit memo number are defined
-        QltyInspectionsUtility.GenerateRandomCharacters(35, CreditMemo);
-        QltyInspectionsUtility.GenerateRandomCharacters(10, Reason);
+        QltyInspectionUtility.GenerateRandomCharacters(35, CreditMemo);
+        QltyInspectionUtility.GenerateRandomCharacters(10, Reason);
         ReturnReason.Init();
         ReturnReason.Code := CopyStr(Reason, 1, MaxStrLen(ReturnReason.Code));
         ReturnReason.Insert();
@@ -111,7 +111,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -161,15 +161,15 @@ codeunit 139969 "Qlty. Test Workflows"
 
         // [GIVEN] A warehouse location and quality management setup with inspection template
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        // [GIVEN] A purchase order with lot tracked item and Inspection created
+        // [GIVEN] A purchase order with lot tracked item and inspection created
         ReUsableQltyPurOrderGenerator.CreateInspectionFromPurchaseWithLotTrackedItem(Location, 100, PurchaseHeader, PurchaseLine, OriginalQltyInspectionHeader, ReservationEntry);
 
-        // [GIVEN] An inspection-to-test source configuration with field mappings
-        QltyInspectionsUtility.GenerateRandomCharacters(20, SourceConfig);
+        // [GIVEN] A inspection-to-inspection source configuration with field mappings
+        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfig);
         SpecificQltyInspectSourceConfig.Init();
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
@@ -201,7 +201,7 @@ codeunit 139969 "Qlty. Test Workflows"
         end;
 
         // [GIVEN] A workflow configured to create new inspection from existing test
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Header");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Header");
 
         QltyManagementSetup.Get();
         QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection";
@@ -265,14 +265,14 @@ codeunit 139969 "Qlty. Test Workflows"
 
         // [GIVEN] A full warehouse management location with quality setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
         // [GIVEN] An item, warehouse employee, and number series for internal put-aways
         LibraryInventory.CreateItem(Item);
 
-        QltyInspectionsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         WarehouseSetup.Get();
         if WarehouseSetup."Whse. Internal Put-away Nos." = '' then begin
@@ -292,7 +292,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
         // [GIVEN] A workflow configured to create internal put-away on inspection reopened event
         QltyManagementSetup.Get();
@@ -359,15 +359,15 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with inspection template and generation rule
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A warehouse location with bins and a lot tracked item
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order received with quality inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -378,10 +378,10 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        QltyInspectionsUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] A reason code and item journal batch for adjustments
-        QltyInspectionsUtility.GenerateRandomCharacters(20, ReasonCodeToTest);
+        QltyInspectionUtility.GenerateRandomCharacters(20, ReasonCodeToTest);
         ReasonCode.Init();
         ReasonCode.Validate(Code, CopyStr(ReasonCodeToTest, 1, MaxStrLen(ReasonCode.Code)));
         ReasonCode.Description := CopyStr(ReasonCodeToTest, 1, MaxStrLen(ReasonCode.Description));
@@ -405,7 +405,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -452,9 +452,9 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with inspection template and locations
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A source location with bins and a destination location
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -463,7 +463,7 @@ codeunit 139969 "Qlty. Test Workflows"
 
         LibraryWarehouse.CreateLocationWMS(DestinationLocation, false, false, false, false, false);
 
-        // [GIVEN] A purchase order received with Inspection created
+        // [GIVEN] A purchase order received with inspection created
         LibraryInventory.CreateItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -474,7 +474,7 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] A workflow configured to create transfer for failed quantity on inspection change
         QltyManagementSetup.Get();
@@ -541,11 +541,11 @@ codeunit 139969 "Qlty. Test Workflows"
 
         // [GIVEN] A full warehouse management location with quality setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
-        // [GIVEN] A purchase order received with Inspection created from warehouse entry
+        // [GIVEN] A purchase order received with inspection created from warehouse entry
         LibraryInventory.CreateItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -557,7 +557,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
         // [GIVEN] A workflow configured to set database value (blocking purchasing) on inspection finished
         QltyManagementSetup.Get();
@@ -572,7 +572,7 @@ codeunit 139969 "Qlty. Test Workflows"
 
         LibraryAssert.IsFalse(Item."Purchasing Blocked", 'Item purchasing not be blocked.');
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -616,8 +616,8 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with warehouse entry generation rule
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
         // [GIVEN] A full warehouse management location and warehouse worksheet setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -630,7 +630,7 @@ codeunit 139969 "Qlty. Test Workflows"
             WhseWorksheetTemplate.DeleteAll();
 
         WhseWorksheetTemplate.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUseToUse);
+        QltyInspectionUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUseToUse);
         WhseWorksheetTemplate.Name := CopyStr(WhseWorksheetTemplateToUseToUse, 1, MaxStrLen(WhseWorksheetTemplate.Name));
         WhseWorksheetTemplate.Type := WhseWorksheetTemplate.Type::Movement;
         WhseWorksheetTemplate."Page ID" := Page::"Movement Worksheet";
@@ -640,7 +640,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyManagementSetup."Whse. Wksh. Name" := WhseWorksheetName.Name;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A purchase order received with Inspection from warehouse entry
+        // [GIVEN] A purchase order received with inspection from warehouse entry
         LibraryInventory.CreateItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -652,7 +652,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
         QltyInspectionHeader."Pass Quantity" := 10;
         QltyInspectionHeader.Modify();
@@ -673,7 +673,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -728,8 +728,8 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with warehouse reclassification batch configured
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
         // [GIVEN] A full warehouse management location
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -740,7 +740,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A purchase order received with Inspection from warehouse entry
+        // [GIVEN] A purchase order received with inspection from warehouse entry
         LibraryInventory.CreateItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -752,7 +752,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
         QltyInspectionHeader."Sample Size" := 10;
         QltyInspectionHeader.Modify();
@@ -773,7 +773,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -828,16 +828,16 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with purchase line generation rule
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location with bins and internal movement number series
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        QltyInspectionsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         LibraryUtility.CreateNoSeries(ToUseNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(ToUseNoSeriesLine, ToUseNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
@@ -845,7 +845,7 @@ codeunit 139969 "Qlty. Test Workflows"
         InventorySetup."Internal Movement Nos." := ToUseNoSeries.Code;
         InventorySetup.Modify();
 
-        // [GIVEN] A purchase order received with Inspection created
+        // [GIVEN] A purchase order received with inspection created
         LibraryInventory.CreateItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -856,7 +856,7 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        QltyInspectionsUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         Bin.SetRange("Location Code", Location.Code);
         Bin.SetFilter(Code, '<>%1', PurchaseLine."Bin Code");
@@ -876,7 +876,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -928,8 +928,8 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with item journal batch configured for bin moves
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
@@ -939,9 +939,9 @@ codeunit 139969 "Qlty. Test Workflows"
         // [GIVEN] A location with bins and a lot tracked item
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
-        // [GIVEN] A purchase order received with lot tracking and Inspection created
+        // [GIVEN] A purchase order received with lot tracking and inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         Bin.SetRange("Location Code", Location.Code);
         Bin.FindFirst();
@@ -949,10 +949,10 @@ codeunit 139969 "Qlty. Test Workflows"
         PurchaseLine.Modify();
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
-        QltyInspectionsUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] A reclassification journal is posted to move 50 units to an intermediate bin
-        QltyInspectionsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
         LibraryInventory.CreateItemJournalLine(ReclassItemJournalLine, ReclassItemJournalTemplate.Name, ReclassItemJournalBatch.Name, ReclassItemJournalLine."Entry Type"::Transfer, Item."No.", 50);
         Bin.SetRange("Location Code", Location.Code);
         Bin.SetFilter(Code, '<>%1', PurchaseLine."Bin Code");
@@ -993,7 +993,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -1050,8 +1050,8 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item using expiration dates
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
         LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
@@ -1061,14 +1061,14 @@ codeunit 139969 "Qlty. Test Workflows"
 
         // [GIVEN] A full warehouse management location with warehouse reclassification batch
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
-        QltyInspectionsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
         QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A purchase order received with Inspection created from warehouse entry
+        // [GIVEN] A purchase order received with inspection created from warehouse entry
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1077,7 +1077,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] A workflow configured to change item tracking (lot and expiration date) on inspection finished
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking(), false);
@@ -1089,7 +1089,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -1152,10 +1152,10 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with warehouse entry generation rule
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
-        // [GIVEN] A full warehouse management location and purchase order received with Inspection
+        // [GIVEN] A full warehouse management location and purchase order received with inspection
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -1166,7 +1166,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
         // [GIVEN] A workflow configured to create reinspection on inspection finished event
         QltyManagementSetup.Get();
@@ -1176,7 +1176,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Workflow.Modify();
         CreatedTests := CreatedQltyInspectionHeader.Count();
 
-        // [WHEN] The Inspection status is changed to finished
+        // [WHEN] The inspection status is changed to finished
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
@@ -1191,7 +1191,7 @@ codeunit 139969 "Qlty. Test Workflows"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure FinishTest()
+    procedure FinishInspection()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -1216,11 +1216,11 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with purchase header source configuration and generation rule
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         CreatePurHeaderToTestConfig();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInspectionGenRule);
 
-        // [GIVEN] A purchase order with Inspection created
+        // [GIVEN] A purchase order with inspection created
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -1240,7 +1240,7 @@ codeunit 139969 "Qlty. Test Workflows"
         if ApprovalsMgmt.CheckPurchaseApprovalPossible(PurchaseHeader) then
             ApprovalsMgmt.OnSendPurchaseDocForApproval(PurchaseHeader);
 
-        // [THEN] The Inspection status is automatically set to finished
+        // [THEN] The inspection status is automatically set to finished
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Test status should be finished.');
 
@@ -1275,11 +1275,11 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with purchase header source configuration and generation rule
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         CreatePurHeaderToTestConfig();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInspectionGenRule);
 
-        // [GIVEN] A purchase order with Inspection created and finished
+        // [GIVEN] A purchase order with inspection created and finished
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -1300,7 +1300,7 @@ codeunit 139969 "Qlty. Test Workflows"
         if ApprovalsMgmt.CheckPurchaseApprovalPossible(PurchaseHeader) then
             ApprovalsMgmt.OnSendPurchaseDocForApproval(PurchaseHeader);
 
-        // [THEN] The Inspection status is automatically set to open
+        // [THEN] The inspection status is automatically set to open
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Test status should be open.');
 
@@ -1333,12 +1333,12 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item and warehouse entry generation rule
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
-        // [GIVEN] A purchase order received with lot tracking and Inspection created
+        // [GIVEN] A purchase order received with lot tracking and inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1347,7 +1347,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] A workflow configured to block lot on inspection finished with failing grade condition
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
@@ -1394,12 +1394,12 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item and blocked lot number
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
-        // [GIVEN] A purchase order received with lot tracking and Inspection created
+        // [GIVEN] A purchase order received with lot tracking and inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1408,7 +1408,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         LibraryItemTracking.CreateLotNoInformation(LotNoInformation, Item."No.", '', ReservationEntry."Lot No.");
         LotNoInformation.Blocked := true;
@@ -1459,12 +1459,12 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with serial tracked item and warehouse entry generation rule
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        QltyInspectionsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] A purchase order received with serial tracking and Inspection created
+        // [GIVEN] A purchase order received with serial tracking and inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1473,7 +1473,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
 
         // [GIVEN] A workflow configured to block serial on inspection finished with failing grade condition
@@ -1521,12 +1521,12 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with serial tracked item and blocked serial number
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        QltyInspectionsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] A purchase order received with serial tracking and Inspection created
+        // [GIVEN] A purchase order received with serial tracking and inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1535,7 +1535,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         LibraryItemTracking.CreateSerialNoInformation(SerialNoInformation, Item."No.", '', ReservationEntry."Serial No.");
         SerialNoInformation.Blocked := true;
@@ -1586,12 +1586,12 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with package tracked item and warehouse entry generation rule
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        QltyInspectionsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
-        // [GIVEN] A purchase order received with package tracking and Inspection created
+        // [GIVEN] A purchase order received with package tracking and inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1600,7 +1600,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
 
         // [GIVEN] A workflow configured to block package on inspection finished with failing grade condition
@@ -1648,12 +1648,12 @@ codeunit 139969 "Qlty. Test Workflows"
         Initialize();
 
         // [GIVEN] Quality management setup with package tracked item and blocked package number
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        QltyInspectionsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
-        // [GIVEN] A purchase order received with package tracking and Inspection created
+        // [GIVEN] A purchase order received with package tracking and inspection created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1662,7 +1662,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyInspectionsUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         if not PackageNoInformation.Get(Item."No.", '', ReservationEntry."Package No.") then
             LibraryItemTracking.CreatePackageNoInformation(PackageNoInformation, Item."No.", ReservationEntry."Package No.");
@@ -1874,7 +1874,7 @@ codeunit 139969 "Qlty. Test Workflows"
         ConfigCode: Text;
     begin
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Header");

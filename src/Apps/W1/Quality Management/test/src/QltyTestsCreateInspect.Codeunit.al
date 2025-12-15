@@ -1060,7 +1060,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         OutputItemLedgerEntry: Record "Item Ledger Entry";
         Item: Record Item;
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ProductionTrigger: Enum "Qlty. Production Trigger";
         ClaimedATestWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
@@ -1071,14 +1071,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Initialize();
 
         // [GIVEN] Quality inspection setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
         // [GIVEN] Production trigger is disabled temporarily
         ProductionTrigger := QltyManagementSetup."Production Trigger";
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         // [GIVEN] An item and production order with routing line are created
         QltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -1437,14 +1437,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
         // [SCENARIO] Verify error when no generation rule exists and ThrowError is true
 
         // [GIVEN] Quality Management setup is initialized and a template is created
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [GIVEN] All generation rules are deleted
         QltyInspectionGenRule.DeleteAll();
@@ -1464,14 +1464,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ItemJournalLine: Record "Item Journal Line";
         OutputItemLedgerEntry: Record "Item Ledger Entry";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
         // [SCENARIO] Verify error when an invalid variant is provided to search function
 
         // [GIVEN] Quality Management setup is initialized and a template is created
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [WHEN] FindExistingInspectionWithMultipleVariants is called with an empty string variant
         asserterror QltyInspectionCreate.FindExistingInspectionWithMultipleVariants(true, '', ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, FoundQltyInspectionHeader);
@@ -1490,14 +1490,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ItemJournalLine: Record "Item Journal Line";
         OutputItemLedgerEntry: Record "Item Ledger Entry";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
         // [SCENARIO] Verify error when no generation rule exists and ThrowError is true
 
         // [GIVEN] Quality Management setup is initialized and a template is created
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [GIVEN] All generation rules are deleted
         QltyInspectionGenRule.DeleteAll();
@@ -2132,7 +2132,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         CountBefore: Integer;
         CountAfter: Integer;
     begin
@@ -2140,14 +2140,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
         // [GIVEN] A location, lot tracked item, and vendor are created
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A first purchase order is created, released, and received with lot tracking
@@ -2217,7 +2217,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryUtility: Codeunit "Library - Utility";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         CountBefore: Integer;
         CountAfter: Integer;
     begin
@@ -2225,10 +2225,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         // [GIVEN] A quality inspection template with 3 tests and a prioritized generation rule for Purchase Line are created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
         // [GIVEN] A WMS location, number series, item tracking code, and lot-tracked item are set up
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         LibraryUtility.CreateNoSeries(LotAndSerialNoSeries, true, true, false);
@@ -2281,7 +2281,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ProdOrderRoutingLineRecordRef: RecordRef;
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -2292,10 +2292,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         // [GIVEN] A quality inspection template with 3 tests and a prioritized generation rule for Prod. Order Routing Line are created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] A production order generator is initialized with Item source type only
         QltyProdOrderGenerator.Init(100);
@@ -2341,7 +2341,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ProdOrderRoutingLineRecordRef: RecordRef;
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -2352,15 +2352,15 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         // [GIVEN] The quality management setup is configured to show Automatic and manually created inspections
         QltyManagementSetup.Get();
         QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
         QltyManagementSetup.Modify();
         // [GIVEN] A quality inspection template with 3 tests and a prioritized generation rule for Prod. Order Routing Line are created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] A production order generator is initialized with Item source type only
         QltyProdOrderGenerator.Init(100);
@@ -2408,7 +2408,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ProdOrderRoutingLineRecordRef: RecordRef;
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -2419,14 +2419,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         // [GIVEN] The quality management setup is configured to show Automatic and manually created inspections
         QltyManagementSetup.Get();
         QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
         QltyManagementSetup.Modify();
         // [GIVEN] A quality inspection template with 3 tests and a prioritized generation rule for Prod. Order Routing Line are created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] A production order generator is initialized with Item source type only
         QltyProdOrderGenerator.Init(100);
@@ -2494,7 +2494,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ProdOrderRoutingLineRecordRef: RecordRef;
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
@@ -2503,9 +2503,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         // [GIVEN] A quality inspection template with 3 tests is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         // [GIVEN] All generation rules are deleted to simulate missing rule scenario
         if not QltyInspectionGenRule.IsEmpty() then
             QltyInspectionGenRule.DeleteAll();
@@ -2561,11 +2561,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryUtility: Codeunit "Library - Utility";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
 
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
@@ -2583,11 +2583,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
     local procedure SetupCreateInspectionProductionOrder(var QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var Item: Record Item; var ProdProductionOrder: Record "Production Order"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
     end;
 
@@ -2603,10 +2603,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
     var
         ItemJournalBatch: Record "Item Journal Batch";
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryInventory: Codeunit "Library - Inventory";
     begin
-        QltyInspectionsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
+        QltyInspectionUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, Qty);
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;

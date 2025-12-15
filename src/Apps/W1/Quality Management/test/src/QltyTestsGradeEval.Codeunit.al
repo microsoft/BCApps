@@ -353,7 +353,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -362,15 +362,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Evaluate grade for decimal field with optional inspection line-specific grade conditions overriding template conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a decimal field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Decimal", NumericalMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Decimal", NumericalMeasureQltyField, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level grade condition is set to 4..5 for PASS grade
         NumericalMeasureQltyField.SetGradeCondition(QltyAutoConfigure.GetDefaultPassGrade(), '4..5', true);
@@ -391,7 +391,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Validate(Condition, '>=0');
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -473,7 +473,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -482,15 +482,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Evaluate grade for datetime field with optional inspection line-specific grade conditions overriding field-level conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a datetime field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyField."Field Type"::"Field Type DateTime", DateTimeQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyField."Field Type"::"Field Type DateTime", DateTimeQltyField, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level grade condition is set to '2001-02-03 01:02:03' for PASS grade
         DateTimeQltyField.SetGradeCondition(QltyAutoConfigure.GetDefaultPassGrade(), '2001-02-03 01:02:03', true);
@@ -507,7 +507,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
 
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -565,7 +565,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -574,15 +574,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Evaluate grade for date field with optional inspection line-specific grade conditions overriding field-level conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a date field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyField."Field Type"::"Field Type Date", DateQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyField."Field Type"::"Field Type Date", DateQltyField, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level grade condition is set to '2001-02-03' for PASS grade
         DateQltyField.SetGradeCondition(QltyAutoConfigure.GetDefaultPassGrade(), '2001-02-03', true);
@@ -598,7 +598,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
 
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -656,7 +656,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -665,15 +665,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Evaluate grade for boolean field with template-level condition requiring 'Yes' value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a boolean field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, QltyInspectionTemplateLine);
         // [GIVEN] Template-level grade condition is set to 'Yes' for PASS grade
         QltyInspectionTemplateLine.EnsureGrades(false);
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf."Condition Type"::Template);
@@ -685,7 +685,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Validate(Condition, 'Yes');
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -746,7 +746,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -755,19 +755,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Evaluate grade for label field type which should always return blank grade regardless of value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a label field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, LabelQltyField."Field Type"::"Field Type Label", LabelQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, LabelQltyField."Field Type"::"Field Type Label", LabelQltyField, QltyInspectionTemplateLine);
 
         // [GIVEN] Inspection generation rules are cleared and prioritized rule is created
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -821,7 +821,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -830,15 +830,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Evaluate grade for integer field with template-level grade conditions overriding field-level conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with an integer field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Integer", NumericalMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Integer", NumericalMeasureQltyField, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level grade condition is set to 4..5 for PASS grade
         NumericalMeasureQltyField.SetGradeCondition(QltyAutoConfigure.GetDefaultPassGrade(), '4..5', true);
@@ -861,7 +861,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
 
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -932,7 +932,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -947,15 +947,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         SanityCheckQltyInspectionGrade.SetFilter(Code, '=''''');
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - a');
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured and no blank grades created
         QltyAutoConfigure.EnsureBasicSetup(false);
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - b');
         // [GIVEN] An inspection template with a text field is created and no blank grades created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, QltyInspectionTemplateLine);
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - c');
         // [GIVEN] Field-level grade condition is set to 'A|B|C' for PASS grade
         TextQltyField.SetGradeCondition(QltyAutoConfigure.GetDefaultPassGrade(), 'A|B|C', true);
@@ -971,7 +971,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Validate(Condition, 'D|E');
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
         // [GIVEN] Prioritized rule is created and no blank grades created
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - d');
 
         // [GIVEN] A production order is generated
@@ -1051,7 +1051,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -1060,17 +1060,17 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Evaluate grade using expression with field reference replacement for dynamic decimal range validation
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with two decimal fields is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
 
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyField."Field Type"::"Field Type Decimal", UsesReferenceInPassConditionQltyField, UsesReferenceQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyField."Field Type"::"Field Type Decimal", UsesReferenceInPassConditionQltyField, UsesReferenceQltyInspectionTemplateLine);
 
         // [GIVEN] First field has template-level grade condition set to 6..7 for PASS
         OriginalQltyInspectionTemplateLine.EnsureGrades(false);
@@ -1095,7 +1095,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Validate(Condition, StrSubstno('1..[%1]', NumericalMeasureReferenceQltyField.Code));
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -1199,7 +1199,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ActualQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -1208,16 +1208,16 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Verify GetTestLineConfigFilters returns correct filters for inspection line-specific grade conditions with expression replacement
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
 
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyField."Field Type"::"Field Type Decimal", UsesReferenceInPassConditionQltyField, UsesReferenceQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyField."Field Type"::"Field Type Decimal", UsesReferenceInPassConditionQltyField, UsesReferenceQltyInspectionTemplateLine);
         OriginalQltyInspectionTemplateLine.EnsureGrades(false);
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
@@ -1238,7 +1238,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Validate(Condition, StrSubstno('1..{2+[%1]}', NumericalMeasureReferenceQltyField.Code));
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         QltyProdOrderGenerator.Init(100);
         QltyProdOrderGenerator.ToggleAllSources(false);
@@ -1285,21 +1285,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         NumericalMeasureReferenceQltyField: Record "Qlty. Field";
         ExpectedQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         ActualQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Verify GetTemplateLineConfigFilters returns correct filters for template line-specific grade conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a decimal field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
         // [GIVEN] Template-level grade condition is set to 6..7 for PASS grade
         OriginalQltyInspectionTemplateLine.EnsureGrades(false);
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf."Condition Type"::Template);
@@ -1333,21 +1333,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         NumericalMeasureReferenceQltyField: Record "Qlty. Field";
         ExpectedQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         ActualQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Verify GetFieldConfigFilters returns correct filters for field-specific grade conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a decimal field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Expected filters are set for field-level grade conditions
         ExpectedQltyIGradeConditionConf.Reset();
@@ -1369,21 +1369,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         DecimalQltyField: Record "Qlty. Field";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Validate that decimal field default values must fall within allowable values range (1..3)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a decimal field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DecimalQltyField."Field Type"::"Field Type Decimal", DecimalQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DecimalQltyField."Field Type"::"Field Type Decimal", DecimalQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for decimal field are set to range 1..3
         DecimalQltyField."Allowable Values" := '1..3';
@@ -1420,21 +1420,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         OptionListQltyField: Record "Qlty. Field";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Validate that option field default values must be one of the allowable comma-delimited options (A,B,C,D)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with an option field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, OptionListQltyField."Field Type"::"Field Type Option", OptionListQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, OptionListQltyField."Field Type"::"Field Type Option", OptionListQltyField, OriginalQltyInspectionTemplateLine);
         // [GIVEN] Allowable values for option field are set to 'A,B,C,D'
         OptionListQltyField.Description := '';
         OptionListQltyField."Allowable Values" := 'A,B,C,D';
@@ -1475,21 +1475,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         IntegerQltyField: Record "Qlty. Field";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Validate that integer field default values must fall within allowable values range (1..3)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with an integer field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, IntegerQltyField."Field Type"::"Field Type Integer", IntegerQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, IntegerQltyField."Field Type"::"Field Type Integer", IntegerQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for integer field are set to range 1..3
         IntegerQltyField."Allowable Values" := '1..3';
@@ -1525,21 +1525,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         TextQltyField: Record "Qlty. Field";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Validate that text field default values must be one of the allowable pipe-delimited options (A|B|C)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a text field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for text field are set to 'A|B|C'
         TextQltyField."Allowable Values" := 'A|B|C';
@@ -1571,21 +1571,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         DateQltyField: Record "Qlty. Field";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Validate that date field default values must match the exact allowable date value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a date field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyField."Field Type"::"Field Type Date", DateQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyField."Field Type"::"Field Type Date", DateQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable value for date field is set to '2001-02-03'
         DateQltyField."Allowable Values" := '2001-02-03';
@@ -1617,21 +1617,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         DateTimeQltyField: Record "Qlty. Field";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Validate that datetime field default values must match the exact allowable datetime value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a datetime field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyField."Field Type"::"Field Type DateTime", DateTimeQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyField."Field Type"::"Field Type DateTime", DateTimeQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable value for datetime field is set to '2001-02-03 04:05:06'
         DateTimeQltyField."Allowable Values" := '2001-02-03 04:05:06';
@@ -1663,21 +1663,21 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         BooleanQltyField: Record "Qlty. Field";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         // [SCENARIO] Validate that boolean field default values must match the allowable boolean value and accept equivalent representations
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a boolean field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable value for boolean field is set to 'Yes'
         BooleanQltyField."Allowable Values" := 'Yes';
@@ -1718,7 +1718,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         asserterror QltyGradeEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
 
         // [GIVEN] A new boolean field with blank allowable values (accepts any boolean value)
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, OriginalQltyInspectionTemplateLine);
 
         BooleanQltyField."Allowable Values" := '';
         BooleanQltyField.Modify();
@@ -1761,7 +1761,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
@@ -1771,22 +1771,22 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Validate that field default values are validated with test context, accepting valid values and rejecting invalid ones
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a text field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for text field are set to 'A|B|C'
         TextQltyField."Allowable Values" := 'A|B|C';
         TextQltyField.Modify();
 
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -1841,7 +1841,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -1850,15 +1850,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Test OnRun method of grade evaluation codeunit with integer field values and error handling
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with an integer field is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Integer", NumericalMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Integer", NumericalMeasureQltyField, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level grade condition is set to 4..5 for PASS grade
         NumericalMeasureQltyField.SetGradeCondition(QltyAutoConfigure.GetDefaultPassGrade(), '4..5', true);
@@ -1881,7 +1881,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
 
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -1955,7 +1955,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         NumericMeasureQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -1964,15 +1964,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Validate inspection line values against allowable values range for decimal field with grade evaluation
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with a decimal field and allowable values range 0..12345 is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Decimal", NumericalMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Decimal", NumericalMeasureQltyField, QltyInspectionTemplateLine);
         NumericalMeasureQltyField.Validate("Allowable Values", '0..12345');
         NumericalMeasureQltyField.Modify(false);
 
@@ -1989,7 +1989,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Validate(Condition, '6..7');
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
         // [GIVEN] Prioritized rule is created for production order routing line
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
         QltyProdOrderGenerator.Init(100);
@@ -2078,7 +2078,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OptionListQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -2087,15 +2087,15 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [SCENARIO] Validate inspection line values for option field with allowable values (A,B,C,D,E) and template-level grade conditions (C|D for PASS)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         // [GIVEN] An inspection template with an option field is created with allowable values 'A,B,C,D,E'
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionsUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, OptionListMeasureQltyField."Field Type"::"Field Type Option", OptionListMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, OptionListMeasureQltyField."Field Type"::"Field Type Option", OptionListMeasureQltyField, QltyInspectionTemplateLine);
         OptionListMeasureQltyField.Description := '';
         OptionListMeasureQltyField.Validate("Allowable Values", 'A,B,C,D,E');
         OptionListMeasureQltyField.Modify(false);
@@ -2115,8 +2115,8 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Validate(Condition, 'C|D');
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
         // [GIVEN] Inspection generation rules are cleared and prioritized rule is created
-        QltyInspectionGenRule.leteAll(false);
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionGenRule.DeleteAll(false);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created with specific template
         QltyProdOrderGenerator.Init(100);

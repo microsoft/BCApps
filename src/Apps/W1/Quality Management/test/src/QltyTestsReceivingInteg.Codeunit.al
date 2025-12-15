@@ -25,7 +25,7 @@ using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using System.TestLibraries.Utilities;
 
-codeunit 139958 "Qlty. Test Receiving Integr."
+codeunit 139958 "Qlty. Tests - Receiving Integ."
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -34,7 +34,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         IsInitialized: Boolean;
 
     [Test]
@@ -60,13 +60,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -118,10 +118,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item (not lot-tracked) is created
         LibraryInventory.CreateItem(Item);
@@ -174,13 +174,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -232,13 +232,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A full WMS location, quality inspection template, and warehouse receipt line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -289,10 +289,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item (not lot-tracked) is created
         LibraryInventory.CreateItem(Item);
@@ -345,13 +345,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -403,13 +403,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
@@ -461,10 +461,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item (not lot-tracked) is created
         LibraryInventory.CreateItem(Item);
@@ -526,13 +526,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item with unit cost and price is created
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
         UnitCost := LibraryRandom.RandDecInDecimalRange(1, 10, 2);
         UnitPrice := LibraryRandom.RandDecInDecimalRange(2, 20, 2);
         Item."Unit Cost" := UnitCost;
@@ -613,10 +613,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item with unit cost and price is created
         UnitCost := LibraryRandom.RandDecInDecimalRange(1, 10, 2);
@@ -693,13 +693,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available with lot tracking
         UnusedItemVariant := '';
@@ -772,10 +772,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item is created
         LibraryInventory.CreateItem(Item);
@@ -850,13 +850,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available with lot tracking
         UnusedItemVariant := '';
@@ -924,10 +924,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item is created
         LibraryInventory.CreateItem(Item);
@@ -994,10 +994,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] Setup is ensured and a quality inspection template is created
         Initialize();
         LibraryERMCountryData.CreateVATData();
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
         // [GIVEN] A full WMS location is created with bins and zones
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1010,7 +1010,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received, and inventory is available with lot tracking
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1026,8 +1026,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         WarehouseEntry.FindFirst();
 
         // [GIVEN] A warehouse reclassification journal line is created to move items between bins
-        QltyInspectionsUtility.SetCurrLocationWhseEmployee(Location.Code);
-        QltyInspectionsUtility.CreateReclassWhseJournalLine(ReclassWarehouseJournalLine, WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code,
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.CreateReclassWhseJournalLine(ReclassWarehouseJournalLine, WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code,
             WarehouseEntry."Zone Code", WarehouseEntry."Bin Code", ReclassWarehouseJournalLine."Entry Type"::Movement, Item."No.", 50);
 
         Bin.SetRange("Location Code", Location.Code);
@@ -1092,10 +1092,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 
         // [GIVEN] A full WMS location with warehouse journal template and batch are set up
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1110,7 +1110,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
         QltyInspectionGenRule.Modify();
 
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created and released
         OrdQltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1162,14 +1162,14 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] A full WMS location is created and a lot-tracked item is available in inventory
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
         OrdQltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         OrdQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
@@ -1204,7 +1204,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
 
         // [GIVEN] The generation rule is set to trigger on movement into bin
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
         QltyInspectionGenRule.Modify();
 
@@ -1260,8 +1260,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] From, To, and In-Transit locations are set up with lot-tracked item in inventory
@@ -1269,7 +1269,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurchaseHeader, PurchaseLine);
@@ -1301,7 +1301,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
 
         // [GIVEN] The generation rule is set to trigger on movement into bin
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
         QltyInspectionGenRule."Warehouse Movement Trigger" := QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
         QltyInspectionGenRule.Modify();
 
@@ -1348,13 +1348,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with one reservation entry
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, FirstReservationEntry);
@@ -1411,13 +1411,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with a reservation entry that is then deleted to simulate unassigned lot
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
@@ -1471,10 +1471,10 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A standard item without item tracking is created
         LibraryInventory.CreateItem(Item);
@@ -1524,12 +1524,12 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         BeforeCount: Integer;
     begin
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionsUtility.EnsureSetup();
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        QltyInspectionsUtility.CreateSerialTrackedItem(Item);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item);
 
         IWXOrdQltyPurOrderGenerator.CreatePurchaseOrder(2, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
 

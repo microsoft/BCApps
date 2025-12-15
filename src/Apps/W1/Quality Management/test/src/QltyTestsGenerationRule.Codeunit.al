@@ -15,7 +15,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using System.TestLibraries.Utilities;
 
-codeunit 139955 "Qlty. Test Gen. Rule"
+codeunit 139955 "Qlty. Tests - Generation Rule"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -24,7 +24,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
     var
         LibraryAssert: Codeunit "Library Assert";
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ItemFilterTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1=item no.', Locked = true;
         ItemAttributeFilterTok: Label '"%1"=Filter(1))', Comment = '%1=attribute', Locked = true;
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
@@ -41,7 +41,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Find a generation rule with Manual only activation trigger when performing a manual rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual only activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual only");
@@ -64,7 +64,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Verify that a generation rule with Manual only activation trigger is not found when performing an automatic rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual only activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual only");
@@ -87,7 +87,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Find a generation rule with Automatic only activation trigger when performing an automatic rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Automatic only activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Automatic only");
@@ -110,7 +110,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Verify that a generation rule with Automatic only activation trigger is not found when performing a manual rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Automatic only activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Automatic only");
@@ -133,7 +133,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Find a generation rule with Manual or Automatic activation trigger when performing an automatic rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
@@ -156,7 +156,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Find a generation rule with Manual or Automatic activation trigger when performing a manual rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
@@ -179,7 +179,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Verify that a generation rule with Disabled activation trigger is not found when performing a manual rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Disabled activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::Disabled);
@@ -203,7 +203,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Verify that a generation rule with Disabled activation trigger is not found when performing an automatic rule search
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Disabled activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, GenRuleActivTrigger::Disabled);
@@ -231,7 +231,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         LibraryInventory.CreateItem(Item);
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
@@ -268,7 +268,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         LibraryInventory.CreateItemAttributeValueMapping(Database::Item, Item."No.", ItemAttribute.ID, ItemAttributeValue.ID);
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
         DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
@@ -294,7 +294,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Attempt to set filters to applicable templates when no generation rule exists and verify error is raised
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [WHEN] Filters are set to applicable templates without any generation rule
         // [THEN] An error is raised indicating no compatible generation rules found
@@ -319,10 +319,10 @@ codeunit 139955 "Qlty. Test Gen. Rule"
             SpecificQltyInspectSourceConfig.DeleteAll();
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A prioritized generation rule for Customer table is created
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::Customer, QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::Customer, QltyInspectionGenRule);
 
         // [WHEN] Filters are set to applicable templates without source configuration
         RecordRef.GetTable(Customer);
@@ -344,13 +344,13 @@ codeunit 139955 "Qlty. Test Gen. Rule"
         // [SCENARIO] Set filters to applicable templates and verify the source configuration is filtered correctly
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetup();
 
         // [GIVEN] A quality inspection template is created
-        QltyInspectionsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A prioritized generation rule for Purchase Line table is created
-        QltyInspectionsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [WHEN] Filters are set to applicable templates
         QltyInspecGenRuleMgmt.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);

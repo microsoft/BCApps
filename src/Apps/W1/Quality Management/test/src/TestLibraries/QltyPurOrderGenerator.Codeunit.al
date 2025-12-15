@@ -222,7 +222,7 @@ codeunit 139951 "Qlty. Pur. Order Generator"
         Vendor: Record Vendor;
         SpecTrackingSpecification: Record "Tracking Specification";
         LibraryRandom: Codeunit "Library - Random";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LocalizedLibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
@@ -230,7 +230,7 @@ codeunit 139951 "Qlty. Pur. Order Generator"
         UnusedVariant2: Variant;
         UnitCost: Decimal;
     begin
-        QltyInspectionsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
         Item.Validate("Unit Cost", UnitCost);
         Item.Modify();

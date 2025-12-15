@@ -565,7 +565,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         FundProductionBOMHeader: Record "Production BOM Header";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryInventory: Codeunit "Library - Inventory";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant1: Variant;
         EmptyVariant2: Variant;
@@ -577,7 +577,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [GIVEN] A source configuration mapping from Item to Test with BOM field mapping
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::Item);
@@ -746,7 +746,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -762,7 +762,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         if not SpecificQltyInspectSourceConfig.IsEmpty() then
             SpecificQltyInspectSourceConfig.DeleteAll();
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Assembly Header");
@@ -796,7 +796,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         // [GIVEN] A second source configuration from Assembly Line to Test
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Assembly Line");
@@ -861,7 +861,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -877,7 +877,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [GIVEN] A source configuration for chained table mapping from Purchase Header to Purchase Line
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Header");
@@ -919,7 +919,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         // [GIVEN] A second source configuration from Purchase Line to Test with field mappings
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Line");
@@ -975,7 +975,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -989,7 +989,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         if not SpecificQltyInspectSourceConfig.IsEmpty() then
             SpecificQltyInspectSourceConfig.DeleteAll();
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Sales Header");
@@ -1029,7 +1029,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         // [GIVEN] Source configuration from Sales Line to Test with field mappings
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Sales Line");
@@ -1082,7 +1082,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         Item: Record Item;
         FoundRoutingHeader: Record "Routing Header";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -1097,7 +1097,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
             SpecificQltyInspectSourceConfig.DeleteAll();
 
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Production Order");
@@ -1139,7 +1139,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Routing Line");
@@ -1192,7 +1192,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         Item: Record Item;
         FoundProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -1207,7 +1207,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
             SpecificQltyInspectSourceConfig.DeleteAll();
 
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Line");
@@ -1238,7 +1238,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Routing Line");
@@ -1299,7 +1299,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         Item: Record Item;
         FundProductionBOMHeader: Record "Production BOM Header";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionsUtility: Codeunit "Qlty. Inspections - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -1314,7 +1314,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
             SpecificQltyInspectSourceConfig.DeleteAll();
 
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Line");
@@ -1356,7 +1356,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Routing Line");

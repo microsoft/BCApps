@@ -8,7 +8,7 @@ using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 139957 "Qlty. Test Permission Mgmt."
+codeunit 139957 "Qlty. Tests - Permission Mgmt."
 {
     Subtype = Test;
     TestPermissions = Restrictive;
@@ -38,11 +38,11 @@ codeunit 139957 "Qlty. Test Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanCreateManualTest_ShouldError()
+    procedure Express_TestCanCreateManualInspection_ShouldError()
     begin
         // [SCENARIO] Verify that creating a manual test without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanCreateManualTest is called
+        // [WHEN] TestCanCreateManualInspection is called
         // [THEN] An error is raised indicating the user lacks permission to create a manual test
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
@@ -52,30 +52,30 @@ codeunit 139957 "Qlty. Test Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanCreateManualTest()
+    procedure Express_TestCanCreateManualInspection()
     begin
         // [SCENARIO] Verify that creating a manual test succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanCreateManualTest is called
+        // [WHEN] TestCanCreateManualInspection is called
         QltyPermissionMgmt.TestCanCreateManualInspection();
 
-        // [THEN] The operation succeeds and CanCreateManualTest returns true
+        // [THEN] The operation succeeds and CanCreateManualInspection returns true
         LibraryAssert.IsTrue(QltyPermissionMgmt.CanCreateManualInspection(), 'should be allowed with insert permission on order table data');
     end;
 
     [Test]
-    procedure Express_TestCanCreateAutoTest()
+    procedure Express_TestCanCreateAutoInspection()
     begin
         // [SCENARIO] Verify that creating an auto test is allowed for all users
         // [GIVEN] No specific permission set is required
 
-        // [WHEN] TestCanCreateAutoTest is called
+        // [WHEN] TestCanCreateAutoInspection is called
         QltyPermissionMgmt.TestCanCreateAutoTest();
 
-        // [THEN] The operation succeeds and CanCreateAutoTest returns true
+        // [THEN] The operation succeeds and CanCreateAutoInspection returns true
         LibraryAssert.IsTrue(QltyPermissionMgmt.CanCreateAutoInspection(), 'everyone is allowed.');
     end;
 
