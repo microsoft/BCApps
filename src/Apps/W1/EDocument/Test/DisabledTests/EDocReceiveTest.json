@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139628,
+        "codeunitName": "E-Doc. Receive Test",
+        "method": "ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139628,
+        "codeunitName": "E-Doc. Receive Test",
+        "method": "ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment26"
+    }
+]
