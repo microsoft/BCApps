@@ -34,18 +34,18 @@ codeunit 8116 "Create Sub. Bill. Serv. Obj."
         ContosoSubscriptionBilling.InsertServiceObject(SUB100004(), CreateCustomer.DomesticRelecloud(), CreateSubBillItem.SB1105(), ContosoUtilities.AdjustDate(19020101D), 3);
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100004(), ContosoUtilities.AdjustDate(19020101D), CreateSubBillPackages.UDUsage());
 
-        ContosoSubscriptionBilling.InsertServiceObject(SUB100005(), CreateCustomer.DomesticAdatumCorporation(), CreateSubBillItem.SB1103(), ContosoUtilities.AdjustDate(19020101D), 40);
+        ContosoSubscriptionBilling.InsertServiceObject(SUB100005(), CreateCustomer.DomesticAdatumCorporation(), CreateSubBillItem.SB1103(), ContosoUtilities.AdjustDate(19020101D), CalcDate('<+1Y>', ContosoUtilities.AdjustDate(19020101D)), 40);
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100005(), ContosoUtilities.AdjustDate(19020101D), CreateSubBillPackages.MaintenanceSilver());
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100005(), ContosoUtilities.AdjustDate(19020101D), CreateSubBillPackages.MaintenanceSilver());
 
-        ContosoSubscriptionBilling.InsertServiceObject(SUB100006(), CreateCustomer.DomesticTreyResearch(), CreateSubBillItem.SB1100(), ContosoUtilities.AdjustDate(19020101D), 10);
+        ContosoSubscriptionBilling.InsertServiceObject(SUB100006(), CreateCustomer.DomesticTreyResearch(), CreateSubBillItem.SB1100(), ContosoUtilities.AdjustDate(19020101D), CalcDate('<+2Y>', ContosoUtilities.AdjustDate(19020101D)), 10);
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100006(), ContosoUtilities.AdjustDate(19020101D), CreateSubBillPackages.MonthlySubscription());
 
-        ContosoSubscriptionBilling.InsertServiceObject(SUB100007(), CreateCustomer.ExportSchoolofArt(), CreateSubBillItem.SB1103(), ContosoUtilities.AdjustDate(19020101D), 30);
+        ContosoSubscriptionBilling.InsertServiceObject(SUB100007(), CreateCustomer.ExportSchoolofArt(), CreateSubBillItem.SB1103(), ContosoUtilities.AdjustDate(19020101D), CalcDate('<+6M>', ContosoUtilities.AdjustDate(19020101D)), 30);
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100007(), ContosoUtilities.AdjustDate(19020101D), CreateSubBillPackages.MaintenanceSilver());
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100007(), ContosoUtilities.AdjustDate(19020101D), CreateSubBillPackages.MaintenanceSilver());
 
-        ContosoSubscriptionBilling.InsertServiceObject(SUB100008(), CreateCustomer.DomesticAdatumCorporation(), CreateSubBillItem.SB1102(), ContosoUtilities.AdjustDate(19020101D), 2);
+        ContosoSubscriptionBilling.InsertServiceObject(SUB100008(), CreateCustomer.DomesticAdatumCorporation(), CreateSubBillItem.SB1102(), ContosoUtilities.AdjustDate(19020101D), CalcDate('<+2Y>', ContosoUtilities.AdjustDate(19020101D)), 2);
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100008(), ContosoUtilities.AdjustDate(19020101D), CreateSubBillPackages.MonthlySubscription());
 
         ContosoSubscriptionBilling.InsertServiceObject(SUB100009(), CreateCustomer.EUAlpineSkiHouse(), CreateSubBillItem.SB1103(), ContosoUtilities.AdjustDate(19020101D), 30);
