@@ -106,7 +106,7 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
             TransferHeader.Validate("In-Transit Code", TempQuantityToActQltyDispositionBuffer."In-Transit Location Code");
 
         TransferHeader."Qlty. Inspection No." := QltyInspectionHeader."No.";
-        TransferHeader."Qlty. Inspection Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        TransferHeader."Qlty. Reinspection No." := QltyInspectionHeader."Reinspection No.";
         TransferHeader.Insert(true);
         TransferHeader.Validate("Direct Transfer", DirectTransfer);
     end;

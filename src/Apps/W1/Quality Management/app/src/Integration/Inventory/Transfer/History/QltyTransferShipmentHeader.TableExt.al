@@ -19,10 +19,10 @@ tableextension 20411 "Qlty. Transfer Shipment Header" extends "Transfer Shipment
             TableRelation = "Qlty. Inspection Header"."No.";
             Description = 'Only used to link to the test that created the original Transfer document that generated this.';
         }
-        field(20401; "Qlty. Inspection Reinspection No."; Integer)
+        field(20401; "Qlty. Reinspection No."; Integer)
         {
-            Caption = 'Quality Inspection Reinspection No.';
-            ToolTip = 'Specifies the related quality inspection.';
+            Caption = 'Quality Reinspection No.';
+            ToolTip = 'Specifies the related quality reinspection.';
             DataClassification = CustomerContent;
             TableRelation = "Qlty. Inspection Header"."Reinspection No." where("No." = field("Qlty. Inspection No."));
             Description = 'Only used to link to the test that created the original Transfer document that generated this.';
@@ -32,7 +32,7 @@ tableextension 20411 "Qlty. Transfer Shipment Header" extends "Transfer Shipment
 
     keys
     {
-        key(Key20400; "Qlty. Inspection No.", "Qlty. Inspection Reinspection No.")
+        key(Key20400; "Qlty. Inspection No.", "Qlty. Reinspection No.")
         {
         }
     }
@@ -45,7 +45,7 @@ tableextension 20411 "Qlty. Transfer Shipment Header" extends "Transfer Shipment
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspection: Page "Qlty. Inspection";
     begin
-        if QltyInspectionHeader.Get(Rec."Qlty. Inspection No.", Rec."Qlty. Inspection Reinspection No.") then begin
+        if QltyInspectionHeader.Get(Rec."Qlty. Inspection No.", Rec."Qlty. Reinspection No.") then begin
             QltyInspection.SetRecord(QltyInspectionHeader);
             QltyInspection.Run();
         end;

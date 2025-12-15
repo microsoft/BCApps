@@ -12,20 +12,20 @@ codeunit 20413 "Qlty. Transfer Integration"
     local procedure HandleOnAfterCopyFromTransferHeader(var TransferShipmentHeader: Record "Transfer Shipment Header"; TransferHeader: Record "Transfer Header")
     begin
         TransferShipmentHeader."Qlty. Inspection No." := TransferHeader."Qlty. Inspection No.";
-        TransferShipmentHeader."Qlty. Inspection Reinspection No." := TransferHeader."Qlty. Inspection Reinspection No.";
+        TransferShipmentHeader."Qlty. Reinspection No." := TransferHeader."Qlty. Reinspection No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", 'OnBeforeTransRcptHeaderInsert', '', true, true)]
     local procedure HandleOnBeforeTransRcptHeaderInsert(var TransferReceiptHeader: Record "Transfer Receipt Header"; TransferHeader: Record "Transfer Header")
     begin
         TransferReceiptHeader."Qlty. Inspection No." := TransferHeader."Qlty. Inspection No.";
-        TransferReceiptHeader."Qlty. Inspection Reinspection No." := TransferHeader."Qlty. Inspection Reinspection No.";
+        TransferReceiptHeader."Qlty. Reinspection No." := TransferHeader."Qlty. Reinspection No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", 'OnInsertDirectTransHeaderOnBeforeDirectTransHeaderInsert', '', true, true)]
     local procedure HandleOnInsertDirectTransHeaderOnBeforeDirectTransHeaderInsert(var DirectTransHeader: Record "Direct Trans. Header"; TransferHeader: Record "Transfer Header")
     begin
         DirectTransHeader."Qlty. Inspection No." := TransferHeader."Qlty. Inspection No.";
-        DirectTransHeader."Qlty. Inspection Reinspection No." := TransferHeader."Qlty. Inspection Reinspection No.";
+        DirectTransHeader."Qlty. Reinspection No." := TransferHeader."Qlty. Reinspection No.";
     end;
 }
