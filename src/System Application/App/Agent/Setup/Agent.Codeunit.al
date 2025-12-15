@@ -113,12 +113,25 @@ codeunit 4321 Agent
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <returns>If the agent is active.</returns>
-    [Scope('OnPrem')]
     procedure IsActive(AgentUserSecurityID: Guid): Boolean
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
         exit(AgentImpl.IsActive(AgentUserSecurityID));
+    end;
+
+    /// <summary>
+    /// Allows the user to select an agent from the list of available agents.
+    /// </summary>
+    /// <param name="AgentType">The type of agent to select.</param>
+    /// <returns>The selected agent's User Security ID.</returns>
+    procedure SelectAgentByType(AgentType: enum "Agent Metadata Provider") : Guid
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+        Agent: Record Agent;
+    begin
+        AgentImpl.SelectAgentByType(Agent, AgentType);
+        exit(Agent."User Security ID");
     end;
 
     /// <summary>
@@ -136,7 +149,7 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
-    /// Assigns the profile to the agent.
+    /// Assigns the profile to the agent
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="AllProfile">Profile to set to the agent.</param>

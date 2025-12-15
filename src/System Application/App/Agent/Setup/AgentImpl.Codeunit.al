@@ -442,6 +442,12 @@ codeunit 4301 "Agent Impl."
             Error('');
     end;
 
+    procedure SelectAgentByType(var Agent: Record "Agent"; AgentType: Enum "Agent Type")
+    begin
+        Agent.SetRange(Agent.MetadataProvider, AgentType);
+        this.SelectAgent(Agent);
+    end;
+
     local procedure SetOwnerFilters(var AgentAccessControl: Record "Agent Access Control")
     begin
         AgentAccessControl.SetFilter("Can Configure Agent", '%1', true);
