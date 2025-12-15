@@ -18,6 +18,8 @@ codeunit 20410 "Qlty. Grade Evaluation"
     TableNo = "Qlty. Inspection Test Line";
 
     var
+        QltyBooleanParser: Codeunit "Qlty. Boolean Parser";
+        QltyLocalization: Codeunit "Qlty. Localization";
         IsDefaultNumberTok: Label '<>0', Locked = true;
         IsDefaultTextTok: Label '<>''''', Locked = true;
         InvalidDataTypeErr: Label 'The value "%1" is not allowed for %2, it is not a %3.', Comment = '%1=the value, %2=field name,%3=field type.';
@@ -65,7 +67,6 @@ codeunit 20410 "Qlty. Grade Evaluation"
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         TempHighestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf." temporary;
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LoopConditionMet: Boolean;
         AnyConditionMet: Boolean;
         Handled: Boolean;
@@ -97,10 +98,10 @@ codeunit 20410 "Qlty. Grade Evaluation"
                         QltyFieldType::"Field Type Integer":
                             LoopConditionMet := TestValueInteger(TestValue, Condition);
                         QltyFieldType::"Field Type Boolean":
-                            if QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(TestValue) and
-                               QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(Condition)
+                            if QltyBooleanParser.CanTextBeInterpretedAsBooleanIsh(TestValue) and
+                               QltyBooleanParser.CanTextBeInterpretedAsBooleanIsh(Condition)
                             then
-                                LoopConditionMet := QltyMiscHelpers.GetBooleanFor(TestValue) = QltyMiscHelpers.GetBooleanFor(Condition)
+                                LoopConditionMet := QltyBooleanParser.GetBooleanFor(TestValue) = QltyBooleanParser.GetBooleanFor(Condition)
                             else
                                 LoopConditionMet := TestValueString(TestValue, Condition, QltyCaseSensitivity);
                         QltyFieldType::"Field Type Text", QltyFieldType::"Field Type Option", QltyFieldType::"Field Type Table Lookup", QltyFieldType::"Field Type Text Expression":
@@ -328,7 +329,6 @@ codeunit 20410 "Qlty. Grade Evaluation"
 
     local procedure ValidateAllowableValuesOnText(NumberOrNameOfFieldNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyFieldType: Enum "Qlty. Field Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         ValueAsDecimal: Decimal;
         ValueAsInteger: Integer;
@@ -378,16 +378,16 @@ codeunit 20410 "Qlty. Grade Evaluation"
             QltyFieldType::"Field Type Boolean":
                 begin
                     if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
-                        if QltyMiscHelpers.GetBooleanFor(TextToValidate) then
-                            TextToValidate := QltyMiscHelpers.GetTranslatedYes250()
+                        if QltyBooleanParser.GetBooleanFor(TextToValidate) then
+                            TextToValidate := QltyLocalization.GetTranslatedYes250()
                         else
-                            TextToValidate := QltyMiscHelpers.GetTranslatedNo250();
+                            TextToValidate := QltyLocalization.GetTranslatedNo250();
 
-                    if (AllowableValues <> '') and (QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
-                        if not QltyMiscHelpers.GetBooleanFor(TextToValidate) = QltyMiscHelpers.GetBooleanFor(AllowableValues) then
+                    if (AllowableValues <> '') and (QltyBooleanParser.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
+                        if not QltyBooleanParser.GetBooleanFor(TextToValidate) = QltyBooleanParser.GetBooleanFor(AllowableValues) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
                     end else
-                        if not (TextToValidate in [QltyMiscHelpers.GetTranslatedYes250(), QltyMiscHelpers.GetTranslatedNo250(), '']) then
+                        if not (TextToValidate in [QltyLocalization.GetTranslatedYes250(), QltyLocalization.GetTranslatedNo250(), '']) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
                 end;
             QltyFieldType::"Field Type Text":

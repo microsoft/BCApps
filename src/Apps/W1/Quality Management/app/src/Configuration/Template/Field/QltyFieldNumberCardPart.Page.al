@@ -985,7 +985,7 @@ page 20434 "Qlty. Field Number Card Part"
     var
         QltyField: Record "Qlty. Field";
         QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         MatrixSourceRecordId: array[10] of RecordId;
         Visible1: Boolean;
         Visible2: Boolean;
@@ -1096,7 +1096,7 @@ page 20434 "Qlty. Field Number Card Part"
             if QltyField."Wizard Internal" = QltyField."Wizard Internal"::"In Progress" then
                 AdvancedRange := DefaultRangeTok;
 
-        if QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
+        if QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
             if not QltyFieldIds.Contains(QltyField.Code) then
                 RangeNumberType := RangeNumberType::"A range of numbers";
         end else
@@ -1225,7 +1225,7 @@ page 20434 "Qlty. Field Number Card Part"
 
         QltyGradeConditionMgmt.GetPromotedGradesForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
-            QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
+            QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -1245,7 +1245,7 @@ page 20434 "Qlty. Field Number Card Part"
     begin
         QltyIGradeConditionConf.Get(MatrixSourceRecordId[Matrix]);
         QltyIGradeConditionConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIGradeConditionConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
+        QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(QltyIGradeConditionConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
         QltyIGradeConditionConf.Modify(true);
         LoadExistingField(QltyField.Code);
         CurrPage.Update(false);

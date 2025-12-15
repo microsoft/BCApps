@@ -124,7 +124,7 @@ page 20408 "Qlty. Inspection Test List"
                     Caption = 'Created at';
                     ToolTip = 'Specifies the date and time when the test was created.';
                 }
-                field(SystemCreatedByUserID; QltyMiscHelpers.GetUserNameByUserSecurityID(Rec.SystemCreatedBy))
+                field(SystemCreatedByUserID; QltyRecordOperations.GetUserNameByUserSecurityID(Rec.SystemCreatedBy))
                 {
                     Caption = 'Created by User ID';
                     ToolTip = 'Specifies the ID of the user who created the test.';
@@ -134,7 +134,7 @@ page 20408 "Qlty. Inspection Test List"
                     Caption = 'Last modified at';
                     ToolTip = 'Specifies the date and time when the test was last modified.';
                 }
-                field(SystemModifiedByUserID; QltyMiscHelpers.GetUserNameByUserSecurityID(Rec.SystemModifiedBy))
+                field(SystemModifiedByUserID; QltyRecordOperations.GetUserNameByUserSecurityID(Rec.SystemModifiedBy))
                 {
                     Caption = 'Last modified by User ID';
                     ToolTip = 'Specifies the ID of the user who last modified the test.';
@@ -675,7 +675,7 @@ page 20408 "Qlty. Inspection Test List"
 
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         CanCreateTest: Boolean;
         CanAssignToSelf: Boolean;
         CanCreateRetest: Boolean;

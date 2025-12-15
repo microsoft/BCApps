@@ -20,7 +20,8 @@ using System.Reflection;
 codeunit 20408 "Qlty. Traversal"
 {
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         ControlInfoToVisibility: Dictionary of [Text, Boolean];
         ControlInfoToCaptionClass: Dictionary of [Text, Text];
         SomethingUnexpectedChainErr: Label 'Something unexpected happened while trying to chain records together to create a Quality Inspection Test. Please review your Quality Inspection source configuration.';
@@ -122,7 +123,7 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if at least one possible target configuration was found; False otherwise</returns>
     internal procedure FindPossibleTargetsBasedOnConfigRecursive(InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary): Boolean
     begin
-        exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyMiscHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
+        exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
     end;
 
     local procedure FindPossibleTargetsBasedOnConfigRecursiveWithList(CurrentRecursionDepth: Integer; InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary) Found: Boolean
@@ -215,7 +216,7 @@ codeunit 20408 "Qlty. Traversal"
         if TemporaryTestMatchRecordRef.Insert(false) then;
         QltyInspectionTestHeader.SetIsCreating(true);
         CouldApply := ApplySourceRecursive(
-            QltyMiscHelpers.GetArbitraryMaximumRecursion(),
+            QltyConfigurationHelpers.GetArbitraryMaximumRecursion(),
             TemporaryTestMatchRecordRef,
             TempAvailableQltyInspectSourceConfig,
             QltyInspectionTestHeader,
@@ -476,7 +477,7 @@ codeunit 20408 "Qlty. Traversal"
             OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId 4".TableNo());
 
         foreach FromTableIterator in OFFromTableIds do begin
-            TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyMiscHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
+            TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
             if TestText <> '' then
                 break;
         end;
@@ -597,7 +598,7 @@ codeunit 20408 "Qlty. Traversal"
     var
         ChildRecordRef: RecordRef;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(ChildRecordVariant, ChildRecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(ChildRecordVariant, ChildRecordRef) then
             exit(false);
 
         exit(FindSingleParentRecord(ChildRecordRef, FoundParentRecordRef));
@@ -769,7 +770,7 @@ codeunit 20408 "Qlty. Traversal"
         FromFieldReference: FieldRef;
         PossibleItemNo: Text;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -875,7 +876,7 @@ codeunit 20408 "Qlty. Traversal"
         RecordRef: RecordRef;
         VendorNo: Text;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -954,7 +955,7 @@ codeunit 20408 "Qlty. Traversal"
         RecordRef: RecordRef;
         CustomerNo: Text;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -1033,7 +1034,7 @@ codeunit 20408 "Qlty. Traversal"
         RecordRef: RecordRef;
         RoutingNo: Text;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -1120,7 +1121,7 @@ codeunit 20408 "Qlty. Traversal"
         FromFieldReference: FieldRef;
         PossibleBillOfMaterialNo: Text;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -1275,7 +1276,7 @@ codeunit 20408 "Qlty. Traversal"
     var
         RecordRef: RecordRef;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         if RecordRef.Number() = FoundRecordRef.Number() then begin

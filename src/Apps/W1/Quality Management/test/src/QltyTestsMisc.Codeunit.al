@@ -5,13 +5,10 @@
 namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Assembly.Document;
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
@@ -20,7 +17,6 @@ using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Grade;
@@ -65,543 +61,9 @@ codeunit 139964 "Qlty. Tests - Misc"
         Bin2Tok: Label 'Bin2';
         EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
         EntryTypeBlocked2Err: Label 'This transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
-        UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
         TrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no';
-        LockedYesLbl: Label 'Yes', Locked = true;
-        LockedNoLbl: Label 'No', Locked = true;
         IsInitialized: Boolean;
-
-    [Test]
-    procedure AttemptSplitSimpleRangeIntoMinMax_IntegerSimple()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        Min: Decimal;
-        Max: Decimal;
-    begin
-        // [SCENARIO] Split a simple integer range string into minimum and maximum values
-
-        // [GIVEN] A range string "1..2"
-
-        // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the range string
-        // [THEN] The function returns true and sets Min to 1 and Max to 2
-        Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
-        LibraryAssert.AreEqual(1, Min, 'simple integer min');
-        LibraryAssert.AreEqual(2, Max, 'simple integer max');
-    end;
-
-    [Test]
-    procedure AttemptSplitSimpleRangeIntoMinMax_IntegerNegativeValues()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        Min: Decimal;
-        Max: Decimal;
-    begin
-        // [SCENARIO] Split a negative integer range string into minimum and maximum values
-
-        // [GIVEN] A range string with negative values "-5..-1"
-
-        // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the negative range
-        // [THEN] The function returns true and sets Min to -5 and Max to -1
-        Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
-        LibraryAssert.AreEqual(-5, Min, 'simple integer min');
-        LibraryAssert.AreEqual(-1, Max, 'simple integer max');
-    end;
-
-    [Test]
-    procedure AttemptSplitSimpleRangeIntoMinMax_DecimalSimple()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        Min: Decimal;
-        Max: Decimal;
-    begin
-        // [SCENARIO] Split a decimal range string into minimum and maximum values
-
-        // [GIVEN] A range string with decimal values "1.00000001..2.999999999999"
-
-        // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the decimal range
-        // [THEN] The function returns true and sets Min to 1.00000001 and Max to 2.999999999999
-        Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
-        LibraryAssert.AreEqual(1.00000001, Min, 'simple decimal min');
-        LibraryAssert.AreEqual(2.999999999999, Max, 'simple decimal max');
-    end;
-
-    [Test]
-    procedure AttemptSplitSimpleRangeIntoMinMax_DecimalThousands()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        Min: Decimal;
-        Max: Decimal;
-    begin
-        // [SCENARIO] Split a decimal range string with thousands separator into minimum and maximum values
-
-        // [GIVEN] A range string with decimal values and thousands separators "1.00000001..1,234,567,890.99"
-
-        // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the formatted range
-        // [THEN] The function returns true and correctly parses Min and Max values
-        Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
-        LibraryAssert.AreEqual(1.00000001, Min, 'thousands separator decimal min');
-        LibraryAssert.AreEqual(1234567890.99, Max, 'thousands separator decimal max');
-    end;
-
-    [Test]
-    procedure GetArbitraryMaximumRecursion()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-    begin
-        // [SCENARIO] Verify the maximum recursion depth limit
-
-        // [GIVEN] A quality management system with recursion limits
-
-        // [WHEN] GetArbitraryMaximumRecursion is called
-        // [THEN] The function returns 20 as the maximum recursion depth
-        Initialize();
-        LibraryAssert.AreEqual(20, QltyMiscHelpers.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetails_DoesNotExist()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        OutJobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Attempt to get person details for a non-existent person
-
-        Initialize();
-
-        // [GIVEN] A person identifier that does not exist in any person table
-
-        // [WHEN] GetBasicPersonDetails is called with the non-existent identifier
-        // [THEN] The function returns false and all output parameters remain empty
-        LibraryAssert.AreEqual(false, QltyMiscHelpers.GetBasicPersonDetails('Does not exist', FullName, OutJobTitle, Email, OutPhone, OutSourceRecord), 'there should be no match');
-        LibraryAssert.AreEqual('', FullName, 'FullName should have been empty');
-        LibraryAssert.AreEqual('', OutJobTitle, 'OutJobTitle should have been empty');
-        LibraryAssert.AreEqual('', Email, 'Email should have been empty');
-        LibraryAssert.AreEqual('', OutPhone, 'OutPhone should have been empty');
-        LibraryAssert.AreEqual(0, OutSourceRecord.TableNo(), 'OutSourceRecord should have been empty');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetails_Contact()
-    var
-        Contact: Record Contact;
-        SalesPersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibraryMarketing: Codeunit "Library - Marketing";
-        LibrarySales: Codeunit "Library - Sales";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        OutJobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Get person details from a Contact record
-
-        Initialize();
-
-        // [GIVEN] A Contact record with name, job title, email, and phone number
-        LibrarySales.CreateSalesperson(SalesPersonPurchaser);
-        LibraryMarketing.CreatePersonContact(Contact);
-        Contact."First Name" := 'David';
-        Contact.Validate(Surname, 'Tennant');
-        Contact."Job Title" := 'a predictable job title';
-        Contact."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(Contact."E-mail"));
-        Contact."Phone No." := '+1-866-440-7543';
-        Contact.Modify(false);
-
-        // [WHEN] GetBasicPersonDetails is called with the Contact number
-        // [THEN] The function returns true and populates all contact details correctly
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(Contact."No.", FullName, OutJobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
-
-        LibraryAssert.AreEqual(Contact.Name, FullName, 'FullName should have been supplied');
-        LibraryAssert.AreEqual(Contact."Job Title", OutJobTitle, 'OutJobTitle should have been supplied');
-        LibraryAssert.AreEqual(Contact."E-Mail", Email, 'Email should have been supplied');
-        LibraryAssert.AreEqual(Contact."Phone No.", OutPhone, 'OutPhone should have been supplied');
-        LibraryAssert.AreEqual(Database::Contact, OutSourceRecord.TableNo(), 'OutSourceRecord should have been a contact record');
-        LibraryAssert.AreEqual(Contact.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific contact record');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetails_Employee()
-    var
-        Employee: Record Employee;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibraryHumanResource: Codeunit "Library - Human Resource";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        JobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Get person details from an Employee record
-
-        // [GIVEN] An Employee record with name, job title, email, and phone number
-        Initialize();
-        LibraryHumanResource.CreateEmployee(Employee);
-        Employee."First Name" := 'David';
-        Employee.Validate("Last Name", 'Tennant');
-        Employee."Job Title" := 'a predictable job title';
-        Employee."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(Employee."E-mail"));
-        Employee."Phone No." := '+1-866-440-7543';
-        Employee.Modify(false);
-
-        // [WHEN] GetBasicPersonDetails is called with the Employee number
-        // [THEN] The function returns true and populates all employee details correctly
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(Employee."No.", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
-
-        LibraryAssert.AreEqual(Employee.FullName(), FullName, 'FullName should have been supplied');
-        LibraryAssert.AreEqual(Employee."Job Title", JobTitle, 'OutJobTitle should have been supplied');
-        LibraryAssert.AreEqual(Employee."E-Mail", Email, 'Email should have been supplied');
-        LibraryAssert.AreEqual(Employee."Phone No.", OutPhone, 'OutPhone should have been supplied');
-        LibraryAssert.AreEqual(Database::Employee, OutSourceRecord.TableNo(), 'OutSourceRecord should have been a Employee record');
-        LibraryAssert.AreEqual(Employee.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific Employee record');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetails_Resource()
-    var
-        Resource: Record Resource;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibraryResource: Codeunit "Library - Resource";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        JobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Get person details from a Resource record
-
-        // [GIVEN] A Resource record with name and job title
-        Initialize();
-        LibraryResource.CreateResourceNew(Resource);
-        Resource.Name := CopyStr(Any.AlphanumericText(MaxStrLen(Resource.Name)), 1, MaxStrLen(Resource.Name));
-        Resource."Job Title" := CopyStr(Any.AlphanumericText(MaxStrLen(Resource."Job Title")), 1, MaxStrLen(Resource."Job Title"));
-        Resource.Modify(false);
-
-        // [WHEN] GetBasicPersonDetails is called with the Resource number
-        // [THEN] The function returns true with name and job title populated, but email and phone blank
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(Resource."No.", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
-
-        LibraryAssert.AreEqual(Resource.Name, FullName, 'FullName should have been supplied');
-        LibraryAssert.AreEqual(Resource."Job Title", JobTitle, 'OutJobTitle should have been supplied');
-        LibraryAssert.AreEqual('', Email, 'Email should have been blank');
-        LibraryAssert.AreEqual('', OutPhone, 'OutPhone should have been blank');
-        LibraryAssert.AreEqual(Database::Resource, OutSourceRecord.TableNo(), 'OutSourceRecord should have been a Resource record');
-        LibraryAssert.AreEqual(Resource.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific Resource record');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetails_User()
-    var
-        User: Record User;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibraryPermissions: Codeunit "Library - Permissions";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        JobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Get person details from a User record
-
-        Initialize();
-
-        // [GIVEN] A User record with full name and contact email
-        LibraryPermissions.CreateUser(User, '', false);
-        User."Full Name" := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name"));
-        User."Contact Email" := CopyStr(Any.Email(), 1, MaxStrLen(User."Contact Email"));
-        User.Modify(false);
-
-        // [WHEN] GetBasicPersonDetails is called with the User name
-        // [THEN] The function returns true with full name and email populated, but job title and phone blank
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(User."User Name", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
-
-        LibraryAssert.AreEqual(User."Full Name", FullName, 'FullName should have been supplied');
-        LibraryAssert.AreEqual('', JobTitle, 'OutJobTitle should have been blank');
-        LibraryAssert.AreEqual(User."Contact Email", Email, 'Email should have been set');
-        LibraryAssert.AreEqual('', OutPhone, 'OutPhone should have been blank');
-        LibraryAssert.AreEqual(Database::User, OutSourceRecord.TableNo(), 'OutSourceRecord should have been a User record');
-        LibraryAssert.AreEqual(User.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific User record');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetails_UserSetup()
-    var
-        User: Record User;
-        UserSetup: Record "User Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibraryPermissions: Codeunit "Library - Permissions";
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        JobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Get person details from User Setup record
-
-        Initialize();
-
-        // [GIVEN] A User record with full name
-        LibraryPermissions.CreateUser(User, '', false);
-        User."Full Name" := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name"));
-        User."Contact Email" := CopyStr(Any.Email(), 1, MaxStrLen(User."Contact Email"));
-        User.Modify(false);
-
-        LibraryDocumentApprovals.CreateUserSetup(UserSetup, User."User Name", '');
-        UserSetup."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(UserSetup."E-mail"));
-        UserSetup."Phone No." := '+1-866-440-7543';
-        UserSetup."Salespers./Purch. Code" := '';
-        UserSetup.Modify(false);
-
-        // [GIVEN] A User Setup record with email and phone number
-
-        // [WHEN] GetBasicPersonDetails is called with the User ID
-        // [THEN] The function returns true with details from User Setup (email, phone) and User (full name)
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(UserSetup."User ID", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
-
-        LibraryAssert.AreEqual(User."Full Name", FullName, 'FullName should have been supplied');
-        LibraryAssert.AreEqual('', JobTitle, 'OutJobTitle should have been blank');
-        LibraryAssert.AreEqual(UserSetup."E-Mail", Email, 'Email should have been set');
-        LibraryAssert.AreEqual(UserSetup."Phone No.", OutPhone, 'OutPhone should have been set');
-        LibraryAssert.AreEqual(Database::"User Setup", OutSourceRecord.TableNo(), 'OutSourceRecord should have been a User record');
-        LibraryAssert.AreEqual(UserSetup.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific User record');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetails_SalesPersonPurchaserSetup()
-    var
-        User: Record User;
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        UserSetup: Record "User Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibraryPermissions: Codeunit "Library - Permissions";
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
-        LibrarySales: Codeunit "Library - Sales";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        JobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Get person details from Salesperson/Purchaser linked via User Setup
-
-        Initialize();
-
-        // [GIVEN] A User record
-        LibraryPermissions.CreateUser(User, '', false);
-        User."Full Name" := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name"));
-        User."Contact Email" := CopyStr(Any.Email(), 1, MaxStrLen(User."Contact Email"));
-        User.Modify(false);
-
-        // [GIVEN] A Salesperson/Purchaser record with name, job title, email, and phone
-        LibrarySales.CreateSalesperson(SalespersonPurchaser);
-        SalespersonPurchaser.Name := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(SalespersonPurchaser.Name));
-        SalespersonPurchaser."Job Title" := 'another predictable job title';
-        SalespersonPurchaser."Phone No." := '+1-800-440-7543';
-        SalespersonPurchaser."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(SalespersonPurchaser."E-Mail"));
-        SalespersonPurchaser.Modify();
-
-        // [GIVEN] A User Setup linking the User to the Salesperson/Purchaser
-        LibraryDocumentApprovals.CreateUserSetup(UserSetup, User."User Name", '');
-        UserSetup."Salespers./Purch. Code" := SalespersonPurchaser.Code;
-        UserSetup."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(UserSetup."E-mail"));
-        UserSetup."Phone No." := '+1-866-440-7543';
-        UserSetup.Modify(false);
-
-        // [WHEN] GetBasicPersonDetails is called with the User ID
-        // [THEN] The function returns true with details from the linked Salesperson/Purchaser record
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetails(UserSetup."User ID", FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
-
-        LibraryAssert.AreEqual(SalespersonPurchaser.Name, FullName, 'FullName should have been supplied');
-        LibraryAssert.AreEqual(SalespersonPurchaser."Job Title", JobTitle, 'OutJobTitle should have been set');
-        LibraryAssert.AreEqual(SalespersonPurchaser."E-Mail", Email, 'Email should have been set');
-        LibraryAssert.AreEqual(SalespersonPurchaser."Phone No.", OutPhone, 'OutPhone should have been set');
-        LibraryAssert.AreEqual(Database::"Salesperson/Purchaser", OutSourceRecord.TableNo(), 'OutSourceRecord should have been a Salesperson/Purchaser record');
-        LibraryAssert.AreEqual(SalespersonPurchaser.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific Salesperson/Purchaser record');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetailsFromTestLine()
-    var
-        User: Record User;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        UserSetup: Record "User Setup";
-        ProdProductionOrder: Record "Production Order";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        Item: Record Item;
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
-        QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibraryPermissions: Codeunit "Library - Permissions";
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
-        LibrarySales: Codeunit "Library - Sales";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        OutSourceRecord: RecordId;
-        OrdersList: List of [Code[20]];
-        ProductionOrder: Code[20];
-        FullName: Text;
-        JobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Get person details from a test line with table lookup field
-
-        Initialize();
-
-        // [GIVEN] User, Salesperson/Purchaser, and User Setup records configured
-        LibraryPermissions.CreateUser(User, '', false);
-        User."Full Name" := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name"));
-        User."Contact Email" := CopyStr(Any.Email(), 1, MaxStrLen(User."Contact Email"));
-        User.Modify(false);
-
-        LibrarySales.CreateSalesperson(SalespersonPurchaser);
-        SalespersonPurchaser.Name := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(SalespersonPurchaser.Name));
-        SalespersonPurchaser."Job Title" := 'another predictable job title';
-        SalespersonPurchaser."Phone No." := '+1-800-440-7543';
-        SalespersonPurchaser."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(SalespersonPurchaser."E-Mail"));
-        SalespersonPurchaser.Modify();
-
-        LibraryDocumentApprovals.CreateUserSetup(UserSetup, User."User Name", '');
-        UserSetup."Salespers./Purch. Code" := SalespersonPurchaser.Code;
-        UserSetup."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(UserSetup."E-mail"));
-        UserSetup."Phone No." := '+1-866-440-7543';
-        UserSetup.Modify(false);
-
-        QltyTestsUtility.EnsureSetup();
-
-        // [GIVEN] An inspection template with a table lookup field for Salesperson/Purchaser
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyTestsUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField.Modify(false);
-
-        // [GIVEN] A production order with routing line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
-        QltyProdOrderGenerator.Init(100);
-        QltyProdOrderGenerator.ToggleAllSources(false);
-        QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
-        QltyProdOrderGenerator.Generate(1, OrdersList);
-        OrdersList.Get(1, ProductionOrder);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder);
-        ProdOrderRoutingLine.FindLast();
-
-        ProdProductionOrder.Get(ProdProductionOrder.Status::Released, ProductionOrder);
-        Item.Get(ProdProductionOrder."Source No.");
-
-        QltyInspectionTestHeader.Reset();
-
-        ClearLastError();
-        QltyInspectionTestCreate.CreateTestWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-
-        // [GIVEN] A test line with a Salesperson/Purchaser code value
-        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.SetRange("ReTest No.", QltyInspectionTestHeader."ReTest No.");
-        QltyInspectionTestLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
-
-        LibraryAssert.AreEqual(1, QltyInspectionTestLine.Count(), 'there should  be exactly one test line that matches.');
-        QltyInspectionTestLine.FindFirst();
-        QltyInspectionTestLine.Validate("Test Value", SalespersonPurchaser.Code);
-        QltyInspectionTestLine.Modify();
-
-        // [WHEN] GetBasicPersonDetailsFromTestLine is called with the test line
-        // [THEN] The function returns true and populates person details from the linked Salesperson/Purchaser
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(QltyInspectionTestLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
-
-        LibraryAssert.AreEqual(SalespersonPurchaser.Name, FullName, 'FullName should have been supplied');
-        LibraryAssert.AreEqual(SalespersonPurchaser."Job Title", JobTitle, 'OutJobTitle should have been set');
-        LibraryAssert.AreEqual(SalespersonPurchaser."E-Mail", Email, 'Email should have been set');
-        LibraryAssert.AreEqual(SalespersonPurchaser."Phone No.", OutPhone, 'OutPhone should have been set');
-        LibraryAssert.AreEqual(Database::"Salesperson/Purchaser", OutSourceRecord.TableNo(), 'OutSourceRecord should have been a Salesperson/Purchaser record');
-        LibraryAssert.AreEqual(SalespersonPurchaser.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific Salesperson/Purchaser record');
-    end;
-
-    [Test]
-    procedure GetBasicPersonDetailsFromTestLine_EmptyRecord()
-    var
-        TempEmptyQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        OutSourceRecord: RecordId;
-        FullName: Text;
-        JobTitle: Text;
-        Email: Text;
-        OutPhone: Text;
-    begin
-        // [SCENARIO] Attempt to get person details from an empty test line
-
-        Initialize();
-
-        // [GIVEN] An empty test line record
-
-        // [WHEN] GetBasicPersonDetailsFromTestLine is called with the empty record
-        // [THEN] The function returns false and all output parameters remain empty
-        Clear(TempEmptyQltyInspectionTestLine);
-        LibraryAssert.AreEqual(false, QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(TempEmptyQltyInspectionTestLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'should be nothing.');
-
-        LibraryAssert.AreEqual('', FullName, 'FullName should have been empty');
-        LibraryAssert.AreEqual('', JobTitle, 'OutJobTitle should have been empty');
-        LibraryAssert.AreEqual('', Email, 'Email should have been empty');
-        LibraryAssert.AreEqual('', OutPhone, 'OutPhone should have been empty');
-        LibraryAssert.AreEqual(0, OutSourceRecord.TableNo(), 'should have been empty');
-    end;
-
-    [Test]
-    procedure GetBooleanFor()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-    begin
-        // [SCENARIO] Convert various text values to boolean
-
-        Initialize();
-
-        // [GIVEN] Various text values representing true or false
-
-        // [WHEN] GetBooleanFor is called with positive values (true, 1, yes, ok, pass, etc.)
-        // [THEN] The function returns true for all positive boolean representations
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('true'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('TRUE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('1'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('Yes'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('Y'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('T'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('OK'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('GOOD'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('PASS'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('POSITIVE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor(':SELECTED:'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('CHECK'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('CHECKED'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.GetBooleanFor('V'), 'document intelligence/form recognizer selected check.');
-
-        // [WHEN] GetBooleanFor is called with negative values (false, no, fail, etc.)
-        // [THEN] The function returns false for all negative boolean representations
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('false'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('FALSE'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('N'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('No'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('F'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('Fail'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('Failed'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('BAD'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('disabled'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor('unacceptable'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.GetBooleanFor(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
-    end;
 
     [Test]
     procedure GetCSVOfValuesFromRecord_NoFilter()
@@ -735,76 +197,6 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryAssert.IsTrue(StrPos(Output2, ',' + FirstSalespersonPurchaser.Code) = 0, 'demo record 1 should  be EXCLUDED');
         LibraryAssert.IsTrue(StrPos(Output2, ',' + SecondSalespersonPurchaser.Code) > 0, 'demo record 2 should  be included');
         LibraryAssert.IsTrue(StrPos(Output2, ',' + ThirdSalespersonPurchaser.Code) > 0, 'demo record 3 should  be included');
-    end;
-
-    [Test]
-    procedure GetDefaultMaximumRowsFieldLookup_Defined()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
-    begin
-        // [SCENARIO] Get maximum rows for field lookup when configured
-
-        Initialize();
-
-        // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 2
-        QltyTestsUtility.EnsureSetup();
-
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Max Rows Field Lookups" := 2;
-        QltyManagementSetup.Modify();
-
-        // [WHEN] GetDefaultMaximumRowsFieldLookup is called
-        // [THEN] The function returns the configured value of 2
-        LibraryAssert.AreEqual(2, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
-    end;
-
-    [Test]
-    procedure GetDefaultMaximumRowsFieldLookup_Undefined()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
-    begin
-        // [SCENARIO] Get maximum rows for field lookup when not configured
-
-        Initialize();
-
-        // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 0
-        QltyTestsUtility.EnsureSetup();
-
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Max Rows Field Lookups" := 0;
-        QltyManagementSetup.Modify();
-
-        // [WHEN] GetDefaultMaximumRowsFieldLookup is called
-        // [THEN] The function returns the default value of 100
-        LibraryAssert.AreEqual(100, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
-    end;
-
-    [Test]
-    procedure GetLockedNo250()
-    begin
-        // [SCENARIO] Get locked "No" text value
-
-        Initialize();
-
-        // [WHEN] GetLockedNo250 is called
-        // [THEN] The function returns the locked string "No"
-        LibraryAssert.AreEqual('No', LockedNoLbl, 'locked no.');
-    end;
-
-    [Test]
-    procedure GetLockedYes250()
-    begin
-        // [SCENARIO] Get locked "Yes" text value
-
-        Initialize();
-
-        // [WHEN] GetLockedYes250 is called
-        // [THEN] The function returns the locked string "Yes"
-        LibraryAssert.AreEqual('Yes', LockedYesLbl, 'locked yes.');
     end;
 
     [Test]
@@ -1267,7 +659,7 @@ codeunit 139964 "Qlty. Tests - Misc"
     [Test]
     procedure GetTranslatedYes250()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
         // [SCENARIO] Get translated "Yes" text value
 
@@ -1275,13 +667,13 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetTranslatedYes250 is called
         // [THEN] The function returns the translated string "Yes"
-        LibraryAssert.AreEqual('Yes', QltyMiscHelpers.GetTranslatedYes250(), 'locked yes.');
+        LibraryAssert.AreEqual('Yes', QltyLocalization.GetTranslatedYes250(), 'locked yes.');
     end;
 
     [Test]
     procedure GetTranslatedNo250()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
         // [SCENARIO] Get translated "No" text value
 
@@ -1289,7 +681,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetTranslatedNo250 is called
         // [THEN] The function returns the translated string "No"
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyLocalization.GetTranslatedNo250(), 'locked no.');
     end;
 
     [Test]
@@ -1324,6 +716,7 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GuessDataTypeFromDescriptionAndValue_Values()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
         QltyFieldType: Enum "Qlty. Field Type";
     begin
         // [SCENARIO] Guess data type from actual values
@@ -1333,7 +726,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Various sample values (boolean, numeric, date, text)
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with value (empty description)
         // [THEN] The function infers the correct data type from value patterns
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyLocalization.GetTranslatedNo250(), 'locked no.');
 
         LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
         LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
@@ -1374,94 +767,6 @@ codeunit 139964 "Qlty. Tests - Misc"
     end;
 
     [Test]
-    procedure IsTextValueNegativeBoolean()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-    begin
-        // [SCENARIO] Identify negative boolean text values
-
-        Initialize();
-
-        // [GIVEN] Various text values representing positive and negative boolean states
-        // [WHEN] IsTextValueNegativeBoolean is called with each value
-        // [THEN] The function returns false for positive values, true for negative values
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('true'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('TRUE'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('1'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('Yes'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('Y'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('T'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('OK'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('GOOD'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('PASS'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('POSITIVE'), 'simple bool true.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean(':SELECTED:'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('CHECK'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('CHECKED'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('V'), 'document intelligence/form recognizer selected check.');
-
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('false'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('FALSE'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('N'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('No'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('F'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('Fail'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('Failed'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('BAD'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('disabled'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean('unacceptable'), 'simple bool false.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValueNegativeBoolean(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
-
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('not a hot dog'), 'not a hot dog');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Canada'), 'a sovereign country');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValueNegativeBoolean('1234'), 'a number');
-    end;
-
-    [Test]
-    procedure IsTextValuePositiveBoolean()
-    var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-    begin
-        // [SCENARIO] Identify positive boolean text values
-
-        Initialize();
-
-        // [GIVEN] Various text values representing positive and negative boolean states
-        // [WHEN] IsTextValuePositiveBoolean is called with each value
-        // [THEN] The function returns true for positive values, false for negative values
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('true'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('TRUE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('1'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('Yes'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('Y'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('T'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('OK'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('GOOD'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('PASS'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('POSITIVE'), 'simple bool true.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean(':SELECTED:'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('CHECK'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('CHECKED'), 'document intelligence/form recognizer selected check.');
-        LibraryAssert.IsTrue(QltyMiscHelpers.IsTextValuePositiveBoolean('V'), 'document intelligence/form recognizer selected check.');
-
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('false'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('FALSE'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('N'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('No'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('F'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Fail'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Failed'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('BAD'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('disabled'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('unacceptable'), 'simple bool false.');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean(':UNSELECTED:'), 'document intelligence/form recognizer scenario');
-
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('not a hot dog'), 'not a hot dog');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('Canada'), 'a sovereign country');
-        LibraryAssert.IsFalse(QltyMiscHelpers.IsTextValuePositiveBoolean('1234'), 'a number');
-    end;
-
-    [Test]
     procedure NavigateToFindEntries()
     var
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
@@ -1486,101 +791,6 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [THEN] The Navigate page opens with lot and serial number filters applied
         LibraryAssert.AreEqual('SERIALGHI', Navigate.SerialNoFilter.Value, 'serial filter got set');
         LibraryAssert.AreEqual('LOTDEF', Navigate.LotNoFilter.Value, 'lot filter got set');
-    end;
-
-    [Test]
-    procedure SetTableValue_Simple()
-    var
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibrarySales: Codeunit "Library - Sales";
-    begin
-        // [SCENARIO] Set table field values dynamically
-
-        Initialize();
-
-        // [GIVEN] A Salesperson/Purchaser record with initial values
-        LibrarySales.CreateSalesperson(SalespersonPurchaser);
-        SalespersonPurchaser."Commission %" := 1;
-        SalespersonPurchaser."Job Title" := 'janitor';
-        SalespersonPurchaser.Modify(false);
-        SalespersonPurchaser.SetRecFilter();
-
-        // [WHEN] SetTableValue is called for decimal and text fields
-        QltyMiscHelpers.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), SalespersonPurchaser.FieldName("Commission %"), format(1234.56), true);
-        QltyMiscHelpers.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), SalespersonPurchaser.FieldName("Job Title"), 'manager', true);
-
-        // [THEN] The field values are updated correctly
-        SalespersonPurchaser.SetRecFilter();
-        SalespersonPurchaser.FindFirst();
-
-        LibraryAssert.AreEqual(1234.56, SalespersonPurchaser."Commission %", 'decimal test');
-        LibraryAssert.AreEqual('manager', SalespersonPurchaser."Job Title", 'text test');
-    end;
-
-    [Test]
-    procedure SetTableValue_Error()
-    var
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibrarySales: Codeunit "Library - Sales";
-    begin
-        // [SCENARIO] Set table value error when field does not exist
-
-        Initialize();
-
-        // [GIVEN] A Salesperson/Purchaser record
-        LibrarySales.CreateSalesperson(SalespersonPurchaser);
-        SalespersonPurchaser."Commission %" := 1;
-        SalespersonPurchaser."Job Title" := 'janitor';
-        SalespersonPurchaser.Modify(false);
-        SalespersonPurchaser.SetRecFilter();
-
-        // [WHEN] SetTableValue is called with a non-existent field name
-        asserterror QltyMiscHelpers.SetTableValue(SalespersonPurchaser.TableCaption(), SalespersonPurchaser.GetView(), 'This field does not exist.', format(1234.56), true);
-
-        // [THEN] An error is raised indicating the field was not found
-        LibraryAssert.ExpectedError(StrSubstNo(UnableToSetTableValueFieldNotFoundErr, 'This field does not exist.', SalespersonPurchaser.TableCaption()));
-    end;
-
-    [Test]
-    procedure ReadFieldAsText()
-    var
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        InteractionLogEntry: Record "Interaction Log Entry";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        LibrarySales: Codeunit "Library - Sales";
-        Format0: Text;
-        Format9: Text;
-        Format9NoOfInteractions: Text;
-    begin
-        // [SCENARIO] Read field values as text with different formats
-
-        Initialize();
-
-        // [GIVEN] A Salesperson/Purchaser record with decimal field and calculated flowfield
-        LibrarySales.CreateSalesperson(SalespersonPurchaser);
-        SalespersonPurchaser."Commission %" := 12345.67;
-        SalespersonPurchaser."Job Title" := 'janitor';
-        SalespersonPurchaser.Modify(false);
-
-        InteractionLogEntry.Reset();
-        InteractionLogEntry."Salesperson Code" := SalespersonPurchaser.Code;
-        InteractionLogEntry.Canceled := false;
-        InteractionLogEntry.Postponed := false;
-        InteractionLogEntry.InsertRecord();
-
-        // [WHEN] ReadFieldAsText is called with format 0 (locale) and format 9 (ISO)
-        Format0 := QltyMiscHelpers.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("Commission %"), 0);
-        Format9 := QltyMiscHelpers.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("Commission %"), 9);
-
-        Format9NoOfInteractions := QltyMiscHelpers.ReadFieldAsText(SalespersonPurchaser, SalespersonPurchaser.FieldName("No. of Interactions"), 9);
-
-        // [THEN] The field values are formatted correctly including flowfields
-        SalespersonPurchaser.CalcFields("No. of Interactions");
-        LibraryAssert.AreEqual(format(SalespersonPurchaser."Commission %", 0, 0), Format0, 'format0 test');
-        LibraryAssert.AreEqual(format(SalespersonPurchaser."Commission %", 0, 9), Format9, 'format9 test');
-        LibraryAssert.AreEqual(format(SalespersonPurchaser."No. of Interactions", 0, 9), Format9NoOfInteractions, 'flowfield test');
     end;
 
     [Test]

@@ -27,6 +27,7 @@ codeunit 20424 "Qlty. Workflow Response"
 
     var
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         DocumentTypeLbl: Label 'Move';
         UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from test %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the test, %2=from location, %3=to location';
 
@@ -55,7 +56,6 @@ codeunit 20424 "Qlty. Workflow Response"
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         ReactionTrkngQltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
         QltyDispInternalPutAway: Codeunit "Qlty. Disp. Internal Put-away";
@@ -270,7 +270,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             if TableFilter.Contains('[') or TableFilter.Contains('{') then
                                 TableFilter := QltyExpressionMgmt.EvaluateTextExpression(TableFilter, QltyInspectionTestHeader, QltyInspectionTestLine, true);
 
-                            QltyMiscHelpers.SetTableValue(GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyDatabaseTable()), TableFilter, GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyField()), ValueToSet, true);
+                            QltyRecordOperations.SetTableValue(GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyDatabaseTable()), TableFilter, GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyField()), ValueToSet, true);
                             ResponseExecuted := true;
                         end;
                     end;

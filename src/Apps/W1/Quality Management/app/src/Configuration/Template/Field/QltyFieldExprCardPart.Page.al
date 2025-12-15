@@ -443,7 +443,7 @@ page 20467 "Qlty. Field Expr. Card Part"
     var
         QltyField: Record "Qlty. Field";
         QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         MatrixSourceRecordId: array[10] of RecordId;
         Visible1: Boolean;
         Visible2: Boolean;
@@ -523,7 +523,7 @@ page 20467 "Qlty. Field Expr. Card Part"
 
         QltyGradeConditionMgmt.GetPromotedGradesForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
-            QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
+            QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -543,7 +543,7 @@ page 20467 "Qlty. Field Expr. Card Part"
     begin
         QltyIGradeConditionConf.Get(MatrixSourceRecordId[piMatrix]);
         QltyIGradeConditionConf.Validate(Condition, MatrixArrayConditionCellData[piMatrix]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIGradeConditionConf.Condition, MatrixMinValue[piMatrix], MatrixMaxValue[piMatrix]);
+        QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(QltyIGradeConditionConf.Condition, MatrixMinValue[piMatrix], MatrixMaxValue[piMatrix]);
         QltyIGradeConditionConf.Modify(true);
         LoadExistingField(QltyField.Code, true);
         CurrPage.Update(false);

@@ -223,12 +223,12 @@ report 20405 "Qlty. General Purpose Inspect."
                     Clear(MatrixVisibleState);
                     GradeDescription := '';
 
-                    TestLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentTestLine.SystemModifiedBy);
+                    TestLineModifiedByUserId := QltyRecordOperations.GetUserNameByUserSecurityID(CurrentTestLine.SystemModifiedBy);
                     if TestLinePreviousModifiedByUserId <> TestLineModifiedByUserId then
-                        QltyMiscHelpers.GetBasicPersonDetails(TestLineModifiedByUserId, TestLineModifiedByUserName, TestLineModifiedByJobTitle, TestLineModifiedByEmail, TestLineModifiedByPhone, DummyRecordId);
+                        QltyPersonLookup.GetBasicPersonDetails(TestLineModifiedByUserId, TestLineModifiedByUserName, TestLineModifiedByJobTitle, TestLineModifiedByEmail, TestLineModifiedByPhone, DummyRecordId);
                     TestLinePreviousModifiedByUserId := TestLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(CurrentTestLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyPersonLookup.GetBasicPersonDetailsFromTestLine(CurrentTestLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
                     FieldIsLabel := CurrentTestLine."Field Type" in [CurrentTestLine."Field Type"::"Field Type Label"];
                     FieldIsText := CurrentTestLine."Field Type" in [CurrentTestLine."Field Type"::"Field Type Text"];
@@ -308,7 +308,7 @@ report 20405 "Qlty. General Purpose Inspect."
                 end;
 
                 FinishedByUserName := CurrentTest."Finished By User ID";
-                QltyMiscHelpers.GetBasicPersonDetails(CurrentTest."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
+                QltyPersonLookup.GetBasicPersonDetails(CurrentTest."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
                 if (FinishedByTitle = '') and (FinishedByUserName <> '') then
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
             end;
@@ -343,7 +343,8 @@ report 20405 "Qlty. General Purpose Inspect."
     var
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         MatrixSourceRecordId: array[10] of RecordId;
         ArrayCompanyInformation: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];

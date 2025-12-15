@@ -615,6 +615,7 @@ table 20405 "Qlty. Inspection Test Header"
         IsChangingStatus: Boolean;
 
     var
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         TrackingCannotChangeForFinishedTestErr: Label 'You cannot change item tracking on a finished test. %1-%2 is finished. Reopen this test to change the tracking.', Comment = '%1=Quality Inspection Test No., %2=Retest no.';
         SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the test %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this test to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the test, %3=the source quantity';
         YouCannotChangeTheAssignmentOfTheTestErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the test no, %3=the retest';
@@ -1438,7 +1439,6 @@ table 20405 "Qlty. Inspection Test Header"
     procedure SetRecordFiltersToFindTestFor(ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean)
     var
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
         Handled: Boolean;
     begin
@@ -1446,7 +1446,7 @@ table 20405 "Qlty. Inspection Test Header"
         if Handled then
             exit;
 
-        if not QltyMiscHelpers.GetRecordRefFromVariant(RecordVariant, TargetRecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(RecordVariant, TargetRecordRef) then
             Error(UnableToFindRecordErr, RecordVariant);
 
         if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionTestHeader, true, false) then
@@ -1623,7 +1623,6 @@ table 20405 "Qlty. Inspection Test Header"
     /// <returns></returns>
     procedure GetRelatedItem(var Item: Record Item): Boolean
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TriggerAsRecordRef: RecordRef;
         NullForComparison: RecordId;
     begin
@@ -1633,7 +1632,7 @@ table 20405 "Qlty. Inspection Test Header"
         if NullForComparison = Rec."Trigger RecordId" then
             exit(false);
 
-        if not QltyMiscHelpers.GetRecordRefFromVariant(Rec."Trigger RecordId", TriggerAsRecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(Rec."Trigger RecordId", TriggerAsRecordRef) then
             exit(false);
 
         exit(QltyTraversal.FindRelatedItem(Item, TriggerAsRecordRef, Rec."Source RecordId", Rec."Source RecordId 2", Rec."Source RecordId 3", Rec."Source RecordId 4"));

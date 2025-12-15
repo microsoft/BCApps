@@ -19,6 +19,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     Access = Internal;
 
     var
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         AssignToSelfLbl: Label 'Assign to myself';
         OpenTheDocumentLbl: Label 'Open the document';
         HandleNotificationActionAssignToSelfTok: Label 'HandleNotificationActionAssignToSelf', Locked = true;
@@ -92,7 +93,6 @@ codeunit 20437 "Qlty. Notification Mgmt."
         DocumentNo: Text;
         RelatedDocumentVariant: Variant)
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         DocumentCreatedNotification: Notification;
         RelatedDocument: RecordId;
         OptionalRelatedDocumentRecordRef: RecordRef;
@@ -102,7 +102,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         Source := GetSourceSummaryText(QltyInspectionTestHeader);
 
-        if QltyMiscHelpers.GetRecordRefFromVariant(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
+        if QltyRecordOperations.GetRecordRefFromVariant(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
             RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
 
         if (DocumentType <> '') and (DocumentType[1] in ['A', 'E', 'I', 'O', 'U']) then
@@ -151,7 +151,6 @@ codeunit 20437 "Qlty. Notification Mgmt."
     procedure NotifyDocumentCreationFailed(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
     var
         Item: Record Item;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         DocumentCreationFailedNotification: Notification;
         OptionalRelatedDocumentRecordRef: RecordRef;
         RelatedDocument: RecordId;
@@ -181,7 +180,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 Item."Base Unit of Measure");
 
         if OptionalRelatedDocumentVariant.IsRecord() or OptionalRelatedDocumentVariant.IsRecordRef() or OptionalRelatedDocumentVariant.IsRecordId() then
-            if QltyMiscHelpers.GetRecordRefFromVariant(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then begin
+            if QltyRecordOperations.GetRecordRefFromVariant(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then begin
                 RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
                 DocumentCreationFailedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
                 AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);

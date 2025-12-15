@@ -16,7 +16,7 @@ using Microsoft.QualityManagement.Utilities;
 codeunit 20405 "Qlty. Generation Rule Mgmt."
 {
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyTraversal: Codeunit "Qlty. Traversal";
         UnexpectedAndNoDetailsErr: Label 'Something unexpected went wrong trying to find a matching quality inspection test generation rule. Please review your Quality Inspection source table configuration.';
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible test generation rules for the template %1. Navigate to Quality Inspection Test Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
@@ -122,7 +122,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                 Error(UnexpectedUnableWithADetailErr, Format(TargetRecordRef.RecordId()));
 
         Found := FindFirstGenerationRuleAndRecordBasedOnRecursive(
-            QltyMiscHelpers.GetArbitraryMaximumRecursion(),
+            QltyConfigurationHelpers.GetArbitraryMaximumRecursion(),
                 false,
                 RaiseErrorIfNoRuleIsFound,
                 TargetRecordRef,
@@ -153,7 +153,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                 Error(NoGenRuleErr, Format(TargetRecordRef.RecordId()));
 
         Found := FindFirstGenerationRuleAndRecordBasedOnRecursive(
-            QltyMiscHelpers.GetArbitraryMaximumRecursion(),
+            QltyConfigurationHelpers.GetArbitraryMaximumRecursion(),
             true,
             IsManualCreation,
             TargetRecordRef,

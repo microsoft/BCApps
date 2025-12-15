@@ -16,6 +16,7 @@ using System.Utilities;
 codeunit 20416 "Qlty. Expression Mgmt."
 {
     var
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         TokenReplacementTok: Label '[%1]', Locked = true, Comment = '%1=the token name to replace';
         TableReplacementPatternRegExTok: Label '\[([^\[\]:]+):([^\[\]:]+)\]', Locked = true;
         Special3ParamFunctionPatternRegExTok: Label '\[(\w+)\(([^;\)\]]*);([^;\)\]]*);([^\)\]]*)\)\]', Locked = true;
@@ -210,7 +211,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
     procedure EvaluateExpressionForRecord(Input: Text; RecordVariant: Variant; FormatText: Boolean) Result: Text
     var
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         AlternateRecordRef: RecordRef;
         SearchForFieldRef: FieldRef;
         MaxFields: Integer;
@@ -220,7 +220,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     begin
         Result := Input;
 
-        if not QltyMiscHelpers.GetRecordRefFromVariant(RecordVariant, AlternateRecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(RecordVariant, AlternateRecordRef) then
             exit(Result);
 
         MaxFields := AlternateRecordRef.FieldCount();
@@ -462,7 +462,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
 
     local procedure LookupFieldValueBasedOn(TableName: Text; NumberOrNameOfFieldToLookup: Text; ConditionalFilter: Text) Result: Text
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         RecordRefToRead: RecordRef;
         FieldRefToLookup: FieldRef;
@@ -484,7 +483,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         FieldRefToLookup := RecordRefToRead.Field(FieldNumber);
 
         if RecordRefToRead.FindFirst() then
-            Result := QltyMiscHelpers.ReadFieldAsText(RecordRefToRead, NumberOrNameOfFieldToLookup, 1);
+            Result := QltyRecordOperations.ReadFieldAsText(RecordRefToRead, NumberOrNameOfFieldToLookup, 1);
     end;
 
     local procedure EvaluateBuiltInTableLookups(Input: Text; var CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var CurrentQltyInspectionTestLine: Record "Qlty. Inspection Test Line") Result: Text
@@ -493,7 +492,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
         TempRegexMatches: Record Matches temporary;
         TempRegexGroups: Record Groups temporary;
         Regex: Codeunit Regex;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TableName: Text;
         FieldName: Text;
         ValueToReplaceWith: Text;
@@ -557,7 +555,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
                                 begin
                                     if Item."No." = '' then
                                         CurrentQltyInspectionTestHeader.GetRelatedItem(Item);
-                                    ValueToReplaceWith := QltyMiscHelpers.ReadFieldAsText(Item, FieldName, FormatKind)
+                                    ValueToReplaceWith := QltyRecordOperations.ReadFieldAsText(Item, FieldName, FormatKind)
                                 end;
                             SpecialTableItemAttributeTok:
                                 ValueToReplaceWith := CurrentQltyInspectionTestHeader.GetItemAttributeValue(FieldName);

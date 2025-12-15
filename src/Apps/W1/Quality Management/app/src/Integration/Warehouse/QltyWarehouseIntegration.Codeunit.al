@@ -112,7 +112,7 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         TransferLineReserve: Codeunit "Transfer Line-Reserve";
         PurchLineReserve: Codeunit "Purch. Line-Reserve";
         SalesLineReserve: Codeunit "Sales Line-Reserve";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         RecordRefToSource: RecordRef;
         ReservationCounter: Integer;
     begin
@@ -120,7 +120,7 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         if TempTrackingSpecification.IsTemporary() then
             TempTrackingSpecification.DeleteAll();
 
-        if not QltyMiscHelpers.GetRecordRefFromVariant(OptionalSourceLineVariant, RecordRefToSource) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(OptionalSourceLineVariant, RecordRefToSource) then
             exit;
 
         case RecordRefToSource.Number() of

@@ -32,6 +32,7 @@ codeunit 20404 "Qlty. Inspection Test - Create"
         LastCreatedQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         RelatedReservFilterReservationEntry: Record "Reservation Entry";
         QltyGenerationRuleMgmt: Codeunit "Qlty. Generation Rule Mgmt.";
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         QltyTraversal: Codeunit "Qlty. Traversal";
         LastQltyInspTestCreateStatus: Enum "Qlty. Insp. Test Create Status";
         PreventShowingGeneratedTestEvenIfConfigured: Boolean;
@@ -97,13 +98,12 @@ codeunit 20404 "Qlty. Inspection Test - Create"
     local procedure InternalCreateTestWithVariantAndTemplate(ReferenceVariant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant) QltyInspTestCreateStatus: Enum "Qlty. Insp. Test Create Status"
     var
         TempDummyQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary;
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
     begin
         if not (ReferenceVariant.IsRecordId() or ReferenceVariant.IsRecordRef() or ReferenceVariant.IsRecord()) then
             exit(QltyInspTestCreateStatus::"Unable to Create");
 
-        if not QltyMiscHelpers.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
             exit(QltyInspTestCreateStatus::"Unable to Create");
 
         exit(InternalCreateTestWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, TempDummyQltyInTestGenerationRule));
@@ -111,13 +111,12 @@ codeunit 20404 "Qlty. Inspection Test - Create"
 
     local procedure InternalCreateTestWithGenerationRule(ReferenceVariant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; var TempFiltersQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary) QltyInspTestCreateStatus: Enum "Qlty. Insp. Test Create Status"
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
     begin
         if not (ReferenceVariant.IsRecordId() or ReferenceVariant.IsRecordRef() or ReferenceVariant.IsRecord()) then
             exit(QltyInspTestCreateStatus::"Unable to Create");
 
-        if not QltyMiscHelpers.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
             exit(QltyInspTestCreateStatus::"Unable to Create");
 
         exit(InternalCreateTestWithSpecificTemplate(TargetRecordRef, IsManualCreation, NoSpecificTemplateTok, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, TempFiltersQltyInTestGenerationRule));
@@ -405,13 +404,12 @@ codeunit 20404 "Qlty. Inspection Test - Create"
     internal procedure FindExistingTestsWithMultipleVariants(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"): Boolean
     var
         DataTypeManagement: Codeunit "Data Type Management";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
         Optional2RecordRef: RecordRef;
         Optional3RecordRef: RecordRef;
         Optional4RecordRef: RecordRef;
     begin
-        if not QltyMiscHelpers.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
+        if not QltyRecordOperations.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
             Error(ProgrammerErrNotARecordRefErr, Format(ReferenceVariant));
 
         if not DataTypeManagement.GetRecordRef(OptionalVariant2, Optional2RecordRef) then;

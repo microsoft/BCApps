@@ -23,6 +23,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
         QltySessionHelper: Codeunit "Qlty. Session Helper";
+        QltyRecordOperations: Codeunit "Qlty. Record Operations";
         PermissionErr: Label 'User %1 not have permission to modify Quality Inspection Results tables, this will prevent test being updated.', Comment = '%1:User ID';
         ProductionRegisteredLogEventIDTok: Label 'QMERR0002', Locked = true;
         TargetDetailRecordTok: Label 'Target', Locked = true;
@@ -542,11 +543,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="Input"></param>
     local procedure LogProductionProblem(ContextVariant: Variant; Input: Text)
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         ContextRecordRef: RecordRef;
         DetailRecord: Text;
     begin
-        if QltyMiscHelpers.GetRecordRefFromVariant(ContextVariant, ContextRecordRef) then
+        if QltyRecordOperations.GetRecordRefFromVariant(ContextVariant, ContextRecordRef) then
             DetailRecord := Format(ContextRecordRef.RecordId())
         else
             DetailRecord := UnknownRecordTok;
