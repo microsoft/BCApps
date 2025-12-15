@@ -1635,7 +1635,6 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesLine: Record "Sales Line";
         InvoiceNo: Code[20];
-        DecimalWithoutTableRelation: Decimal;
     begin
         // [FEATURE] [Prices Excl. VAT] [UT]
         // [SCENARIO 292657] COD 1605 PEPPOLMgt.GetLegalMonetaryInfo() returns "LineExtensionAmount" = line amount excluding vat + invoice discount
