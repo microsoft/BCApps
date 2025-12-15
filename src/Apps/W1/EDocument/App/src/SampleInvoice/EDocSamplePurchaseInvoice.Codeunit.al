@@ -45,6 +45,14 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// Adds a sample purchase invoice.
     /// </summary>
     procedure AddSamplePurchaseInvoice(VendorNo: Code[20]; ExternalDocNo: Text[35]; Scenario: Text[2048])
+    begin
+        AddSamplePurchaseInvoice(VendorNo, ExternalDocNo, Scenario, 0);
+    end;
+
+    /// <summary>
+    /// Adds a sample purchase invoice.
+    /// </summary>
+    procedure AddSamplePurchaseInvoice(VendorNo: Code[20]; ExternalDocNo: Text[35]; Scenario: Text[2048]; TotalTaxAmount: Decimal)
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
@@ -52,7 +60,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         TempEDocPurchHeader.DeleteAll();
         TempEDocPurchLine.Reset();
         TempEDocPurchLine.DeleteAll();
-        InitSamplePurchInvHeader(TempEDocPurchHeader, VendorNo, GetSampleInvoicePostingDate(), ExternalDocNo, 0);
+        InitSamplePurchInvHeader(TempEDocPurchHeader, VendorNo, GetSampleInvoicePostingDate(), ExternalDocNo, TotalTaxAmount);
         TempEDocPurchHeader.Insert();
         SamplePurchInvFile."File Name" := GetSamplePurchInvFileName();
         SamplePurchInvFile.Scenario := Scenario;
