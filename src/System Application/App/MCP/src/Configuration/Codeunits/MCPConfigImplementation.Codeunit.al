@@ -33,6 +33,8 @@ codeunit 8351 "MCP Config Implementation"
         DeletedConfigurationLbl: Label 'Deleted MCP configuration %1', Comment = '%1 - configuration ID', Locked = true;
         SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
         SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
+        InvalidConfigurationWarningLbl: Label 'The configuration is invalid and may not work as expected. Do you want to review warnings before activating?';
+        ConfigValidLbl: Label 'No warnings found. The configuration is valid.';
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -229,6 +231,77 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
     begin
         exit(MCPConfiguration.Name = '');
+    end;
+
+    internal procedure IsConfigurationActive(ConfigId: Guid): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if MCPConfiguration.GetBySystemId(ConfigId) then
+            exit(MCPConfiguration.Active);
+        exit(false);
+    end;
+
+    internal procedure ValidateConfiguration(ConfigId: Guid; OnActivate: Boolean)
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        AllObj: Record AllObj;
+        MCPConfigurationWarning: Record "MCP Config Warning";
+        MCPConfigWarningType: Enum "MCP Config Warning Type";
+    begin
+        // Check for missing objects
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        if MCPConfigurationTool.FindSet() then
+            repeat
+                AllObj.SetRange("Object Type", AllObj."Object Type"::Page);
+                AllObj.SetRange("Object ID", MCPConfigurationTool."Object ID");
+                if AllObj.IsEmpty() then begin
+                    MCPConfigurationWarning."Config Id" := ConfigId;
+                    MCPConfigurationWarning."Tool Id" := MCPConfigurationTool.SystemId;
+                    MCPConfigurationWarning."Warning Type" := MCPConfigWarningType::"Missing Object";
+                    MCPConfigurationWarning.Insert();
+                end;
+            until MCPConfigurationTool.Next() = 0;
+
+        // Check for missing parent objects
+        // TODO: Implement after platform support for parent-child relationships of API pages
+
+        // Raise warning if any issues found
+        if MCPConfigurationWarning.IsEmpty() then begin
+            if not OnActivate then
+                Message(ConfigValidLbl);
+            exit;
+        end;
+
+        if OnActivate then
+            if not Confirm(InvalidConfigurationWarningLbl) then
+                exit;
+
+        Page.Run(Page::"MCP Config Warning List", MCPConfigurationWarning);
+    end;
+
+    internal procedure GetWarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
+    var
+        IMCPConfigWarning: Interface "MCP Config Warning";
+    begin
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        exit(IMCPConfigWarning.WarningMessage(MCPConfigWarning));
+    end;
+
+    internal procedure GetRecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text
+    var
+        IMCPConfigWarning: Interface "MCP Config Warning";
+    begin
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        exit(IMCPConfigWarning.RecommendedAction(MCPConfigWarning));
+    end;
+
+    internal procedure ApplyRecommendedAction(MCPConfigWarning: Record "MCP Config Warning")
+    var
+        IMCPConfigWarning: Interface "MCP Config Warning";
+    begin
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        IMCPConfigWarning.ApplyRecommendedAction(MCPConfigWarning);
     end;
     #endregion
 
@@ -492,6 +565,24 @@ codeunit 8351 "MCP Config Implementation"
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
+    end;
+
+    internal procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    begin
+        // TODO: Replace after platform API to retrieve system tools is available
+        MCPSystemTool.Reset();
+        MCPSystemTool.DeleteAll();
+
+        InsertSystemTool(MCPSystemTool, 'bc_action_describe', 'Describes a Business Central action, providing details about its parameters and usage.');
+        InsertSystemTool(MCPSystemTool, 'bc_action_invoke', 'Invokes a Business Central action with the specified parameters.');
+        InsertSystemTool(MCPSystemTool, 'bc_action_search', 'Searches for available Business Central actions based on the provided criteria.');
+    end;
+
+    local procedure InsertSystemTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
+    begin
+        MCPSystemTool."Tool Name" := ToolName;
+        MCPSystemTool."Tool Description" := ToolDescription;
+        MCPSystemTool.Insert();
     end;
     #endregion
 

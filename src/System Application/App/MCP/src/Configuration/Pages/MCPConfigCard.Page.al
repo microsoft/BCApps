@@ -26,11 +26,11 @@ page 8351 "MCP Config Card"
                 Caption = 'General';
                 field(Name; Rec.Name)
                 {
-                    Editable = not IsDefault;
+                    Editable = not IsDefault and not Rec.Active;
                 }
                 field(Description; Rec.Description)
                 {
-                    Editable = not IsDefault;
+                    Editable = not IsDefault and not Rec.Active;
                     MultiLine = true;
                 }
                 field(Active; Rec.Active)
@@ -40,11 +40,14 @@ page 8351 "MCP Config Card"
                     trigger OnValidate()
                     begin
                         Session.LogMessage('0000QE6', StrSubstNo(SettingConfigurationActiveLbl, Rec.SystemId, Rec.Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
+
+                        if Rec.Active then
+                            MCPConfigImplementation.ValidateConfiguration(Rec.SystemId, true);
                     end;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
-                    Editable = not IsDefault;
+                    Editable = not IsDefault and not Rec.Active;
 
                     trigger OnValidate()
                     begin
@@ -52,11 +55,14 @@ page 8351 "MCP Config Card"
 
                         if not Rec.EnableDynamicToolMode then
                             Rec.DiscoverReadOnlyObjects := false;
+
+                        GetToolModeDescription();
+                        CurrPage.Update();
                     end;
                 }
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
-                    Editable = not IsDefault and Rec.EnableDynamicToolMode;
+                    Editable = not IsDefault and Rec.EnableDynamicToolMode and Rec.Active;
 
                     trigger OnValidate()
                     begin
@@ -65,6 +71,8 @@ page 8351 "MCP Config Card"
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
+                    Editable = not IsDefault and not Rec.Active;
+
                     trigger OnValidate()
                     begin
                         if not Rec.AllowProdChanges then
@@ -74,12 +82,33 @@ page 8351 "MCP Config Card"
                     end;
                 }
             }
+            group(Control2)
+            {
+                Caption = 'Tool Modes';
+                ShowCaption = false;
+
+                field(ToolMode; ToolModeLbl)
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Caption = 'Tool Mode';
+                    ShowCaption = false;
+                    MultiLine = true;
+                }
+            }
+            part(SystemToolList; "MCP System Tool List")
+            {
+                ApplicationArea = All;
+                Visible = not IsDefault and Rec.EnableDynamicToolMode;
+                Editable = false;
+            }
             part(ToolList; "MCP Config Tool List")
             {
                 ApplicationArea = All;
                 SubPageLink = ID = field(SystemId);
                 UpdatePropagation = Both;
                 Visible = not IsDefault;
+                Editable = not Rec.Active;
             }
         }
     }
@@ -100,15 +129,31 @@ page 8351 "MCP Config Card"
                 end;
             }
         }
+        area(Processing)
+        {
+            action(Validate)
+            {
+                Caption = 'Validate';
+                ToolTip = 'Validates the MCP configuration to ensure all settings and tools are correctly configured.';
+                Image = ValidateEmailLoggingSetup;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.ValidateConfiguration(Rec.SystemId, false);
+                end;
+            }
+        }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_Validate; Validate) { }
         }
     }
 
     trigger OnAfterGetRecord()
     begin
         IsDefault := MCPConfigImplementation.IsDefaultConfiguration(Rec);
+        GetToolModeDescription();
     end;
 
     var
@@ -118,4 +163,12 @@ page 8351 "MCP Config Card"
         SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
         SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
         SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
+        ToolModeLbl: Text;
+        StaticToolModeLbl: Label 'In Static Tool Mode, objects in the available tools will be directly exposed to clients. You can manage these tools by adding, modifying, or removing them from the configuration.', Locked = true;
+        DynamicToolModeLbl: Label 'In Dynamic Tool Mode, only system tools will be exposed to clients. Objects within the available tools can be discovered, described and invoked dynamically using system tools. You can enable dynamic discovery of any read-only object outside of the available tools using Discover Additional Objects setting.', Locked = true;
+
+    local procedure GetToolModeDescription(): Text
+    begin
+        ToolModeLbl := Rec.EnableDynamicToolMode ? DynamicToolModeLbl : StaticToolModeLbl;
+    end;
 }

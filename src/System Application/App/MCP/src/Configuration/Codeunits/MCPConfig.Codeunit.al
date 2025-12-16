@@ -99,6 +99,15 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Validates the specified MCP configuration and displays any warnings found, such as missing objects or missing parent objects.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration to validate.</param>
+    procedure ValidateConfiguration(ConfigId: Guid)
+    begin
+        MCPConfigImplementation.ValidateConfiguration(ConfigId, false);
+    end;
+
+    /// <summary>
     /// Creates a new API tool for the specified configuration and API page.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
