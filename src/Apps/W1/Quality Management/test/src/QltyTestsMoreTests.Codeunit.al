@@ -1670,10 +1670,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
     begin
         // [SCENARIO] OnInsert trigger sets system timestamps on inspection line
 
-        // [GIVEN] A inspection header is inserted
+        // [GIVEN] An inspection header is inserted
         QltyInspectionHeader.Insert();
 
-        // [GIVEN] A inspection line is initialized with header keys and line number
+        // [GIVEN] An inspection line is initialized with header keys and line number
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
         QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
@@ -1705,11 +1705,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, theres hould be a inspection line.');
+        LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, there should be an inspection line.');
         repeat
             QltyInspectionHeader.SetTestValue(QltyInspectionLine."Field Code", '1');
         until QltyInspectionLine.Next() = 0;
-        LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, theres hould be a inspection line.');
+        LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, there should be an inspection line.');
 
         Clear(ToLoadQltyIGradeConditionConf);
         ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Inspection);

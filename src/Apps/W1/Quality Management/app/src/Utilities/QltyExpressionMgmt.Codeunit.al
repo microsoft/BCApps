@@ -42,7 +42,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         UOMTok: Label 'UOM', Locked = true;
 
     /// <summary>
-    /// Evaluates a text expression on a inspection line for a specific inspection.
+    /// Evaluates a text expression on an inspection line for a specific inspection.
     /// Validates that the line is a text expression field type and matches its template configuration.
     /// 
     /// Behavior:
@@ -588,7 +588,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     end;
 
     /// <summary>
-    /// Occurs before a text expression is evaluated on a inspection line.
+    /// Occurs before a text expression is evaluated on an inspection line.
     /// </summary>
     /// <param name="QltyInspectionLine"></param>
     /// <param name="CurrentQltyInspectionHeader"></param>

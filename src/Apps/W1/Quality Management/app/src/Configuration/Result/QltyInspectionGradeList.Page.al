@@ -85,67 +85,67 @@ page 20416 "Qlty. Inspection Grade List"
                 field("Lot Allow Sales"; Rec."Lot Allow Sales")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow sales transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow sales transactions.';
                 }
                 field("Lot Allow Purchase"; Rec."Lot Allow Purchase")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Purchase transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Purchase transactions.';
                 }
                 field("Lot Allow Transfer"; Rec."Lot Allow Transfer")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Transfer transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Transfer transactions.';
                 }
                 field("Lot Allow Consumption"; Rec."Lot Allow Consumption")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Consumption transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Consumption transactions.';
                 }
                 field("Lot Allow Output"; Rec."Lot Allow Output")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Output transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Output transactions.';
                 }
                 field("Lot Allow Assembly Consumption"; Rec."Lot Allow Assembly Consumption")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Assembly Consumption transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Assembly Consumption transactions.';
                 }
                 field("Lot Allow Assembly Output"; Rec."Lot Allow Assembly Output")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Assembly Output transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Assembly Output transactions.';
                 }
                 field("Lot Allow Invt. Movement"; Rec."Lot Allow Invt. Movement")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Movement transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Movement transactions.';
                 }
                 field("Lot Allow Invt. Pick"; Rec."Lot Allow Invt. Pick")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Pick transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Pick transactions.';
                 }
                 field("Lot Allow Invt. Put-Away"; Rec."Lot Allow Invt. Put-Away")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Put-Away transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Put-Away transactions.';
                 }
                 field("Lot Allow Movement"; Rec."Lot Allow Movement")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Movement transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Inventory Movement transactions.';
                 }
                 field("Lot Allow Pick"; Rec."Lot Allow Pick")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Pick transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Pick transactions.';
                 }
                 field("Lot Allow Put-Away"; Rec."Lot Allow Put-Away")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'When a inspection for a lot/serial/package has this grade this determines whether or not to allow Put-Away transactions.';
+                    AboutText = 'When an inspection for a lot/serial/package has this grade this determines whether or not to allow Put-Away transactions.';
                 }
                 field("Override Style"; Rec."Override Style")
                 {

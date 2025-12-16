@@ -145,7 +145,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// Retrieves available record values for a table lookup field configured on a inspection line, returned as CSV.
+    /// Retrieves available record values for a table lookup field configured on an inspection line, returned as CSV.
     /// Evaluates expressions and applies filters configured in the field definition to generate the list.
     /// 
     /// Common usage: Populating dropdown lists or validating user input against configured lookup values.
@@ -170,7 +170,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// Retrieves available records for a table lookup field configured on a inspection line.
+    /// Retrieves available records for a table lookup field configured on an inspection line.
     /// Evaluates expressions and applies configured table filters to populate the lookup buffer.
     /// 
     /// This overload automatically loads the inspection header and field definition from the inspection line,

@@ -168,7 +168,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         // [GIVEN] A purchase order with lot tracked item and inspection created
         ReUsableQltyPurOrderGenerator.CreateInspectionFromPurchaseWithLotTrackedItem(Location, 100, PurchaseHeader, PurchaseLine, OriginalQltyInspectionHeader, ReservationEntry);
 
-        // [GIVEN] A inspection-to-inspection source configuration with field mappings
+        // [GIVEN] An inspection-to-inspection source configuration with field mappings
         QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfig);
         SpecificQltyInspectSourceConfig.Init();
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));

@@ -458,7 +458,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Email: Text;
         OutPhone: Text;
     begin
-        // [SCENARIO] Get person details from a inspection line with table lookup field
+        // [SCENARIO] Get person details from an inspection line with table lookup field
 
         Initialize();
 

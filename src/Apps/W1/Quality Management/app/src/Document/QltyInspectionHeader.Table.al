@@ -684,7 +684,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Helper function to set a inspection line value.
+    /// Helper function to set an inspection line value.
     /// </summary>
     /// <param name="NumberOrNameOfFieldCode"></param>
     /// <param name="NumberOrNameOfFieldValue"></param>
