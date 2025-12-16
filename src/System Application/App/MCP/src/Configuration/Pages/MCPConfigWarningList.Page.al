@@ -48,12 +48,15 @@ page 8358 "MCP Config Warning List"
             {
                 ApplicationArea = All;
                 Caption = 'Apply Recommended Action';
-                ToolTip = 'Applies the recommended action for the selected warning.';
+                ToolTip = 'Applies the recommended action for the selected warnings.';
                 Image = ApprovalSetup;
 
                 trigger OnAction()
                 begin
-                    MCPConfigImplementation.ApplyRecommendedAction(Rec);
+                    SetSelectionFilter(Rec);
+                    MCPConfigImplementation.ApplyRecommendedActions(Rec);
+                    Rec.Reset();
+                    Rec.FindSet();
                 end;
             }
         }

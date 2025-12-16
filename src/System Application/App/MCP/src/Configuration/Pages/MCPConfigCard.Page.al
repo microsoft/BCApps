@@ -42,7 +42,7 @@ page 8351 "MCP Config Card"
                         Session.LogMessage('0000QE6', StrSubstNo(SettingConfigurationActiveLbl, Rec.SystemId, Rec.Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
 
                         if Rec.Active then
-                            MCPConfigImplementation.ValidateConfiguration(Rec.SystemId, true);
+                            MCPConfigImplementation.ValidateConfiguration(Rec, true);
                     end;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
@@ -139,7 +139,7 @@ page 8351 "MCP Config Card"
 
                 trigger OnAction()
                 begin
-                    MCPConfigImplementation.ValidateConfiguration(Rec.SystemId, false);
+                    MCPConfigImplementation.ValidateConfiguration(Rec, false);
                 end;
             }
         }
@@ -154,6 +154,11 @@ page 8351 "MCP Config Card"
     begin
         IsDefault := MCPConfigImplementation.IsDefaultConfiguration(Rec);
         GetToolModeDescription();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        ToolModeLbl := StaticToolModeLbl;
     end;
 
     var

@@ -7,7 +7,7 @@ namespace System.MCP;
 
 enum 8350 "MCP Config Warning Type" implements "MCP Config Warning"
 {
-    Access = Internal;
+    Access = Public;
     Extensible = false;
 
     value(0; "Missing Object")

@@ -7,7 +7,8 @@ namespace System.MCP;
 
 table 8352 "MCP Config Warning"
 {
-    Access = Internal;
+    Access = Public;
+    Extensible = false;
     DataClassification = SystemMetadata;
     TableType = Temporary;
     Caption = 'MCP Configuration Warning';
@@ -17,7 +18,6 @@ table 8352 "MCP Config Warning"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
-            AutoIncrement = true;
         }
         field(2; "Config Id"; Guid)
         {

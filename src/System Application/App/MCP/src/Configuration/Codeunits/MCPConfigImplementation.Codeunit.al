@@ -242,32 +242,12 @@ codeunit 8351 "MCP Config Implementation"
         exit(false);
     end;
 
-    internal procedure ValidateConfiguration(ConfigId: Guid; OnActivate: Boolean)
+    internal procedure ValidateConfiguration(var MCPConfiguration: Record "MCP Configuration"; OnActivate: Boolean)
     var
-        MCPConfigurationTool: Record "MCP Configuration Tool";
-        AllObj: Record AllObj;
         MCPConfigurationWarning: Record "MCP Config Warning";
-        MCPConfigWarningType: Enum "MCP Config Warning Type";
     begin
-        // Check for missing objects
-        MCPConfigurationTool.SetRange(ID, ConfigId);
-        if MCPConfigurationTool.FindSet() then
-            repeat
-                AllObj.SetRange("Object Type", AllObj."Object Type"::Page);
-                AllObj.SetRange("Object ID", MCPConfigurationTool."Object ID");
-                if AllObj.IsEmpty() then begin
-                    MCPConfigurationWarning."Config Id" := ConfigId;
-                    MCPConfigurationWarning."Tool Id" := MCPConfigurationTool.SystemId;
-                    MCPConfigurationWarning."Warning Type" := MCPConfigWarningType::"Missing Object";
-                    MCPConfigurationWarning.Insert();
-                end;
-            until MCPConfigurationTool.Next() = 0;
-
-        // Check for missing parent objects
-        // TODO: Implement after platform support for parent-child relationships of API pages
-
         // Raise warning if any issues found
-        if MCPConfigurationWarning.IsEmpty() then begin
+        if not FindWarningsForConfiguration(MCPConfiguration.SystemId, MCPConfigurationWarning) then begin
             if not OnActivate then
                 Message(ConfigValidLbl);
             exit;
@@ -277,7 +257,42 @@ codeunit 8351 "MCP Config Implementation"
             if not Confirm(InvalidConfigurationWarningLbl) then
                 exit;
 
+        MCPConfiguration.Active := false;
         Page.Run(Page::"MCP Config Warning List", MCPConfigurationWarning);
+    end;
+
+    internal procedure FindWarningsForConfiguration(ConfigId: Guid; var MCPConfigurationWarning: Record "MCP Config Warning"): Boolean
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        AllObj: Record AllObj;
+        MCPConfigWarningType: Enum "MCP Config Warning Type";
+        EntryNo: Integer;
+    begin
+        if MCPConfigurationWarning.FindLast() then
+            EntryNo := MCPConfigurationWarning."Entry No." + 1
+        else
+            EntryNo := 1;
+
+        // Check for missing objects
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        if MCPConfigurationTool.FindSet() then
+            repeat
+                AllObj.SetRange("Object Type", AllObj."Object Type"::Page);
+                AllObj.SetRange("Object ID", MCPConfigurationTool."Object ID");
+                if AllObj.IsEmpty() then begin
+                    MCPConfigurationWarning."Entry No." := EntryNo;
+                    MCPConfigurationWarning."Config Id" := ConfigId;
+                    MCPConfigurationWarning."Tool Id" := MCPConfigurationTool.SystemId;
+                    MCPConfigurationWarning."Warning Type" := MCPConfigWarningType::"Missing Object";
+                    MCPConfigurationWarning.Insert();
+                    EntryNo += 1;
+                end;
+            until MCPConfigurationTool.Next() = 0;
+
+        // Check for missing parent objects
+        // TODO: Implement after platform support for parent-child relationships of API pages
+
+        exit(not MCPConfigurationWarning.IsEmpty());
     end;
 
     internal procedure GetWarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
@@ -296,7 +311,17 @@ codeunit 8351 "MCP Config Implementation"
         exit(IMCPConfigWarning.RecommendedAction(MCPConfigWarning));
     end;
 
-    internal procedure ApplyRecommendedAction(MCPConfigWarning: Record "MCP Config Warning")
+    internal procedure ApplyRecommendedActions(var MCPConfigWarning: Record "MCP Config Warning")
+    begin
+        if not MCPConfigWarning.FindSet() then
+            exit;
+
+        repeat
+            ApplyRecommendedAction(MCPConfigWarning);
+        until MCPConfigWarning.Next() = 0;
+    end;
+
+    internal procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
     var
         IMCPConfigWarning: Interface "MCP Config Warning";
     begin

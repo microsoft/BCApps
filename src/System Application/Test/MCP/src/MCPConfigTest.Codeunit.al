@@ -578,6 +578,60 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not false');
     end;
 
+    [Test]
+    procedure TestFindWarningsForConfiguration()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with non-existing object is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [THEN] Warning is created for the tool with non-existing object
+        Assert.RecordCount(MCPConfigWarning, 1);
+        MCPConfigWarning.FindFirst();
+        Assert.AreEqual(MCPConfigWarning."Warning Type"::"Missing Object", MCPConfigWarning."Warning Type", 'Warning Type mismatch');
+        Assert.AreEqual(ToolId, MCPConfigWarning."Tool Id", 'Configuration Tool Id mismatch');
+    end;
+
+    [Test]
+    procedure TestApplyRecommendedAction()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        MCPConfigWarning: Record "MCP Config Warning";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool with non-existing object is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        MCPConfigurationTool.Rename(MCPConfigurationTool.ID, MCPConfigurationTool."Object Type", -1); // non-existing object
+        Commit();
+
+        // [WHEN] Find warnings for configuration is called
+        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+
+        // [WHEN] Apply recommended action is called
+        MCPConfig.ApplyRecommendedAction(MCPConfigWarning);
+
+        // [THEN] Warning is resolved after applying the recommended action
+        Assert.RecordCount(MCPConfigWarning, 0);
+
+        // [THEN] Configuration tool is deleted
+        MCPConfigurationTool.SetRange(SystemId, ToolId);
+        Assert.RecordIsEmpty(MCPConfigurationTool);
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
