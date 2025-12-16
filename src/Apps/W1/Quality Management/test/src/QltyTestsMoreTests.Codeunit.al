@@ -51,7 +51,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         MessageTxt: Text;
         TemplateCodeTok: Label 'TemplateCode', Locked = true;
         GradeCodeTxt: Label 'UNAVAILABLE';
-        DefaultTopLeftTok: Label 'Test', Locked = true;
+        DefaultTopLeftTok: Label 'Inspection', Locked = true;
         DefaultMiddleLeftTok: Label 'Grade', Locked = true;
         DefaultMiddleRightTok: Label 'Details', Locked = true;
         DefaultBottomLeftTok: Label 'Document', Locked = true;
@@ -80,7 +80,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
         ExpressionFormulaFieldCodeTok: Label '[%1]', Comment = '%1=The first field code', Locked = true;
-        TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
+        TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;

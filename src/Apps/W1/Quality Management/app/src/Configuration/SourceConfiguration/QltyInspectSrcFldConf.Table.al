@@ -167,7 +167,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         SourceTok: Label 'Source*', Locked = true;
-        TargetConfigErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
+        TargetConfigErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         ChooseAFromFieldFirstErr: Label 'Please choose a "from" field first before choosing a "to" field.';
         TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4. Are you sure you want to also map the same field here? ', Comment = '%1=the config, %2=the field being mapped in the inspection, %3=the field it is coming from, %4=the table it is coming from. ';
