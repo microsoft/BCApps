@@ -11,9 +11,9 @@ enum 20414 "Qlty. Result Condition Type"
 {
     Caption = 'Quality Result Condition Type';
 
-    value(0; Field)
+    value(0; Test)
     {
-        Caption = 'Field';
+        Caption = 'Test';
     }
     value(1; Template)
     {

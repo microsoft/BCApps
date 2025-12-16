@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.QualityManagement.Configuration.Result;
@@ -303,7 +303,7 @@ page 20435 "Qlty. Lookup Code Part"
     }
 
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         NewLookup: Boolean;
@@ -355,51 +355,51 @@ page 20435 "Qlty. Lookup Code Part"
     procedure HandleOnValidateSimpleOrComplex(ShowSimple: Boolean)
     var
         MostCommonTableReasonCode: Record "Reason Code";
-        OldConfigQltyField: Record "Qlty. Field";
+        OldConfigQltyTest: Record "Qlty. Test";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
     begin
-        OldConfigQltyField := QltyField;
+        OldConfigQltyTest := QltyTest;
         NewLookup := ShowSimple;
         ExistingTable := not ShowSimple;
-        if ExistingTable and (QltyField."Lookup Table No." = 0) then begin
-            QltyField.Validate("Lookup Table No.", Database::"Reason Code");
-            QltyField.Validate("Lookup Field No.", MostCommonTableReasonCode.FieldNo(Code));
+        if ExistingTable and (QltyTest."Lookup Table No." = 0) then begin
+            QltyTest.Validate("Lookup Table No.", Database::"Reason Code");
+            QltyTest.Validate("Lookup Field No.", MostCommonTableReasonCode.FieldNo(Code));
         end else
             if not ExistingTable then begin
-                QltyField.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
-                QltyField.Validate("Lookup Field No.", Rec.FieldNo(Code));
-                if QltyField."Lookup Table Filter" = '' then begin
-                    Rec.SetRange("Group Code", QltyField.Code);
+                QltyTest.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
+                QltyTest.Validate("Lookup Field No.", Rec.FieldNo(Code));
+                if QltyTest."Lookup Table Filter" = '' then begin
+                    Rec.SetRange("Group Code", QltyTest.Code);
                     TableFilter := Rec.GetView(true);
                     TableFilter := QltyFilterHelpers.CleanUpWhereClause(TableFilter);
 
-                    QltyField.Validate("Lookup Table Filter", TableFilter);
+                    QltyTest.Validate("Lookup Table Filter", TableFilter);
                 end;
             end;
-        QltyField.Modify(true);
+        QltyTest.Modify(true);
         CurrPage.Update(false);
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        QltyField.CalcFields("Lookup Table Caption");
-        CaptionOfTable := QltyField."Lookup Table Caption";
-        QltyField.CalcFields("Lookup Field Caption");
-        CaptionOfField := QltyField."Lookup Field Caption";
-        TableFilter := QltyField."Lookup Table Filter";
+        QltyTest.CalcFields("Lookup Table Caption");
+        CaptionOfTable := QltyTest."Lookup Table Caption";
+        QltyTest.CalcFields("Lookup Field Caption");
+        CaptionOfField := QltyTest."Lookup Field Caption";
+        TableFilter := QltyTest."Lookup Table Filter";
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
         Rec."Group Code" := GetGroupCodeFromRecordOrFilter(false);
         if Rec."Group Code" = '' then
-            Rec."Group Code" := QltyField.Code;
+            Rec."Group Code" := QltyTest.Code;
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        if QltyField.Code <> '' then
-            if QltyField.Modify(true) then;
+        if QltyTest.Code <> '' then
+            if QltyTest.Modify(true) then;
 
         UpdateResultOptions();
         CurrPage.Update(false);
@@ -436,81 +436,81 @@ page 20435 "Qlty. Lookup Code Part"
 
     trigger OnModifyRecord(): Boolean
     begin
-        if QltyField.Code <> '' then begin
-            QltyField.UpdateAllowedValuesFromTableLookup();
-            QltyField.Modify(true);
+        if QltyTest.Code <> '' then begin
+            QltyTest.UpdateAllowedValuesFromTableLookup();
+            QltyTest.Modify(true);
         end;
         CurrPage.Update(false);
     end;
 
     trigger OnDeleteRecord(): Boolean
     begin
-        if QltyField.Code <> '' then begin
-            QltyField.UpdateAllowedValuesFromTableLookup();
-            QltyField.Modify(true);
+        if QltyTest.Code <> '' then begin
+            QltyTest.UpdateAllowedValuesFromTableLookup();
+            QltyTest.Modify(true);
         end;
     end;
 
     procedure ChooseLookupTable()
     begin
-        QltyField.AssistEditLookupTable();
-        QltyField.Modify(true);
-        QltyField.CalcFields("Lookup Table Caption", "Lookup Field Caption");
-        CaptionOfTable := QltyField."Lookup Table Caption";
-        CaptionOfField := QltyField."Lookup Field Caption";
-        TableFilter := QltyField."Lookup Table Filter";
+        QltyTest.AssistEditLookupTable();
+        QltyTest.Modify(true);
+        QltyTest.CalcFields("Lookup Table Caption", "Lookup Field Caption");
+        CaptionOfTable := QltyTest."Lookup Table Caption";
+        CaptionOfField := QltyTest."Lookup Field Caption";
+        TableFilter := QltyTest."Lookup Table Filter";
         CurrPage.Update(false);
     end;
 
     procedure ChooseLookupField()
     begin
-        QltyField.AssistEditLookupField();
-        QltyField.UpdateAllowedValuesFromTableLookup();
-        QltyField.Modify(true);
-        QltyField.CalcFields("Lookup Table Caption", "Lookup Field Caption");
-        CaptionOfTable := QltyField."Lookup Table Caption";
-        CaptionOfField := QltyField."Lookup Field Caption";
-        TableFilter := QltyField."Lookup Table Filter";
-        QltyField.Modify(true);
+        QltyTest.AssistEditLookupField();
+        QltyTest.UpdateAllowedValuesFromTableLookup();
+        QltyTest.Modify(true);
+        QltyTest.CalcFields("Lookup Table Caption", "Lookup Field Caption");
+        CaptionOfTable := QltyTest."Lookup Table Caption";
+        CaptionOfField := QltyTest."Lookup Field Caption";
+        TableFilter := QltyTest."Lookup Table Filter";
+        QltyTest.Modify(true);
         CurrPage.Update(false);
     end;
 
     procedure ChooseLookupFilter()
     begin
-        QltyField.AssistEditLookupTableFilter();
-        QltyField.UpdateAllowedValuesFromTableLookup();
-        QltyField.Modify(true);
-        QltyField.CalcFields("Lookup Table Caption", "Lookup Field Caption");
-        CaptionOfTable := QltyField."Lookup Table Caption";
-        CaptionOfField := QltyField."Lookup Field Caption";
-        TableFilter := QltyField."Lookup Table Filter";
+        QltyTest.AssistEditLookupTableFilter();
+        QltyTest.UpdateAllowedValuesFromTableLookup();
+        QltyTest.Modify(true);
+        QltyTest.CalcFields("Lookup Table Caption", "Lookup Field Caption");
+        CaptionOfTable := QltyTest."Lookup Table Caption";
+        CaptionOfField := QltyTest."Lookup Field Caption";
+        TableFilter := QltyTest."Lookup Table Filter";
         CurrPage.Update(false);
     end;
 
-    procedure LoadExistingField(CurrentField: Code[20])
+    procedure LoadExistingTest(CurrentTest: Code[20])
     var
         FindWhere: Integer;
     begin
-        if CurrentField = '' then
+        if CurrentTest = '' then
             exit;
 
-        Rec.SetRange("Group Code", CurrentField);
+        Rec.SetRange("Group Code", CurrentTest);
         if Rec.Find('-') then;
 
-        if not QltyField.Get(CurrentField) then begin
-            QltyField.Init();
-            QltyField.Code := CurrentField;
-            QltyField.Insert();
+        if not QltyTest.Get(CurrentTest) then begin
+            QltyTest.Init();
+            QltyTest.Code := CurrentTest;
+            QltyTest.Insert();
         end;
-        QltyField.SetRecFilter();
-        DefaultValue := QltyField."Default Value";
-        if QltyField."Lookup Table No." = Database::"Qlty. Lookup Code" then begin
-            if QltyField."Lookup Table Filter" <> '' then
-                Rec.SetView(QltyField."Lookup Table Filter")
+        QltyTest.SetRecFilter();
+        DefaultValue := QltyTest."Default Value";
+        if QltyTest."Lookup Table No." = Database::"Qlty. Lookup Code" then begin
+            if QltyTest."Lookup Table Filter" <> '' then
+                Rec.SetView(QltyTest."Lookup Table Filter")
             else
-                Rec.SetRange("Group Code", QltyField.Code);
+                Rec.SetRange("Group Code", QltyTest.Code);
 
-            if OldField <> CurrentField then begin
+            if OldField <> CurrentTest then begin
                 NewLookup := true;
                 ExistingTable := false;
             end;
@@ -521,22 +521,22 @@ page 20435 "Qlty. Lookup Code Part"
         end else begin
             NewLookup := false;
             ExistingTable := true;
-            TableFilter := QltyField."Lookup Table Filter";
+            TableFilter := QltyTest."Lookup Table Filter";
         end;
 
         UpdateRowResultInformation();
 
         LoadExistingResultSelections();
         CurrPage.Update(false);
-        OldField := CurrentField;
+        OldField := CurrentTest;
     end;
 
     local procedure UpdateRowResultInformation()
     begin
-        if QltyField.Code = '' then
+        if QltyTest.Code = '' then
             exit;
 
-        QltyResultConditionMgmt.GetPromotedResultsForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForTest(QltyTest, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -568,7 +568,7 @@ page 20435 "Qlty. Lookup Code Part"
         if not InAcceptable then
             if DictionaryOptionsThatAreDefaults.Remove(GetKey(Option, ResultPosition)) then;
 
-        if QltyField.Code <> '' then begin
+        if QltyTest.Code <> '' then begin
             if InAcceptable then
                 AllResultConditions := CollectAllResultConditionsWithAddedOption(ResultPosition, Option)
             else
@@ -647,8 +647,8 @@ page 20435 "Qlty. Lookup Code Part"
     /// </summary>
     protected procedure ValidateDefaultValue()
     begin
-        QltyField.Validate("Default Value", DefaultValue);
-        QltyField.Modify();
+        QltyTest.Validate("Default Value", DefaultValue);
+        QltyTest.Modify();
     end;
 
     /// <summary>
@@ -656,8 +656,8 @@ page 20435 "Qlty. Lookup Code Part"
     /// </summary>
     protected procedure AssistEditDefaultValue()
     begin
-        QltyField.AssistEditDefaultValue();
-        QltyField.Modify();
-        LoadExistingField(QltyField.Code);
+        QltyTest.AssistEditDefaultValue();
+        QltyTest.Modify();
+        LoadExistingTest(QltyTest.Code);
     end;
 }

@@ -6,7 +6,7 @@ namespace Microsoft.QualityManagement.Integration.Foundation.Attachment;
 
 using Microsoft.Foundation.Attachment;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
@@ -30,16 +30,16 @@ codeunit 20414 "Qlty. Attachment Integration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasNumberFieldPrimaryKey', '', true, true)]
     local procedure HandleOnAfterTableHasNumberFieldPrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     var
-        TempQltyField: Record "Qlty. Field" temporary;
+        TempQltyTest: Record "Qlty. Test" temporary;
         TempQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr." temporary;
         TempQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
         case TableNo of
-            Database::"Qlty. Field":
+            Database::"Qlty. Test":
                 begin
-                    FieldNo := TempQltyField.FieldNo("Code");
+                    FieldNo := TempQltyTest.FieldNo("Code");
                     Result := true;
                 end;
             Database::"Qlty. Inspection Template Hdr.":
@@ -93,14 +93,14 @@ codeunit 20414 "Qlty. Attachment Integration"
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", 'OnBeforeInsertAttachment', '', true, true)]
     local procedure HandleOnBeforeInsertAttachment(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
     var
-        TempQltyField: Record "Qlty. Field" temporary;
+        TempQltyTest: Record "Qlty. Test" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         TempQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr." temporary;
         TempQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line" temporary;
         TemplateCode: Code[20];
         InspectionNo: Code[20];
-        QltyFieldCode: Code[20];
+        QltyTestCode: Code[20];
         LineNo: Integer;
         ReinspectionNo: Integer;
     begin
@@ -117,10 +117,10 @@ codeunit 20414 "Qlty. Attachment Integration"
                     TemplateCode := CopyStr(Format(RecRef.Field(TempQltyInspectionTemplateHdr.FieldNo("Code")).Value()), 1, MaxStrLen(TemplateCode));
                     DocumentAttachment."No." := TemplateCode;
                 end;
-            Database::"Qlty. Field":
+            Database::"Qlty. Test":
                 begin
-                    QltyFieldCode := CopyStr(Format(RecRef.Field(TempQltyField.FieldNo("Code")).Value()), 1, MaxStrLen(QltyFieldCode));
-                    DocumentAttachment."No." := QltyFieldCode;
+                    QltyTestCode := CopyStr(Format(RecRef.Field(TempQltyTest.FieldNo("Code")).Value()), 1, MaxStrLen(QltyTestCode));
+                    DocumentAttachment."No." := QltyTestCode;
                 end;
             Database::"Qlty. Inspection Line":
                 begin
@@ -153,7 +153,7 @@ codeunit 20414 "Qlty. Attachment Integration"
 
     local procedure FilterDocumentAttachment(var DocumentAttachment: Record "Document Attachment"; RecordRef: RecordRef)
     var
-        TempQltyField: Record "Qlty. Field" temporary;
+        TempQltyTest: Record "Qlty. Test" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         TempQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr." temporary;
@@ -165,9 +165,9 @@ codeunit 20414 "Qlty. Attachment Integration"
         LineNo: Integer;
     begin
         case RecordRef.Number() of
-            Database::"Qlty. Field":
+            Database::"Qlty. Test":
                 begin
-                    CurrentField := CopyStr(Format(RecordRef.Field(TempQltyField.FieldNo("Code")).Value()), 1, MaxStrLen(CurrentField));
+                    CurrentField := CopyStr(Format(RecordRef.Field(TempQltyTest.FieldNo("Code")).Value()), 1, MaxStrLen(CurrentField));
                     DocumentAttachment.SetRange("No.", CurrentField);
                 end;
             Database::"Qlty. Inspection Header":
@@ -201,19 +201,19 @@ codeunit 20414 "Qlty. Attachment Integration"
 
     local procedure GetQltyInspectionRecordRefFromDocumentAttachment(DocumentAttachment: Record "Document Attachment"; var FoundRecordRef: RecordRef) DidGetRecord: Boolean
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
         case DocumentAttachment."Table ID" of
-            Database::"Qlty. Field":
+            Database::"Qlty. Test":
                 begin
-                    QltyField.SetRange(Code, DocumentAttachment."No.");
-                    if QltyField.FindLast() then begin
-                        QltyField.SetRecFilter();
-                        FoundRecordRef.GetTable(QltyField);
+                    QltyTest.SetRange(Code, DocumentAttachment."No.");
+                    if QltyTest.FindLast() then begin
+                        QltyTest.SetRecFilter();
+                        FoundRecordRef.GetTable(QltyTest);
                         DidGetRecord := true;
                     end;
                 end;

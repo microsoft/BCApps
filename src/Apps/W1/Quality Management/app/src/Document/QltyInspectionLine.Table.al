@@ -8,7 +8,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment.Configuration;
 using System.Utilities;
@@ -58,26 +58,26 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             BlankZero = true;
         }
-        field(12; "Field Code"; Code[20])
+        field(12; "Test Code"; Code[20])
         {
-            Caption = 'Field Code';
+            Caption = 'Test Code';
             NotBlank = true;
-            TableRelation = "Qlty. Field".Code;
+            TableRelation = "Qlty. Test".Code;
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the field/question/metric in this test.';
 
             trigger OnValidate()
             var
-                QltyField: Record "Qlty. Field";
+                QltyTest: Record "Qlty. Test";
             begin
-                if "Field Code" = '' then
+                if "Test Code" = '' then
                     Rec.Description := ''
                 else
-                    if QltyField.Get("Field Code") then begin
-                        Rec.Description := QltyField.Description;
-                        Rec."Allowable Values" := QltyField."Allowable Values";
+                    if QltyTest.Get("Test Code") then begin
+                        Rec.Description := QltyTest.Description;
+                        Rec."Allowable Values" := QltyTest."Allowable Values";
                         if Rec."Test Value" = '' then
-                            Rec."Test Value" := QltyField."Default Value";
+                            Rec."Test Value" := QltyTest."Default Value";
                     end;
             end;
         }
@@ -88,20 +88,20 @@ table 20406 "Qlty. Inspection Line"
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies a description of the field as it is used on the test.';
         }
-        field(14; "Field Type"; Enum "Qlty. Field Type")
+        field(14; "Test Value Type"; Enum "Qlty. Test Value Type")
         {
-            CalcFormula = lookup("Qlty. Field"."Field Type" where(Code = field("Field Code")));
-            Caption = 'Field Type';
-            Description = 'Specifies the data type of the values you can enter or select for this field. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            CalcFormula = lookup("Qlty. Test"."Test Value Type" where(Code = field("Test Code")));
+            Caption = 'Test Value Type';
+            Description = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the data type of the values you can enter or select for this field. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
         }
         field(16; "Allowable Values"; Text[500])
         {
             Caption = 'Allowable Values';
             Editable = false;
-            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Field. Depending on the Field Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Test. Depending on the Test Value Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
         }
         field(18; "Test Value"; Text[250])
         {
@@ -199,14 +199,14 @@ table 20406 "Qlty. Inspection Line"
         {
             Clustered = true;
         }
-        key(byResult; "Template Code", "Inspection No.", "Reinspection No.", "Field Code", "Result Code")
+        key(byResult; "Template Code", "Inspection No.", "Reinspection No.", "Test Code", "Result Code")
         {
             SumIndexFields = "Result Priority";
         }
         key(byResultPriority; "Template Code", "Inspection No.", "Reinspection No.", "Result Priority")
         {
         }
-        key(byDate; "Template Code", "Inspection No.", "Reinspection No.", "Field Code", SystemCreatedAt, SystemModifiedAt)
+        key(byDate; "Template Code", "Inspection No.", "Reinspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
         {
         }
     }
@@ -264,7 +264,7 @@ table 20406 "Qlty. Inspection Line"
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        Rec.CalcFields("Field Type");
+        Rec.CalcFields("Test Value Type");
         if QltyInspectionTemplateLine.Get(Rec."Template Code", Rec."Template Line No.") then;
 
         if Rec."Allowable Values" = '' then
@@ -273,14 +273,14 @@ table 20406 "Qlty. Inspection Line"
                 Rec."Allowable Values" := QltyInspectionTemplateLine."Allowable Values";
             end;
 
-        case Rec."Field Type" of
-            Rec."Field Type"::"Field Type Option":
+        case Rec."Test Value Type" of
+            Rec."Test Value Type"::"Value Type Option":
                 AssistEditChooseFromList(Rec."Allowable Values");
-            Rec."Field Type"::"Field Type Table Lookup":
+            Rec."Test Value Type"::"Value Type Table Lookup":
                 AssistEditChooseFromTableLookup();
-            Rec."Field Type"::"Field Type Boolean":
+            Rec."Test Value Type"::"Value Type Boolean":
                 AssistEditChooseFromList(BooleanChoiceListLbl);
-            Rec."Field Type"::"Field Type Text":
+            Rec."Test Value Type"::"Value Type Text":
                 AssistEditFreeText();
         end;
     end;
@@ -320,7 +320,7 @@ table 20406 "Qlty. Inspection Line"
             else
                 Rec."Test Value" := CopyStr(LargeText, 1, MaxStrLen(Rec."Test Value"));
 
-        if Rec."Field Type" in [Rec."Field Type"::"Field Type Text"] then begin
+        if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text"] then begin
             Clear(Rec."Test Value Blob");
             Rec."Test Value Blob".CreateOutStream(OutStreamForText);
             OutStreamForText.WriteText(LargeText);
@@ -357,27 +357,27 @@ table 20406 "Qlty. Inspection Line"
     /// <param name="TempBufferQltyLookupCode"></param>
     internal procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
     begin
-        Rec.CalcFields("Field Type");
-        if not QltyField.Get(Rec."Field Code") then
+        Rec.CalcFields("Test Value Type");
+        if not QltyTest.Get(Rec."Test Code") then
             exit;
 
         if not GetInspection() then;
-        QltyField.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
+        QltyTest.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
     end;
 
     /// <summary>
-    /// Returns true if the field is a numeric field type.
+    /// Returns true if the test is a numeric field type.
     /// </summary>
     /// <returns></returns>
     procedure IsNumericFieldType(): Boolean
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
     begin
-        if Rec."Field Code" <> '' then
-            if QltyField.Get(Rec."Field Code") then
-                exit(QltyField.IsNumericFieldType());
+        if Rec."Test Code" <> '' then
+            if QltyTest.Get(Rec."Test Code") then
+                exit(QltyTest.IsNumericFieldType());
     end;
 
     procedure GetFailedSampleCount() FailedSamples: Integer
@@ -401,30 +401,30 @@ table 20406 "Qlty. Inspection Line"
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
-        OfConsideredFieldCodes: List of [Text];
+        OfConsideredTestCodes: List of [Text];
     begin
         if not GetInspection() then
             exit;
 
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
         OthersInSameQltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
-        OthersInSameQltyInspectionLine.SetFilter("Field Type", '%1', QltyInspectionTemplateLine."Field Type"::"Field Type Text Expression");
+        OthersInSameQltyInspectionLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
         OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        OthersInSameQltyInspectionLine.SetAutoCalcFields("Field Type");
+        OthersInSameQltyInspectionLine.SetAutoCalcFields("Test Value Type");
 
         QltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
-        QltyInspectionTemplateLine.SetFilter("Field Type", '%1', QltyInspectionTemplateLine."Field Type"::"Field Type Text Expression");
-        QltyInspectionTemplateLine.SetFilter("Field Code", '<>%1', Rec."Field Code");
-        QltyInspectionTemplateLine.SetAutoCalcFields("Field Type");
+        QltyInspectionTemplateLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
+        QltyInspectionTemplateLine.SetFilter("Test Code", '<>%1', Rec."Test Code");
+        QltyInspectionTemplateLine.SetAutoCalcFields("Test Value Type");
         if QltyInspectionTemplateLine.FindSet() then
             repeat
                 OthersInSameQltyInspectionLine.SetRange("Template Line No.", QltyInspectionTemplateLine."Line No.");
-                OthersInSameQltyInspectionLine.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+                OthersInSameQltyInspectionLine.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
                 if OthersInSameQltyInspectionLine.FindSet() then
                     repeat
-                        OfConsideredFieldCodes.Add(OthersInSameQltyInspectionLine."Field Code");
-                        case OthersInSameQltyInspectionLine."Field Type" of
-                            OthersInSameQltyInspectionLine."Field Type"::"Field Type Text Expression":
+                        OfConsideredTestCodes.Add(OthersInSameQltyInspectionLine."Test Code");
+                        case OthersInSameQltyInspectionLine."Test Value Type" of
+                            OthersInSameQltyInspectionLine."Test Value Type"::"Value Type Text Expression":
                                 OthersInSameQltyInspectionLine.EvaluateTextExpression(QltyInspectionHeader);
                         end;
                     until OthersInSameQltyInspectionLine.Next() = 0;
@@ -432,18 +432,18 @@ table 20406 "Qlty. Inspection Line"
 
         QltyResultEvaluation.GetInspectionLineConfigFilters(Rec, QltyIResultConditConf);
         QltyIResultConditConf.SetFilter("Target Line No.", '<>%1', Rec."Line No.");
-        QltyIResultConditConf.SetFilter("Field Code", '<>%1', Rec."Field Code");
-        QltyIResultConditConf.SetFilter("Condition", StrSubstNo('@*[%1]*', Rec."Field Code"));
-        QltyIResultConditConf.SetLoadFields("Target Line No.", "Field Code");
+        QltyIResultConditConf.SetFilter("Test Code", '<>%1', Rec."Test Code");
+        QltyIResultConditConf.SetFilter("Condition", StrSubstNo('@*[%1]*', Rec."Test Code"));
+        QltyIResultConditConf.SetLoadFields("Target Line No.", "Test Code");
         OthersInSameQltyInspectionLine.Reset();
         if QltyIResultConditConf.FindSet() then
             repeat
                 OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
                 OthersInSameQltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
                 OthersInSameQltyInspectionLine.SetRange("Line No.", QltyIResultConditConf."Target Line No.");
-                OthersInSameQltyInspectionLine.SetRange("Field Code", QltyIResultConditConf."Field Code");
+                OthersInSameQltyInspectionLine.SetRange("Test Code", QltyIResultConditConf."Test Code");
                 if OthersInSameQltyInspectionLine.FindFirst() then begin
-                    OfConsideredFieldCodes.Add(OthersInSameQltyInspectionLine."Field Code");
+                    OfConsideredTestCodes.Add(OthersInSameQltyInspectionLine."Test Code");
                     OthersInSameQltyInspectionLine.ValidateTestValue();
                 end;
             until QltyIResultConditConf.Next() = 0;
@@ -452,10 +452,10 @@ table 20406 "Qlty. Inspection Line"
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
         OthersInSameQltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
         OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
-        OthersInSameQltyInspectionLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', Rec."Field Code"));
+        OthersInSameQltyInspectionLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', Rec."Test Code"));
         if OthersInSameQltyInspectionLine.FindSet(true) then
             repeat
-                if not OfConsideredFieldCodes.Contains(OthersInSameQltyInspectionLine."Field Code") then
+                if not OfConsideredTestCodes.Contains(OthersInSameQltyInspectionLine."Test Code") then
                     OthersInSameQltyInspectionLine.ValidateTestValue();
 
             until OthersInSameQltyInspectionLine.Next() = 0;

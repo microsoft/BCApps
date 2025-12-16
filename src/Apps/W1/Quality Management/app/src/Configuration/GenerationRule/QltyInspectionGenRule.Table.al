@@ -130,7 +130,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         field(15; "Table Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
-                                                                           "Object ID" = field("Source Table No.")));
+                                                                          "Object ID" = field("Source Table No.")));
             Caption = 'Table';
             Editable = false;
             FieldClass = FlowField;

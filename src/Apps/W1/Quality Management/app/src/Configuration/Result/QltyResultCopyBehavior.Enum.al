@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
-/// Whether to automatically configure this result on new fields and new templates.
+/// Whether to automatically configure this result on new tests and new templates.
 /// </summary>
 enum 20413 "Qlty. Result Copy Behavior"
 {

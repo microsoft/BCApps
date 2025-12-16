@@ -7,11 +7,11 @@ namespace Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.AccessControl;
 
 /// <summary>
-/// Introduced to make it easier to analyze inspection values changes over time.
+/// Introduced to make it easier to analyze inspection line values changes over time.
 /// </summary>
 page 20413 "Qlty. Inspection Lines"
 {
-    Caption = 'Quality Inspection Values';
+    Caption = 'Quality Inspection Lines';
     PageType = List;
     SourceTable = "Qlty. Inspection Line";
     SourceTableView = sorting("Inspection No.", "Reinspection No.", "Line No.") order(descending);
@@ -38,7 +38,7 @@ page 20413 "Qlty. Inspection Lines"
                     Editable = false;
                     Visible = false;
                 }
-                field("Field Code"; Rec."Field Code")
+                field("Test Code"; Rec."Test Code")
                 {
                     Editable = false;
                 }
@@ -46,7 +46,7 @@ page 20413 "Qlty. Inspection Lines"
                 {
                     Editable = false;
                 }
-                field("Field Type"; Rec."Field Type")
+                field("Test Value Type"; Rec."Test Value Type")
                 {
                 }
                 field("Allowable Values"; Rec."Allowable Values")

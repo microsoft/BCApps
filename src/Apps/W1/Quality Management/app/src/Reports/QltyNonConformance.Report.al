@@ -86,13 +86,13 @@ report 20403 "Qlty. Non-Conformance"
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
                 DataItemLink = "Inspection No." = field("No."), "Reinspection No." = field("Reinspection No.");
-                RequestFilterFields = "Field Code";
+                RequestFilterFields = "Test Code";
                 CalcFields = "Result Description";
 
-                column(Field_Code; "Field Code") { }
+                column(Field_Code; "Test Code") { }
                 column(Field_Description; Description) { }
                 column(Numeric_Value; "Numeric Value") { }
-                column(Field_Type; "Field Type") { }
+                column(Field_Type; "Test Value Type") { }
                 column(Field_IsLabel; FieldIsLabel) { }
                 column(Field_HasEnteredValue; HasEnteredValue) { }
                 column(Field_IsText; FieldIsText) { }
@@ -230,8 +230,8 @@ report 20403 "Qlty. Non-Conformance"
 
                     IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
-                    FieldIsLabel := CurrentInspectionLine."Field Type" in [CurrentInspectionLine."Field Type"::"Field Type Label"];
-                    FieldIsText := CurrentInspectionLine."Field Type" in [CurrentInspectionLine."Field Type"::"Field Type Text"];
+                    FieldIsLabel := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Label"];
+                    FieldIsText := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Text"];
 
                     HasEnteredValue := not FieldIsLabel and
                         ((CurrentInspectionLine."Test Value" <> '') and (CurrentInspectionLine.SystemCreatedAt <> CurrentInspectionLine.SystemModifiedAt));

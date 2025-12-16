@@ -110,7 +110,7 @@ page 20400 "Qlty. Management Setup"
                         Caption = 'Picture Upload Behavior';
                         ShowCaption = true;
                         AboutTitle = 'Picture Upload Behavior';
-                        AboutText = 'When a picture has been taken, this field defines what to do with that picture.';
+                        AboutText = 'When a picture has been taken, this value defines what to do with that picture.';
                     }
                     group(Workflow)
                     {

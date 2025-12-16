@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.RoleCenters;
 using Microsoft.Purchases.RoleCenters;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -44,11 +44,11 @@ pageextension 20415 "Qlty. Purchasing Agent RC" extends "Purchasing Agent Role C
                 {
                     Caption = 'Analysis';
 
-                    action(Qlty_InspectionValues)
+                    action(Qlty_InspectionLines)
                     {
-                        Caption = 'Quality Inspection Values';
+                        Caption = 'Quality Inspection Lines';
                         Image = AnalysisView;
-                        ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
+                        ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                         ApplicationArea = QualityManagement;
                         RunObject = Page "Qlty. Inspection Lines";
                     }
@@ -75,14 +75,14 @@ pageextension 20415 "Qlty. Purchasing Agent RC" extends "Purchasing Agent Role C
                         RunPageMode = Edit;
                         ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
                     }
-                    action(Qlty_ConfigureFields)
+                    action(Qlty_ConfigureTests)
                     {
                         ApplicationArea = QualityManagement;
-                        Caption = 'Fields';
+                        Caption = 'Tests';
                         Image = MapDimensions;
-                        RunObject = Page "Qlty. Fields";
+                        RunObject = Page "Qlty. Tests";
                         RunPageMode = Edit;
-                        ToolTip = 'Specifies a quality inspection field is a data points to capture, or questions, or measurements.';
+                        ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
                     }
                 }
                 group(Qlty_ManagementConfigure)
@@ -117,11 +117,11 @@ pageextension 20415 "Qlty. Purchasing Agent RC" extends "Purchasing Agent Role C
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection List";
                 }
-                action(Qlty_Sections_InspectionValues)
+                action(Qlty_Sections_InspectionLines)
                 {
-                    Caption = 'Quality Inspection Values';
+                    Caption = 'Quality Inspection Lines';
                     Image = AnalysisView;
-                    ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
+                    ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                     ApplicationArea = QualityManagement;
                     RunObject = Page "Qlty. Inspection Lines";
                 }

@@ -111,7 +111,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(27; "Picture Upload Behavior"; Enum "Qlty. Picture Upload Behavior")
         {
-            Description = 'When a picture has been taken, this field defines what to do with that picture.';
+            Description = 'When a picture has been taken, this value defines what to do with that picture.';
             Caption = 'Picture Upload Behavior';
             ToolTip = 'Specifies what to do with a picture after it has been taken.';
 

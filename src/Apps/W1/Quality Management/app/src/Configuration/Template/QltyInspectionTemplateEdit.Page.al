@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.Template;
 
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
 
@@ -43,7 +43,7 @@ page 20440 "Qlty. Inspection Template Edit"
             group(SettingsForTestExpressionWithAInspection)
             {
                 Caption = 'Test expression with an existing Quality Inspection';
-                Visible = ShowAddFieldFromInspection;
+                Visible = ShowAddTestFromInspection;
                 field(ChooseInspectionRecordId; Format(ChooseInspectionRecordId))
                 {
                     ApplicationArea = All;
@@ -106,7 +106,7 @@ page 20440 "Qlty. Inspection Template Edit"
                             QltyInspectionLines.SetRecord(QltyInspectionLine);
                             QltyInspectionLine.SetRecFilter();
                             if QltyInspectionLine.FindSet() then;
-                            QltyInspectionLine.SetRange("Field Code");
+                            QltyInspectionLine.SetRange("Test Code");
                             QltyInspectionLine.SetRange("Line No.");
                         end;
                         if LimitedToTemplateCode <> '' then
@@ -157,14 +157,14 @@ page 20440 "Qlty. Inspection Template Edit"
     {
         area(Processing)
         {
-            action(AddInspectionField)
+            action(AddInspectionTest)
             {
                 ApplicationArea = All;
-                Caption = 'Add Inspection Field';
+                Caption = 'Add Inspection Test';
                 Image = TaskQualityMeasure;
-                ToolTip = 'Click here to use a Quality Inspection field in this expression.';
-                AboutTitle = 'Add inspection field';
-                AboutText = 'Click here to use a Quality Inspection field in this expression.';
+                ToolTip = 'Click here to use a Quality Inspection test in this expression.';
+                AboutTitle = 'Add inspection test';
+                AboutText = 'Click here to use a Quality Inspection test in this expression.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -172,7 +172,7 @@ page 20440 "Qlty. Inspection Template Edit"
 
                 trigger OnAction()
                 begin
-                    HandleOnAddQltyInspectionField();
+                    HandleOnAddQltyInspectionTest();
                 end;
             }
             action(AddField)
@@ -194,19 +194,19 @@ page 20440 "Qlty. Inspection Template Edit"
                     HandleOnAddFieldFromTable();
                 end;
             }
-            action(AddFieldFromInspection)
+            action(AddTestFromInspection)
             {
                 ApplicationArea = All;
                 Caption = 'Add Inspection Information';
                 Image = Add;
-                ToolTip = 'Click here to insert additional test fields into the template.';
-                AboutTitle = 'Add a field from a quality inspection.';
-                AboutText = 'Click here to insert additional fields into the template.';
+                ToolTip = 'Click here to insert additional tests into the template.';
+                AboutTitle = 'Add a test from a quality inspection.';
+                AboutText = 'Click here to insert additional tests into the template.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                Visible = ShowAddFieldFromInspection;
+                Visible = ShowAddTestFromInspection;
 
                 trigger OnAction()
                 begin
@@ -227,7 +227,7 @@ page 20440 "Qlty. Inspection Template Edit"
         OptionalNameFilter: Text;
         TableNo: Integer;
         ShowEmbeddedFormula: Boolean;
-        ShowAddFieldFromInspection: Boolean;
+        ShowAddTestFromInspection: Boolean;
         ShowAddFieldFromAnyTable: Boolean;
         OutputResult: Text;
         ChooseAValidInspectionFirstBeforeChoosingLineErr: Label 'Please choose a valid existing inspection before choosing a line.';
@@ -251,9 +251,9 @@ page 20440 "Qlty. Inspection Template Edit"
     begin
         TableNo := TableNo2;
         if TableNo = Database::"Qlty. Inspection Header" then
-            ShowAddFieldFromInspection := true;
+            ShowAddTestFromInspection := true;
 
-        ShowAddFieldFromAnyTable := not ShowAddFieldFromInspection;
+        ShowAddFieldFromAnyTable := not ShowAddTestFromInspection;
         OptionalNameFilter := OptionalNameFilter2;
         HtmlContentText := CopyStr(QltyExpressionMgmt.ConvertHTMLBRsToCarriageReturns(ExistingTemplate), 1, MaxStrLen(HtmlContentText));
         ResultAction := CurrPage.RunModal();
@@ -261,56 +261,56 @@ page 20440 "Qlty. Inspection Template Edit"
             ExistingTemplate := QltyExpressionMgmt.ConvertCarriageReturnsToHTMLBRs(HtmlContentText);
     end;
 
-    local procedure HandleOnAddQltyInspectionField()
+    local procedure HandleOnAddQltyInspectionTest()
     begin
         if LimitedToTemplateCode = '' then
-            LookupAnyQltyInspectionField()
+            LookupAnyQltyInspectionTest()
         else
-            LookupOnlyFieldsInTemplate();
+            LookupOnlyTestsInTemplate();
     end;
 
-    local procedure LookupAnyQltyInspectionField()
+    local procedure LookupAnyQltyInspectionTest()
     var
-        QltyField: Record "Qlty. Field";
-        QltyFieldLookup: Page "Qlty. Field Lookup";
+        QltyTest: Record "Qlty. Test";
+        QltyTestLookup: Page "Qlty. Test Lookup";
     begin
-        QltyFieldLookup.LookupMode(true);
-        QltyFieldLookup.SetRecord(QltyField);
-        if QltyFieldLookup.RunModal() in [Action::OK, Action::LookupOK] then begin
-            QltyFieldLookup.GetRecord(QltyField);
-            HtmlContentText += '[' + QltyField.Code + ']';
+        QltyTestLookup.LookupMode(true);
+        QltyTestLookup.SetRecord(QltyTest);
+        if QltyTestLookup.RunModal() in [Action::OK, Action::LookupOK] then begin
+            QltyTestLookup.GetRecord(QltyTest);
+            HtmlContentText += '[' + QltyTest.Code + ']';
         end;
     end;
 
-    local procedure LookupOnlyFieldsInTemplate()
+    local procedure LookupOnlyTestsInTemplate()
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyField: Record "Qlty. Field";
-        QltyFieldLookup: Page "Qlty. Field Lookup";
+        QltyTest: Record "Qlty. Test";
+        QltyTestLookup: Page "Qlty. Test Lookup";
         FieldFilter: Text;
     begin
         QltyInspectionTemplateLine.SetRange("Template Code", LimitedToTemplateCode);
         if QltyInspectionTemplateLine.FindSet() then
             repeat
-                if QltyInspectionTemplateLine."Field Code" <> '' then begin
+                if QltyInspectionTemplateLine."Test Code" <> '' then begin
                     if StrLen(FieldFilter) > 1 then
                         FieldFilter += '|';
-                    FieldFilter += QltyInspectionTemplateLine."Field Code";
+                    FieldFilter += QltyInspectionTemplateLine."Test Code";
                 end;
             until QltyInspectionTemplateLine.Next() = 0;
 
         if FieldFilter <> '' then
-            QltyField.SetFilter(Code, FieldFilter);
-        QltyFieldLookup.LookupMode(true);
-        QltyFieldLookup.SetTableView(QltyField);
-        QltyFieldLookup.SetRecord(QltyField);
-        if QltyFieldLookup.RunModal() in [Action::OK, Action::LookupOK] then begin
-            QltyFieldLookup.GetRecord(QltyField);
-            HtmlContentText += '[' + QltyField.Code + ']';
+            QltyTest.SetFilter(Code, FieldFilter);
+        QltyTestLookup.LookupMode(true);
+        QltyTestLookup.SetTableView(QltyTest);
+        QltyTestLookup.SetRecord(QltyTest);
+        if QltyTestLookup.RunModal() in [Action::OK, Action::LookupOK] then begin
+            QltyTestLookup.GetRecord(QltyTest);
+            HtmlContentText += '[' + QltyTest.Code + ']';
         end;
     end;
 
-    procedure RestrictFieldsToThoseOnTemplate(TemplateCode: Code[20])
+    procedure RestrictTestsToThoseOnTemplate(TemplateCode: Code[20])
     begin
         LimitedToTemplateCode := TemplateCode;
     end;

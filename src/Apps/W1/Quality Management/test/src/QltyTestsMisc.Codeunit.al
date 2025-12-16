@@ -26,7 +26,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -434,7 +434,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         User: Record User;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -485,10 +485,10 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection template with a table lookup field for Salesperson/Purchaser
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A production order with routing line
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
@@ -512,7 +512,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] An inspection line with a Salesperson/Purchaser code value
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
         QltyInspectionLine.FindFirst();
@@ -812,7 +812,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         User: Record User;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -862,11 +862,11 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered to one record
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
@@ -892,7 +892,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
         QltyInspectionLine.FindFirst();
@@ -914,7 +914,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         User: Record User;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -979,11 +979,11 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered by email
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
@@ -1009,7 +1009,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should be exactly one inspection line that matches.');
         QltyInspectionLine.FindFirst();
@@ -1028,8 +1028,8 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         User: Record User;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyField: Record "Qlty. Field";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1079,11 +1079,11 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := SalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(SalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
@@ -1109,18 +1109,18 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
         QltyInspectionLine.FindFirst();
         QltyInspectionLine.Validate("Test Value", SalespersonPurchaser.Code);
         QltyInspectionLine.Modify();
 
-        // [GIVEN] The quality field record retrieved
-        QltyField.Get(QltyInspectionLine."Field Code");
+        // [GIVEN] The quality test record retrieved
+        QltyTest.Get(QltyInspectionLine."Test Code");
 
         // [WHEN] GetRecordsForTableField is called with different parameter combinations (field+header+line, field+header)
-        QltyMiscHelpers.GetRecordsForTableField(QltyField, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
 
         // [THEN] The function returns the correct record using all parameter overloads
         LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
@@ -1128,7 +1128,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         TempBufferQltyLookupCode.FindFirst();
         LibraryAssert.AreEqual(SalespersonPurchaser.Code, TempBufferQltyLookupCode.Code, 'first key should have been set');
 
-        QltyMiscHelpers.GetRecordsForTableField(QltyField, QltyInspectionHeader, TempBufferQltyLookupCode);
+        QltyMiscHelpers.GetRecordsForTableField(QltyTest, QltyInspectionHeader, TempBufferQltyLookupCode);
         LibraryAssert.AreEqual(1, TempBufferQltyLookupCode.Count(), 'should have been 1 record.');
 
         TempBufferQltyLookupCode.FindFirst();
@@ -1141,7 +1141,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         User: Record User;
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        LookupQualityMeasureQltyField: Record "Qlty. Field";
+        LookupQualityMeasureQltyTest: Record "Qlty. Test";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -1213,11 +1213,11 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered by email
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyField."Field Type"::"Field Type Table Lookup", LookupQualityMeasureQltyField, ConfigurationToLoadQltyInspectionTemplateLine);
-        LookupQualityMeasureQltyField."Lookup Table No." := Database::"Salesperson/Purchaser";
-        LookupQualityMeasureQltyField."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
-        LookupQualityMeasureQltyField."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyField."Lookup Table Filter"));
-        LookupQualityMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQualityMeasureQltyTest."Test Value Type"::"Value Type Table Lookup", LookupQualityMeasureQltyTest, ConfigurationToLoadQltyInspectionTemplateLine);
+        LookupQualityMeasureQltyTest."Lookup Table No." := Database::"Salesperson/Purchaser";
+        LookupQualityMeasureQltyTest."Lookup Field No." := FilterSalespersonPurchaser.FieldNo(Code);
+        LookupQualityMeasureQltyTest."Lookup Table Filter" := CopyStr(FilterSalespersonPurchaser.GetView(), 1, maxstrlen(LookupQualityMeasureQltyTest."Lookup Table Filter"));
+        LookupQualityMeasureQltyTest.Modify(false);
 
         // [GIVEN] A prioritized rule for production order routing line
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
@@ -1243,7 +1243,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", LookupQualityMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
         QltyInspectionLine.FindFirst();
@@ -1296,7 +1296,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure GuessDataTypeFromDescriptionAndValue_Description()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyFieldType: Enum "Qlty. Field Type";
+        QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from description text
 
@@ -1305,26 +1305,26 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Various field descriptions with question words, keywords, or phrases
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with description (empty value)
         // [THEN] The function infers the correct data type from description patterns
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Does the monkey eat bananas', ''), 'bool test 3');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Have you eaten bananas', ''), 'bool test 4');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Do the monkeys eat bananas', ''), 'bool test 5');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Is the monkey eating a banana', ''), 'bool test 6');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot #', ''), 'lot 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot number', ''), 'lot 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial #', ''), 'serial 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial number', ''), 'serial 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('posting date', ''), 'date 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another date orso', ''), 'date 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another dATE orso', ''), 'date 2b');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('date something was seen.', ''), 'date 3');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Date something was seen.', ''), 'date 3b case');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Does the monkey eat bananas', ''), 'bool test 3');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Have you eaten bananas', ''), 'bool test 4');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Do the monkeys eat bananas', ''), 'bool test 5');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Is the monkey eating a banana', ''), 'bool test 6');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot #', ''), 'lot 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('lot number', ''), 'lot 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial #', ''), 'serial 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('serial number', ''), 'serial 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('posting date', ''), 'date 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another date orso', ''), 'date 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('another dATE orso', ''), 'date 2b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('date something was seen.', ''), 'date 3');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('Date something was seen.', ''), 'date 3b case');
     end;
 
     [Test]
     procedure GuessDataTypeFromDescriptionAndValue_Values()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        QltyFieldType: Enum "Qlty. Field Type";
+        QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from actual values
 
@@ -1335,20 +1335,20 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [THEN] The function infers the correct data type from value patterns
         LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
 
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'TRUE'), 'bool test 1b');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'FALSE'), 'bool test 2b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'TRUE'), 'bool test 1b');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'FALSE'), 'bool test 2b');
 
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':selected:'), 'bool test document intelligence/form recognizer');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':unselected:'), 'bool test document intelligence/form recognizer');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':selected:'), 'bool test document intelligence/form recognizer');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', ':unselected:'), 'bool test document intelligence/form recognizer');
 
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '1.0001'), 'decimal test 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '2'), 'decimal test 2');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(today())), 'date 1');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000))), 'date 2 locale');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000), 0, 9)), 'date 3 ISO 8601');
-        LibraryAssert.AreEqual(QltyFieldType::"Field Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'abc'), 'text 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '1.0001'), 'decimal test 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Decimal", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', '2'), 'decimal test 2');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(today())), 'date 1');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000))), 'date 2 locale');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Date", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', Format(DMY2Date(1, 1, 2000), 0, 9)), 'date 3 ISO 8601');
+        LibraryAssert.AreEqual(QltyTestValueType::"Value Type Text", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'abc'), 'text 1');
     end;
 
     [Test]

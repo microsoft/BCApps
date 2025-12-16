@@ -5,11 +5,11 @@
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
 /// <summary>
-/// A configuration priority flag is used to help determine if a field takes precedence over other matching fields.
+/// A configuration priority flag is used to help determine if a test takes precedence over other matching tests.
 /// </summary>
-enum 20464 "Qlty. Config. Field Priority"
+enum 20464 "Qlty. Config. Test Priority"
 {
-    Caption = 'Quality Configuration Field Priority';
+    Caption = 'Quality Configuration Test Priority';
 
     value(0; Normal)
     {

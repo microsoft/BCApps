@@ -133,21 +133,21 @@ page 20402 "Qlty. Inspection Template"
     {
         area(Processing)
         {
-            action(tNewField)
+            action(NewTest)
             {
                 Image = Default;
-                Caption = 'Add Field(s) To This Template';
-                ToolTip = 'Add a new Field or existing Field(s) to this template';
+                Caption = 'Add Test(s) To This Template';
+                ToolTip = 'Add a new Test or existing Test(s) to this template';
                 Scope = Repeater;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
-                AboutTitle = 'Add field(s)';
-                AboutText = 'Add a new field or add existing fields to this template.';
+                AboutTitle = 'Add test(s)';
+                AboutText = 'Add a new test or add existing tests to this template.';
 
                 trigger OnAction()
                 begin
-                    CurrPage.LinesPart.Page.AddFieldWizard();
+                    CurrPage.LinesPart.Page.AddTestWizard();
                 end;
             }
             action(ViewRules)

@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
-/// Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
+/// Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
 /// </summary>
 page 20416 "Qlty. Inspection Result List"
 {
@@ -16,7 +16,7 @@ page 20416 "Qlty. Inspection Result List"
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
     AboutTitle = 'About Results';
-    AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
+    AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority test are evaluated first. If you are not sure what to configure here then use the three defaults. The document specific lot blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
 
     layout
     {
@@ -47,7 +47,7 @@ page 20416 "Qlty. Inspection Result List"
                 field("Copy Behavior"; Rec."Copy Behavior")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'Whether to automatically configure this result on new fields and new templates.';
+                    AboutText = 'Whether to automatically configure this result on new tests and new templates.';
                 }
                 field("Result Visibility"; Rec."Result Visibility")
                 {

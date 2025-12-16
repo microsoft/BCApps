@@ -316,7 +316,7 @@ codeunit 20408 "Qlty. Traversal"
         QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
         QltyInspectSrcFldConf.SetFilter("To Field No.", '<>0');
         QltyInspectSrcFldConf.SetFilter("From Field No.", '<>0');
-        QltyInspectSrcFldConf.SetLoadFields("From Field No.", "To Field No.", "Priority Field");
+        QltyInspectSrcFldConf.SetLoadFields("From Field No.", "To Field No.", "Priority Test");
         if QltyInspectSrcFldConf.FindSet() then begin
             RecordRef.GetTable(QltyInspectionHeader);
             repeat
@@ -354,7 +354,7 @@ codeunit 20408 "Qlty. Traversal"
                         NewValueWasSet := Format(FromVariantValue) <> '';
                 end;
 
-                if NewValueWasSet and (ForceSetValues or (not OldFieldWasSet) or (QltyInspectSrcFldConf."Priority Field" = QltyInspectSrcFldConf."Priority Field"::Priority)) then begin
+                if NewValueWasSet and (ForceSetValues or (not OldFieldWasSet) or (QltyInspectSrcFldConf."Priority Test" = QltyInspectSrcFldConf."Priority Test"::Priority)) then begin
                     MaxTextLength := 0;
                     if FromFieldRef.Type in [FieldType::Text, FieldType::Code] then
                         MaxTextLength := ToFieldRef.Length;

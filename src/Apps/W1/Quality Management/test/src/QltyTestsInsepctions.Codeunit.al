@@ -12,7 +12,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -106,39 +106,39 @@ codeunit 139970 "Qlty. Tests - Insepctions"
     end;
 
     [Test]
-    procedure HandleOnBeforeInsertAttachment_Field()
+    procedure HandleOnBeforeInsertAttachment_Test()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         DocumentAttachment: Record "Document Attachment";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
         OutStreamToTest: OutStream;
-        FieldCode: Text;
+        TestCode: Text;
     begin
-        // [SCENARIO] Attach a document to a Quality Field and verify attachment details
+        // [SCENARIO] Attach a document to a Quality Test and verify attachment details
 
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A Quality Field with a randomly generated code is created
-        ToLoadQltyField.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
-        ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField.Insert();
+        // [GIVEN] A Quality Test with a randomly generated code is created
+        ToLoadQltyTest.Init();
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyTest.Code), TestCode);
+        ToLoadQltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest.Insert();
 
         // [GIVEN] A file content is prepared in a temporary blob
         TempBlob.CreateOutStream(OutStreamToTest);
         OutStreamToTest.WriteText(OutStreamLbl);
 
-        // [WHEN] The attachment is saved to the field record
-        RecordRef.GetTable(ToLoadQltyField);
+        // [WHEN] The attachment is saved to the test record
+        RecordRef.GetTable(ToLoadQltyTest);
         DocumentAttachment.SaveAttachment(RecordRef, FileNameTok, TempBlob);
 
-        // [THEN] The document attachment is correctly linked to the field with proper table ID and field code
-        LibraryAssert.AreEqual(Database::"Qlty. Field", DocumentAttachment."Table ID", 'Should be field.');
-        LibraryAssert.AreEqual(ToLoadQltyField.Code, DocumentAttachment."No.", 'Should be correct field.');
+        // [THEN] The document attachment is correctly linked to the test with proper table ID and test code
+        LibraryAssert.AreEqual(Database::"Qlty. Test", DocumentAttachment."Table ID", 'Should be test.');
+        LibraryAssert.AreEqual(ToLoadQltyTest.Code, DocumentAttachment."No.", 'Should be correct test.');
     end;
 
     [Test]
@@ -325,90 +325,90 @@ codeunit 139970 "Qlty. Tests - Insepctions"
 
     [Test]
     [HandlerFunctions('DocumentAttachmentDetailsModalPageHandler')]
-    procedure HandleOnAfterOpenForRecRef_Field()
+    procedure HandleOnAfterOpenForRecRef_Test()
     var
-        QltyField: Record "Qlty. Field";
-        SecondQltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
+        SecondQltyTest: Record "Qlty. Test";
         DocumentAttachment: Record "Document Attachment";
         SecondDocumentAttachment: Record "Document Attachment";
         DocumentAttachmentDetails: Page "Document Attachment Details";
         RecordRef: RecordRef;
-        FieldCode: Text;
-        SecondFieldCode: Text;
+        TestCode: Text;
+        SecondTestCode: Text;
     begin
-        // [SCENARIO] Opening document attachment details for a Quality Field record through RecordRef shows only attachments for that specific field
+        // [SCENARIO] Opening document attachment details for a Quality Test record through RecordRef shows only attachments for that specific test
 
         Initialize();
 
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] Two Quality Field records with different codes are created
-        QltyField.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
-        QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
-        QltyField.Insert();
+        // [GIVEN] Two Quality Test records with different codes are created
+        QltyTest.Init();
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(QltyTest.Code), TestCode);
+        QltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code));
+        QltyTest.Insert();
 
-        SecondQltyField.Init();
+        SecondQltyTest.Init();
         repeat
-            QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SecondQltyField.Code), SecondFieldCode);
-        until SecondFieldCode <> FieldCode;
-        SecondQltyField.Code := CopyStr(SecondFieldCode, 1, MaxStrLen(SecondQltyField.Code));
-        SecondQltyField.Insert();
+            QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SecondQltyTest.Code), SecondTestCode);
+        until SecondTestCode <> TestCode;
+        SecondQltyTest.Code := CopyStr(SecondTestCode, 1, MaxStrLen(SecondQltyTest.Code));
+        SecondQltyTest.Insert();
 
-        // [GIVEN] Document attachments are created for both field records
+        // [GIVEN] Document attachments are created for both test records
         DocumentAttachment.Init();
-        DocumentAttachment."Table ID" := Database::"Qlty. Field";
-        DocumentAttachment."No." := QltyField.Code;
+        DocumentAttachment."Table ID" := Database::"Qlty. Test";
+        DocumentAttachment."No." := QltyTest.Code;
         DocumentAttachment."File Name" := FirstFileNameTxt;
         DocumentAttachment.Insert();
 
         SecondDocumentAttachment.Init();
-        SecondDocumentAttachment."Table ID" := Database::"Qlty. Field";
-        SecondDocumentAttachment."No." := SecondQltyField.Code;
+        SecondDocumentAttachment."Table ID" := Database::"Qlty. Test";
+        SecondDocumentAttachment."No." := SecondQltyTest.Code;
         SecondDocumentAttachment."File Name" := SecondFileNameTxt;
         SecondDocumentAttachment.Insert();
 
-        // [WHEN] The document attachment details page is opened for the first field via RecordRef
-        RecordRef.GetTable(QltyField);
+        // [WHEN] The document attachment details page is opened for the first test via RecordRef
+        RecordRef.GetTable(QltyTest);
         FileName := FirstFileNameTxt;
         DocumentAttachmentDetails.OpenForRecRef(RecordRef);
         DocumentAttachmentDetails.RunModal();
 
-        // [THEN] Only the attachment for the first field is displayed (verified in modal page handler)
+        // [THEN] Only the attachment for the first test is displayed (verified in modal page handler)
     end;
 
     [Test]
-    procedure FilterDocumentAttachment_Field()
+    procedure FilterDocumentAttachment_Test()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         DocumentAttachment: Record "Document Attachment";
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         RecordRef: RecordRef;
-        FieldCode: Text;
+        TestCode: Text;
     begin
-        // [SCENARIO] Filter document attachments for a Quality Field record and verify correct filter is applied
+        // [SCENARIO] Filter document attachments for a Quality Test record and verify correct filter is applied
 
         Initialize();
 
-        // [GIVEN] A Quality Field with a randomly generated code is created
-        ToLoadQltyField.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
-        ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField.Insert();
+        // [GIVEN] A Quality Test with a randomly generated code is created
+        ToLoadQltyTest.Init();
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyTest.Code), TestCode);
+        ToLoadQltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] A document attachment is created for the field
+        // [GIVEN] A document attachment is created for the test
         DocumentAttachment.Init();
-        DocumentAttachment."Table ID" := Database::"Qlty. Field";
-        DocumentAttachment."No." := ToLoadQltyField.Code;
+        DocumentAttachment."Table ID" := Database::"Qlty. Test";
+        DocumentAttachment."No." := ToLoadQltyTest.Code;
         DocumentAttachment."File Name" := FileNameTxt;
         DocumentAttachment.Insert();
 
-        // [WHEN] Document attachment filters are set for the field record
-        RecordRef.GetTable(ToLoadQltyField);
+        // [WHEN] Document attachment filters are set for the test record
+        RecordRef.GetTable(ToLoadQltyTest);
         DocumentAttachmentMgmt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachment, RecordRef);
 
-        // [THEN] The document attachment is filtered to the correct field code
-        LibraryAssert.AreEqual(ToLoadQltyField.Code, DocumentAttachment.GetFilter("No."), 'Should be filtered to field code.');
+        // [THEN] The document attachment is filtered to the correct test code
+        LibraryAssert.AreEqual(ToLoadQltyTest.Code, DocumentAttachment.GetFilter("No."), 'Should be filtered to test code.');
     end;
 
     [Test]

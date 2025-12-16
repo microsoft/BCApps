@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.Result;
 
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
 using System.DateTime;
@@ -38,16 +38,16 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// </summary>
     /// <param name="OptionalQltyInspectionHeader"></param>
     /// <param name="QltyIResultConditConf"></param>
-    /// <param name="QltyFieldType"></param>
+    /// <param name="QltyTestValueType"></param>
     /// <param name="TestValue"></param>
     /// <param name="CaseOption"></param>
     /// <returns></returns>
     internal procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyFieldType: Enum "Qlty. Field Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
+        QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
     var
         TempNotUsedOptionalQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        exit(EvaluateResult(OptionalQltyInspectionHeader, TempNotUsedOptionalQltyInspectionLine, QltyIResultConditConf, QltyFieldType, TestValue, QltyCaseSensitivity));
+        exit(EvaluateResult(OptionalQltyInspectionHeader, TempNotUsedOptionalQltyInspectionLine, QltyIResultConditConf, QltyTestValueType, TestValue, QltyCaseSensitivity));
     end;
 
     /// <summary>
@@ -56,11 +56,11 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// </summary>
     /// <param name="OptionalQltyInspectionHeader"></param>
     /// <param name="QltyIResultConditConf"></param>
-    /// <param name="QltyFieldType"></param>
+    /// <param name="QltyTestValueType"></param>
     /// <param name="TestValue"></param>
     /// <param name="CaseOption"></param>
     /// <returns></returns>
-    procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyFieldType: Enum "Qlty. Field Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
+    procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary;
@@ -72,7 +72,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         Small: Text[250];
         Condition: Text;
     begin
-        OnBeforeEvaluateResult(QltyIResultConditConf, QltyFieldType, TestValue, Result, Handled);
+        OnBeforeEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, Handled);
         if Handled then
             exit;
 
@@ -91,33 +91,33 @@ codeunit 20410 "Qlty. Result Evaluation"
                     if Condition.Contains('[') then
                         Condition := QltyExpressionMgmt.EvaluateTextExpression(Condition, OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
 
-                    case QltyFieldType of
-                        QltyFieldType::"Field Type Decimal":
+                    case QltyTestValueType of
+                        QltyTestValueType::"Value Type Decimal":
                             LoopConditionMet := CheckIfValueIsDecimal(TestValue, Condition);
-                        QltyFieldType::"Field Type Integer":
+                        QltyTestValueType::"Value Type Integer":
                             LoopConditionMet := CheckIfValueIsInteger(TestValue, Condition);
-                        QltyFieldType::"Field Type Boolean":
+                        QltyTestValueType::"Value Type Boolean":
                             if QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(TestValue) and
                                QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(Condition)
                             then
                                 LoopConditionMet := QltyMiscHelpers.GetBooleanFor(TestValue) = QltyMiscHelpers.GetBooleanFor(Condition)
                             else
                                 LoopConditionMet := CheckIfValueIsString(TestValue, Condition, QltyCaseSensitivity);
-                        QltyFieldType::"Field Type Text", QltyFieldType::"Field Type Option", QltyFieldType::"Field Type Table Lookup", QltyFieldType::"Field Type Text Expression":
+                        QltyTestValueType::"Value Type Text", QltyTestValueType::"Value Type Option", QltyTestValueType::"Value Type Table Lookup", QltyTestValueType::"Value Type Text Expression":
                             LoopConditionMet := CheckIfValueIsString(TestValue, Condition, QltyCaseSensitivity);
-                        QltyFieldType::"Field Type Date":
+                        QltyTestValueType::"Value Type Date":
                             begin
                                 Small := CopyStr(TestValue, 1, MaxStrLen(Small));
                                 LoopConditionMet := CheckIfValueIsDate(Small, Condition, false);
                                 TestValue := Small;
                             end;
-                        QltyFieldType::"Field Type DateTime":
+                        QltyTestValueType::"Value Type DateTime":
                             begin
                                 Small := CopyStr(TestValue, 1, MaxStrLen(Small));
                                 LoopConditionMet := CheckIfValueIsDateTime(Small, Condition, false);
                                 TestValue := Small;
                             end;
-                        QltyFieldType::"Field Type Label":
+                        QltyTestValueType::"Value Type Label":
                             LoopConditionMet := true;
                     end;
                     if LoopConditionMet then begin
@@ -128,7 +128,7 @@ codeunit 20410 "Qlty. Result Evaluation"
 
         until QltyInspectionResult.Next() = 0;
 
-        OnAfterEvaluateResult(QltyIResultConditConf, QltyFieldType, TestValue, Result, TempHighestQltyIResultConditConf, Handled);
+        OnAfterEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, TempHighestQltyIResultConditConf, Handled);
         if Handled then
             exit;
 
@@ -175,13 +175,13 @@ codeunit 20410 "Qlty. Result Evaluation"
 
     procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; Modify: Boolean)
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         Result: Code[20];
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";
     begin
-        QltyInspectionLine.CalcFields("Field Type");
+        QltyInspectionLine.CalcFields("Test Value Type");
 
         if CheckForAllowableValues then
             ValidateAllowableValuesOnInspectionLine(QltyInspectionLine, OptionalQltyInspectionHeader);
@@ -189,10 +189,10 @@ codeunit 20410 "Qlty. Result Evaluation"
         GetTestResultConditionConfigFilters(QltyInspectionLine, QltyIResultConditConf);
 
         QltyCaseSensitivity := QltyCaseSensitivity::Sensitive;
-        if QltyField.Get(QltyInspectionLine."Field Code") then
-            QltyCaseSensitivity := QltyField."Case Sensitive";
+        if QltyTest.Get(QltyInspectionLine."Test Code") then
+            QltyCaseSensitivity := QltyTest."Case Sensitive";
 
-        Result := EvaluateResult(OptionalQltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, QltyInspectionLine."Field Type", QltyInspectionLine."Test Value", QltyCaseSensitivity);
+        Result := EvaluateResult(OptionalQltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, QltyInspectionLine."Test Value Type", QltyInspectionLine."Test Value", QltyCaseSensitivity);
 
         QltyInspectionLine."Failure State" := QltyInspectionLine."Failure State"::" ";
         if Result <> '' then begin
@@ -220,7 +220,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         TemplateLineQltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         TemplateLineQltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         TemplateLineQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TemplateLineQltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        TemplateLineQltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
     end;
 
     local procedure GetTestResultConditionConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
@@ -230,50 +230,50 @@ codeunit 20410 "Qlty. Result Evaluation"
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         if QltyIResultConditConf.IsEmpty() then begin
             QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Template);
             QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Template Code");
             QltyIResultConditConf.SetRange("Target Reinspection No.");
             QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Template Line No.");
-            QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+            QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
             if QltyIResultConditConf.IsEmpty() then begin
-                QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Field);
-                QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Field Code");
+                QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Test);
+                QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Test Code");
                 QltyIResultConditConf.SetRange("Target Reinspection No.");
                 QltyIResultConditConf.SetRange("Target Line No.");
-                QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+                QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
             end;
         end;
     end;
 
     local procedure ValidateAllowableValuesOnInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";
-        FieldNameForError: Text;
+        TestNameForError: Text;
         AllowableValues: Text;
     begin
-        QltyInspectionLine.CalcFields("Field Type");
+        QltyInspectionLine.CalcFields("Test Value Type");
         if QltyInspectionLine."Test Value" = '' then
             exit;
 
         if QltyInspectionLine.Description <> '' then
-            FieldNameForError := QltyInspectionLine.Description
+            TestNameForError := QltyInspectionLine.Description
         else
-            FieldNameForError := QltyInspectionLine."Field Code";
+            TestNameForError := QltyInspectionLine."Test Code";
 
-        if QltyInspectionLine."Field Type" in [QltyInspectionLine."Field Type"::"Field Type Option", QltyInspectionLine."Field Type"::"Field Type Table Lookup"] then
+        if QltyInspectionLine."Test Value Type" in [QltyInspectionLine."Test Value Type"::"Value Type Option", QltyInspectionLine."Test Value Type"::"Value Type Table Lookup"] then
             QltyInspectionLine.CollectAllowableValues(TempBufferQltyLookupCode);
 
         QltyCaseSensitivity := QltyCaseSensitivity::Sensitive;
-        if QltyField.Get(QltyInspectionLine."Field Code") then
-            QltyCaseSensitivity := QltyField."Case Sensitive";
+        if QltyTest.Get(QltyInspectionLine."Test Code") then
+            QltyCaseSensitivity := QltyTest."Case Sensitive";
 
-        if QltyInspectionLine.IsTemporary() and (QltyInspectionLine."Field Type" in [QltyInspectionLine."Field Type"::"Field Type Option", QltyInspectionLine."Field Type"::"Field Type Table Lookup"]) then
+        if QltyInspectionLine.IsTemporary() and (QltyInspectionLine."Test Value Type" in [QltyInspectionLine."Test Value Type"::"Value Type Option", QltyInspectionLine."Test Value Type"::"Value Type Table Lookup"]) then
             QltyCaseSensitivity := QltyCaseSensitivity::Insensitive;
 
         AllowableValues := QltyInspectionLine."Allowable Values";
@@ -281,52 +281,52 @@ codeunit 20410 "Qlty. Result Evaluation"
             AllowableValues := QltyExpressionMgmt.EvaluateTextExpression(AllowableValues, OptionalQltyInspectionHeader, QltyInspectionLine);
 
         ValidateAllowableValuesOnText(
-            FieldNameForError,
+            TestNameForError,
             QltyInspectionLine."Test Value",
             AllowableValues,
-            QltyInspectionLine."Field Type",
+            QltyInspectionLine."Test Value Type",
             TempBufferQltyLookupCode,
             QltyCaseSensitivity);
     end;
 
-    procedure ValidateAllowableValuesOnField(var QltyField: Record "Qlty. Field")
+    procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test")
     var
         TempDummyQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        ValidateAllowableValuesOnField(QltyField, TempDummyQltyInspectionHeader, TempDummyQltyInspectionLine);
+        ValidateAllowableValuesOnTest(QltyTest, TempDummyQltyInspectionHeader, TempDummyQltyInspectionLine);
     end;
 
-    internal procedure ValidateAllowableValuesOnField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        ValidateAllowableValuesOnField(QltyField, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine);
+        ValidateAllowableValuesOnTest(QltyTest, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine);
     end;
 
-    procedure ValidateAllowableValuesOnField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line")
+    procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line")
     var
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";
-        FieldNameForError: Text;
+        TestNameForError: Text;
     begin
-        if QltyField.Description <> '' then
-            FieldNameForError := QltyField.Description
+        if QltyTest.Description <> '' then
+            TestNameForError := QltyTest.Description
         else
-            FieldNameForError := QltyField.Code;
+            TestNameForError := QltyTest.Code;
 
-        if QltyField."Field Type" in [QltyField."Field Type"::"Field Type Option", QltyField."Field Type"::"Field Type Table Lookup"] then
-            QltyField.CollectAllowableValues(OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyLookupCode, QltyField."Default Value");
+        if QltyTest."Test Value Type" in [QltyTest."Test Value Type"::"Value Type Option", QltyTest."Test Value Type"::"Value Type Table Lookup"] then
+            QltyTest.CollectAllowableValues(OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyLookupCode, QltyTest."Default Value");
 
-        QltyCaseSensitivity := QltyField."Case Sensitive";
+        QltyCaseSensitivity := QltyTest."Case Sensitive";
 
-        if QltyField.IsTemporary() and (QltyField."Field Type" in [QltyField."Field Type"::"Field Type Option", QltyField."Field Type"::"Field Type Table Lookup"]) then
+        if QltyTest.IsTemporary() and (QltyTest."Test Value Type" in [QltyTest."Test Value Type"::"Value Type Option", QltyTest."Test Value Type"::"Value Type Table Lookup"]) then
             QltyCaseSensitivity := QltyCaseSensitivity::Insensitive;
 
-        ValidateAllowableValuesOnText(FieldNameForError, QltyField."Default Value", QltyField."Allowable Values", QltyField."Field Type", TempBufferQltyLookupCode, QltyCaseSensitivity);
+        ValidateAllowableValuesOnText(TestNameForError, QltyTest."Default Value", QltyTest."Allowable Values", QltyTest."Test Value Type", TempBufferQltyLookupCode, QltyCaseSensitivity);
     end;
 
-    local procedure ValidateAllowableValuesOnText(NumberOrNameOfFieldNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyFieldType: Enum "Qlty. Field Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
+    local procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
@@ -336,46 +336,46 @@ codeunit 20410 "Qlty. Result Evaluation"
         DateOnlyValue: Date;
         Handled: Boolean;
     begin
-        OnBeforeValidateAllowableValuesOnText(NumberOrNameOfFieldNameForError, TextToValidate, AllowableValues, QltyFieldType, TempBufferQltyLookupCode, QltyCaseSensitivity, Handled);
+        OnBeforeValidateAllowableValuesOnText(NumberOrNameOfTestNameForError, TextToValidate, AllowableValues, QltyTestValueType, TempBufferQltyLookupCode, QltyCaseSensitivity, Handled);
         if Handled then
             exit;
 
         if TextToValidate = '' then
             exit;
 
-        case QltyFieldType of
-            QltyFieldType::"Field Type Decimal":
+        case QltyTestValueType of
+            QltyTestValueType::"Value Type Decimal":
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then begin
                     if (TextToValidate <> '') and (not Evaluate(ValueAsDecimal, TextToValidate)) then
-                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
+                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfTestNameForError, QltyTestValueType);
 
                     if not QltyResultEvaluation.CheckIfValueIsDecimal(TextToValidate, AllowableValues) then
-                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
+                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
-            QltyFieldType::"Field Type Integer":
+            QltyTestValueType::"Value Type Integer":
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then begin
                     if (TextToValidate <> '') and (not Evaluate(ValueAsInteger, TextToValidate)) then
-                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
+                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfTestNameForError, QltyTestValueType);
 
                     if not QltyResultEvaluation.CheckIfValueIsInteger(TextToValidate, AllowableValues) then
-                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
+                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
-            QltyFieldType::"Field Type DateTime":
+            QltyTestValueType::"Value Type DateTime":
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then begin
                     if (TextToValidate <> '') and (not Evaluate(DateAndTimeValue, TextToValidate)) then
-                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
+                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfTestNameForError, QltyTestValueType);
                     if not QltyResultEvaluation.CheckIfValueIsDateTime(TextToValidate, AllowableValues, true) then
-                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
+                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, QltyTestValueType);
                 end;
-            QltyFieldType::"Field Type Date":
+            QltyTestValueType::"Value Type Date":
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then begin
                     if (TextToValidate <> '') and (not Evaluate(DateOnlyValue, TextToValidate)) then
-                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
+                        Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfTestNameForError, QltyTestValueType);
 
                     if not QltyResultEvaluation.CheckIfValueIsDate(TextToValidate, AllowableValues, true) then
-                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
+                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
-            QltyFieldType::"Field Type Boolean":
+            QltyTestValueType::"Value Type Boolean":
                 begin
                     if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
                         if QltyMiscHelpers.GetBooleanFor(TextToValidate) then
@@ -385,18 +385,18 @@ codeunit 20410 "Qlty. Result Evaluation"
 
                     if (AllowableValues <> '') and (QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
                         if not QltyMiscHelpers.GetBooleanFor(TextToValidate) = QltyMiscHelpers.GetBooleanFor(AllowableValues) then
-                            Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
+                            Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                     end else
                         if not (TextToValidate in [QltyMiscHelpers.GetTranslatedYes250(), QltyMiscHelpers.GetTranslatedNo250(), '']) then
-                            Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
+                            Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
-            QltyFieldType::"Field Type Text":
+            QltyTestValueType::"Value Type Text":
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
                     if not QltyResultEvaluation.CheckIfValueIsString(TextToValidate, ConvertStr(AllowableValues, ',', '|'), QltyCaseSensitivity) then
-                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
+                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
 
-            QltyFieldType::"Field Type Option",
-                QltyFieldType::"Field Type Table Lookup":
+            QltyTestValueType::"Value Type Option",
+                QltyTestValueType::"Value Type Table Lookup":
                 begin
                     TempBufferQltyLookupCode.Reset();
                     TempBufferQltyLookupCode.SetRange("Custom 1", TextToValidate);
@@ -415,10 +415,10 @@ codeunit 20410 "Qlty. Result Evaluation"
                         TempBufferQltyLookupCode.FindFirst();
                         TextToValidate := CopyStr(TempBufferQltyLookupCode."Custom 1", 1, MaxStrLen(TextToValidate));
                     end else
-                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
+                        Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
         end;
-        OnAfterValidateAllowableValuesOnText(NumberOrNameOfFieldNameForError, TextToValidate, AllowableValues, QltyFieldType, TempBufferQltyLookupCode, QltyCaseSensitivity);
+        OnAfterValidateAllowableValuesOnText(NumberOrNameOfTestNameForError, TextToValidate, AllowableValues, QltyTestValueType, TempBufferQltyLookupCode, QltyCaseSensitivity);
     end;
 
     internal procedure CheckIfValueIsDecimal(ValueToCheck: Text; AcceptableValue: Text): Boolean
@@ -578,32 +578,32 @@ codeunit 20410 "Qlty. Result Evaluation"
 
     internal procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
     var
-        TempTestStringValueQltyField: Record "Qlty. Field" temporary;
+        TempTestStringValueQltyTest: Record "Qlty. Test" temporary;
     begin
         if IsAnythingExceptEmptyCondition(AcceptableValue) then
             exit(ValueToCheck <> '');
 
         if QltyCaseSensitivity = QltyCaseSensitivity::Insensitive then begin
-            TempTestStringValueQltyField."Allowable Values" := CopyStr(ValueToCheck.ToLower(), 1, MaxStrLen(TempTestStringValueQltyField."Allowable Values"));
+            TempTestStringValueQltyTest."Allowable Values" := CopyStr(ValueToCheck.ToLower(), 1, MaxStrLen(TempTestStringValueQltyTest."Allowable Values"));
             AcceptableValue := AcceptableValue.ToLower();
         end else
-            TempTestStringValueQltyField."Allowable Values" := CopyStr(ValueToCheck, 1, MaxStrLen(TempTestStringValueQltyField."Allowable Values"));
+            TempTestStringValueQltyTest."Allowable Values" := CopyStr(ValueToCheck, 1, MaxStrLen(TempTestStringValueQltyTest."Allowable Values"));
 
-        TempTestStringValueQltyField.Insert();
-        TempTestStringValueQltyField.SetFilter("Allowable Values", AcceptableValue);
-        exit(not TempTestStringValueQltyField.IsEmpty());
+        TempTestStringValueQltyTest.Insert();
+        TempTestStringValueQltyTest.SetFilter("Allowable Values", AcceptableValue);
+        exit(not TempTestStringValueQltyTest.IsEmpty());
     end;
 
     /// <summary>
     /// OnBeforeEvaluateResult gives an opportunity to change how a result is evaluated.
     /// </summary>
     /// <param name="QltyIResultConditConf">var Record "Qlty. Result Condition Config".</param>
-    /// <param name="FieldType">var Rnum "Qlty. Field Type".</param>
+    /// <param name="QltyTestValueType">var Rnum "Qlty. Test Value Type".</param>
     /// <param name="TestValue">var Text.</param>
     /// <param name="OutCode">The result.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyFieldType: Enum "Qlty. Field Type"; var TestValue: Text; var Result: Code[20]; var Handled: Boolean)
+    local procedure OnBeforeEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var Handled: Boolean)
     begin
     end;
 
@@ -611,42 +611,42 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// OnAfterEvaluateResult gives an opportunity to run additional logic after a result has been determined by the system.
     /// </summary>
     /// <param name="QltyIResultConditConf">var Record "Qlty. Result Condition Config".</param>
-    /// <param name="FieldType">var Enum "Qlty. Field Type".</param>
+    /// <param name="QltyTestValueType">var Enum "Qlty. Test Value Type".</param>
     /// <param name="TestValue">var Text.</param>
     /// <param name="Result">var Code[20].</param>
     /// <param name="TempHighestQltyIResultConditConf">var Record "Qlty. I. Result Condit. Conf." temporary.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyFieldType: Enum "Qlty. Field Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary; var Handled: Boolean)
+    local procedure OnAfterEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Allows you to alter the behavior of validating allowable values on text.
     /// </summary>
-    /// <param name="FieldNameForError"></param>
+    /// <param name="TestNameForError"></param>
     /// <param name="TextToValidate"></param>
     /// <param name="AllowableValues"></param>
-    /// <param name="FieldType"></param>
+    /// <param name="QltyTestValueType"></param>
     /// <param name="TempBufferQltyLookupCode"></param>
     /// <param name="CaseOption"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateAllowableValuesOnText(var FieldNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyFieldType: Enum "Qlty. Field Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"; var Handled: Boolean)
+    local procedure OnBeforeValidateAllowableValuesOnText(var TestNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Provides the opportunity to extend and add additional validation after the allowable values has occurred.
     /// </summary>
-    /// <param name="FieldNameForError"></param>
+    /// <param name="TestNameForError"></param>
     /// <param name="TextToValidate"></param>
     /// <param name="AllowableValues"></param>
-    /// <param name="FieldType"></param>
+    /// <param name="QltyTestValueType"></param>
     /// <param name="TempBufferQltyLookupCode"></param>
     /// <param name="CaseOption"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterValidateAllowableValuesOnText(var FieldNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyFieldType: Enum "Qlty. Field Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
+    local procedure OnAfterValidateAllowableValuesOnText(var TestNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     begin
     end;
 }

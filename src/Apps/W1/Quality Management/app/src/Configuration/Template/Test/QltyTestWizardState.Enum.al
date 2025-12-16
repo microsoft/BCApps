@@ -2,22 +2,21 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 /// <summary>
-/// Used to help control if pass/fail result criteria is case sensitive or not.
+/// Helps note the expected wizard test state.
 /// </summary>
-enum 20440 "Qlty. Case Sensitivity"
+enum 20421 "Qlty. Test Wizard State"
 {
-    Caption = 'Quality Case Sensitivity';
-    Extensible = false;
+    Caption = 'Quality Test Wizard State';
 
-    value(0; Sensitive)
+    value(0; Complete)
     {
-        Caption = 'Sensitive';
+        Caption = 'Complete';
     }
-    value(1; Insensitive)
+    value(1; "In Progress")
     {
-        Caption = 'Insensitive';
+        Caption = 'In Progress';
     }
 }

@@ -21,7 +21,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -64,12 +64,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
         InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
         ExpressionFormulaTok: Label '[No.]';
-        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing inspections (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        TestTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         VendorFilterCountryTok: Label 'WHERE(Country/Region Code=FILTER(CA))', Locked = true;
         VendorFilterNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Vendor No.', Locked = true;
         ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
-        ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for field "%1", for result "%2".', Comment = '%1=the field, %2=the result';
+        ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for test "%1", for result "%2".', Comment = '%1=the test, %2=the result';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.', Locked = true;
         FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of inspections. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
         ConditionFilterItemNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
@@ -79,7 +79,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         UnableToIdentifyTheTrackingErr: Label 'Unable to identify the tracking for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         DefaultResult2PassCodeTok: Label 'PASS', Locked = true;
-        ExpressionFormulaFieldCodeTok: Label '[%1]', Comment = '%1=The first field code', Locked = true;
+        ExpressionFormulaTestCodeTok: Label '[%1]', Comment = '%1=The first test code', Locked = true;
         TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
@@ -88,155 +88,155 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
     [Test]
     [HandlerFunctions('LookupTableModalPageHandler_FirstRecord')]
-    procedure FieldCardPage_AssistEditLookupTable()
+    procedure TestCardPage_AssistEditLookupTable()
     var
         AllObjWithCaption: Record AllObjWithCaption;
-        ToLoadQltyField: Record "Qlty. Field";
-        QltyFieldCard: TestPage "Qlty. Field Card";
-        FieldCode: Text;
+        ToLoadQltyTest: Record "Qlty. Test";
+        QltyTestCard: TestPage "Qlty. Test Card";
+        TestCode: Text;
     begin
-        // [SCENARIO] User can use AssistEdit to select a lookup table for a Table Lookup field type
+        // [SCENARIO] User can use AssistEdit to select a lookup table for a Table Lookup test value type
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Table Lookup" is created
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Table Lookup");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A new quality test with Test Value Type "Table Lookup" is created
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] The Quality Field Card page is opened and navigated to the field
-        QltyFieldCard.OpenEdit();
-        QltyFieldCard.GoToRecord(ToLoadQltyField);
+        // [GIVEN] The Quality Test Card page is opened and navigated to the test
+        QltyTestCard.OpenEdit();
+        QltyTestCard.GoToRecord(ToLoadQltyTest);
 
         // [WHEN] AssistEdit is invoked on the "Lookup Table No." field
-        QltyFieldCard."Lookup Table No.".AssistEdit();
-        QltyFieldCard.Close();
+        QltyTestCard."Lookup Table No.".AssistEdit();
+        QltyTestCard.Close();
 
         // [THEN] The first table from AllObjWithCaption is selected via modal handler
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
         AllObjWithCaption.FindFirst();
 
-        // [THEN] The field's Lookup Table No. is updated with the selected table ID
-        ToLoadQltyField.Get(ToLoadQltyField.Code);
-        LibraryAssert.AreEqual(AllObjWithCaption."Object ID", ToLoadQltyField."Lookup Table No.", 'Should be same table no.')
+        // [THEN] The test's Lookup Table No. is updated with the selected table ID
+        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
+        LibraryAssert.AreEqual(AllObjWithCaption."Object ID", ToLoadQltyTest."Lookup Table No.", 'Should be same table no.')
     end;
 
     [Test]
-    procedure FieldTable_ValidateExpressionFormula()
+    procedure TestTable_ValidateExpressionFormula()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Text;
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Text;
     begin
         // [SCENARIO] Expression Formula can only be used with Expression field types, not Boolean
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Boolean" is created
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Boolean");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A new quality test with Test Value Type "Boolean" is created
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
+        ToLoadQltyTest.Insert();
 
-        // [WHEN] Attempting to set Expression Formula on a Boolean field type
-        asserterror ToLoadQltyField.Validate("Expression Formula", ExpressionFormulaTok);
+        // [WHEN] Attempting to set Expression Formula on a Boolean test value type
+        asserterror ToLoadQltyTest.Validate("Expression Formula", ExpressionFormulaTok);
 
-        // [THEN] An error is raised indicating Expression Formula is only for Expression field types
+        // [THEN] An error is raised indicating Expression Formula is only for Expression test value types
         LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
     end;
 
     [Test]
     [HandlerFunctions('FilterPageHandler')]
-    procedure FieldCardPage_AssistEditLookupTableFilter()
+    procedure TestCardPage_AssistEditLookupTableFilter()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         Vendor: Record Vendor;
-        QltyFieldCard: TestPage "Qlty. Field Card";
-        FieldCode: Text;
+        QltyTestCard: TestPage "Qlty. Test Card";
+        TestCode: Text;
     begin
         // [SCENARIO] User can use AssistEdit to define a filter for the lookup table (e.g., filter Vendors by Country)
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Table Lookup" targeting Vendor table is created
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Table Lookup");
-        ToLoadQltyField.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyField.Validate("Lookup Field No.", Vendor.FieldNo("No."));
-        ToLoadQltyField.Insert();
+        // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
+        ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
+        ToLoadQltyTest.Insert();
 
         // [GIVEN] A filter expression for Country/Region Code is prepared for the handler
         AssistEditTemplateValue := VendorFilterCountryTok;
 
-        // [GIVEN] The Quality Field Card page is opened and navigated to the field
-        QltyFieldCard.OpenEdit();
-        QltyFieldCard.GoToRecord(ToLoadQltyField);
+        // [GIVEN] The Quality Test Card page is opened and navigated to the test
+        QltyTestCard.OpenEdit();
+        QltyTestCard.GoToRecord(ToLoadQltyTest);
 
         // [WHEN] AssistEdit is invoked on the "Lookup Table Filter" field
-        QltyFieldCard."Lookup Table Filter".AssistEdit();
-        QltyFieldCard.Close();
+        QltyTestCard."Lookup Table Filter".AssistEdit();
+        QltyTestCard.Close();
 
-        // [THEN] The field's Lookup Table Filter is updated with the country filter expression
-        ToLoadQltyField.Get(ToLoadQltyField.Code);
-        LibraryAssert.AreEqual(VendorFilterCountryTok, ToLoadQltyField."Lookup Table Filter", 'Should be same filter.')
+        // [THEN] The test's Lookup Table Filter is updated with the country filter expression
+        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
+        LibraryAssert.AreEqual(VendorFilterCountryTok, ToLoadQltyTest."Lookup Table Filter", 'Should be same filter.')
     end;
 
     [Test]
-    procedure Field_OnInsert()
+    procedure Test_OnInsert()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         Vendor: Record Vendor;
         LibraryPurchase: Codeunit "Library - Purchase";
-        FieldCode: Text;
+        TestCode: Text;
     begin
         // [SCENARIO] When a Table Lookup field is inserted with a filter, Allowable Values are auto-populated from the filtered records
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Table Lookup" targeting Vendor table is configured
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Table Lookup");
-        ToLoadQltyField.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyField.Validate("Lookup Field No.", Vendor.FieldNo("No."));
+        // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is configured
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
+        ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
 
         // [GIVEN] A filter limiting to the specific vendor number is applied
-        ToLoadQltyField.Validate("Lookup Table Filter", StrSubstNo(VendorFilterNoTok, Vendor."No."));
+        ToLoadQltyTest.Validate("Lookup Table Filter", StrSubstNo(VendorFilterNoTok, Vendor."No."));
 
-        // [WHEN] The field record is inserted with trigger execution
-        ToLoadQltyField.Insert(true);
+        // [WHEN] The test record is inserted with trigger execution
+        ToLoadQltyTest.Insert(true);
 
         // [THEN] The Allowable Values are automatically populated with the vendor number from the filtered results
-        LibraryAssert.AreEqual(Vendor."No.", ToLoadQltyField."Allowable Values", 'Should be same vendor no.')
+        LibraryAssert.AreEqual(Vendor."No.", ToLoadQltyTest."Allowable Values", 'Should be same vendor no.')
     end;
 
     [Test]
-    procedure FieldTable_AssistEditExpressionFormula_ShouldError()
+    procedure TestTable_AssistEditExpressionFormula_ShouldError()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        QltyFieldExprCardPart: TestPage "Qlty. Field Expr. Card Part";
-        FieldCode: Text;
+        ToLoadQltyTest: Record "Qlty. Test";
+        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
+        TestCode: Text;
     begin
         // [SCENARIO] AssistEdit on Expression Formula should error when field type is Boolean
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Boolean" is created
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Boolean");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A new quality test with Test Value Type "Boolean" is created
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] The Quality Field Expression Card Part page is opened and navigated to the field
-        QltyFieldExprCardPart.OpenEdit();
-        QltyFieldExprCardPart.GoToRecord(ToLoadQltyField);
+        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
+        QltyTestExprCardPart.OpenEdit();
+        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
 
         // [WHEN] AssistEdit is invoked on the "Expression Formula" field for a Boolean type
-        asserterror QltyFieldExprCardPart."Expression Formula".AssistEdit();
+        asserterror QltyTestExprCardPart."Expression Formula".AssistEdit();
 
         // [THEN] An error is raised indicating Expression Formula is only for Expression field types
         LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
@@ -244,13 +244,13 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
     [Test]
     [HandlerFunctions('ModalPageHandleChooseFromLookup_VendorNo')]
-    procedure FieldTable_AssistEditDefaultValue_TypeTableLookup()
+    procedure TestTable_AssistEditDefaultValue_TypeTableLookup()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         Vendor: Record Vendor;
         LibraryPurchase: Codeunit "Library - Purchase";
-        QltyFieldCard: TestPage "Qlty. Field Card";
+        QltyTestCard: TestPage "Qlty. Test Card";
     begin
         // [SCENARIO] User can use AssistEdit to select a default value from the lookup table for a Table Lookup field
 
@@ -265,70 +265,70 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyManagementSetup."Max Rows Field Lookups" := Vendor.Count() + 1;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A quality field with Field Type "Table Lookup" targeting Vendor table is created
-        QltyInspectionUtility.CreateField(ToLoadQltyField, ToLoadQltyField."Field Type"::"Field Type Table Lookup");
-        ToLoadQltyField.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyField.Validate("Lookup Field No.", Vendor.FieldNo("No."));
-        ToLoadQltyField.Modify();
+        // [GIVEN] A quality test with Field Type "Table Lookup" targeting Vendor table is created
+        QltyInspectionUtility.CreateTest(ToLoadQltyTest, ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
+        ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
+        ToLoadQltyTest.Modify();
 
-        // [GIVEN] The Quality Field Card page is opened and navigated to the field
-        QltyFieldCard.OpenEdit();
-        QltyFieldCard.GoToRecord(ToLoadQltyField);
+        // [GIVEN] The Quality Test Card page is opened and navigated to the test
+        QltyTestCard.OpenEdit();
+        QltyTestCard.GoToRecord(ToLoadQltyTest);
 
         // [GIVEN] The vendor number is prepared for selection via modal handler
         ChooseFromLookupValueVendorNo := Vendor."No.";
 
         // [WHEN] AssistEdit is invoked on the "Default Value" field
-        QltyFieldCard."Default Value".AssistEdit();
-        QltyFieldCard.Close();
+        QltyTestCard."Default Value".AssistEdit();
+        QltyTestCard.Close();
 
-        // [THEN] The field's Default Value is updated with the selected vendor number
-        ToLoadQltyField.Get(ToLoadQltyField.Code);
-        LibraryAssert.AreEqual(Vendor."No.", ToLoadQltyField."Default Value", 'Should be same vendor no.')
+        // [THEN] The test's Default Value is updated with the selected vendor number
+        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
+        LibraryAssert.AreEqual(Vendor."No.", ToLoadQltyTest."Default Value", 'Should be same vendor no.')
     end;
 
     [Test]
     [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure FieldTable_AssistEditExpressionFormula()
+    procedure TestTable_AssistEditExpressionFormula()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        QltyFieldExprCardPart: TestPage "Qlty. Field Expr. Card Part";
-        FieldCode: Text;
+        ToLoadQltyTest: Record "Qlty. Test";
+        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
+        TestCode: Text;
     begin
         // [SCENARIO] User can use AssistEdit to define an expression formula for a Text Expression field type
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Text Expression" is created
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Text Expression");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A new quality test with Test Value Type "Text Expression" is created
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] The Quality Field Expression Card Part page is opened and navigated to the field
-        QltyFieldExprCardPart.OpenEdit();
-        QltyFieldExprCardPart.GoToRecord(ToLoadQltyField);
+        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
+        QltyTestExprCardPart.OpenEdit();
+        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
 
         // [GIVEN] An expression formula value is prepared for the handler
         AssistEditTemplateValue := ExpressionFormulaTok;
 
         // [WHEN] AssistEdit is invoked on the "Expression Formula" field
-        QltyFieldExprCardPart."Expression Formula".AssistEdit();
+        QltyTestExprCardPart."Expression Formula".AssistEdit();
 
-        // [THEN] The field's Expression Formula is updated with the prepared value
-        ToLoadQltyField.Get(ToLoadQltyField.Code);
-        LibraryAssert.AreEqual(ExpressionFormulaTok, ToLoadQltyField."Expression Formula", 'Should be same expression formula.')
+        // [THEN] The test's Expression Formula is updated with the prepared value
+        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
+        LibraryAssert.AreEqual(ExpressionFormulaTok, ToLoadQltyTest."Expression Formula", 'Should be same expression formula.')
     end;
 
     [Test]
-    procedure FieldTable_ValidateFieldType_ShouldError()
+    procedure TestTable_ValidateTestValueType_ShouldError()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
-        // [SCENARIO] Changing a field type should error if the field is already used in an existing inspection
+        // [SCENARIO] Changing a test value type should error if the test is already used in an existing inspection
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -336,21 +336,21 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] The first inspection line is retrieved
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
 
-        // [GIVEN] The field used in the inspection line is retrieved
-        ToLoadQltyField.Get(QltyInspectionLine."Field Code");
+        // [GIVEN] The test used in the inspection line is retrieved
+        ToLoadQltyTest.Get(QltyInspectionLine."Test Code");
 
-        // [WHEN] Attempting to change the field type to Boolean
-        asserterror ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Boolean");
+        // [WHEN] Attempting to change the test value type to Boolean
+        asserterror ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
 
-        // [THEN] An error is raised indicating the field cannot be changed because it's used in inspection
-        LibraryAssert.ExpectedError(StrSubstNo(FieldTypeErrInfoMsg, '', QltyInspectionHeader."No."));
+        // [THEN] An error is raised indicating the test value type cannot be changed because it's used in inspection
+        LibraryAssert.ExpectedError(StrSubstNo(TestTypeErrInfoMsg, '', QltyInspectionHeader."No."));
     end;
 
     [Test]
-    procedure FieldTable_SetResultCondition_CannotGetResult_ShouldError()
+    procedure TestTable_SetResultCondition_CannotGetResult_ShouldError()
     var
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
         // [SCENARIO] Setting a result condition should error if the result does not exist and ThrowError is true
 
@@ -360,17 +360,17 @@ codeunit 139965 "Qlty. Tests - More Tests"
             ToLoadQltyInspectionResult.Delete();
 
         // [WHEN] Attempting to set a result condition for a non-existent result with ThrowError = true
-        asserterror ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', true);
+        asserterror ToLoadQltyTest.SetResultCondition(ResultCodeTxt, '', true);
 
         // [THEN] An error is raised indicating the result does not exist
         LibraryAssert.ExpectedError(StrSubstNo(ThereIsNoResultErr, ResultCodeTxt));
     end;
 
     [Test]
-    procedure FieldTable_SetResultCondition_CannotGetResult_ShouldExit()
+    procedure TestTable_SetResultCondition_CannotGetResult_ShouldExit()
     var
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
         // [SCENARIO] Setting a result condition should exit gracefully if the result does not exist and ThrowError is false
 
@@ -380,18 +380,18 @@ codeunit 139965 "Qlty. Tests - More Tests"
             ToLoadQltyInspectionResult.Delete();
 
         // [WHEN] Attempting to set a result condition for a non-existent result with ThrowError = false
-        ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', false);
+        ToLoadQltyTest.SetResultCondition(ResultCodeTxt, '', false);
 
         // [THEN] The operation exits gracefully without raising an error
     end;
 
     [Test]
-    procedure FieldTable_SetResultCondition_CannotGetResultConfig_ShouldError()
+    procedure TestTable_SetResultCondition_CannotGetResultConfig_ShouldError()
     var
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCodeTxt: Text;
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCodeTxt: Text;
     begin
         // [SCENARIO] Setting a result condition should error if the result exists but has no configuration and ThrowError is true
 
@@ -407,23 +407,23 @@ codeunit 139965 "Qlty. Tests - More Tests"
         if ToLoadQltyIResultConditConf.FindSet() then
             ToLoadQltyIResultConditConf.DeleteAll();
 
-        // [GIVEN] A random field code is generated and a field is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCodeTxt);
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCodeTxt, 1, MaxStrLen(ToLoadQltyField.Code)));
+        // [GIVEN] A random test code is generated and a field is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCodeTxt);
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCodeTxt, 1, MaxStrLen(ToLoadQltyTest.Code)));
 
         // [WHEN] Attempting to set a result condition with no configuration and ThrowError = true
-        asserterror ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', true);
+        asserterror ToLoadQltyTest.SetResultCondition(ResultCodeTxt, '', true);
 
         // [THEN] An error is raised indicating the result configuration needs review
-        LibraryAssert.ExpectedError(StrSubstNo(ReviewResultsErr, FieldCodeTxt, ResultCodeTxt));
+        LibraryAssert.ExpectedError(StrSubstNo(ReviewResultsErr, TestCodeTxt, ResultCodeTxt));
     end;
 
     [Test]
-    procedure FieldTable_SetResultCondition_CannotGetResultConfig_ShouldExit()
+    procedure TestTable_SetResultCondition_CannotGetResultConfig_ShouldExit()
     var
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
         // [SCENARIO] Setting a result condition should exit gracefully if the result exists but has no configuration and ThrowError is false
 
@@ -440,81 +440,81 @@ codeunit 139965 "Qlty. Tests - More Tests"
             ToLoadQltyIResultConditConf.DeleteAll();
 
         // [WHEN] Attempting to set a result condition with no configuration and ThrowError = false
-        ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', false);
+        ToLoadQltyTest.SetResultCondition(ResultCodeTxt, '', false);
 
         // [THEN] The operation exits gracefully without raising an error
     end;
 
     [Test]
     [HandlerFunctions('FieldsLookupModalPageHandler')]
-    procedure FieldTable_OnLookupFieldNo()
+    procedure TestTable_OnLookupFieldNo()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         Vendor: Record Vendor;
-        QltyFieldCard: TestPage "Qlty. Field Card";
-        FieldCode: Text;
+        QltyTestCard: TestPage "Qlty. Test Card";
+        TestCode: Text;
     begin
         // [SCENARIO] User can use Lookup to select a field from the lookup table (e.g., select Vendor "No." field)
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Table Lookup" targeting Vendor table is created
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Table Lookup");
-        ToLoadQltyField.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyField.Insert();
+        // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] The Quality Field Card page is opened and navigated to the field
-        QltyFieldCard.OpenEdit();
-        QltyFieldCard.GoToRecord(ToLoadQltyField);
+        // [GIVEN] The Quality Test Card page is opened and navigated to the test
+        QltyTestCard.OpenEdit();
+        QltyTestCard.GoToRecord(ToLoadQltyTest);
 
         // [GIVEN] The Vendor "No." field name is prepared for selection via modal handler
         ChooseFromLookupValue := Vendor.FieldName("No.");
 
         // [WHEN] Lookup is invoked on the "Lookup Field No." field
-        QltyFieldCard."Lookup Field No.".Lookup();
-        QltyFieldCard.Close();
+        QltyTestCard."Lookup Field No.".Lookup();
+        QltyTestCard.Close();
 
-        // [THEN] The field's Lookup Field No. is updated with the Vendor "No." field number
-        ToLoadQltyField.Get(ToLoadQltyField.Code);
-        LibraryAssert.AreEqual(Vendor.FieldNo("No."), ToLoadQltyField."Lookup Field No.", 'Should be same lookup field no.');
+        // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
+        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
+        LibraryAssert.AreEqual(Vendor.FieldNo("No."), ToLoadQltyTest."Lookup Field No.", 'Should be same lookup field no.');
     end;
 
     [Test]
     [HandlerFunctions('FieldsLookupModalPageHandler')]
-    procedure FieldTable_AssistEditLookupField()
+    procedure TestTable_AssistEditLookupField()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         Vendor: Record Vendor;
-        QltyFieldCard: TestPage "Qlty. Field Card";
-        FieldCode: Text;
+        QltyTestCard: TestPage "Qlty. Test Card";
+        TestCode: Text;
     begin
         // [SCENARIO] User can use AssistEdit to select a field from the lookup table (e.g., select Vendor "No." field)
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCode);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
 
-        // [GIVEN] A new quality field with Field Type "Table Lookup" targeting Vendor table is created
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Table Lookup");
-        ToLoadQltyField.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyField.Insert();
+        // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] The Quality Field Card page is opened and navigated to the field
-        QltyFieldCard.OpenEdit();
-        QltyFieldCard.GoToRecord(ToLoadQltyField);
+        // [GIVEN] The Quality Test Card page is opened and navigated to the test
+        QltyTestCard.OpenEdit();
+        QltyTestCard.GoToRecord(ToLoadQltyTest);
 
         // [GIVEN] The Vendor "No." field name is prepared for selection via modal handler
         ChooseFromLookupValue := Vendor.FieldName("No.");
 
         // [WHEN] AssistEdit is invoked on the "Lookup Field No." field
-        QltyFieldCard."Lookup Field No.".AssistEdit();
-        QltyFieldCard.Close();
+        QltyTestCard."Lookup Field No.".AssistEdit();
+        QltyTestCard.Close();
 
-        // [THEN] The field's Lookup Field No. is updated with the Vendor "No." field number
-        ToLoadQltyField.Get(ToLoadQltyField.Code);
-        LibraryAssert.AreEqual(Vendor.FieldNo("No."), ToLoadQltyField."Lookup Field No.", 'Should be same lookup field no.');
+        // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
+        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
+        LibraryAssert.AreEqual(Vendor.FieldNo("No."), ToLoadQltyTest."Lookup Field No.", 'Should be same lookup field no.');
     end;
 
     [Test]
@@ -688,10 +688,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
     [Test]
     procedure TemplateLineTable_OnModify_TextExpression()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        FieldCode: Text;
+        TestCode: Text;
     begin
         // [SCENARIO] Template line can be modified to set Expression Formula for a Text Expression field type
 
@@ -702,19 +702,19 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A Text Expression field is created
-        ToLoadQltyField.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
-        ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Text Expression");
-        ToLoadQltyField.Insert();
+        ToLoadQltyTest.Init();
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyTest.Code), TestCode);
+        ToLoadQltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
+        ToLoadQltyTest.Insert();
 
         // [GIVEN] A template line is created with the Text Expression field
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
-        ConfigurationToLoadQltyInspectionTemplateLine."Field Code" := ToLoadQltyField.Code;
+        ConfigurationToLoadQltyInspectionTemplateLine."Test Code" := ToLoadQltyTest.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.CalcFields("Field Type");
+        ConfigurationToLoadQltyInspectionTemplateLine.CalcFields("Test Value Type");
 
         // [WHEN] Expression Formula is validated and the template line is modified
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Expression Formula", ExpressionFormulaTok);
@@ -727,10 +727,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
     [Test]
     procedure TemplateLineTable_AssistEditExpressionFormula_ShouldError()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        FieldCode: Text;
+        TestCode: Text;
     begin
         // [SCENARIO] Attempting to set Expression Formula on a template line with Boolean field type should error
 
@@ -741,19 +741,19 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A Boolean field is created
-        ToLoadQltyField.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
-        ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Boolean");
-        ToLoadQltyField.Insert();
+        ToLoadQltyTest.Init();
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyTest.Code), TestCode);
+        ToLoadQltyTest.Code := CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
+        ToLoadQltyTest.Insert();
 
         // [GIVEN] A template line is created with the Boolean field
         ConfigurationToLoadQltyInspectionTemplateLine.Init();
         ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
-        ConfigurationToLoadQltyInspectionTemplateLine."Field Code" := ToLoadQltyField.Code;
+        ConfigurationToLoadQltyInspectionTemplateLine."Test Code" := ToLoadQltyTest.Code;
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.CalcFields("Field Type");
+        ConfigurationToLoadQltyInspectionTemplateLine.CalcFields("Test Value Type");
 
         // [WHEN] Attempting to validate Expression Formula on a Boolean field type
         asserterror ConfigurationToLoadQltyInspectionTemplateLine.Validate("Expression Formula", ExpressionFormulaTok);
@@ -1707,7 +1707,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, there should be an inspection line.');
         repeat
-            QltyInspectionHeader.SetTestValue(QltyInspectionLine."Field Code", '1');
+            QltyInspectionHeader.SetTestValue(QltyInspectionLine."Test Code", '1');
         until QltyInspectionLine.Next() = 0;
         LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, there should be an inspection line.');
 
@@ -1770,7 +1770,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1788,11 +1788,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         LibraryInventory.CreateItem(Item);
 
-        // [GIVEN] A template is created with a Field Type Option field having allowable values
+        // [GIVEN] A template is created with a Test Value Type Option field having allowable values
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, ToLoadQltyField, ToLoadQltyField."Field Type"::"Field Type Option");
-        ToLoadQltyField."Allowable Values" := OptionsTok;
-        ToLoadQltyField.Modify();
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, ToLoadQltyTest, ToLoadQltyTest."Test Value Type"::"Value Type Option");
+        ToLoadQltyTest."Allowable Values" := OptionsTok;
+        ToLoadQltyTest.Modify();
 
         // [GIVEN] A purchase order is created, released, and received
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
@@ -1829,7 +1829,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        LookupQltyField: Record "Qlty. Field";
+        LookupQltyTest: Record "Qlty. Test";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1847,12 +1847,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         LibraryInventory.CreateItem(Item);
 
-        // [GIVEN] A template is created with a Field Type Table Lookup field configured for Location table
+        // [GIVEN] A template is created with a Test Value Type Table Lookup field configured for Location table
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQltyField, LookupQltyField."Field Type"::"Field Type Table Lookup");
-        LookupQltyField."Lookup Table No." := Database::Location;
-        LookupQltyField."Lookup Field No." := Location.FieldNo(Code);
-        LookupQltyField.Modify();
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, LookupQltyTest, LookupQltyTest."Test Value Type"::"Value Type Table Lookup");
+        LookupQltyTest."Lookup Table No." := Database::Location;
+        LookupQltyTest."Lookup Field No." := Location.FieldNo(Code);
+        LookupQltyTest.Modify();
 
         // [GIVEN] A purchase order is created, released, and received
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
@@ -1892,8 +1892,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ExpressionQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        TextQltyField: Record "Qlty. Field";
-        TextExpressionQltyField: Record "Qlty. Field";
+        TextQltyTest: Record "Qlty. Test";
+        TextExpressionQltyTest: Record "Qlty. Test";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1915,20 +1915,20 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A text field is added to the template
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, TextQltyField, TextQltyField."Field Type"::"Field Type Text");
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, TextQltyTest, TextQltyTest."Test Value Type"::"Value Type Text");
 
         // [GIVEN] A text expression field is added to the template
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, TextExpressionQltyField, TextExpressionQltyField."Field Type"::"Field Type Text Expression");
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, TextExpressionQltyTest, TextExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
 
         // [GIVEN] The text expression field is configured to reference the text field
-        TextExpressionQltyField.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaFieldCodeTok, TextQltyField.Code), true);
-        TextExpressionQltyField.Modify();
+        TextExpressionQltyTest.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaTestCodeTok, TextQltyTest.Code), true);
+        TextExpressionQltyTest.Modify();
         ExpressionQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        ExpressionQltyInspectionTemplateLine.SetRange("Field Code", TextExpressionQltyField.Code);
+        ExpressionQltyInspectionTemplateLine.SetRange("Test Code", TextExpressionQltyTest.Code);
         ExpressionQltyInspectionTemplateLine.FindFirst();
-        ExpressionQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaFieldCodeTok, TextQltyField.Code);
+        ExpressionQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaTestCodeTok, TextQltyTest.Code);
         ExpressionQltyInspectionTemplateLine.Modify();
-        ExpressionQltyInspectionTemplateLine.CalcFields("Field Type", "Allowable Values");
+        ExpressionQltyInspectionTemplateLine.CalcFields("Test Value Type", "Allowable Values");
 
         // [GIVEN] A purchase order is created, released, and received
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);

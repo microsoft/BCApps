@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 using Microsoft.Foundation.UOM;
 using Microsoft.QualityManagement.Configuration.Result;
@@ -13,13 +13,13 @@ using System.IO;
 using System.Reflection;
 
 /// <summary>
-/// This table lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these test fields in Quality Inspection Templates.
+/// This table lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.
 /// </summary>
-table 20401 "Qlty. Field"
+table 20401 "Qlty. Test"
 {
-    Caption = 'Quality Field';
-    DrillDownPageID = "Qlty. Fields";
-    LookupPageID = "Qlty. Field Lookup";
+    Caption = 'Quality Test';
+    DrillDownPageID = "Qlty. Tests";
+    LookupPageID = "Qlty. Test Lookup";
     DataClassification = CustomerContent;
 
     fields
@@ -27,7 +27,7 @@ table 20401 "Qlty. Field"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
-            ToolTip = 'Specifies the short code to identify the test field. You can enter a maximum of 20 characters, both numbers and letters.';
+            ToolTip = 'Specifies the short code to identify the test. You can enter a maximum of 20 characters, both numbers and letters.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -38,22 +38,22 @@ table 20401 "Qlty. Field"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies the friendly description for the test field. You can enter a maximum of 100 characters, both numbers and letters.';
+            ToolTip = 'Specifies the friendly description for the test. You can enter a maximum of 100 characters, both numbers and letters.';
         }
-        field(3; "Field Type"; Enum "Qlty. Field Type")
+        field(3; "Test Value Type"; Enum "Qlty. Test Value Type")
         {
-            Caption = 'Field Type';
-            ToolTip = 'Specifies the data type of the values you can enter or select for this field. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            Caption = 'Test Value Type';
+            ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
 
             trigger OnValidate()
             begin
-                HandleOnValidateFieldType(true);
+                HandleOnValidateTestValueType(true);
             end;
         }
         field(5; "Allowable Values"; Text[500])
         {
             Caption = 'Allowable Values';
-            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Field. Depending on the Field Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Test. Depending on the Test Value Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
         }
         field(6; "Lookup Table No."; Integer)
         {
@@ -123,7 +123,7 @@ table 20401 "Qlty. Field"
         field(9; "Lookup Field Caption"; Text[250])
         {
             CalcFormula = lookup(Field."Field Caption" where(TableNo = field("Lookup Table No."),
-                                                              "No." = field("Lookup Field No.")));
+                                                             "No." = field("Lookup Field No.")));
             Caption = 'Lookup Field Name';
             ToolTip = 'Specifies the name of the field within the Lookup Table to use for the lookup. For example if you had table 231 "Reason Code" as your lookup table, and also were using field "1" as the Lookup Field (which represents the field "Code" on that table) then this would show "Code"';
             Editable = false;
@@ -139,10 +139,9 @@ table 20401 "Qlty. Field"
                 Rec.UpdateAllowedValuesFromTableLookup();
             end;
         }
-        field(14; "Wizard Internal"; Enum "Qlty. Field Wizard State")
+        field(14; "Wizard Internal"; Enum "Qlty. Test Wizard State")
         {
-            Caption = '(internal use) Field Wizard State';
-            Description = '(internal use) Field Wizard State';
+            Caption = '(internal use) Test Wizard State';
             DataClassification = SystemMetadata;
         }
         field(15; "Example Value"; Text[250])
@@ -174,7 +173,7 @@ table 20401 "Qlty. Field"
 
             trigger OnValidate()
             begin
-                if (Rec."Expression Formula" <> '') and not (Rec."Field Type" in [Rec."Field Type"::"Field Type Text Expression"]) then
+                if (Rec."Expression Formula" <> '') and not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
                     Error(OnlyFieldExpressionErr);
             end;
         }
@@ -196,29 +195,29 @@ table 20401 "Qlty. Field"
 
     fieldgroups
     {
-        fieldgroup(DropDown; Code, Description, "Allowable Values", "Field Type")
+        fieldgroup(DropDown; Code, Description, "Allowable Values", "Test Value Type")
         {
         }
-        fieldgroup(Brick; Code, Description, "Example Value", "Allowable Values", "Field Type")
+        fieldgroup(Brick; Code, Description, "Example Value", "Allowable Values", "Test Value Type")
         {
         }
     }
 
     var
         FieldSelection: Codeunit "Field Selection";
-        GenericFieldTok: Label 'MYFIELD', Locked = true;
+        GenericTestTok: Label 'MYTEST', Locked = true;
         ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
-        ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for field "%1", for result "%2".', Comment = '%1=the field, %2=the result';
+        ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for test "%1", for result "%2".', Comment = '%1=the test, %2=the result';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
-        ExistingInspectionErr: Label 'The field %1 exists on %2 inspections (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of inspections, %3=one example inspection, %4=example template.';
-        DeleteQst: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
-        DeleteErr: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
-        FieldTypeErrTitleMsg: Label 'Field Type cannot be changed for a field that has been used in inspections. ';
-        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing inspections (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
+        DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
+        DeleteErr: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
+        TestValueTypeErrTitleMsg: Label 'Test Value Type cannot be changed for a test that has been used in inspections. ';
+        TestValueTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
 
     /// <summary>
-    /// Set a specific result for the field. If AllowError is set to true it will error
+    /// Set a specific result for the test. If AllowError is set to true it will error
     /// when a problem occurs. If AllowError is set to false it will just return false
     /// when a problem occurs.
     /// </summary>
@@ -238,11 +237,11 @@ table 20401 "Qlty. Field"
             else
                 exit(false);
 
-        QltyResultConditionMgmt.CopyResultConditionsFromDefaultToField(Rec.Code, Rec."Field Type");
-        ExistingQltyIResultConditConf.SetRange("Field Code", Rec.Code);
+        QltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(Rec.Code, Rec."Test Value Type");
+        ExistingQltyIResultConditConf.SetRange("Test Code", Rec.Code);
         ExistingQltyIResultConditConf.SetRange("Target Code", Rec.Code);
         ExistingQltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
-        ExistingQltyIResultConditConf.SetRange("Condition Type", ExistingQltyIResultConditConf."Condition Type"::Field);
+        ExistingQltyIResultConditConf.SetRange("Condition Type", ExistingQltyIResultConditConf."Condition Type"::Test);
 
         if ExistingQltyIResultConditConf.Count() <> 1 then
             if AllowError then
@@ -269,14 +268,14 @@ table 20401 "Qlty. Field"
         if Handled then
             exit;
 
-        case Rec."Field Type" of
-            Rec."Field Type"::"Field Type Option":
+        case Rec."Test Value Type" of
+            Rec."Test Value Type"::"Value Type Option":
                 AssistEditChooseFromList(Rec."Allowable Values");
-            Rec."Field Type"::"Field Type Table Lookup":
+            Rec."Test Value Type"::"Value Type Table Lookup":
                 AssistEditChooseFromTableLookup();
-            Rec."Field Type"::"Field Type Boolean":
+            Rec."Test Value Type"::"Value Type Boolean":
                 AssistEditChooseFromList(BooleanChoiceListLbl);
-            Rec."Field Type"::"Field Type Text":
+            Rec."Test Value Type"::"Value Type Text":
                 AssistEditFreeText();
         end;
     end;
@@ -345,7 +344,7 @@ table 20401 "Qlty. Field"
     end;
 
     /// <summary>
-    /// This is basically to make a summary for the human to see more easily when configuring templates and fields.
+    /// This is basically to make a summary for the human to see more easily when configuring templates and tests.
     /// This data isn't actually used during execution.
     /// </summary>
     procedure UpdateAllowedValuesFromTableLookup()
@@ -353,7 +352,7 @@ table 20401 "Qlty. Field"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         AllowableValues: Text;
     begin
-        if Rec."Field Type" <> Rec."Field Type"::"Field Type Table Lookup" then
+        if Rec."Test Value Type" <> Rec."Test Value Type"::"Value Type Table Lookup" then
             exit;
 
         AllowableValues := QltyMiscHelpers.GetCSVOfValuesFromRecord(Rec."Lookup Table No.", Rec."Lookup Field No.", Rec."Lookup Table Filter");
@@ -362,13 +361,13 @@ table 20401 "Qlty. Field"
 
     trigger OnModify()
     begin
-        if Rec."Field Type" = Rec."Field Type"::"Field Type Table Lookup" then
+        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then
             UpdateAllowedValuesFromTableLookup();
     end;
 
     trigger OnInsert()
     begin
-        if Rec."Field Type" = Rec."Field Type"::"Field Type Table Lookup" then
+        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then
             UpdateAllowedValuesFromTableLookup();
     end;
 
@@ -384,18 +383,18 @@ table 20401 "Qlty. Field"
         LineCount: Integer;
         CanBeDeleted: Boolean;
     begin
-        QltyInspectionLine.SetRange("Field Code", Rec.Code);
+        QltyInspectionLine.SetRange("Test Code", Rec.Code);
         LineCount := QltyInspectionLine.Count();
         if LineCount > 0 then begin
             QltyInspectionLine.FindFirst();
             Error(ExistingInspectionErr,
-                QltyInspectionLine."Field Code",
+                QltyInspectionLine."Test Code",
                 LineCount,
                 QltyInspectionLine."Inspection No.",
                 QltyInspectionLine."Template Code");
         end;
 
-        QltyInspectionTemplateLine.SetRange("Field Code", Rec.Code);
+        QltyInspectionTemplateLine.SetRange("Test Code", Rec.Code);
         LineCount := QltyInspectionTemplateLine.Count();
         if LineCount > 0 then begin
             QltyInspectionTemplateLine.FindFirst();
@@ -408,20 +407,20 @@ table 20401 "Qlty. Field"
         end;
     end;
 
-    internal procedure SuggestUnusedFieldCodeFromDescription(InputDescription: Text; var SuggestionCode: Code[20])
+    internal procedure SuggestUnusedTestCodeFromDescription(InputDescription: Text; var SuggestionCode: Code[20])
     var
         DummyListOptionalAdditionalUsed: List of [Text];
     begin
-        SuggestUnusedFieldCodeFromDescriptionAndList(InputDescription, DummyListOptionalAdditionalUsed, SuggestionCode);
+        SuggestUnusedTestCodeFromDescriptionAndList(InputDescription, DummyListOptionalAdditionalUsed, SuggestionCode);
     end;
 
-    internal procedure SuggestUnusedFieldCodeFromDescriptionAndList(InputDescription: Text; IgnoredListOptionalAdditionalUsed: List of [Text]; var SuggestionCode: Code[20])
+    internal procedure SuggestUnusedTestCodeFromDescriptionAndList(InputDescription: Text; IgnoredListOptionalAdditionalUsed: List of [Text]; var SuggestionCode: Code[20])
     begin
-        GenerateShortFieldCodeFromLongerText(InputDescription, SuggestionCode);
+        GenerateShortTestCodeFromLongerText(InputDescription, SuggestionCode);
         EnsureUnusedCode(SuggestionCode, IgnoredListOptionalAdditionalUsed);
     end;
 
-    internal procedure GenerateShortFieldCodeFromLongerText(Input: Text; var SuggestionCode: Code[20])
+    internal procedure GenerateShortTestCodeFromLongerText(Input: Text; var SuggestionCode: Code[20])
     var
         Temp: Text;
     begin
@@ -435,39 +434,39 @@ table 20401 "Qlty. Field"
     end;
 
     /// <summary>
-    /// Takes the supplied field code, and ensures it's unique.
-    /// If the supplied field code has already been used then it will suggest an alternative.
+    /// Takes the supplied test code, and ensures it's unique.
+    /// If the supplied test code has already been used then it will suggest an alternative.
     /// </summary>
     /// <param name="Suggestion"></param>
     local procedure EnsureUnusedCode(var Suggestion: Code[20]; OptionalAdditionalUsed: List of [Text])
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         TempNumber: Text;
         OriginalSuggestion: Text;
         Iterator: Integer;
-        FieldAlreadyExists: Boolean;
+        TestAlreadyExists: Boolean;
     begin
         if Suggestion = '' then
-            Suggestion := GenericFieldTok;
+            Suggestion := GenericTestTok;
         OriginalSuggestion := Suggestion;
 
         Iterator := 1;
         repeat
             Iterator += 1;
-            FieldAlreadyExists := false;
-            FieldAlreadyExists := OptionalAdditionalUsed.Contains(Suggestion);
-            if not FieldAlreadyExists then begin
-                QltyField.Reset();
-                QltyField.SetRange(Code, Suggestion);
-                FieldAlreadyExists := QltyField.FindFirst();
+            TestAlreadyExists := false;
+            TestAlreadyExists := OptionalAdditionalUsed.Contains(Suggestion);
+            if not TestAlreadyExists then begin
+                QltyTest.Reset();
+                QltyTest.SetRange(Code, Suggestion);
+                TestAlreadyExists := QltyTest.FindFirst();
             end;
-            if FieldAlreadyExists then begin
+            if TestAlreadyExists then begin
                 TempNumber := Format(Iterator, 0, 9);
                 TempNumber := PadStr('', 4 - StrLen(TempNumber), '0') + TempNumber;
                 Suggestion := CopyStr(CopyStr(OriginalSuggestion, 1, MaxStrLen(Suggestion) - StrLen(TempNumber)), 1, MaxStrLen(Suggestion));
                 Suggestion := CopyStr(Suggestion + TempNumber, 1, MaxStrLen(Suggestion));
             end;
-        until (not FieldAlreadyExists) or (Iterator >= 9999);
+        until (not TestAlreadyExists) or (Iterator >= 9999);
     end;
 
     /// <summary>
@@ -477,7 +476,7 @@ table 20401 "Qlty. Field"
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
-        QltyResultEvaluation.ValidateAllowableValuesOnField(Rec);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(Rec);
     end;
 
     /// <summary>
@@ -504,8 +503,8 @@ table 20401 "Qlty. Field"
         OfChoices: List of [Text];
         Choice: Text;
     begin
-        case Rec."Field Type" of
-            Rec."Field Type"::"Field Type Table Lookup":
+        case Rec."Test Value Type" of
+            Rec."Test Value Type"::"Value Type Table Lookup":
                 begin
                     QltyMiscHelpers.GetRecordsForTableField(Rec, OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyLookupCode);
                     if TempBufferQltyLookupCode.FindSet() then begin
@@ -520,7 +519,7 @@ table 20401 "Qlty. Field"
                         TempBufferQltyLookupCode.SetRange(Description);
                     end;
                 end;
-            Rec."Field Type"::"Field Type Option":
+            Rec."Test Value Type"::"Value Type Option":
                 begin
                     TempBufferQltyLookupCode.Reset();
                     OfChoices := Rec."Allowable Values".Split(',');
@@ -537,32 +536,32 @@ table 20401 "Qlty. Field"
         end;
     end;
 
-    internal procedure HandleOnValidateFieldType(AllowActionableError: Boolean)
+    internal procedure HandleOnValidateTestValueType(AllowActionableError: Boolean)
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
-        QltyInspectionLine.SetRange("Field Code", Rec.Code);
+        QltyInspectionLine.SetRange("Test Code", Rec.Code);
         if QltyInspectionLine.FindLast() then begin
             if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
             if AllowActionableError then
-                Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionHeader."No.")
+                Error(TestValueTypeErrInfoMsg, TestValueTypeErrTitleMsg, QltyInspectionHeader."No.")
             else
-                Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionHeader."No.");
+                Error(TestValueTypeErrInfoMsg, TestValueTypeErrTitleMsg, QltyInspectionHeader."No.");
         end;
 
-        if Rec."Field Type" <> xRec."Field Type" then begin
+        if Rec."Test Value Type" <> xRec."Test Value Type" then begin
             Rec."Allowable Values" := '';
             Rec.Validate("Lookup Table No.", 0);
             Rec.Validate("Lookup Field No.", 0);
             Rec."Lookup Table Filter" := '';
 
-            if Rec."Field Type" = Rec."Field Type"::"Field Type Table Lookup" then
+            if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then
                 Rec.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
         end;
 
-        QltyResultConditionMgmt.CopyResultConditionsFromDefaultToField(Rec.Code, Rec."Field Type");
+        QltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(Rec.Code, Rec."Test Value Type");
     end;
 
     procedure AssistEditExpressionFormula()
@@ -570,7 +569,7 @@ table 20401 "Qlty. Field"
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
     begin
-        if not (Rec."Field Type" in [Rec."Field Type"::"Field Type Text Expression"]) then
+        if not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
             Error(OnlyFieldExpressionErr);
 
         Expression := Rec."Expression Formula";
@@ -592,7 +591,7 @@ table 20401 "Qlty. Field"
         if Handled then
             exit;
 
-        if Rec."Field Type" = Rec."Field Type"::"Field Type Table Lookup" then begin
+        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then begin
             if (Rec.Code <> '') and (Rec."Lookup Table No." = Database::"Qlty. Lookup Code") then begin
                 QltyLookupCode.SetRange("Group Code", Rec.Code);
                 Page.RunModal(Page::"Qlty. Lookup Code List", QltyLookupCode);
@@ -619,8 +618,8 @@ table 20401 "Qlty. Field"
         if Handled then
             exit;
 
-        IsNumeric := Rec."Field Type" in [Rec."Field Type"::"Field Type Decimal",
-                        Rec."Field Type"::"Field Type Integer"
+        IsNumeric := Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Decimal",
+                        Rec."Test Value Type"::"Value Type Integer"
                         ];
     end;
 
@@ -628,32 +627,32 @@ table 20401 "Qlty. Field"
     /// Provides an opportunity to allow determining if the field is intended to be numeric or not.
     /// Use this if you are extending the data type enumeration and adding your own numeric field.
     /// </summary>
-    /// <param name="QltyField"></param>
+    /// <param name="QltyTest"></param>
     /// <param name="IsNumeric"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnGetIsNumericFieldType(var QltyField: Record "Qlty. Field"; var IsNumeric: Boolean; var Handled: Boolean)
+    local procedure OnGetIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Provides an opportunity to extend or replace editing allowable values.
     /// </summary>
-    /// <param name="QltyField"></param>
+    /// <param name="QltyTest"></param>
     /// <param name="QltyInspectionTemplateEdit"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAssistAllowableValues(var QltyField: Record "Qlty. Field"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var Handled: Boolean)
+    local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Provides an ability to extend or replace assist editing the default value.
     /// </summary>
-    /// <param name="QltyField"></param>
+    /// <param name="QltyTest"></param>
     /// <param name="Handled">Set to true to prevent base behavior from occurring.</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeAssistEditDefaultValue(var QltyField: Record "Qlty. Field"; var Handled: Boolean)
+    procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var Handled: Boolean)
     begin
     end;
 }

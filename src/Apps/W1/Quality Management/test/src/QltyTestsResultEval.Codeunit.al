@@ -9,7 +9,7 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -345,7 +345,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureQltyField: Record "Qlty. Field";
+        NumericalMeasureQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -370,17 +370,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Decimal", NumericalMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureQltyTest, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level result condition is set to 4..5 for PASS result
-        NumericalMeasureQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
+        NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
 
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result (overrides field-level)
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '6..7');
@@ -412,7 +412,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
@@ -420,41 +420,41 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] Result is evaluated with blank value
         // [THEN] Result is INPROGRESS for blank value
         LibraryAssert.AreEqual(
             'INPROGRESS',
-            QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"),
+            QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '', NumericalMeasureQltyTest."Case Sensitive"),
             'blank value');
 
         // [THEN] Value at minimum of range (6) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"),
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '6', NumericalMeasureQltyTest."Case Sensitive"),
             'min value inspection line result');
         // [THEN] Value slightly exceeding maximum (7.0001) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '7.0001', NumericalMeasureQltyField."Case Sensitive"),
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '7.0001', NumericalMeasureQltyTest."Case Sensitive"),
             'slightly exceeding max inspection line result');
         // [THEN] Value slightly below minimum (5.999999) evaluates to FAIL
         LibraryAssert.AreEqual(
             'FAIL',
-            QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '5.999999', NumericalMeasureQltyField."Case Sensitive"),
+            QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '5.999999', NumericalMeasureQltyTest."Case Sensitive"),
             'slightly before min inspection line result');
 
         // [THEN] Value slightly below maximum (6.999999) evaluates to PASS
         LibraryAssert.AreEqual(
            'PASS',
-           QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '6.999999', NumericalMeasureQltyField."Case Sensitive"),
+           QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '6.999999', NumericalMeasureQltyTest."Case Sensitive"),
            'slightly before min inspection line result');
 
         // [THEN] Blank value is not treated as zero and evaluates to INPROGRESS
         LibraryAssert.AreEqual(
             'INPROGRESS',
-            QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"),
+            QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '', NumericalMeasureQltyTest."Case Sensitive"),
             'ensure that blank is not treated as a zero - decimal.');
 
         // [THEN] Zero value is not treated as blank and evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '0.0', NumericalMeasureQltyField."Case Sensitive"),
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '0.0', NumericalMeasureQltyTest."Case Sensitive"),
             'ensure that zero is not treated as a blank - decimal');
     end;
 
@@ -465,7 +465,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        DateTimeQltyField: Record "Qlty. Field";
+        DateTimeQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -490,17 +490,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a datetime field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyField."Field Type"::"Field Type DateTime", DateTimeQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyTest."Test Value Type"::"Value Type DateTime", DateTimeQltyTest, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level result condition is set to '2001-02-03 01:02:03' for PASS result
-        DateTimeQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '2001-02-03 01:02:03', true);
+        DateTimeQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '2001-02-03 01:02:03', true);
 
         // [GIVEN] Template-level result condition is modified to '2004-05-06 01:02:03' for PASS result (overrides field-level)
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '2004-05-06 01:02:03');
@@ -528,7 +528,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", DateTimeQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", DateTimeQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
@@ -536,18 +536,18 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] Result is evaluated with blank value
         // [THEN] Result is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyField."Field Type", '', DateTimeQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyTest."Test Value Type", '', DateTimeQltyTest."Case Sensitive"), 'blank value');
 
         // [THEN] Exact datetime match evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyField."Field Type", '2004-05-06 01:02:03', DateTimeQltyField."Case Sensitive"), 'exact value pass');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyTest."Test Value Type", '2004-05-06 01:02:03', DateTimeQltyTest."Case Sensitive"), 'exact value pass');
         // [THEN] Datetime one second past expected evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyField."Field Type", '2004-05-06 01:02:04', DateTimeQltyField."Case Sensitive"), 'slightly exceeding max inspection line result');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyTest."Test Value Type", '2004-05-06 01:02:04', DateTimeQltyTest."Case Sensitive"), 'slightly exceeding max inspection line result');
         // [THEN] Field-level condition datetime is ignored (FAIL not PASS)
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyField."Field Type", '2001-02-03 01:02:03', DateTimeQltyField."Case Sensitive"), 'should have ignored the default field pass condition.');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateTimeQltyTest."Test Value Type", '2001-02-03 01:02:03', DateTimeQltyTest."Case Sensitive"), 'should have ignored the default field pass condition.');
     end;
 
     [Test]
@@ -557,7 +557,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        DateQltyField: Record "Qlty. Field";
+        DateQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -582,16 +582,16 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a date field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyField."Field Type"::"Field Type Date", DateQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyTest."Test Value Type"::"Value Type Date", DateQltyTest, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level result condition is set to '2001-02-03' for PASS result
-        DateQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '2001-02-03', true);
+        DateQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '2001-02-03', true);
         // [GIVEN] Template-level result condition is modified to '2004-05-06' for PASS result (overrides field-level)
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '2004-05-06');
@@ -619,7 +619,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", DateQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", DateQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
@@ -627,18 +627,18 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] Result is evaluated with blank value
         // [THEN] Result is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyField."Field Type", '', DateQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyTest."Test Value Type", '', DateQltyTest."Case Sensitive"), 'blank value');
 
         // [THEN] Exact date match evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyField."Field Type", '2004-05-06', DateQltyField."Case Sensitive"), 'exact value pass');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyTest."Test Value Type", '2004-05-06', DateQltyTest."Case Sensitive"), 'exact value pass');
         // [THEN] Date one day past expected evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyField."Field Type", '2004-05-07', DateQltyField."Case Sensitive"), 'slightly exceeding max inspection line result');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyTest."Test Value Type", '2004-05-07', DateQltyTest."Case Sensitive"), 'slightly exceeding max inspection line result');
         // [THEN] Field-level condition date is ignored (FAIL not PASS)
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyField."Field Type", '2001-02-03', DateQltyField."Case Sensitive"), 'should have ignored the default field pass condition.');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, DateQltyTest."Test Value Type", '2001-02-03', DateQltyTest."Case Sensitive"), 'should have ignored the default field pass condition.');
     end;
 
     [Test]
@@ -648,7 +648,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        BooleanQltyField: Record "Qlty. Field";
+        BooleanQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -673,13 +673,13 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a boolean field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyTest."Test Value Type"::"Value Type Boolean", BooleanQltyTest, QltyInspectionTemplateLine);
         // [GIVEN] Template-level result condition is set to 'Yes' for PASS result
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, 'Yes');
@@ -706,7 +706,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", BooleanQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", BooleanQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
@@ -714,21 +714,21 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] Result is evaluated with blank value
         // [THEN] Result is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyField."Field Type", '', BooleanQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyTest."Test Value Type", '', BooleanQltyTest."Case Sensitive"), 'blank value');
         // [THEN] Value 'Yes' evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyField."Field Type", 'Yes', BooleanQltyField."Case Sensitive"), 'exact value pass');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyTest."Test Value Type", 'Yes', BooleanQltyTest."Case Sensitive"), 'exact value pass');
         // [THEN] Value 'On' (alternative true value) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyField."Field Type", 'On', BooleanQltyField."Case Sensitive"), 'different kind of yes');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyTest."Test Value Type", 'On', BooleanQltyTest."Case Sensitive"), 'different kind of yes');
         // [THEN] Value 'No' evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyField."Field Type", 'No', BooleanQltyField."Case Sensitive"), 'Direct No.');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyTest."Test Value Type", 'No', BooleanQltyTest."Case Sensitive"), 'Direct No.');
         // [THEN] Value 'False' (alternative false value) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyField."Field Type", 'False', BooleanQltyField."Case Sensitive"), 'different kind of no.');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyTest."Test Value Type", 'False', BooleanQltyTest."Case Sensitive"), 'different kind of no.');
         // [THEN] Invalid boolean value evaluates to INPROGRESS
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyField."Field Type", 'this is not a boolean', BooleanQltyField."Case Sensitive"), 'not a boolean');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, BooleanQltyTest."Test Value Type", 'this is not a boolean', BooleanQltyTest."Case Sensitive"), 'not a boolean');
     end;
 
     [Test]
@@ -737,7 +737,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        LabelQltyField: Record "Qlty. Field";
+        LabelQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -763,7 +763,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a label field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, LabelQltyField."Field Type"::"Field Type Label", LabelQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, LabelQltyTest."Test Value Type"::"Value Type Label", LabelQltyTest, QltyInspectionTemplateLine);
 
         // [GIVEN] Inspection generation rules are cleared and prioritized rule is created
         QltyInspectionGenRule.DeleteAll();
@@ -788,7 +788,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", LabelQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", LabelQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
@@ -796,14 +796,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] Result is evaluated with blank value
         // [THEN] Blank value returns blank result (labels are not resultd)
-        LibraryAssert.AreEqual('', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, LabelQltyField."Field Type", '', LabelQltyField."Case Sensitive"), 'blank value should result in a blank result for labels.');
+        LibraryAssert.AreEqual('', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, LabelQltyTest."Test Value Type", '', LabelQltyTest."Case Sensitive"), 'blank value should result in a blank result for labels.');
 
         // [THEN] Any value returns blank result (labels are not resultd)
-        LibraryAssert.AreEqual('', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, LabelQltyField."Field Type", 'anything at all is ignored.', LabelQltyField."Case Sensitive"), 'with a label, it is always a blank result.');
+        LibraryAssert.AreEqual('', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, LabelQltyTest."Test Value Type", 'anything at all is ignored.', LabelQltyTest."Case Sensitive"), 'with a label, it is always a blank result.');
     end;
 
     [Test]
@@ -813,7 +813,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureQltyField: Record "Qlty. Field";
+        NumericalMeasureQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -838,17 +838,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with an integer field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Integer", NumericalMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyTest."Test Value Type"::"Value Type Integer", NumericalMeasureQltyTest, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level result condition is set to 4..5 for PASS result
-        NumericalMeasureQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
+        NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
 
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result (overrides field-level)
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '6..7');
@@ -882,7 +882,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
@@ -890,29 +890,29 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] Result is evaluated with blank value
         // [THEN] Result is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '', NumericalMeasureQltyTest."Case Sensitive"), 'blank value');
         // [THEN] Value 6 (minimum of range) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"), 'min value inspection line result');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '6', NumericalMeasureQltyTest."Case Sensitive"), 'min value inspection line result');
         // [THEN] Value 7 (maximum of range) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '7', NumericalMeasureQltyField."Case Sensitive"), 'max value inspection line result');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '7', NumericalMeasureQltyTest."Case Sensitive"), 'max value inspection line result');
         // [THEN] Value 8 (exceeding maximum) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '8', NumericalMeasureQltyField."Case Sensitive"), 'slightly exceeding max inspection line result');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '8', NumericalMeasureQltyTest."Case Sensitive"), 'slightly exceeding max inspection line result');
         // [THEN] Value 5 (below minimum) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '5', NumericalMeasureQltyField."Case Sensitive"), 'slightly before min inspection line result');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '5', NumericalMeasureQltyTest."Case Sensitive"), 'slightly before min inspection line result');
         // [THEN] Value 6 (reinspection pass value) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"), 'pass value.');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '6', NumericalMeasureQltyTest."Case Sensitive"), 'pass value.');
         // [THEN] Blank value is not treated as zero and evaluates to INPROGRESS
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '', NumericalMeasureQltyTest."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
         // [THEN] Zero value is not treated as blank and evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '0', NumericalMeasureQltyField."Case Sensitive"), 'ensure that zero is not treated as a blank - Integer');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '0', NumericalMeasureQltyTest."Case Sensitive"), 'ensure that zero is not treated as a blank - Integer');
 
         // [THEN] Non-integer value (7.0001) causes an error
         ClearLastError();
-        asserterror LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyField."Field Type", '7.0001', NumericalMeasureQltyField."Case Sensitive"), 'should error, value is not an integer.');
+        asserterror LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '7.0001', NumericalMeasureQltyTest."Case Sensitive"), 'should error, value is not an integer.');
         LibraryAssert.ExpectedError(Expected1Err);
     end;
 
@@ -924,7 +924,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        TextQltyField: Record "Qlty. Field";
+        TextQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -955,17 +955,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - b');
         // [GIVEN] An inspection template with a text field is created and no blank results created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyTest."Test Value Type"::"Value Type Text", TextQltyTest, QltyInspectionTemplateLine);
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - c');
         // [GIVEN] Field-level result condition is set to 'A|B|C' for PASS result
-        TextQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), 'A|B|C', true);
+        TextQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), 'A|B|C', true);
 
         // [GIVEN] Template-level result condition is modified to 'D|E' for PASS result (overrides field-level)
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, 'D|E');
@@ -994,7 +994,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line and test-level result conditions are retrieved with no blank results
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", TextQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", TextQltyTest.Code);
         QltyInspectionLine.FindFirst();
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - f');
         QltyIResultConditConf.Reset();
@@ -1002,36 +1002,36 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] Result is evaluated with blank value
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - g');
         // [THEN] Result is INPROGRESS for blank value and no blank results created
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", '', TextQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", '', TextQltyTest."Case Sensitive"), 'blank value');
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - gb');
 
         // [THEN] Value 'D' (in template condition) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'D', TextQltyField."Case Sensitive"), 'first text-method1');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'D', TextQltyTest."Case Sensitive"), 'first text-method1');
         // [THEN] Value 'D' evaluates to PASS using alternative evaluation method (no line parameter)
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyIResultConditConf, TextQltyField."Field Type", 'D', TextQltyField."Case Sensitive"), 'first text method2 test with no line.');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyIResultConditConf, TextQltyTest."Test Value Type", 'D', TextQltyTest."Case Sensitive"), 'first text method2 test with no line.');
         // [THEN] Value 'e' (lowercase) with insensitive comparison evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Insensitive), 'second text lowercase insensitive ');
+        LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'e', TextQltyTest."Case Sensitive"::Insensitive), 'second text lowercase insensitive ');
         if DatabaseIsCaseSensitive then
             // [THEN] Value 'e' (lowercase) with sensitive comparison evaluates to FAIL
-            LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive')
+            LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'e', TextQltyTest."Case Sensitive"::Sensitive), 'second text lowercase sensitive')
         else
             // [THEN] Value 'e' (lowercase) with sensitive comparison evaluates to PASS
-            LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive');
+            LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'e', TextQltyTest."Case Sensitive"::Sensitive), 'second text lowercase sensitive');
         // [THEN] Value 'A' (in field-level condition) evaluates to FAIL (template override works)
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'A', TextQltyField."Case Sensitive"), 'original field pass, which should be overwritten by the template.');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'A', TextQltyTest."Case Sensitive"), 'original field pass, which should be overwritten by the template.');
         // [THEN] Value 'c' (lowercase field-level condition) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'c', TextQltyField."Case Sensitive"), 'original field lowercase');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'c', TextQltyTest."Case Sensitive"), 'original field lowercase');
         // [THEN] Value 'C' (field-level condition) evaluates to FAIL (template override works)
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'C', TextQltyField."Case Sensitive"), 'original field');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'C', TextQltyTest."Case Sensitive"), 'original field');
         // [THEN] Value 'Monkey' (not in any condition) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", 'Monkey', TextQltyField."Case Sensitive"), 'A value not in any condition.');
+        LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'Monkey', TextQltyTest."Case Sensitive"), 'A value not in any condition.');
         // [THEN] Blank value reinspectioned evaluates to INPROGRESS
-        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyField."Field Type", '', TextQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
+        LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", '', TextQltyTest."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
     end;
 
     [Test]
@@ -1042,8 +1042,8 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         UsesReferenceQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureReferenceQltyField: Record "Qlty. Field";
-        UsesReferenceInPassConditionQltyField: Record "Qlty. Field";
+        NumericalMeasureReferenceQltyTest: Record "Qlty. Test";
+        UsesReferenceInPassConditionQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -1068,31 +1068,31 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with two decimal fields is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureReferenceQltyTest, OriginalQltyInspectionTemplateLine);
 
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyField."Field Type"::"Field Type Decimal", UsesReferenceInPassConditionQltyField, UsesReferenceQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyTest."Test Value Type"::"Value Type Decimal", UsesReferenceInPassConditionQltyTest, UsesReferenceQltyInspectionTemplateLine);
 
         // [GIVEN] First field has template-level result condition set to 6..7 for PASS
         OriginalQltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", OriginalQltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", OriginalQltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", OriginalQltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '6..7');
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Modify();
 
-        // [GIVEN] Second field has dynamic condition '1..[FieldCode]' that references first field's value
+        // [GIVEN] Second field has dynamic condition '1..[TestCode]' that references first field's value
         Clear(QltyIResultConditConf);
         UsesReferenceQltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", UsesReferenceQltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", UsesReferenceQltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, StrSubstno('1..[%1]', NumericalMeasureReferenceQltyField.Code));
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, StrSubstno('1..[%1]', NumericalMeasureReferenceQltyTest.Code));
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Modify();
         // [GIVEN] Prioritized rule is created for production order routing line
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
@@ -1116,7 +1116,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line for second field (uses reference) is retrieved
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         UsesReferenceQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        UsesReferenceQltyInspectionLine.SetRange("Field Code", UsesReferenceInPassConditionQltyField.Code);
+        UsesReferenceQltyInspectionLine.SetRange("Test Code", UsesReferenceInPassConditionQltyTest.Code);
         UsesReferenceQltyInspectionLine.FindFirst();
 
         // [GIVEN] Inspection-level result conditions are retrieved
@@ -1125,10 +1125,10 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", UsesReferenceQltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", UsesReferenceQltyInspectionLine."Test Code");
 
         // [GIVEN] Reference field value is set to 6
-        QltyInspectionHeader.SetTestValue(NumericalMeasureReferenceQltyField."Code", '6');
+        QltyInspectionHeader.SetTestValue(NumericalMeasureReferenceQltyTest."Code", '6');
 
         // [WHEN] Result is evaluated with value 6 (at max of dynamic range 1..6)
         // [THEN] Result evaluates to PASS
@@ -1138,9 +1138,9 @@ codeunit 139963 "Qlty. Tests - Result Eval."
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
             QltyIResultConditConf,
-             UsesReferenceInPassConditionQltyField."Field Type",
+             UsesReferenceInPassConditionQltyTest."Test Value Type",
              '6',
-             UsesReferenceInPassConditionQltyField."Case Sensitive"
+             UsesReferenceInPassConditionQltyTest."Case Sensitive"
             ),
             'should be using a condition of 1..6');
         // [THEN] Value 1 (at min of dynamic range) evaluates to PASS
@@ -1150,9 +1150,9 @@ codeunit 139963 "Qlty. Tests - Result Eval."
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
             QltyIResultConditConf,
-             UsesReferenceInPassConditionQltyField."Field Type",
+             UsesReferenceInPassConditionQltyTest."Test Value Type",
              '1',
-             UsesReferenceInPassConditionQltyField."Case Sensitive"
+             UsesReferenceInPassConditionQltyTest."Case Sensitive"
             ),
             'should be using a condition of 1..6');
         // [THEN] Value 7 (exceeding dynamic range max) evaluates to FAIL
@@ -1162,9 +1162,9 @@ codeunit 139963 "Qlty. Tests - Result Eval."
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
             QltyIResultConditConf,
-            UsesReferenceInPassConditionQltyField."Field Type",
+            UsesReferenceInPassConditionQltyTest."Test Value Type",
             '7',
-            UsesReferenceInPassConditionQltyField."Case Sensitive"
+            UsesReferenceInPassConditionQltyTest."Case Sensitive"
             ),
             'should be using a condition of 1..6');
         // [THEN] Value 0.9 (below dynamic range min) evaluates to FAIL
@@ -1174,9 +1174,9 @@ codeunit 139963 "Qlty. Tests - Result Eval."
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
             QltyIResultConditConf,
-            UsesReferenceInPassConditionQltyField."Field Type",
+            UsesReferenceInPassConditionQltyTest."Test Value Type",
             '0.9',
-            UsesReferenceInPassConditionQltyField."Case Sensitive"
+            UsesReferenceInPassConditionQltyTest."Case Sensitive"
             ),
             'should be using a condition of 1..6');
     end;
@@ -1189,8 +1189,8 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         UsesReferenceQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureReferenceQltyField: Record "Qlty. Field";
-        UsesReferenceInPassConditionQltyField: Record "Qlty. Field";
+        NumericalMeasureReferenceQltyTest: Record "Qlty. Test";
+        UsesReferenceInPassConditionQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -1215,14 +1215,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyAutoConfigure.EnsureBasicSetup(false);
 
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureReferenceQltyTest, OriginalQltyInspectionTemplateLine);
 
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyField."Field Type"::"Field Type Decimal", UsesReferenceInPassConditionQltyField, UsesReferenceQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyTest."Test Value Type"::"Value Type Decimal", UsesReferenceInPassConditionQltyTest, UsesReferenceQltyInspectionTemplateLine);
         OriginalQltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", OriginalQltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", OriginalQltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", OriginalQltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '6..7');
@@ -1233,10 +1233,10 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", UsesReferenceQltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", UsesReferenceQltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, StrSubstno('1..{2+[%1]}', NumericalMeasureReferenceQltyField.Code));
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, StrSubstno('1..{2+[%1]}', NumericalMeasureReferenceQltyTest.Code));
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Modify();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
@@ -1255,10 +1255,10 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] Inspection line for second field is retrieved with expression '1..{2+[FieldCode]}'
+        // [GIVEN] Inspection line for second field is retrieved with expression '1..{2+[TestCode]}'
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         UsesReferenceQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        UsesReferenceQltyInspectionLine.SetRange("Field Code", UsesReferenceInPassConditionQltyField.Code);
+        UsesReferenceQltyInspectionLine.SetRange("Test Code", UsesReferenceInPassConditionQltyTest.Code);
         UsesReferenceQltyInspectionLine.FindFirst();
 
         // [GIVEN] Expected filters are manually configured for inspection line-specific result conditions
@@ -1267,7 +1267,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ExpectedQltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
         ExpectedQltyIResultConditConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
         ExpectedQltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
-        ExpectedQltyIResultConditConf.SetRange("Field Code", UsesReferenceQltyInspectionLine."Field Code");
+        ExpectedQltyIResultConditConf.SetRange("Test Code", UsesReferenceQltyInspectionLine."Test Code");
 
         // [WHEN] GetInspectionLineConfigFilters is called to retrieve actual filters
         QltyResultEvaluation.GetInspectionLineConfigFilters(UsesReferenceQltyInspectionLine, ActualQltyIResultConditConf);
@@ -1282,7 +1282,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureReferenceQltyField: Record "Qlty. Field";
+        NumericalMeasureReferenceQltyTest: Record "Qlty. Test";
         ExpectedQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ActualQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -1299,13 +1299,13 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureReferenceQltyTest, OriginalQltyInspectionTemplateLine);
         // [GIVEN] Template-level result condition is set to 6..7 for PASS result
         OriginalQltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", OriginalQltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", OriginalQltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", OriginalQltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '6..7');
@@ -1316,7 +1316,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ExpectedQltyIResultConditConf.SetRange("Condition Type", ExpectedQltyIResultConditConf."Condition Type"::Template);
         ExpectedQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
         ExpectedQltyIResultConditConf.SetRange("Target Line No.", OriginalQltyInspectionTemplateLine."Line No.");
-        ExpectedQltyIResultConditConf.SetRange("Field Code", OriginalQltyInspectionTemplateLine."Field Code");
+        ExpectedQltyIResultConditConf.SetRange("Test Code", OriginalQltyInspectionTemplateLine."Test Code");
 
         // [WHEN] GetTemplateLineConfigFilters is called to retrieve actual filters
         GetTemplateLineConfigFilters(OriginalQltyInspectionTemplateLine, ActualQltyIResultConditConf);
@@ -1330,7 +1330,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureReferenceQltyField: Record "Qlty. Field";
+        NumericalMeasureReferenceQltyTest: Record "Qlty. Test";
         ExpectedQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ActualQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -1347,16 +1347,16 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyField."Field Type"::"Field Type Decimal", NumericalMeasureReferenceQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureReferenceQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Expected filters are set for field-level result conditions
         ExpectedQltyIResultConditConf.Reset();
-        ExpectedQltyIResultConditConf.SetRange("Condition Type", ExpectedQltyIResultConditConf."Condition Type"::Field);
-        ExpectedQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Field Code");
-        ExpectedQltyIResultConditConf.SetRange("Field Code", OriginalQltyInspectionTemplateLine."Field Code");
+        ExpectedQltyIResultConditConf.SetRange("Condition Type", ExpectedQltyIResultConditConf."Condition Type"::Test);
+        ExpectedQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Test Code");
+        ExpectedQltyIResultConditConf.SetRange("Test Code", OriginalQltyInspectionTemplateLine."Test Code");
 
         // [WHEN] GetFieldConfigFilters is called to retrieve actual filters
-        GetFieldConfigFilters(NumericalMeasureReferenceQltyField, ActualQltyIResultConditConf);
+        GetFieldConfigFilters(NumericalMeasureReferenceQltyTest, ActualQltyIResultConditConf);
         // [THEN] Actual filters match expected filters for field-level result conditions
         LibraryAssert.AreEqual(ExpectedQltyIResultConditConf.GetView(), ActualQltyIResultConditConf.GetView(), 'result condition filters should match for field');
     end;
@@ -1367,7 +1367,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        DecimalQltyField: Record "Qlty. Field";
+        DecimalQltyTest: Record "Qlty. Test";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -1383,33 +1383,33 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DecimalQltyField."Field Type"::"Field Type Decimal", DecimalQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, DecimalQltyTest."Test Value Type"::"Value Type Decimal", DecimalQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for decimal field are set to range 1..3
-        DecimalQltyField."Allowable Values" := '1..3';
-        DecimalQltyField.Modify();
+        DecimalQltyTest."Allowable Values" := '1..3';
+        DecimalQltyTest.Modify();
 
         // [WHEN] Default value is set to 3 (maximum of range)
-        DecimalQltyField."Default Value" := '3';
+        DecimalQltyTest."Default Value" := '3';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnField(DecimalQltyField);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
         // [THEN] Default value 4 (exceeding maximum) causes error
         ClearLastError();
-        DecimalQltyField."Default Value" := '4';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DecimalQltyField);
+        DecimalQltyTest."Default Value" := '4';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
         // [THEN] Default value 0.9999 (below minimum) causes error
         ClearLastError();
-        DecimalQltyField."Default Value" := '0.9999';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DecimalQltyField);
+        DecimalQltyTest."Default Value" := '0.9999';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
         // [THEN] Default value 1 (minimum of range) passes validation
         ClearLastError();
-        DecimalQltyField."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(DecimalQltyField);
+        DecimalQltyTest."Default Value" := '1';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
 
         // [THEN] Non-numeric default value causes error
         ClearLastError();
-        DecimalQltyField."Default Value" := 'this is not a number';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DecimalQltyField);
+        DecimalQltyTest."Default Value" := 'this is not a number';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DecimalQltyTest);
     end;
 
     [Test]
@@ -1418,7 +1418,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        OptionListQltyField: Record "Qlty. Field";
+        OptionListQltyTest: Record "Qlty. Test";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -1434,37 +1434,37 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with an option field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, OptionListQltyField."Field Type"::"Field Type Option", OptionListQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, OptionListQltyTest."Test Value Type"::"Value Type Option", OptionListQltyTest, OriginalQltyInspectionTemplateLine);
         // [GIVEN] Allowable values for option field are set to 'A,B,C,D'
-        OptionListQltyField.Description := '';
-        OptionListQltyField."Allowable Values" := 'A,B,C,D';
-        OptionListQltyField.Modify();
+        OptionListQltyTest.Description := '';
+        OptionListQltyTest."Allowable Values" := 'A,B,C,D';
+        OptionListQltyTest.Modify();
 
         // [THEN] Default value 'AA' (not in list) causes error
         ClearLastError();
-        OptionListQltyField."Default Value" := 'AA';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(OptionListQltyField);
+        OptionListQltyTest."Default Value" := 'AA';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
 
         // [THEN] Default value 'E' (not in list) causes error
         ClearLastError();
-        OptionListQltyField."Default Value" := 'E';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(OptionListQltyField);
+        OptionListQltyTest."Default Value" := 'E';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
 
         // [THEN] Default value 'AB' (not in list) causes error
         ClearLastError();
-        OptionListQltyField."Default Value" := 'AB';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(OptionListQltyField);
+        OptionListQltyTest."Default Value" := 'AB';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
 
         // [THEN] Default value 'A' (in list) passes validation
         ClearLastError();
-        OptionListQltyField."Default Value" := 'A';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(OptionListQltyField);
+        OptionListQltyTest."Default Value" := 'A';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
         // [THEN] Default value 'B' (in list) passes validation
-        OptionListQltyField."Default Value" := 'B';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(OptionListQltyField);
+        OptionListQltyTest."Default Value" := 'B';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
         // [THEN] Default value 'D' (in list) passes validation
-        OptionListQltyField."Default Value" := 'D';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(OptionListQltyField);
+        OptionListQltyTest."Default Value" := 'D';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(OptionListQltyTest);
     end;
 
     [Test]
@@ -1473,7 +1473,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        IntegerQltyField: Record "Qlty. Field";
+        IntegerQltyTest: Record "Qlty. Test";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -1489,32 +1489,32 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with an integer field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, IntegerQltyField."Field Type"::"Field Type Integer", IntegerQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, IntegerQltyTest."Test Value Type"::"Value Type Integer", IntegerQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for integer field are set to range 1..3
-        IntegerQltyField."Allowable Values" := '1..3';
-        IntegerQltyField.Modify();
+        IntegerQltyTest."Allowable Values" := '1..3';
+        IntegerQltyTest.Modify();
 
         // [WHEN] Default value is set to 3 (maximum of range)
-        IntegerQltyField."Default Value" := '3';
+        IntegerQltyTest."Default Value" := '3';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnField(IntegerQltyField);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Default value 4 (exceeding maximum) causes error
         ClearLastError();
-        IntegerQltyField."Default Value" := '4';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(IntegerQltyField);
+        IntegerQltyTest."Default Value" := '4';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Default value 0 (below minimum) causes error
         ClearLastError();
-        IntegerQltyField."Default Value" := '0';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(IntegerQltyField);
+        IntegerQltyTest."Default Value" := '0';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Default value 1 (minimum of range) passes validation
         ClearLastError();
-        IntegerQltyField."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(IntegerQltyField);
+        IntegerQltyTest."Default Value" := '1';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
         // [THEN] Non-integer default value causes error
         ClearLastError();
-        IntegerQltyField."Default Value" := 'this is not an integer';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(IntegerQltyField);
+        IntegerQltyTest."Default Value" := 'this is not an integer';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(IntegerQltyTest);
     end;
 
     [Test]
@@ -1523,7 +1523,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        TextQltyField: Record "Qlty. Field";
+        TextQltyTest: Record "Qlty. Test";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -1539,28 +1539,28 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a text field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyTest."Test Value Type"::"Value Type Text", TextQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for text field are set to 'A|B|C'
-        TextQltyField."Allowable Values" := 'A|B|C';
-        TextQltyField.Modify();
+        TextQltyTest."Allowable Values" := 'A|B|C';
+        TextQltyTest.Modify();
 
         // [WHEN] Default value is set to 'A' (in list)
-        TextQltyField."Default Value" := 'A';
+        TextQltyTest."Default Value" := 'A';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
         // [THEN] Default value 'D' (not in list) causes error
         ClearLastError();
-        TextQltyField."Default Value" := 'D';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField);
+        TextQltyTest."Default Value" := 'D';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
         // [THEN] Default value '0' (not in list) causes error
         ClearLastError();
-        TextQltyField."Default Value" := '0';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField);
+        TextQltyTest."Default Value" := '0';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
         // [THEN] Default value 'B' (in list) passes validation
         ClearLastError();
-        TextQltyField."Default Value" := 'B';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField);
+        TextQltyTest."Default Value" := 'B';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest);
     end;
 
     [Test]
@@ -1569,7 +1569,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        DateQltyField: Record "Qlty. Field";
+        DateQltyTest: Record "Qlty. Test";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -1585,28 +1585,28 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a date field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyField."Field Type"::"Field Type Date", DateQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, DateQltyTest."Test Value Type"::"Value Type Date", DateQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable value for date field is set to '2001-02-03'
-        DateQltyField."Allowable Values" := '2001-02-03';
-        DateQltyField.Modify();
+        DateQltyTest."Allowable Values" := '2001-02-03';
+        DateQltyTest.Modify();
 
         // [WHEN] Default value is set to '2001-02-03' (exact match)
-        DateQltyField."Default Value" := '2001-02-03';
+        DateQltyTest."Default Value" := '2001-02-03';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnField(DateQltyField);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
         // [THEN] Default value '2001-02-04' (different date) causes error
         ClearLastError();
-        DateQltyField."Default Value" := '2001-02-04';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DateQltyField);
+        DateQltyTest."Default Value" := '2001-02-04';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
         // [THEN] Default value '2001-01-01' (different date) causes error
         ClearLastError();
-        DateQltyField."Default Value" := '2001-01-01';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DateQltyField);
+        DateQltyTest."Default Value" := '2001-01-01';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
         // [THEN] Non-date default value causes error
         ClearLastError();
-        DateQltyField."Default Value" := 'this is not a date';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DateQltyField);
+        DateQltyTest."Default Value" := 'this is not a date';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateQltyTest);
     end;
 
     [Test]
@@ -1615,7 +1615,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        DateTimeQltyField: Record "Qlty. Field";
+        DateTimeQltyTest: Record "Qlty. Test";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -1631,28 +1631,28 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a datetime field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyField."Field Type"::"Field Type DateTime", DateTimeQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, DateTimeQltyTest."Test Value Type"::"Value Type DateTime", DateTimeQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable value for datetime field is set to '2001-02-03 04:05:06'
-        DateTimeQltyField."Allowable Values" := '2001-02-03 04:05:06';
-        DateTimeQltyField.Modify();
+        DateTimeQltyTest."Allowable Values" := '2001-02-03 04:05:06';
+        DateTimeQltyTest.Modify();
 
         // [WHEN] Default value is set to '2001-02-03 04:05:06' (exact match)
-        DateTimeQltyField."Default Value" := '2001-02-03 04:05:06';
+        DateTimeQltyTest."Default Value" := '2001-02-03 04:05:06';
         // [THEN] Validation passes
-        QltyResultEvaluation.ValidateAllowableValuesOnField(DateTimeQltyField);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
         // [THEN] Default value '2001-02-03 04:05:07' (one second later) causes error
         ClearLastError();
-        DateTimeQltyField."Default Value" := '2001-02-03 04:05:07';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DateTimeQltyField);
+        DateTimeQltyTest."Default Value" := '2001-02-03 04:05:07';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
         // [THEN] Default value '2001-02-03 04:05:00' (different time) causes error
         ClearLastError();
-        DateTimeQltyField."Default Value" := '2001-02-03 04:05:00';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DateTimeQltyField);
+        DateTimeQltyTest."Default Value" := '2001-02-03 04:05:00';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
         // [THEN] Non-datetime default value causes error
         ClearLastError();
-        DateTimeQltyField."Default Value" := 'this is not a date time.';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(DateTimeQltyField);
+        DateTimeQltyTest."Default Value" := 'this is not a date time.';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(DateTimeQltyTest);
     end;
 
     [Test]
@@ -1661,7 +1661,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        BooleanQltyField: Record "Qlty. Field";
+        BooleanQltyTest: Record "Qlty. Test";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -1677,76 +1677,76 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a boolean field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyTest."Test Value Type"::"Value Type Boolean", BooleanQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable value for boolean field is set to 'Yes'
-        BooleanQltyField."Allowable Values" := 'Yes';
-        BooleanQltyField.Modify();
+        BooleanQltyTest."Allowable Values" := 'Yes';
+        BooleanQltyTest.Modify();
 
         // [WHEN] Default value is set to 'Yes' and equivalent true representations
-        BooleanQltyField."Default Value" := 'Yes';
+        BooleanQltyTest."Default Value" := 'Yes';
         // [THEN] 'Yes' passes validation
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'True' (equivalent to Yes) passes validation
-        BooleanQltyField."Default Value" := 'True';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'True';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] '1' (equivalent to Yes) passes validation
-        BooleanQltyField."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := '1';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'On' (equivalent to Yes) passes validation
-        BooleanQltyField."Default Value" := 'On';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'On';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'No' (not matching Yes) causes error
         ClearLastError();
-        BooleanQltyField."Default Value" := 'No';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'No';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'False' (not matching Yes) causes error
         ClearLastError();
-        BooleanQltyField."Default Value" := 'False';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'False';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] '0' (not matching Yes) causes error
         ClearLastError();
-        BooleanQltyField."Default Value" := '0';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := '0';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] 'Off' (not matching Yes) causes error
         ClearLastError();
-        BooleanQltyField."Default Value" := 'Off';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'Off';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] Non-boolean value causes error
         ClearLastError();
-        BooleanQltyField."Default Value" := 'this is not a boolean';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'this is not a boolean';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
 
         // [GIVEN] A new boolean field with blank allowable values (accepts any boolean value)
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyField."Field Type"::"Field Type Boolean", BooleanQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyTest."Test Value Type"::"Value Type Boolean", BooleanQltyTest, OriginalQltyInspectionTemplateLine);
 
-        BooleanQltyField."Allowable Values" := '';
-        BooleanQltyField.Modify();
+        BooleanQltyTest."Allowable Values" := '';
+        BooleanQltyTest.Modify();
         // [THEN] Blank default value passes validation
-        BooleanQltyField."Default Value" := '';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := '';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] All true representations pass validation when allowable values are blank
-        BooleanQltyField."Default Value" := 'Yes';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
-        BooleanQltyField."Default Value" := 'True';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
-        BooleanQltyField."Default Value" := '1';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
-        BooleanQltyField."Default Value" := 'On';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'Yes';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        BooleanQltyTest."Default Value" := 'True';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        BooleanQltyTest."Default Value" := '1';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        BooleanQltyTest."Default Value" := 'On';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] All false representations pass validation when allowable values are blank
-        BooleanQltyField."Default Value" := 'No';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
-        BooleanQltyField."Default Value" := 'False';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
-        BooleanQltyField."Default Value" := '0';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
-        BooleanQltyField."Default Value" := 'Off';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
+        BooleanQltyTest."Default Value" := 'No';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        BooleanQltyTest."Default Value" := 'False';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        BooleanQltyTest."Default Value" := '0';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        BooleanQltyTest."Default Value" := 'Off';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
         // [THEN] Non-boolean value is converted to 'No'
-        BooleanQltyField."Default Value" := 'this is not a boolean';
-        QltyResultEvaluation.ValidateAllowableValuesOnField(BooleanQltyField);
-        LibraryAssert.AreEqual('No', BooleanQltyField."Default Value", 'Not-yes should have been converted to No');
+        BooleanQltyTest."Default Value" := 'this is not a boolean';
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(BooleanQltyTest);
+        LibraryAssert.AreEqual('No', BooleanQltyTest."Default Value", 'Not-yes should have been converted to No');
     end;
 
     [Test]
@@ -1757,7 +1757,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OriginalQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        TextQltyField: Record "Qlty. Field";
+        TextQltyTest: Record "Qlty. Test";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
@@ -1779,11 +1779,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a text field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyField."Field Type"::"Field Type Text", TextQltyField, OriginalQltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, TextQltyTest."Test Value Type"::"Value Type Text", TextQltyTest, OriginalQltyInspectionTemplateLine);
 
         // [GIVEN] Allowable values for text field are set to 'A|B|C'
-        TextQltyField."Allowable Values" := 'A|B|C';
-        TextQltyField.Modify();
+        TextQltyTest."Allowable Values" := 'A|B|C';
+        TextQltyTest.Modify();
 
         // [GIVEN] Prioritized rule is created for production order routing line
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
@@ -1807,22 +1807,22 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line is retrieved for test context validation
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", TextQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", TextQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         // [WHEN] Default value is set to 'A' (in allowable values)
-        TextQltyField."Default Value" := 'A';
+        TextQltyTest."Default Value" := 'A';
         // [THEN] Validation passes with inspection header context
-        QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField, QltyInspectionHeader);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader);
         // [THEN] Validation passes with inspection header and inspection line context
-        QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField, QltyInspectionHeader, QltyInspectionLine);
+        QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
 
         // [THEN] Default value 'D' (not in allowable values) causes error with inspection header context
         ClearLastError();
-        TextQltyField."Default Value" := 'D';
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField, QltyInspectionHeader);
+        TextQltyTest."Default Value" := 'D';
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader);
         // [THEN] Default value 'D' causes error with inspection header and inspection line context
-        asserterror QltyResultEvaluation.ValidateAllowableValuesOnField(TextQltyField, QltyInspectionHeader, QltyInspectionLine);
+        asserterror QltyResultEvaluation.ValidateAllowableValuesOnTest(TextQltyTest, QltyInspectionHeader, QltyInspectionLine);
         ClearLastError();
     end;
 
@@ -1833,7 +1833,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureQltyField: Record "Qlty. Field";
+        NumericalMeasureQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -1858,17 +1858,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with an integer field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Integer", NumericalMeasureQltyField, QltyInspectionTemplateLine);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyTest."Test Value Type"::"Value Type Integer", NumericalMeasureQltyTest, QltyInspectionTemplateLine);
 
         // [GIVEN] Field-level result condition is set to 4..5 for PASS result
-        NumericalMeasureQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
+        NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
 
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '6..7');
@@ -1902,7 +1902,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line is retrieved and result conditions are set up
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
+        QltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
@@ -1910,7 +1910,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
         QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        QltyIResultConditConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         // [WHEN] OnRun is called with blank test value
         QltyInspectionLine."Test Value" := '';
@@ -1938,7 +1938,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ClearLastError();
         QltyInspectionLine."Test Value" := '7.0001';
         LibraryAssert.AreEqual(false, QltyResultEvaluation.Run(QltyInspectionLine), 'should not have evaluated to an integer.');
-        LibraryAssert.AreEqual(StrSubstNo(Expected2Err, NumericalMeasureQltyField.Description), GetLastErrorText(), 'error text from failed run.');
+        LibraryAssert.AreEqual(StrSubstNo(Expected2Err, NumericalMeasureQltyTest.Description), GetLastErrorText(), 'error text from failed run.');
     end;
 
     [Test]
@@ -1948,7 +1948,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        NumericalMeasureQltyField: Record "Qlty. Field";
+        NumericalMeasureQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -1972,18 +1972,18 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with a decimal field and allowable values range 0..12345 is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyField."Field Type"::"Field Type Decimal", NumericalMeasureQltyField, QltyInspectionTemplateLine);
-        NumericalMeasureQltyField.Validate("Allowable Values", '0..12345');
-        NumericalMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureQltyTest, QltyInspectionTemplateLine);
+        NumericalMeasureQltyTest.Validate("Allowable Values", '0..12345');
+        NumericalMeasureQltyTest.Modify(false);
 
         // [GIVEN] Field-level result condition is set to 4..5 for PASS result
-        NumericalMeasureQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
+        NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, '6..7');
@@ -2010,7 +2010,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line is retrieved for validation
         NumericMeasureQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         NumericMeasureQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        NumericMeasureQltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
+        NumericMeasureQltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         NumericMeasureQltyInspectionLine.FindFirst();
 
         // [WHEN] ValidateQltyInspectionLine is called with blank value
@@ -2071,7 +2071,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        OptionListMeasureQltyField: Record "Qlty. Field";
+        OptionListMeasureQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -2095,21 +2095,21 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] An inspection template with an option field is created with allowable values 'A,B,C,D,E'
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        QltyInspectionUtility.CreateFieldAndAddToTemplate(QltyInspectionTemplateHdr, OptionListMeasureQltyField."Field Type"::"Field Type Option", OptionListMeasureQltyField, QltyInspectionTemplateLine);
-        OptionListMeasureQltyField.Description := '';
-        OptionListMeasureQltyField.Validate("Allowable Values", 'A,B,C,D,E');
-        OptionListMeasureQltyField.Modify(false);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, OptionListMeasureQltyTest."Test Value Type"::"Value Type Option", OptionListMeasureQltyTest, QltyInspectionTemplateLine);
+        OptionListMeasureQltyTest.Description := '';
+        OptionListMeasureQltyTest.Validate("Allowable Values", 'A,B,C,D,E');
+        OptionListMeasureQltyTest.Modify(false);
         QltyInspectionTemplateLine.Description := '';
         QltyInspectionTemplateLine.Modify(false);
 
         // [GIVEN] Field-level result condition is set to 'A|B' for PASS result
-        OptionListMeasureQltyField.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), 'A|B', true);
+        OptionListMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), 'A|B', true);
         // [GIVEN] Template-level result condition is modified to 'C|D' for PASS result (overrides field-level)
         QltyInspectionTemplateLine.EnsureResults(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Result Code", QltyAutoConfigure.GetDefaultPassResult());
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.FindFirst();
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, 'C|D');
@@ -2137,7 +2137,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Inspection line for option field is retrieved
         OptionListQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
         OptionListQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        OptionListQltyInspectionLine.SetRange("Field Code", OptionListMeasureQltyField.Code);
+        OptionListQltyInspectionLine.SetRange("Test Code", OptionListMeasureQltyTest.Code);
         OptionListQltyInspectionLine.FindFirst();
 
         // [WHEN] ValidateQltyInspectionLine is called with blank value
@@ -2176,7 +2176,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ClearLastError();
         OptionListQltyInspectionLine."Test Value" := 'F';
         asserterror QltyResultEvaluation.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
-        LibraryAssert.ExpectedError(StrSubstNo(Expected4Err, OptionListQltyInspectionLine."Field Code"));
+        LibraryAssert.ExpectedError(StrSubstNo(Expected4Err, OptionListQltyInspectionLine."Test Code"));
     end;
 
     local procedure GetTemplateLineConfigFilters(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; var OutTemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
@@ -2185,16 +2185,16 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         OutTemplateLineQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         OutTemplateLineQltyIResultConditConf.SetRange("Target Reinspection No.");
         OutTemplateLineQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
-        OutTemplateLineQltyIResultConditConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
+        OutTemplateLineQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
     end;
 
-    local procedure GetFieldConfigFilters(var QltyField: Record "Qlty. Field"; var OutTemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
+    local procedure GetFieldConfigFilters(var QltyTest: Record "Qlty. Test"; var OutTemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
     begin
-        OutTemplateLineQltyIResultConditConf.SetRange("Condition Type", OutTemplateLineQltyIResultConditConf."Condition Type"::Field);
-        OutTemplateLineQltyIResultConditConf.SetRange("Target Code", QltyField.Code);
+        OutTemplateLineQltyIResultConditConf.SetRange("Condition Type", OutTemplateLineQltyIResultConditConf."Condition Type"::Test);
+        OutTemplateLineQltyIResultConditConf.SetRange("Target Code", QltyTest.Code);
         OutTemplateLineQltyIResultConditConf.SetRange("Target Reinspection No.");
         OutTemplateLineQltyIResultConditConf.SetRange("Target Line No.");
-        OutTemplateLineQltyIResultConditConf.SetRange("Field Code", QltyField.Code);
+        OutTemplateLineQltyIResultConditConf.SetRange("Test Code", QltyTest.Code);
     end;
 
     local procedure IsDatabaseCaseSensitive(): Boolean

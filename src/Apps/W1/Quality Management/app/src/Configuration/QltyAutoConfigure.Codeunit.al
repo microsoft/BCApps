@@ -16,7 +16,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.Sales.Document;
@@ -912,7 +912,7 @@ codeunit 20402 "Qlty. Auto Configure"
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
-        ConfigFieldPriority: Enum "Qlty. Config. Field Priority";
+        QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
     begin
         EnsureSourceConfigWithFilter(
             TrackingSpecToInspectTok,
@@ -934,7 +934,7 @@ codeunit 20402 "Qlty. Auto Configure"
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '',
             false,
-            ConfigFieldPriority::Priority);
+            QltyConfigTestPriority::Priority);
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Variant Code"),
@@ -1143,7 +1143,7 @@ codeunit 20402 "Qlty. Auto Configure"
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempItemJournalLine: Record "Item Journal Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
-        ConfigFieldPriority: Enum "Qlty. Config. Field Priority";
+        QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
     begin
         EnsureSourceConfigWithFilter(
             ProdJnlToInspectTok,
@@ -1183,7 +1183,7 @@ codeunit 20402 "Qlty. Auto Configure"
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '',
             false,
-            ConfigFieldPriority::Priority);
+            QltyConfigTestPriority::Priority);
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Variant Code"),
@@ -1749,12 +1749,12 @@ codeunit 20402 "Qlty. Auto Configure"
 
     local procedure EnsureSourceConfigLineWithTrackFlag(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text; TrackingOnly: Boolean)
     var
-        ConfigFieldPriority: Enum "Qlty. Config. Field Priority";
+        QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
     begin
-        EnsurePrioritizedSourceConfigLineWithTrackFlag(QltyInspectSourceConfig, FromField, ToTable, ToField, OptionalOverrideDisplay, TrackingOnly, ConfigFieldPriority::Normal);
+        EnsurePrioritizedSourceConfigLineWithTrackFlag(QltyInspectSourceConfig, FromField, ToTable, ToField, OptionalOverrideDisplay, TrackingOnly, QltyConfigTestPriority::Normal);
     end;
 
-    local procedure EnsurePrioritizedSourceConfigLineWithTrackFlag(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text; TrackingOnly: Boolean; Priority: Enum "Qlty. Config. Field Priority")
+    local procedure EnsurePrioritizedSourceConfigLineWithTrackFlag(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text; TrackingOnly: Boolean; QltyConfigTestPriority: Enum "Qlty. Config. Test Priority")
     var
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
     begin
@@ -1780,7 +1780,7 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSrcFldConf."To Table No." := ToTable;
             QltyInspectSrcFldConf."To Field No." := ToField;
             QltyInspectSrcFldConf."Display As" := CopyStr(OptionalOverrideDisplay, 1, MaxStrLen(QltyInspectSrcFldConf."Display As"));
-            QltyInspectSrcFldConf."Priority Field" := Priority;
+            QltyInspectSrcFldConf."Priority Test" := QltyConfigTestPriority;
             QltyInspectSrcFldConf.Insert();
         end;
     end;
@@ -1794,13 +1794,13 @@ codeunit 20402 "Qlty. Auto Configure"
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
         case true of
             QltyInspectionGenRule.IsEmpty(),
             QltyInspectionTemplateHdr.IsEmpty(),
-            QltyField.IsEmpty(),
+            QltyTest.IsEmpty(),
             QltyInspectionResult.IsEmpty():
                 exit(false);
         end;

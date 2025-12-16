@@ -10,7 +10,7 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.Utilities;
@@ -181,25 +181,25 @@ codeunit 20599 "Qlty. Misc Helpers"
     procedure GetRecordsForTableField(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
     begin
         QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyField.Get(QltyInspectionLine."Field Code");
-        GetRecordsForTableField(QltyField, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
+        QltyTest.Get(QltyInspectionLine."Test Code");
+        GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
     end;
 
     /// <summary>
     /// Gets the available records for any given table field.
     /// This will evaluate expressions!
     /// </summary>
-    /// <param name="QltyField"></param>
+    /// <param name="QltyTest"></param>
     /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields.  Supply an inspection context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
     /// <param name="TempBufferQltyLookupCode"></param>
-    internal procedure GetRecordsForTableField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        GetRecordsForTableField(QltyField, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine, TempBufferQltyLookupCode);
+        GetRecordsForTableField(QltyTest, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine, TempBufferQltyLookupCode);
     end;
 
     /// <summary>
@@ -207,18 +207,18 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Evaluates dynamic table filters using Inspection context and populates temporary buffer with available choices.
     /// 
     /// Behavior:
-    /// - Evaluates QltyField."Lookup Table Filter" using inspection header/line context for dynamic filtering
+    /// - Evaluates QltyTest."Lookup Table Filter" using inspection header/line context for dynamic filtering
     /// - For Qlty. Lookup Code table: includes both Code and Description fields
     /// - For other tables: uses only the specified lookup field
     /// - Applies maximum row limit from setup to prevent excessive data retrieval
     /// 
     /// Common usage: Populating dropdown lists in inspection lines with context-aware options.
     /// </summary>
-    /// <param name="QltyField">The quality field configuration defining lookup table and filters</param>
+    /// <param name="QltyTest">The quality field configuration defining lookup table and filters</param>
     /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation</param>
     /// <param name="OptionalContextQltyInspectionLine">Inspection line providing context for filter expression evaluation</param>
     /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values</param>
-    procedure GetRecordsForTableField(var QltyField: Record "Qlty. Field"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         ReasonableMaximum: Integer;
@@ -227,12 +227,12 @@ codeunit 20599 "Qlty. Misc Helpers"
     begin
         ReasonableMaximum := GetDefaultMaximumRowsFieldLookup();
 
-        TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyField."Lookup Table Filter", OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine);
+        TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyTest."Lookup Table Filter", OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine);
 
-        if QltyField."Lookup Table No." = Database::"Qlty. Lookup Code" then
-            GetRecordsForTableField(QltyField."Lookup Table No.", QltyField."Lookup Field No.", TempBufferQltyLookupCode.FieldNo(Description), TableFilter, ReasonableMaximum, TempBufferQltyLookupCode, DummyText)
+        if QltyTest."Lookup Table No." = Database::"Qlty. Lookup Code" then
+            GetRecordsForTableField(QltyTest."Lookup Table No.", QltyTest."Lookup Field No.", TempBufferQltyLookupCode.FieldNo(Description), TableFilter, ReasonableMaximum, TempBufferQltyLookupCode, DummyText)
         else
-            GetRecordsForTableField(QltyField."Lookup Table No.", QltyField."Lookup Field No.", 0, TableFilter, ReasonableMaximum, TempBufferQltyLookupCode, DummyText);
+            GetRecordsForTableField(QltyTest."Lookup Table No.", QltyTest."Lookup Field No.", 0, TableFilter, ReasonableMaximum, TempBufferQltyLookupCode, DummyText);
     end;
 
     /// <summary>
@@ -502,8 +502,8 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// 
     /// Returns false early if:
     /// - Test Value is empty
-    /// - Field Type is not "Field Type Table Lookup"
-    /// - Field Code is invalid
+    /// - Field Type is not "Value Type Table Lookup"
+    /// - Test Code is invalid
     /// - Lookup Table is not a person-related table
     /// 
     /// Common usage: Displaying inspector/approver details in test forms and reports.
@@ -517,7 +517,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>True if inspection line references a person and details were retrieved; False otherwise</returns>
     procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
     begin
         Clear(FullName);
         Clear(JobTitle);
@@ -528,13 +528,13 @@ codeunit 20599 "Qlty. Misc Helpers"
         if QltyInspectionLine."Test Value" = '' then
             exit(false);
 
-        if not (QltyInspectionLine."Field Type" in [QltyInspectionLine."Field Type"::"Field Type Table Lookup"]) then
+        if not (QltyInspectionLine."Test Value Type" in [QltyInspectionLine."Test Value Type"::"Value Type Table Lookup"]) then
             exit(false);
 
-        if not QltyField.Get(QltyInspectionLine."Field Code") then
+        if not QltyTest.Get(QltyInspectionLine."Test Code") then
             exit(false);
 
-        if not (QltyField."Lookup Table No." in [
+        if not (QltyTest."Lookup Table No." in [
             Database::Contact,
             Database::Employee,
             Database::Resource,
@@ -694,46 +694,46 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="Description">The field description text to analyze for type hints</param>
     /// <param name="OptionalValue">Optional sample value to analyze for type detection</param>
     /// <returns>The guessed field type enum value</returns>
-    procedure GuessDataTypeFromDescriptionAndValue(Description: Text; OptionalValue: Text) QltyFieldType: Enum "Qlty. Field Type"
+    procedure GuessDataTypeFromDescriptionAndValue(Description: Text; OptionalValue: Text) QltyTestValueType: Enum "Qlty. Test Value Type"
     var
         TestDateTime: Date;
         TestDate: Date;
     begin
         Description := UpperCase(Description);
-        QltyFieldType := QltyFieldType::"Field Type Text";
+        QltyTestValueType := QltyTestValueType::"Value Type Text";
         if OptionalValue <> '' then
 #pragma warning disable AA0206
             case true of
                 CanTextBeInterpretedAsBooleanIsh(Text.DelChr(OptionalValue, '=', ' ').ToUpper()):
-                    QltyFieldType := QltyFieldType::"Field Type Boolean";
+                    QltyTestValueType := QltyTestValueType::"Value Type Boolean";
                 IsNumericText(OptionalValue):
-                    QltyFieldType := QltyFieldType::"Field Type Decimal";
+                    QltyTestValueType := QltyTestValueType::"Value Type Decimal";
                 Evaluate(TestDate, OptionalValue):
-                    QltyFieldType := QltyFieldType::"Field Type Date";
+                    QltyTestValueType := QltyTestValueType::"Value Type Date";
                 Evaluate(TestDateTime, OptionalValue):
-                    QltyFieldType := QltyFieldType::"Field Type DateTime";
+                    QltyTestValueType := QltyTestValueType::"Value Type DateTime";
                 Evaluate(TestDateTime, OptionalValue, 9):
-                    QltyFieldType := QltyFieldType::"Field Type DateTime";
+                    QltyTestValueType := QltyTestValueType::"Value Type DateTime";
             end;
 #pragma warning restore AA0206
 
         if Description <> '' then
             case true of
                 Description.Contains(UpperCase(DateKeywordTxt)):
-                    QltyFieldType := QltyFieldType::"Field Type Date";
+                    QltyTestValueType := QltyTestValueType::"Value Type Date";
 
                 Description.Contains(UpperCase(TrackingKeyword1Txt)),
                 Description.Contains(UpperCase(TrackingKeyword2Txt)),
                 Description.Contains(UpperCase(TrackingKeyword3Txt)),
                 Description.Contains(UpperCase(TrackingKeyword4Txt)):
-                    QltyFieldType := QltyFieldType::"Field Type Text";
+                    QltyTestValueType := QltyTestValueType::"Value Type Text";
 
                 Description.StartsWith(UpperCase(YesNoKeyword1Txt)),
                 Description.StartsWith(UpperCase(YesNoKeyword2Txt)),
                 Description.StartsWith(UpperCase(YesNoKeyword3Txt)),
                 Description.StartsWith(UpperCase(YesNoKeyword4Txt)),
                 Description.StartsWith(UpperCase(YesNoKeyword5Txt)):
-                    QltyFieldType := QltyFieldType::"Field Type Boolean";
+                    QltyTestValueType := QltyTestValueType::"Value Type Boolean";
             end;
     end;
 

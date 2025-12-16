@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 page 20436 "Qlty. Lookup Field Choose"
 {

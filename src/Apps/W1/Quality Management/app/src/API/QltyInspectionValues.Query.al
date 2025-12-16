@@ -85,10 +85,10 @@ query 20401 "Qlty. Inspection Values"
 
                 column(lineSystemId; SystemId) { }
                 column(lineNo; "Line No.") { }
-                column(lineFieldCode; "Field Code") { }
-                column(lineFieldType; "Field Type")
+                column(lineTestCode; "Test Code") { }
+                column(lineTestValueType; "Test Value Type")
                 {
-                    Caption = 'lineFieldType', Locked = true;
+                    Caption = 'lineTestValueType', Locked = true;
                 }
                 column(lineResultCode; "Result Code") { }
                 column(lineNumericValue; "Numeric Value") { }

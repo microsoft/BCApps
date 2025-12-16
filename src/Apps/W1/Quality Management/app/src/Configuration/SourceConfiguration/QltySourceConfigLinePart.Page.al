@@ -65,7 +65,7 @@ page 20411 "Qlty. Source Config Line Part"
                 field("Display As"; Rec."Display As")
                 {
                 }
-                field("Priority Field"; Rec."Priority Field")
+                field("Priority Test"; Rec."Priority Test")
                 {
                     Visible = false;
                 }

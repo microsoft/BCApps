@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Utilities;
@@ -10,11 +10,11 @@ using Microsoft.QualityManagement.Utilities;
 /// <summary>
 /// Used to help with expression configuration.
 /// </summary>
-page 20467 "Qlty. Field Expr. Card Part"
+page 20467 "Qlty. Test Expr. Card Part"
 {
-    Caption = 'Quality Field Expression Card Part';
+    Caption = 'Quality Test Expression Card Part';
     PageType = CardPart;
-    SourceTable = "Qlty. Field";
+    SourceTable = "Qlty. Test";
     LinksAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -28,18 +28,18 @@ page 20467 "Qlty. Field Expr. Card Part"
             {
                 Editable = false;
                 AboutTitle = 'Code';
-                AboutText = 'The short code to identify the test field. You can enter a maximum of 20 characters, both numbers and letters.';
+                AboutText = 'The short code to identify the test. You can enter a maximum of 20 characters, both numbers and letters.';
             }
             field(Description; Rec.Description)
             {
                 Visible = false;
                 AboutTitle = 'Description';
-                AboutText = 'The friendly description for the Field. You can enter a maximum of 100 characters, both numbers and letters.';
+                AboutText = 'The friendly description for the Test. You can enter a maximum of 100 characters, both numbers and letters.';
             }
             field("Expression Formula"; Rec."Expression Formula")
             {
                 AboutTitle = 'Expression Formula';
-                AboutText = 'Used with expression field types, this contains the formula for the expression content.';
+                AboutText = 'Used with expression test value types, this contains the formula for the expression content.';
                 MultiLine = true;
 
                 trigger OnAssistEdit()
@@ -67,7 +67,7 @@ page 20467 "Qlty. Field Expr. Card Part"
                     Rec.AssistEditAllowableValues();
                 end;
             }
-            field(ChooseUOM; QltyField."Unit of Measure Code")
+            field(ChooseUOM; QltyTest."Unit of Measure Code")
             {
                 ShowCaption = true;
             }
@@ -120,12 +120,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         {
                             ColumnSpan = 2;
                             CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible1;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(1);
+                                HandleTestValidateAdvancedSyntax(1);
                             end;
                         }
                     }
@@ -133,12 +133,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     {
                         ColumnSpan = 2;
                         CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                         Editable = Visible1;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(1);
+                            HandleTestValidateConditionDescription(1);
                         end;
                     }
                 }
@@ -154,24 +154,24 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field2; MatrixArrayConditionCellData[2])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                             Editable = Visible2;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(2);
+                                HandleTestValidateAdvancedSyntax(2);
                             end;
                         }
                     }
                     field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                         Editable = Visible2;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(2);
+                            HandleTestValidateConditionDescription(2);
                         end;
                     }
                 }
@@ -186,24 +186,24 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field3; MatrixArrayConditionCellData[3])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible3;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(3);
+                                HandleTestValidateAdvancedSyntax(3);
                             end;
                         }
                     }
                     field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible3;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(3);
+                            HandleTestValidateConditionDescription(3);
                         end;
                     }
                 }
@@ -215,12 +215,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible4;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(4);
+                            HandleTestValidateConditionDescription(4);
                         end;
                     }
                     group(SettingsForVisible4Advanced)
@@ -230,12 +230,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field4; MatrixArrayConditionCellData[4])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible4;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(4);
+                                HandleTestValidateAdvancedSyntax(4);
                             end;
                         }
                     }
@@ -248,12 +248,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible5;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(5);
+                            HandleTestValidateConditionDescription(5);
                         end;
                     }
                     group(SettingsForVisible5Advanced)
@@ -263,12 +263,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field5; MatrixArrayConditionCellData[5])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible5;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(5);
+                                HandleTestValidateAdvancedSyntax(5);
                             end;
                         }
                     }
@@ -281,12 +281,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible6;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(6);
+                            HandleTestValidateConditionDescription(6);
                         end;
                     }
                     group(SettingsForVisible6Advanced)
@@ -296,12 +296,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field6; MatrixArrayConditionCellData[6])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible6;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(6);
+                                HandleTestValidateAdvancedSyntax(6);
                             end;
                         }
                     }
@@ -314,12 +314,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible7;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(7);
+                            HandleTestValidateConditionDescription(7);
                         end;
                     }
                     group(SettingsForVisible7Advanced)
@@ -329,12 +329,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field7; MatrixArrayConditionCellData[7])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible7;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(7);
+                                HandleTestValidateAdvancedSyntax(7);
                             end;
                         }
                     }
@@ -347,12 +347,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible8;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(8);
+                            HandleTestValidateConditionDescription(8);
                         end;
                     }
                     group(SettingsForVisible8Advanced)
@@ -362,12 +362,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field8; MatrixArrayConditionCellData[8])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible8;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(8);
+                                HandleTestValidateAdvancedSyntax(8);
                             end;
                         }
                     }
@@ -380,12 +380,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible9;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(9);
+                            HandleTestValidateConditionDescription(9);
                         end;
                     }
                     group(SettingsForVisible9Advanced)
@@ -395,12 +395,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field9; MatrixArrayConditionCellData[9])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible9;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(9);
+                                HandleTestValidateAdvancedSyntax(9);
                             end;
                         }
                     }
@@ -412,12 +412,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                     field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible10;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldValidateConditionDescription(10);
+                            HandleTestValidateConditionDescription(10);
                         end;
                     }
                     group(SettingsForVisible10Advanced)
@@ -426,12 +426,12 @@ page 20467 "Qlty. Field Expr. Card Part"
                         field(Field10; MatrixArrayConditionCellData[10])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible10;
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateAdvancedSyntax(10);
+                                HandleTestValidateAdvancedSyntax(10);
                             end;
                         }
                     }
@@ -441,7 +441,7 @@ page 20467 "Qlty. Field Expr. Card Part"
     }
 
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         MatrixSourceRecordId: array[10] of RecordId;
@@ -462,10 +462,10 @@ page 20467 "Qlty. Field Expr. Card Part"
         MatrixArrayCaptionSet: array[10] of Text;
         MatrixVisibleState: array[10] of Boolean;
 
-    procedure LoadExistingField(CurrentField: Code[20]; Update: Boolean)
+    procedure LoadExistingTest(CurrentTest: Code[20]; Update: Boolean)
     begin
-        if Rec.Code <> CurrentField then
-            if Rec.Get(CurrentField) then;
+        if Rec.Code <> CurrentTest then
+            if Rec.Get(CurrentTest) then;
         Clear(MatrixMinValue);
         Clear(MatrixMaxValue);
         Clear(MatrixArrayConditionCellData);
@@ -473,16 +473,16 @@ page 20467 "Qlty. Field Expr. Card Part"
         Clear(MatrixArrayCaptionSet);
         Clear(MatrixVisibleState);
 
-        Clear(QltyField);
-        if CurrentField = '' then
+        Clear(QltyTest);
+        if CurrentTest = '' then
             exit;
 
-        if not QltyField.Get(CurrentField) then begin
-            QltyField.Init();
-            QltyField.Code := CurrentField;
-            QltyField.Insert();
+        if not QltyTest.Get(CurrentTest) then begin
+            QltyTest.Init();
+            QltyTest.Code := CurrentTest;
+            QltyTest.Insert();
         end;
-        QltyField.SetRecFilter();
+        QltyTest.SetRecFilter();
         UpdateRowData();
         if Update then
             CurrPage.Update(false);
@@ -518,10 +518,10 @@ page 20467 "Qlty. Field Expr. Card Part"
         Clear(MatrixArrayConditionDescriptionCellData);
         Clear(MatrixArrayCaptionSet);
 
-        if QltyField.Code = '' then
+        if QltyTest.Code = '' then
             exit;
 
-        QltyResultConditionMgmt.GetPromotedResultsForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForTest(QltyTest, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
             QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
@@ -537,26 +537,26 @@ page 20467 "Qlty. Field Expr. Card Part"
         Visible10 := MatrixVisibleState[10];
     end;
 
-    local procedure HandleFieldValidateAdvancedSyntax(piMatrix: Integer)
+    local procedure HandleTestValidateAdvancedSyntax(MatrixField: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIResultConditConf.Get(MatrixSourceRecordId[piMatrix]);
-        QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[piMatrix]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[piMatrix], MatrixMaxValue[piMatrix]);
+        QltyIResultConditConf.Get(MatrixSourceRecordId[MatrixField]);
+        QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[MatrixField]);
+        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[MatrixField], MatrixMaxValue[MatrixField]);
         QltyIResultConditConf.Modify(true);
-        LoadExistingField(QltyField.Code, true);
+        LoadExistingTest(QltyTest.Code, true);
         CurrPage.Update(false);
     end;
 
-    local procedure HandleFieldValidateConditionDescription(piMatrix: Integer)
+    local procedure HandleTestValidateConditionDescription(MatrixField: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIResultConditConf.Get(MatrixSourceRecordId[piMatrix]);
-        QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[piMatrix]);
+        QltyIResultConditConf.Get(MatrixSourceRecordId[MatrixField]);
+        QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[MatrixField]);
         QltyIResultConditConf.Modify(true);
-        LoadExistingField(QltyField.Code, true);
+        LoadExistingTest(QltyTest.Code, true);
         CurrPage.Update(false);
     end;
 }

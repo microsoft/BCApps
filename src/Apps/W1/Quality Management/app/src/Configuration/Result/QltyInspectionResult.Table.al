@@ -11,7 +11,7 @@ using Microsoft.QualityManagement.Document;
 /// You could have multiple passing results, and multiple failing results.
 /// Results are effectively the incomplete/pass/fail state of an inspection. 
 /// It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. 
-/// The results with a lower number for the priority field are evaluated first. 
+/// The results with a lower number for the priority tests are evaluated first. 
 /// If you are not sure what to configure here then use the three defaults. 
 /// The document specific lot/serial/package blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
 /// </summary>
@@ -51,9 +51,9 @@ table 20411 "Qlty. Inspection Result"
         }
         field(4; "Copy Behavior"; Enum "Qlty. Result Copy Behavior")
         {
-            Description = 'Whether to automatically configure this result on new fields and new templates.';
+            Description = 'Whether to automatically configure this result on new tests and new templates.';
             Caption = 'Copy Behavior';
-            ToolTip = 'Specifies whether to automatically configure this result on new fields and new templates.';
+            ToolTip = 'Specifies whether to automatically configure this result on new tests and new templates.';
         }
         field(5; "Result Visibility"; Enum "Qlty. Result Visibility")
         {
@@ -75,7 +75,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateFieldsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
             end;
         }
         field(11; "Default Text Condition"; Text[500])
@@ -92,7 +92,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateFieldsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
             end;
         }
         field(12; "Default Boolean Condition"; Text[500])
@@ -109,7 +109,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateFieldsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
             end;
         }
         field(13; "Result Category"; Enum "Qlty. Result Category")
@@ -234,7 +234,7 @@ table 20411 "Qlty. Inspection Result"
         CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
         PromptFirstExistingInspectionQst: Label 'This result, although not set on an inspection, is available to previous inspections. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This result is currently defined on some Quality Inspection Templates. Are you sure you want to remove this result? This cannot be undone.';
-        PromptFirstExistingFieldQst: Label 'This result is currently defined on some fields. Are you sure you want to remove this result? This cannot be undone.';
+        PromptFirstExistingTestQst: Label 'This result is currently defined on some tests. Are you sure you want to remove this result? This cannot be undone.';
         DefaultResultInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
 
     trigger OnInsert()
@@ -288,10 +288,10 @@ table 20411 "Qlty. Inspection Result"
                 Error('');
 
         QltyIResultConditConf.Reset();
-        QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Field);
+        QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Test);
         QltyIResultConditConf.SetRange("Result Code", Rec.Code);
         if not QltyIResultConditConf.IsEmpty() then
-            if not Confirm(PromptFirstExistingFieldQst) then
+            if not Confirm(PromptFirstExistingTestQst) then
                 Error('');
 
         QltyIResultConditConf.Reset();

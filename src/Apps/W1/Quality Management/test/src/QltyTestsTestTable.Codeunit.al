@@ -22,7 +22,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.QualityManagement.Utilities;
@@ -66,7 +66,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         OptionsTok: Label 'Option1,Option2,Option3';
         Option1Tok: Label 'Option1';
         NoTok: Label 'No';
-        ExistingInspectiontErr: Label 'The field %1 exists on %2 inspections (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of inspections, %3=one example inspection, %4=example template.';
+        ExistingInspectiontErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
         DescriptionTxt: Label 'Specific Gravity';
         SuggestedCodeTxtTestValueTxt: Label 'SPECIFICGRAVITY';
         Description2Txt: Label '><{}.@!`~''"|\/?&*()-_$#-=,%%:ELECTRICAL CONDUCTIVITY';
@@ -586,14 +586,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] AssistEditTestField allows editing an inspection field value through a modal page
+        // [SCENARIO] AssistEditTestField allows editing an inspection test value through a modal page
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
@@ -608,8 +608,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] The inspection line is retrieved
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
 
-        // [WHEN] AssistEditTestField is called on the field code
-        QltyInspectionHeader.AssistEditTestField(QltyInspectionLine."Field Code");
+        // [WHEN] AssistEditTest is called on the test code
+        QltyInspectionHeader.AssistEditTest(QltyInspectionLine."Test Code");
 
         // [THEN] The test value is updated through the modal page handler
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
@@ -650,7 +650,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
@@ -723,7 +723,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
@@ -794,7 +794,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
@@ -868,7 +868,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
@@ -1229,7 +1229,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
@@ -2319,180 +2319,179 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
     [Test]
     [HandlerFunctions('StrMenuPageHandler')]
-    procedure FieldTable_AssistEditDefaultValue_Option()
+    procedure TestTable_AssistEditDefaultValue_Option()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
-        // [SCENARIO] AssistEditDefaultValue for Option field type opens option menu
+        // [SCENARIO] AssistEditDefaultValue for Option test value type opens option menu
 
         Initialize();
 
-        // [GIVEN] A field record is initialized
-        ToLoadQltyField.Init();
+        // [GIVEN] A test record is initialized
+        ToLoadQltyTest.Init();
 
-        // [GIVEN] Field type is set to Option
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Option");
+        // [GIVEN] Test value type is set to Option
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Option");
 
         // [GIVEN] Allowable values are set
-        ToLoadQltyField.Validate("Allowable Values", OptionsTok);
+        ToLoadQltyTest.Validate("Allowable Values", OptionsTok);
 
         // [WHEN] AssistEditDefaultValue is called (StrMenuPageHandler selects first option)
-        ToLoadQltyField.AssistEditDefaultValue();
+        ToLoadQltyTest.AssistEditDefaultValue();
 
         // [THEN] Default value is set to selected option
-        LibraryAssert.AreEqual(Option1Tok, ToLoadQltyField."Default Value", 'Should be selected option.');
+        LibraryAssert.AreEqual(Option1Tok, ToLoadQltyTest."Default Value", 'Should be selected option.');
     end;
 
     [Test]
     [HandlerFunctions('StrMenuPageHandler')]
-    procedure FieldTable_AssistEditDefaultValue_Boolean()
+    procedure TestTable_AssistEditDefaultValue_Boolean()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
-        // [SCENARIO] AssistEditDefaultValue for Boolean field type opens Yes/No menu
+        // [SCENARIO] AssistEditDefaultValue for Boolean test value type opens Yes/No menu
 
         Initialize();
 
-        // [GIVEN] A field record is initialized
-        ToLoadQltyField.Init();
+        // [GIVEN] A test record is initialized
+        ToLoadQltyTest.Init();
 
-        // [GIVEN] Field type is set to Boolean
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Boolean");
+        // [GIVEN] Test value type is set to Boolean
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
 
         // [WHEN] AssistEditDefaultValue is called (StrMenuPageHandler selects first option: No)
-        ToLoadQltyField.AssistEditDefaultValue();
+        ToLoadQltyTest.AssistEditDefaultValue();
 
         // [THEN] Default value is set to No
-        LibraryAssert.AreEqual(NoTok, ToLoadQltyField."Default Value", 'Should be no.')
+        LibraryAssert.AreEqual(NoTok, ToLoadQltyTest."Default Value", 'Should be no.')
     end;
 
     [Test]
     [HandlerFunctions('EditLargeTextModalPageHandler')]
-    procedure FieldTable_AssistEditDefaultValue_Text()
+    procedure TestTable_AssistEditDefaultValue_Text()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
-        // [SCENARIO] AssistEditDefaultValue for Text field type opens text editor modal
+        // [SCENARIO] AssistEditDefaultValue for Text test value type opens text editor modal
 
         Initialize();
 
-        // [GIVEN] A field record is initialized
-        ToLoadQltyField.Init();
+        // [GIVEN] A test record is initialized
+        ToLoadQltyTest.Init();
 
-        // [GIVEN] Field type is set to Text
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Text");
+        // [GIVEN] Test value type is set to Text
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text");
 
         // [WHEN] AssistEditDefaultValue is called (EditLargeTextModalPageHandler enters TestValueTxt)
-        ToLoadQltyField.AssistEditDefaultValue();
+        ToLoadQltyTest.AssistEditDefaultValue();
 
         // [THEN] Default value is set to entered text
-        LibraryAssert.AreEqual(TestValueTxt, ToLoadQltyField."Default Value", 'Should be same text.')
+        LibraryAssert.AreEqual(TestValueTxt, ToLoadQltyTest."Default Value", 'Should be same text.')
     end;
 
     [Test]
-    procedure FieldTable_OnDelete_ShouldError()
+    procedure TestTable_OnDelete_ShouldError()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        // [SCENARIO] Deleting field used in template lines should error
+        // [SCENARIO] Deleting test used in template lines should error
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with 2 fields is created
+        // [GIVEN] A template with 2 tests is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
 
         // [GIVEN] First template line is retrieved
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] Field from template line is retrieved
-        ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code");
+        // [GIVEN] Test from template line is retrieved
+        ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code");
 
-        // [GIVEN] Sanity checks: field exists and template has two lines
-        LibraryAssert.IsTrue(ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code"), 'Sanity check, the field should exist before deleting.');
+        // [GIVEN] Sanity checks: test exists and template has two lines
+        LibraryAssert.IsTrue(ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code"), 'Sanity check, the test should exist before deleting.');
         LibraryAssert.AreEqual(2, ConfigurationToLoadQltyInspectionTemplateLine.Count(), 'Sanity check, should be starting with two lines.');
 
         // [GIVEN] Changes are committed
         Commit();
 
-        // [WHEN] Delete is attempted on field
-        asserterror ToLoadQltyField.Delete(true);
+        // [WHEN] Delete is attempted on test
+        asserterror ToLoadQltyTest.Delete(true);
 
-        // [THEN] Field still exists after failed delete attempt
-        LibraryAssert.IsTrue(ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code"), 'The field should still exist after a delete attempt, which should have failed.');
-
+        // [THEN] Test still exists after failed delete attempt
+        LibraryAssert.IsTrue(ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code"), 'The test should still exist after a delete attempt, which should have failed.');
         // [THEN] Template lines are retained
         ConfigurationToLoadQltyInspectionTemplateLine.Reset();
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         LibraryAssert.AreEqual(2, ConfigurationToLoadQltyInspectionTemplateLine.Count(), 'Should have retained the template line.');
 
-        // [THEN] Field record is retained
-        ToLoadQltyField.SetRecFilter();
-        LibraryAssert.AreEqual(1, ToLoadQltyField.Count(), 'Should have retained the field.');
+        // [THEN] Test record is retained
+        ToLoadQltyTest.SetRecFilter();
+        LibraryAssert.AreEqual(1, ToLoadQltyTest.Count(), 'Should have retained the test.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure FieldTable_EnsureCanBeDeleted_ShouldConfirmAndDelete()
+    procedure TestTable_EnsureCanBeDeleted_ShouldConfirmAndDelete()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        // [SCENARIO] EnsureCanBeDeleted with confirm removes template lines but not the field
+        // [SCENARIO] EnsureCanBeDeleted with confirm removes template lines but not the test
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with 2 fields is created
+        // [GIVEN] A template with 2 tests is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
 
         // [GIVEN] First template line is retrieved
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] Field from template line is retrieved
-        ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code");
+        // [GIVEN] Test from template line is retrieved
+        ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code");
 
         // [WHEN] EnsureCanBeDeleted is called with confirm=true (ConfirmHandler confirms)
-        ToLoadQltyField.EnsureCanBeDeleted(true);
+        ToLoadQltyTest.EnsureCanBeDeleted(true);
 
-        // [GIVEN] Field record filter is set
-        ToLoadQltyField.SetRecFilter();
+        // [GIVEN] Test record filter is set
+        ToLoadQltyTest.SetRecFilter();
 
         // [THEN] Template line is deleted
         Clear(ConfigurationToLoadQltyInspectionTemplateLine);
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         LibraryAssert.AreEqual(1, ConfigurationToLoadQltyInspectionTemplateLine.Count(), 'Should have deleted template line.');
 
-        // [THEN] Field still exists (EnsureCanBeDeleted only removes dependencies)
-        LibraryAssert.AreEqual(1, ToLoadQltyField.Count(), 'Should have not deleted the field with just EnsureCanBeDeleted(true).');
+        // [THEN] Test still exists (EnsureCanBeDeleted only removes dependencies)
+        LibraryAssert.AreEqual(1, ToLoadQltyTest.Count(), 'Should have not deleted the test with just EnsureCanBeDeleted(true).');
     end;
 
     [Test]
-    procedure FieldTable_OnDelete_HasExistingInspections_ShouldError()
+    procedure TestTable_OnDelete_HasExistingInspections_ShouldError()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
-        // [SCENARIO] Deleting field with existing inspection lines should error with specific message
+        // [SCENARIO] Deleting test with existing inspection lines should error with specific message
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with 1 field is created
+        // [GIVEN] A template with 1 test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] Template line is retrieved
@@ -2504,170 +2503,170 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         QltyInspectionHeader.Insert(true);
 
-        // [GIVEN] Field from template line is retrieved
-        ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code");
+        // [GIVEN] Test from template line is retrieved
+        ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code");
 
-        // [GIVEN] An inspection line using the field is created
+        // [GIVEN] An inspection line using the test is created
         QltyInspectionLine.Init();
         QltyInspectionLine.Validate("Inspection No.", QltyInspectionHeader."No.");
         QltyInspectionLine.Validate("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         QltyInspectionLine."Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
         QltyInspectionLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateLine."Template Code";
         QltyInspectionLine."Template Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
-        QltyInspectionLine.Validate("Field Code", ToLoadQltyField.Code);
+        QltyInspectionLine.Validate("Test Code", ToLoadQltyTest.Code);
         QltyInspectionLine.Insert();
 
-        // [WHEN] Delete is attempted on field
-        asserterror ToLoadQltyField.Delete(true);
+        // [WHEN] Delete is attempted on test
+        asserterror ToLoadQltyTest.Delete(true);
 
         // [THEN] Specific error message is shown with inspection details
         LibraryAssert.ExpectedError(StrSubstNo(
             ExistingInspectiontErr,
-            QltyInspectionLine."Field Code",
+            QltyInspectionLine."Test Code",
             1,
             QltyInspectionHeader."No.",
             QltyInspectionHeader."Template Code"));
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription()
+    procedure TestTable_SuggestTestCodeFromDescription()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription generates code from description
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription generates code from description
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are deleted
-        ToLoadQltyField.SetRange(Description, DescriptionTxt);
-        if not ToLoadQltyField.IsEmpty() then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are deleted
+        ToLoadQltyTest.SetRange(Description, DescriptionTxt);
+        if not ToLoadQltyTest.IsEmpty() then
+            ToLoadQltyTest.DeleteAll();
 
-        // [WHEN] SuggestUnusedFieldCodeFromDescription is called with description
-        ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(DescriptionTxt, FieldCode);
+        // [WHEN] SuggestUnusedTestCodeFromDescription is called with description
+        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
 
         // [THEN] Suggested code matches expected value
-        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, FieldCode, 'Suggested code should match');
+        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, TestCode, 'Suggested code should match');
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription_NoSpecialChar()
+    procedure TestTable_SuggestTestCodeFromDescription_NoSpecialChar()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription handles description with no special characters
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription handles description with no special characters
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are deleted
-        ToLoadQltyField.SetRange(Description, DescriptionTxt);
-        if not ToLoadQltyField.IsEmpty() then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are deleted
+        ToLoadQltyTest.SetRange(Description, DescriptionTxt);
+        if not ToLoadQltyTest.IsEmpty() then
+            ToLoadQltyTest.DeleteAll();
 
-        // [WHEN] SuggestUnusedFieldCodeFromDescription is called with description
-        ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(DescriptionTxt, FieldCode);
+        // [WHEN] SuggestUnusedTestCodeFromDescription is called with description
+        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
 
         // [THEN] Suggested code matches expected value
-        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, FieldCode, 'Suggested code should match');
+        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, TestCode, 'Suggested code should match');
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription_LongWithSpecialChar()
+    procedure TestTable_SuggestTestCodeFromDescription_LongWithSpecialChar()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription handles long description with special characters
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription handles long description with special characters
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are deleted
-        ToLoadQltyField.SetRange(Description, Description2Txt);
-        if not ToLoadQltyField.IsEmpty() then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are deleted
+        ToLoadQltyTest.SetRange(Description, Description2Txt);
+        if not ToLoadQltyTest.IsEmpty() then
+            ToLoadQltyTest.DeleteAll();
 
-        // [WHEN] SuggestUnusedFieldCodeFromDescription is called with long description with special characters
-        ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(Description2Txt, FieldCode);
+        // [WHEN] SuggestUnusedTestCodeFromDescription is called with long description with special characters
+        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(Description2Txt, TestCode);
 
         // [THEN] Suggested code matches expected value (truncated and sanitized)
-        LibraryAssert.AreEqual(SuggestedCodeTxtTestValue2Txt, FieldCode, 'Suggested code should match');
+        LibraryAssert.AreEqual(SuggestedCodeTxtTestValue2Txt, TestCode, 'Suggested code should match');
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription_PreexistingField()
+    procedure TestTable_SuggestTestCodeFromDescription_PreexistingTest()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription increments code when field already exists
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription increments code when test already exists
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are cleaned up to have only one
-        ToLoadQltyField.SetRange(Description, DescriptionTxt);
-        if ToLoadQltyField.Count() > 1 then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are cleaned up to have only one
+        ToLoadQltyTest.SetRange(Description, DescriptionTxt);
+        if ToLoadQltyTest.Count() > 1 then
+            ToLoadQltyTest.DeleteAll();
 
-        // [GIVEN] A field with the suggested code already exists
-        if ToLoadQltyField.IsEmpty() then begin
-            ToLoadQltyField.Init();
-            ToLoadQltyField.Validate(Code, SuggestedCodeTxtTestValueTxt);
-            ToLoadQltyField.Validate(Description, DescriptionTxt);
-            ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
-            ToLoadQltyField.Insert();
+        // [GIVEN] A test with the suggested code already exists
+        if ToLoadQltyTest.IsEmpty() then begin
+            ToLoadQltyTest.Init();
+            ToLoadQltyTest.Validate(Code, SuggestedCodeTxtTestValueTxt);
+            ToLoadQltyTest.Validate(Description, DescriptionTxt);
+            ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
+            ToLoadQltyTest.Insert();
 
-            // [WHEN] SuggestUnusedFieldCodeFromDescription is called
-            ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(DescriptionTxt, FieldCode);
+            // [WHEN] SuggestUnusedTestCodeFromDescription is called
+            ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
 
             // [THEN] Suggested code is incremented with suffix
-            LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt + '0002', FieldCode, 'Suggested code should match');
+            LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt + '0002', TestCode, 'Suggested code should match');
         end;
     end;
 
     [Test]
     [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure FieldTable_AssistEditAllowableValues()
+    procedure TestTable_AssistEditAllowableValues()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCodeTxt: Text;
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCodeTxt: Text;
     begin
         // [SCENARIO] AssistEditAllowableValues opens modal to edit allowable values
 
         Initialize();
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCodeTxt);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCodeTxt);
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Init();
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCodeTxt, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Init();
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCodeTxt, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
+        ToLoadQltyTest.Insert();
 
         // [GIVEN] Handler will enter allowable values expression
         AssistEditTemplateValue := AllowableValuesExpressionTok;
 
         // [WHEN] AssistEditAllowableValues is called (handler enters value)
-        ToLoadQltyField.AssistEditAllowableValues();
+        ToLoadQltyTest.AssistEditAllowableValues();
 
         // [THEN] Allowable values are updated
-        LibraryAssert.AreEqual(AllowableValuesExpressionTok, ToLoadQltyField."Allowable Values", 'Allowable values should match');
+        LibraryAssert.AreEqual(AllowableValuesExpressionTok, ToLoadQltyTest."Allowable Values", 'Allowable values should match');
     end;
 
     [Test]
     [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure FieldCardPage_UpdatePassConditionAndDescription()
+    procedure TestCardPage_UpdatePassConditionAndDescription()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
-        QltyFieldCard: TestPage "Qlty. Field Card";
-        FieldCodeTxt: Text;
+        QltyTestCard: TestPage "Qlty. Test Card";
+        TestCodeTxt: Text;
     begin
-        // [SCENARIO] Field card page updates pass condition and description via AssistEdit
+        // [SCENARIO] Test card page updates pass condition and description via AssistEdit
 
         Initialize();
 
@@ -2678,39 +2677,39 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A random field code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, FieldCodeTxt);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCodeTxt);
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Init();
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCodeTxt, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Init();
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCodeTxt, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] Field card page is opened for the field
-        QltyFieldCard.OpenEdit();
-        QltyFieldCard.GoToRecord(ToLoadQltyField);
+        // [GIVEN] Test card page is opened for the test
+        QltyTestCard.OpenEdit();
+        QltyTestCard.GoToRecord(ToLoadQltyTest);
 
         // [GIVEN] Handler will enter pass condition expression
         AssistEditTemplateValue := PassConditionExpressionTok;
 
         // [WHEN] Pass condition AssistEdit is invoked
-        QltyFieldCard.Field1.AssistEdit();
+        QltyTestCard.Field1.AssistEdit();
 
         // [GIVEN] Handler will enter pass condition description
         AssistEditTemplateValue := PassConditionDescExpressionTok;
 
         // [WHEN] Pass condition description AssistEdit is invoked
-        QltyFieldCard.Field1_Desc.AssistEdit();
+        QltyTestCard.Field1_Desc.AssistEdit();
 
         // [GIVEN] Default pass result is retrieved
         ToLoadQltyInspectionResult.Get(QltyAutoConfigure.GetDefaultPassResult());
 
-        // [GIVEN] Result condition configuration for field is retrieved
-        ToLoadQltyIResultConditConf.SetRange("Field Code", ToLoadQltyField.Code);
-        ToLoadQltyIResultConditConf.SetRange("Target Code", ToLoadQltyField.Code);
+        // [GIVEN] Result condition configuration for test is retrieved
+        ToLoadQltyIResultConditConf.SetRange("Test Code", ToLoadQltyTest.Code);
+        ToLoadQltyIResultConditConf.SetRange("Target Code", ToLoadQltyTest.Code);
         ToLoadQltyIResultConditConf.SetRange("Result Code", ToLoadQltyInspectionResult.Code);
-        ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Field);
+        ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Test);
         ToLoadQltyIResultConditConf.FindFirst();
 
         // [THEN] Condition is updated
@@ -3596,7 +3595,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A generation rule is initialized
@@ -4465,7 +4464,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
         ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
         QltyInspectionHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         QltyInspectionHeader.Insert();
@@ -4478,7 +4477,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
         QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
-        QltyInspectionLine."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
+        QltyInspectionLine."Test Code" := ConfigurationToLoadQltyInspectionTemplateLine."Test Code";
         QltyInspectionLine."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionLine.Insert();
 
@@ -4487,7 +4486,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyIResultConditConf."Target Code" := QltyInspectionHeader."No.";
         ToLoadQltyIResultConditConf."Target Reinspection No." := QltyInspectionHeader."Reinspection No.";
         ToLoadQltyIResultConditConf."Target Line No." := QltyInspectionLine."Line No.";
-        ToLoadQltyIResultConditConf."Field Code" := QltyInspectionLine."Field Code";
+        ToLoadQltyIResultConditConf."Test Code" := QltyInspectionLine."Test Code";
         ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
         ToLoadQltyIResultConditConf.Insert();
 
@@ -4505,14 +4504,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure ResultTable_TestOnDelete_ExistingFieldResultConditions()
+    procedure ResultTable_TestOnDelete_ExistingTestResultConditions()
     var
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ResultCode: Text;
     begin
-        // [SCENARIO] Delete result with existing field result conditions after confirmation
+        // [SCENARIO] Delete result with existing test result conditions after confirmation
         Initialize();
 
         // [GIVEN] All existing results are deleted
@@ -4524,15 +4523,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
         ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField."Field Type" := ToLoadQltyField."Field Type"::"Field Type Integer";
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest."Test Value Type" := ToLoadQltyTest."Test Value Type"::"Value Type Integer";
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] A result condition is created for the field
-        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Field;
-        ToLoadQltyIResultConditConf."Target Code" := ToLoadQltyField.Code;
-        ToLoadQltyIResultConditConf."Field Code" := ToLoadQltyField.Code;
+        // [GIVEN] A result condition is created for the test
+        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Test;
+        ToLoadQltyIResultConditConf."Target Code" := ToLoadQltyTest.Code;
+        ToLoadQltyIResultConditConf."Test Code" := ToLoadQltyTest.Code;
         ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
         ToLoadQltyIResultConditConf.Insert();
 
@@ -4566,7 +4565,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
         ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
@@ -4575,7 +4574,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Template;
         ToLoadQltyIResultConditConf."Target Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ToLoadQltyIResultConditConf."Target Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
-        ToLoadQltyIResultConditConf."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
+        ToLoadQltyIResultConditConf."Test Code" := ConfigurationToLoadQltyInspectionTemplateLine."Test Code";
         ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
         ToLoadQltyIResultConditConf.Insert();
 
@@ -4686,7 +4685,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [SCENARIO] Template deletion cascades to template lines and generation rules
         Initialize();
 
-        // [GIVEN] A template with one field is created
+        // [GIVEN] A template with one test is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
@@ -4714,17 +4713,17 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure TemplateTable_AddFieldToTemplate()
+    procedure TemplateTable_AddTestToTemplate()
     var
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        FieldToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        TestToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         DurationTemplateToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ResultCode: Text;
     begin
-        // [SCENARIO] Add field to template creates template line and copies result conditions
+        // [SCENARIO] Add test to template creates template line and copies result conditions
         Initialize();
 
         // [GIVEN] A result is created
@@ -4733,36 +4732,36 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
         ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField."Field Type" := ToLoadQltyField."Field Type"::"Field Type Integer";
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest."Test Value Type" := ToLoadQltyTest."Test Value Type"::"Value Type Integer";
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] A result condition is created for the field
-        FieldToLoadQltyIResultConditConf."Condition Type" := FieldToLoadQltyIResultConditConf."Condition Type"::Field;
-        FieldToLoadQltyIResultConditConf."Target Code" := ToLoadQltyField.Code;
-        FieldToLoadQltyIResultConditConf."Field Code" := ToLoadQltyField.Code;
-        FieldToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
-        FieldToLoadQltyIResultConditConf.Insert();
+        // [GIVEN] A result condition is created for the test
+        TestToLoadQltyIResultConditConf."Condition Type" := TestToLoadQltyIResultConditConf."Condition Type"::Test;
+        TestToLoadQltyIResultConditConf."Target Code" := ToLoadQltyTest.Code;
+        TestToLoadQltyIResultConditConf."Test Code" := ToLoadQltyTest.Code;
+        TestToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        TestToLoadQltyIResultConditConf.Insert();
 
         // [GIVEN] An empty template is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
-        // [WHEN] Adding field to template
-        LibraryAssert.IsTrue(ConfigurationToLoadQltyInspectionTemplateHdr.AddFieldToTemplate(ToLoadQltyField.Code), 'Should add template line for field');
+        // [WHEN] Adding test to template
+        LibraryAssert.IsTrue(ConfigurationToLoadQltyInspectionTemplateHdr.AddTestToTemplate(ToLoadQltyTest.Code), 'Should add template line for test');
 
-        // [THEN] Template line is created with correct field code
+        // [THEN] Template line is created with correct test code
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
-        LibraryAssert.AreEqual(ToLoadQltyField.Code, ConfigurationToLoadQltyInspectionTemplateLine."Field Code", 'Should be correct field code.');
+        LibraryAssert.AreEqual(ToLoadQltyTest.Code, ConfigurationToLoadQltyInspectionTemplateLine."Test Code", 'Should be correct test code.');
 
         // [THEN] Result condition is copied to template
         DurationTemplateToLoadQltyIResultConditConf.SetRange("Condition Type", DurationTemplateToLoadQltyIResultConditConf."Condition Type"::Template);
         DurationTemplateToLoadQltyIResultConditConf.SetRange("Target Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         DurationTemplateToLoadQltyIResultConditConf.FindFirst();
 
-        // [THEN] Template result condition has correct field and result codes
-        LibraryAssert.AreEqual(ToLoadQltyField.Code, DurationTemplateToLoadQltyIResultConditConf."Field Code", 'Should be correct field code.');
+        // [THEN] Template result condition has correct test and result codes
+        LibraryAssert.AreEqual(ToLoadQltyTest.Code, DurationTemplateToLoadQltyIResultConditConf."Test Code", 'Should be correct test code.');
         LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, DurationTemplateToLoadQltyIResultConditConf."Result Code", 'Should be correct result code.');
     end;
 

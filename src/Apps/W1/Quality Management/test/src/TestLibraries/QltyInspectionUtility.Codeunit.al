@@ -17,7 +17,7 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.QualityManagement.Utilities;
@@ -97,7 +97,7 @@ codeunit 139950 "Qlty. Inspection Utility"
 
     procedure CreateTemplate(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; HowManyFields: Integer)
     var
-        IgnoredQltyField: Record "Qlty. Field";
+        IgnoredQltyTest: Record "Qlty. Test";
         ToTemplateRecordRef: RecordRef;
         FieldNumberToCreate: Integer;
     begin
@@ -110,69 +110,69 @@ codeunit 139950 "Qlty. Inspection Utility"
         OutQltyInspectionTemplateHdr.Insert(true);
         if HowManyFields > 0 then
             for FieldNumberToCreate := 1 to HowManyFields do
-                CreateFieldAndAddToTemplate(OutQltyInspectionTemplateHdr, IgnoredQltyField, "Qlty. Field Type"::"Field Type Text")
+                CreateTestAndAddToTemplate(OutQltyInspectionTemplateHdr, IgnoredQltyTest, "Qlty. Test Value Type"::"Value Type Text")
     end;
 
-    procedure CreateFieldAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyFieldType: Enum "Qlty. Field Type")
+    procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
-        IgnoredQltyField: Record "Qlty. Field";
+        IgnoredQltyTest: Record "Qlty. Test";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         Clear(QltyInspectionTemplateLine);
-        CreateField(IgnoredQltyField, QltyFieldType);
+        CreateTest(IgnoredQltyTest, QltyTestValueType);
         QltyInspectionTemplateLine.Init();
         QltyInspectionTemplateLine."Template Code" := InExistingQltyInspectionTemplateHdr.Code;
         QltyInspectionTemplateLine.InitLineNoIfNeeded();
-        QltyInspectionTemplateLine.Validate("Field Code", IgnoredQltyField.Code);
+        QltyInspectionTemplateLine.Validate("Test Code", IgnoredQltyTest.Code);
         QltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateFieldAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var OutQltyField: Record "Qlty. Field"; QltyFieldType: Enum "Qlty. Field Type")
+    procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var OutQltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         Clear(QltyInspectionTemplateLine);
-        CreateField(OutQltyField, QltyFieldType);
+        CreateTest(OutQltyTest, QltyTestValueType);
         QltyInspectionTemplateLine.Init();
         QltyInspectionTemplateLine."Template Code" := InExistingQltyInspectionTemplateHdr.Code;
         QltyInspectionTemplateLine.InitLineNoIfNeeded();
-        QltyInspectionTemplateLine.Validate("Field Code", OutQltyField.Code);
+        QltyInspectionTemplateLine.Validate("Test Code", OutQltyTest.Code);
         QltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateFieldAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyFieldType: Enum "Qlty. Field Type"; var QltyField: Record "Qlty. Field"; var OutQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type"; var QltyTest: Record "Qlty. Test"; var OutQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     begin
         Clear(OutQltyInspectionTemplateLine);
-        CreateField(QltyField, QltyFieldType);
+        CreateTest(QltyTest, QltyTestValueType);
         OutQltyInspectionTemplateLine.Init();
         OutQltyInspectionTemplateLine."Template Code" := InExistingQltyInspectionTemplateHdr.Code;
         OutQltyInspectionTemplateLine.InitLineNoIfNeeded();
-        OutQltyInspectionTemplateLine.Validate("Field Code", QltyField.Code);
+        OutQltyInspectionTemplateLine.Validate("Test Code", QltyTest.Code);
         OutQltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateField(var QltyField: Record "Qlty. Field"; QltyFieldType: Enum "Qlty. Field Type")
+    procedure CreateTest(var QltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         ToFieldRecordRef: RecordRef;
     begin
-        Clear(QltyField);
-        QltyField.Init();
-        QltyField."Field Type" := QltyFieldType;
-        ToFieldRecordRef.GetTable(QltyField);
-        FillTextField(ToFieldRecordRef, QltyField.FieldNo(Code), true);
-        FillTextField(ToFieldRecordRef, QltyField.FieldNo(Description), true);
-        ToFieldRecordRef.SetTable(QltyField);
-        QltyField.Insert();
+        Clear(QltyTest);
+        QltyTest.Init();
+        QltyTest."Test Value Type" := QltyTestValueType;
+        ToFieldRecordRef.GetTable(QltyTest);
+        FillTextField(ToFieldRecordRef, QltyTest.FieldNo(Code), true);
+        FillTextField(ToFieldRecordRef, QltyTest.FieldNo(Description), true);
+        ToFieldRecordRef.SetTable(QltyTest);
+        QltyTest.Insert();
 
         if QltyInspectionResult.Get(DefaultResult2PassCodeLbl) then
-            case QltyFieldType of
-                QltyFieldType::"Field Type Text", QltyFieldType::"Field Type Text Expression":
-                    QltyField.SetResultCondition(DefaultResult2PassCodeLbl, '<>HARDCODEDFAIL', true);
-                QltyFieldType::"Field Type Decimal", QltyFieldType::"Field Type Integer":
-                    QltyField.SetResultCondition(DefaultResult2PassCodeLbl, '<>-123', true);
-                QltyFieldType::"Field Type Boolean":
-                    QltyField.SetResultCondition(DefaultResult2PassCodeLbl, '<>FALSE', true);
+            case QltyTestValueType of
+                QltyTestValueType::"Value Type Text", QltyTestValueType::"Value Type Text Expression":
+                    QltyTest.SetResultCondition(DefaultResult2PassCodeLbl, '<>HARDCODEDFAIL', true);
+                QltyTestValueType::"Value Type Decimal", QltyTestValueType::"Value Type Integer":
+                    QltyTest.SetResultCondition(DefaultResult2PassCodeLbl, '<>-123', true);
+                QltyTestValueType::"Value Type Boolean":
+                    QltyTest.SetResultCondition(DefaultResult2PassCodeLbl, '<>FALSE', true);
             end;
     end;
 

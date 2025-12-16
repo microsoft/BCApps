@@ -8,7 +8,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.RoleCenters;
@@ -36,5 +36,5 @@ permissionset 20401 "QltyMngmnt - Read"
         tabledata "Qlty. Inspection Template Hdr." = R,
         tabledata "Qlty. Inspection Line" = R,
         tabledata "Qlty. Inspection Header" = R,
-        tabledata "Qlty. Field" = R;
+        tabledata "Qlty. Test" = R;
 }

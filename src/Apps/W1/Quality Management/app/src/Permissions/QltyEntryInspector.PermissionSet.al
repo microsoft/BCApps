@@ -12,7 +12,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Dispositions.InventoryAdjustment;
 using Microsoft.QualityManagement.Dispositions.ItemTracking;
 using Microsoft.QualityManagement.Dispositions.Move;
@@ -89,14 +89,14 @@ permissionset 20404 QltyEntryInspector
         // pages
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
-        page "Qlty. Choose Existing Fields" = X,
+        page "Qlty. Choose Existing Tests" = X,
         page "Qlty. Manager RC" = X,
-        page "Qlty. Field Card Part" = X,
-        page "Qlty. Field Card" = X,
-        page "Qlty. Field Lookup" = X,
-        page "Qlty. Field Number Card Part" = X,
-        page "Qlty. Field Wizard" = X,
-        page "Qlty. Fields" = X,
+        page "Qlty. Test Card Part" = X,
+        page "Qlty. Test Card" = X,
+        page "Qlty. Test Lookup" = X,
+        page "Qlty. Test Number Card Part" = X,
+        page "Qlty. Test Wizard" = X,
+        page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
         page "Qlty. Inspection Template" = X,
@@ -112,7 +112,7 @@ permissionset 20404 QltyEntryInspector
         page "Qlty. Prod. Gen. Rule Wizard" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,
         page "Qlty. Related Transfer Orders" = X,
-        page "Qlty. Report Selection" = X,
+        page "Qlty. Report Selection - QM" = X,
         page "Qlty. Routing Line Lookup" = X,
         page "Qlty. Inspect. Source Config." = X,
         page "Qlty. Source Config Line Part" = X,
@@ -139,7 +139,7 @@ permissionset 20404 QltyEntryInspector
         report "Qlty. Non-Conformance" = X,
         // tables
         table "Qlty. Express Config. Value" = X,
-        table "Qlty. Field" = X,
+        table "Qlty. Test" = X,
         table "Qlty. Inspection Gen. Rule" = X,
         table "Qlty. I. Result Condit. Conf." = X,
         table "Qlty. Inspection Result" = X,
@@ -155,7 +155,7 @@ permissionset 20404 QltyEntryInspector
         table "Qlty. Inspection Header" = X,
         // table data
         tabledata "Qlty. Express Config. Value" = RIMD,
-        tabledata "Qlty. Field" = RIMd,
+        tabledata "Qlty. Test" = RIMd,
         tabledata "Qlty. Inspection Gen. Rule" = RIMd,
         tabledata "Qlty. I. Result Condit. Conf." = RIMd,
         tabledata "Qlty. Inspection Result" = RIMd,

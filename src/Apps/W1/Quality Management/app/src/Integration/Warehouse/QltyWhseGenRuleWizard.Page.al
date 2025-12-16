@@ -120,7 +120,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                         UpdateFullTextRuleStringsFromFilters();
                     end;
                 }
-                field(Chooseadvanced; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -208,7 +208,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                             Error(VendorFilterErr, GetLastErrorText());
                     end;
                 }
-                field(Chooseadvanced_item; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced_Item; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;

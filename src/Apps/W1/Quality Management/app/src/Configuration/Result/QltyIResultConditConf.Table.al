@@ -5,11 +5,11 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// For either a field, template line, or inspection instance this contains a description of the criteria to meet that result. There should be one row per entity per result.
+/// For either a test, template line, or inspection instance this contains a description of the criteria to meet that result. There should be one row per entity per result.
 /// </summary>
 table 20412 "Qlty. I. Result Condit. Conf."
 {
@@ -32,12 +32,12 @@ table 20412 "Qlty. I. Result Condit. Conf."
             else
             if ("Condition Type" = const(Inspection)) "Qlty. Inspection Header"."No."
             else
-            if ("Condition Type" = const(Field)) "Qlty. Field".Code;
+            if ("Condition Type" = const(Test)) "Qlty. Test".Code;
         }
         field(3; "Target Reinspection No."; Integer)
         {
             Caption = 'Reinspection No. (inspections)';
-            Description = 'Only applicable for Reinspections. Does not apply to field configurations or template configurations.';
+            Description = 'Only applicable for Reinspections. Does not apply to test configurations or template configurations.';
             BlankZero = true;
         }
         field(4; "Target Line No."; Integer)
@@ -49,12 +49,12 @@ table 20412 "Qlty. I. Result Condit. Conf."
             else
             if ("Condition Type" = const(Inspection)) "Qlty. Inspection Line"."Line No." where("Inspection No." = field("Target Code"), "Reinspection No." = field("Target Reinspection No."));
         }
-        field(5; "Field Code"; Code[20])
+        field(5; "Test Code"; Code[20])
         {
-            Caption = 'Field Code';
+            Caption = 'Test Code';
             Description = 'Which field this result condition refers to.';
             NotBlank = false;
-            TableRelation = "Qlty. Field".Code;
+            TableRelation = "Qlty. Test".Code;
         }
         field(6; "Result Code"; Code[20])
         {
@@ -75,33 +75,33 @@ table 20412 "Qlty. I. Result Condit. Conf."
         field(8; "Condition"; Text[500])
         {
             Caption = 'Condition';
-            Description = 'The system condition for this field. For example 1 through 3 would be 1..3, More than 5 would be >5. If a choice A out of A,B,C then A.';
+            Description = 'The system condition for this test. For example 1 through 3 would be 1..3, More than 5 would be >5. If a choice A out of A,B,C then A.';
 
             trigger OnValidate()
             var
                 QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
             begin
-                if Rec."Condition Type" = Rec."Condition Type"::Field then
+                if Rec."Condition Type" = Rec."Condition Type"::Test then
                     if Rec.Condition <> xRec.Condition then begin
                         if xRec.Condition = Rec."Condition Description" then
                             Rec."Condition Description" := Rec.Condition;
 
-                        QltyResultConditionMgmt.PromptUpdateTemplatesFromFieldsIfApplicable(Rec);
+                        QltyResultConditionMgmt.PromptUpdateTemplatesFromTestsIfApplicable(Rec);
                     end;
             end;
         }
         field(9; "Condition Description"; Text[500])
         {
-            Description = 'A human friendly description of the condition for the field.';
+            Description = 'A human friendly description of the condition for the test.';
             Caption = 'Condition Description';
 
             trigger OnValidate()
             var
                 QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
             begin
-                if Rec."Condition Type" = Rec."Condition Type"::Field then
+                if Rec."Condition Type" = Rec."Condition Type"::Test then
                     if Rec."Condition Description" <> xRec."Condition Description" then
-                        QltyResultConditionMgmt.PromptUpdateTemplatesFromFieldsIfApplicable(Rec);
+                        QltyResultConditionMgmt.PromptUpdateTemplatesFromTestsIfApplicable(Rec);
             end;
         }
         field(10; "Priority"; Integer)
@@ -119,7 +119,7 @@ table 20412 "Qlty. I. Result Condit. Conf."
 
     keys
     {
-        key(Key1; "Condition Type", "Target Code", "Target Reinspection No.", "Target Line No.", "Field Code", "Result Code")
+        key(Key1; "Condition Type", "Target Code", "Target Reinspection No.", "Target Line No.", "Test Code", "Result Code")
         {
             Clustered = true;
         }

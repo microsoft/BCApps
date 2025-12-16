@@ -6,7 +6,7 @@ namespace Microsoft.QualityManagement.Utilities;
 
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using System.Utilities;
 
@@ -33,8 +33,8 @@ codeunit 20416 "Qlty. Expression Mgmt."
         SpecialStringFunctionSelectstrTok: Label 'SELECTSTR', Locked = true;
         SpecialStringFunctionLookupTok: Label 'LOOKUP', Locked = true;
         SpecialStringFunctionFormatNumTok: Label 'FORMATNUM', Locked = true;
-        NotAnExpressionErr: Label 'The inspection line %1 for field %2 is not a text expression field.', Comment = '%1=the record id, %2=the field';
-        RecreateInspectionErr: Label 'The inspection line %1 for field %2 does not match the template %3. This means the template could have changed since this inspection was made. Re-create this inspection to evaluate the expression.', Comment = '%1=the record id, %2=the field, %3=the template filters';
+        NotAnExpressionErr: Label 'The inspection line %1 for test %2 is not a text expression field.', Comment = '%1=the record id, %2=the test';
+        RecreateInspectionErr: Label 'The inspection line %1 for test %2 does not match the template %3. This means the template could have changed since this inspection was made. Re-create this inspection to evaluate the expression.', Comment = '%1=the record id, %2=the test, %3=the template filters';
         BadReplacementExpressionTok: Label '?', Locked = true;
         UnableToGetTableValueTableNotFoundErr: Label 'Cannot find a table based on [%1]', Comment = '%1=the table name';
         UnableToGetFieldValueTableNotFoundErr: Label 'Cannot find a field [%1] in table [%2]', Comment = '%1=the field name, %2=the table name';
@@ -46,7 +46,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Validates that the line is a text expression field type and matches its template configuration.
     /// 
     /// Behavior:
-    /// - Validates field type is "Field Type Text Expression"
+    /// - Validates value type is "Value Type Text Expression"
     /// - Retrieves expression formula from template line
     /// - Evaluates expression with inspection context
     /// - Updates inspection value if changed
@@ -66,15 +66,15 @@ codeunit 20416 "Qlty. Expression Mgmt."
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         Value: Text;
     begin
-        QltyInspectionLine.CalcFields("Field Type");
-        if QltyInspectionLine."Field Type" <> QltyInspectionLine."Field Type"::"Field Type Text Expression" then
-            Error(NotAnExpressionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Field Code");
+        QltyInspectionLine.CalcFields("Test Value Type");
+        if QltyInspectionLine."Test Value Type" <> QltyInspectionLine."Test Value Type"::"Value Type Text Expression" then
+            Error(NotAnExpressionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Test Code");
 
         QltyInspectionTemplateLine.Get(QltyInspectionLine."Template Code", QltyInspectionLine."Template Line No.");
         QltyInspectionTemplateLine.SetRecFilter();
-        QltyInspectionTemplateLine.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyInspectionTemplateLine.SetRange("Test Code", QltyInspectionLine."Test Code");
         if not QltyInspectionTemplateLine.FindFirst() then
-            Error(RecreateInspectionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Field Code", QltyInspectionTemplateLine.GetFilters());
+            Error(RecreateInspectionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Test Code", QltyInspectionTemplateLine.GetFilters());
 
         Value := EvaluateTextExpression(QltyInspectionTemplateLine."Expression Formula", CurrentQltyInspectionHeader, QltyInspectionLine);
         OnEvaluateTextExpressionOnInspectionLine(QltyInspectionLine, CurrentQltyInspectionHeader, QltyInspectionTemplateLine, QltyInspectionTemplateLine."Expression Formula", Value);
@@ -159,7 +159,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     var
         InputCurrentQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        CustQltyField: Record "Qlty. Field";
+        CustQltyTest: Record "Qlty. Test";
         SearchFor: Text;
     begin
         Input := TextReplace(Input, StrSubstNo(TokenReplacementTok, UOMTok), SpecificQltyInspectionLine."Unit of Measure Code");
@@ -172,7 +172,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
 
         if (InputCurrentQltyInspectionLine.FindSet() and (CurrentQltyInspectionHeader."No." <> '') and (not CurrentQltyInspectionHeader.IsTemporary())) then
             repeat
-                SearchFor := StrSubstno(TokenReplacementTok, InputCurrentQltyInspectionLine."Field Code");
+                SearchFor := StrSubstno(TokenReplacementTok, InputCurrentQltyInspectionLine."Test Code");
                 if InputCurrentQltyInspectionLine.IsNumericFieldType() then
                     Result := TextReplace(Result, SearchFor, Format(InputCurrentQltyInspectionLine."Numeric Value", 0, 1), "Qlty. Case Sensitivity"::Insensitive)
                 else
@@ -181,20 +181,20 @@ codeunit 20416 "Qlty. Expression Mgmt."
         else begin
             QltyInspectionTemplateLine.Reset();
             QltyInspectionTemplateLine.SetRange("Template Code", InputCurrentQltyInspectionLine.GetFilter("Template Code"));
-            QltyInspectionTemplateLine.SetLoadFields("Field Code");
+            QltyInspectionTemplateLine.SetLoadFields("Test Code");
             if QltyInspectionTemplateLine.FindSet() then
                 repeat
-                    SearchFor := StrSubstno(TokenReplacementTok, QltyInspectionTemplateLine."Field Code");
+                    SearchFor := StrSubstno(TokenReplacementTok, QltyInspectionTemplateLine."Test Code");
                     Result := TextReplace(Result, SearchFor, '');
                 until QltyInspectionTemplateLine.Next() = 0
             else begin
-                CustQltyField.Reset();
-                CustQltyField.SetLoadFields("Code");
-                if CustQltyField.FindSet() then
+                CustQltyTest.Reset();
+                CustQltyTest.SetLoadFields("Code");
+                if CustQltyTest.FindSet() then
                     repeat
-                        SearchFor := StrSubstno(TokenReplacementTok, CustQltyField.Code);
+                        SearchFor := StrSubstno(TokenReplacementTok, CustQltyTest.Code);
                         Result := TextReplace(Result, SearchFor, '');
-                    until CustQltyField.Next() = 0;
+                    until CustQltyTest.Next() = 0;
             end;
         end;
         Result := EvaluateStringOnlyFunctions(Result);

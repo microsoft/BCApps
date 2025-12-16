@@ -235,7 +235,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         end;
                     }
                 }
-                field(Chooseadvanced; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -299,7 +299,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                         UpdateFullTextRuleStringsFromFilters();
                     end;
                 }
-                field(ChooseadvancedAssembly; 'Click here to choose advanced fields...')
+                field(ChooseAdvancedAssembly; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -370,7 +370,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                             Error(InventoryPostingGroupErr, GetLastErrorText());
                     end;
                 }
-                field(Chooseadvanced_item; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced_Item; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;

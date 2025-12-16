@@ -598,7 +598,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
                 QltyInspectionLine."Line No." := QltyInspectionTemplateLine."Line No.";
 
-                QltyInspectionLine.Validate("Field Code", QltyInspectionTemplateLine."Field Code");
+                QltyInspectionLine.Validate("Test Code", QltyInspectionTemplateLine."Test Code");
                 QltyInspectionLine.Description := QltyInspectionTemplateLine.Description;
                 QltyInspectionTemplateLine.CalcFields("Allowable Values");
                 QltyInspectionLine."Allowable Values" := QltyInspectionTemplateLine."Allowable Values";

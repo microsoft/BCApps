@@ -514,7 +514,7 @@ table 20405 "Qlty. Inspection Header"
         field(72; "Pass Quantity"; Decimal)
         {
             Caption = 'Pass Quantity';
-            Description = 'A manually entered field for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
+            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
             AutoFormatType = 10;
             AutoFormatExpression = '<precision, 0:0><standard format,0>';
             ToolTip = 'Specifies the amount that passed inspection.';
@@ -535,7 +535,7 @@ table 20405 "Qlty. Inspection Header"
         field(73; "Fail Quantity"; Decimal)
         {
             Caption = 'Fail Quantity';
-            Description = 'A manually entered field for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
+            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
             AutoFormatType = 10;
             AutoFormatExpression = '<precision, 0:0><standard format,0>';
             ToolTip = 'Specifies the amount that failed inspection.';
@@ -686,38 +686,38 @@ table 20405 "Qlty. Inspection Header"
     /// <summary>
     /// Helper function to set an inspection line value.
     /// </summary>
-    /// <param name="NumberOrNameOfFieldCode"></param>
-    /// <param name="NumberOrNameOfFieldValue"></param>
-    procedure SetTestValue(NumberOrNameOfFieldCode: Text; NumberOrNameOfFieldValue: Text)
+    /// <param name="NumberOrNameOfTestCode"></param>
+    /// <param name="NumberOrNameOfTestValue"></param>
+    procedure SetTestValue(NumberOrNameOfTestCode: Text; NumberOrNameOfTestValue: Text)
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", CopyStr(NumberOrNameOfFieldCode, 1, MaxStrLen(QltyInspectionLine."Field Code")));
+        QltyInspectionLine.SetRange("Test Code", CopyStr(NumberOrNameOfTestCode, 1, MaxStrLen(QltyInspectionLine."Test Code")));
         if QltyInspectionLine.Count() <> 1 then
-            Error(UnableToSetTestValueErr, NumberOrNameOfFieldCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
+            Error(UnableToSetTestValueErr, NumberOrNameOfTestCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
         QltyInspectionLine.FindFirst();
-        QltyInspectionLine.Validate("Test Value", CopyStr(NumberOrNameOfFieldValue, 1, MaxStrLen(QltyInspectionLine."Test Value")));
+        QltyInspectionLine.Validate("Test Value", CopyStr(NumberOrNameOfTestValue, 1, MaxStrLen(QltyInspectionLine."Test Value")));
         QltyInspectionLine.Modify(true);
     end;
 
     /// <summary>
-    /// Use this to invoke the assist-edit for the given measurement field on the inspection.
-    /// This presumes that the given measurement field is only used once on the inspection.
+    /// Use this to invoke the assist-edit for the given measurement test on the inspection.
+    /// This presumes that the given measurement test is only used once on the inspection.
     /// </summary>
-    /// <param name="NumberOrNameOfFieldCode"></param>
-    procedure AssistEditTestField(NumberOrNameOfFieldCode: Text)
+    /// <param name="NumberOrNameOfTestCode"></param>
+    procedure AssistEditTest(NumberOrNameOfTestCode: Text)
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
-        QltyInspectionLine.SetRange("Field Code", CopyStr(NumberOrNameOfFieldCode, 1, MaxStrLen(QltyInspectionLine."Field Code")));
+        QltyInspectionLine.SetRange("Test Code", CopyStr(NumberOrNameOfTestCode, 1, MaxStrLen(QltyInspectionLine."Test Code")));
         if QltyInspectionLine.Count() <> 1 then
-            Error(UnableToSetTestValueErr, NumberOrNameOfFieldCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
-        QltyInspectionLine.SetAutoCalcFields("Field Type");
+            Error(UnableToSetTestValueErr, NumberOrNameOfTestCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
+        QltyInspectionLine.SetAutoCalcFields("Test Value Type");
         QltyInspectionLine.FindFirst();
         if QltyInspectionTemplateLine.Get(QltyInspectionLine."Template Code", QltyInspectionLine."Template Line No.") then;
 
@@ -735,7 +735,7 @@ table 20405 "Qlty. Inspection Header"
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
-        QltyInspectionLine.SetFilter("Field Type", '<>%1', QltyInspectionLine."Field Type"::"Field Type Label");
+        QltyInspectionLine.SetFilter("Test Value Type", '<>%1', QltyInspectionLine."Test Value Type"::"Value Type Label");
         QltyInspectionLine.SetCurrentKey("Result Priority");
         OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, Handled);
         if Handled then

@@ -2,16 +2,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 /// <summary>
-/// The all field part is a generic part to help with configuration of a quality inspection field.
+/// The all test part is a generic part to help with configuration of a quality inspection test.
 /// </summary>
-page 20437 "Qlty. Field Card Part"
+page 20437 "Qlty. Test Card Part"
 {
-    Caption = 'Field Details';
+    Caption = 'Test Details';
     PageType = CardPart;
-    SourceTable = "Qlty. Field";
+    SourceTable = "Qlty. Test";
     LinksAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -24,18 +24,18 @@ page 20437 "Qlty. Field Card Part"
             field("Code"; Rec.Code)
             {
                 AboutTitle = 'Code';
-                AboutText = 'The short code to identify the test field. You can enter a maximum of 20 characters, both numbers and letters.';
+                AboutText = 'The short code to identify the test. You can enter a maximum of 20 characters, both numbers and letters.';
             }
             field(Description; Rec.Description)
             {
                 AboutTitle = 'Description';
-                AboutText = 'The friendly description for the Field. You can enter a maximum of 100 characters, both numbers and letters.';
+                AboutText = 'The friendly description for the Test. You can enter a maximum of 100 characters, both numbers and letters.';
 
             }
-            field("Field Type"; Rec."Field Type")
+            field("Test Value Type"; Rec."Test Value Type")
             {
-                AboutTitle = 'Field Type';
-                AboutText = 'Specifies the data type of the values you can enter or select for this field. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+                AboutTitle = 'Test Value Type';
+                AboutText = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
 
                 trigger OnValidate()
                 begin
@@ -151,12 +151,12 @@ page 20437 "Qlty. Field Card Part"
         UpdateControlVisibilityState();
     end;
 
-    procedure LoadExistingField(CurrentField: Code[20])
+    procedure LoadExistingTest(CurrentTest: Code[20])
     begin
-        if CurrentField = '' then
+        if CurrentTest = '' then
             exit;
 
-        if not Rec.Get(CurrentField) then
+        if not Rec.Get(CurrentTest) then
             exit;
 
         Rec.SetRecFilter();
@@ -169,11 +169,11 @@ page 20437 "Qlty. Field Card Part"
     /// </summary>
     procedure UpdateControlVisibilityState()
     begin
-        IsLookup := Rec."Field Type" = Rec."Field Type"::"Field Type Table Lookup";
-        ShowAllowableValues := not (Rec."Field Type" in [
-            Rec."Field Type"::"Field Type Table Lookup",
-            Rec."Field Type"::"Field Type Boolean",
-            Rec."Field Type"::"Field Type Text"]);
+        IsLookup := Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup";
+        ShowAllowableValues := not (Rec."Test Value Type" in [
+            Rec."Test Value Type"::"Value Type Table Lookup",
+            Rec."Test Value Type"::"Value Type Boolean",
+            Rec."Test Value Type"::"Value Type Text"]);
         IsNumber := Rec.IsNumericFieldType();
 
         OnUpdateControlVisibilityState(Rec);
@@ -182,9 +182,9 @@ page 20437 "Qlty. Field Card Part"
     /// <summary>
     /// Use this to update the control visibility state with any page extensions.
     /// </summary>
-    /// <param name="QltyField"></param>
+    /// <param name="QltyTest"></param>
     [IntegrationEvent(true, false)]
-    local procedure OnUpdateControlVisibilityState(var QltyField: Record "Qlty. Field")
+    local procedure OnUpdateControlVisibilityState(var QltyTest: Record "Qlty. Test")
     begin
     end;
 }

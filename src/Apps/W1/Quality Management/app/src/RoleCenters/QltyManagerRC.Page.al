@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -45,11 +45,11 @@ page 20421 "Qlty. Manager RC"
             {
                 Caption = 'Analysis';
 
-                action(Qlty_InspectionValues)
+                action(Qlty_InspectionLines)
                 {
-                    Caption = 'Quality Inspection Values';
+                    Caption = 'Quality Inspection Lines';
                     Image = AnalysisView;
-                    ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
+                    ToolTip = 'Historical Quality Inspection lines. Use this with analysis mode.';
                     RunObject = Page "Qlty. Inspection Lines";
                 }
             }
@@ -73,13 +73,13 @@ page 20421 "Qlty. Manager RC"
                     RunPageMode = Edit;
                     ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.';
                 }
-                action(Qlty_ConfigureFields)
+                action(Qlty_ConfigureTests)
                 {
-                    Caption = 'Quality Inspection Fields';
+                    Caption = 'Quality Inspection Tests';
                     Image = MapDimensions;
-                    RunObject = Page "Qlty. Fields";
+                    RunObject = Page "Qlty. Tests";
                     RunPageMode = Edit;
-                    ToolTip = 'Specifies a quality inspection field is a data points to capture, or questions, or measurements.';
+                    ToolTip = 'Specifies a quality inspection test is a data points to capture, or questions, or measurements.';
                 }
             }
             group(Qlty_ManagementConfigure)

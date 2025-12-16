@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
@@ -12,9 +12,9 @@ using Microsoft.QualityManagement.Utilities;
 /// <summary>
 /// A card part to assist with numerical configuration.
 /// </summary>
-page 20434 "Qlty. Field Number Card Part"
+page 20434 "Qlty. Test Number Card Part"
 {
-    Caption = 'Quality Field Number Card Part';
+    Caption = 'Quality Test Number Card Part';
     PageType = CardPart;
     LinksAllowed = false;
     InsertAllowed = false;
@@ -70,7 +70,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                 field(ChooseMinAllowed; MinAllowed)
                 {
-                    ToolTip = 'Specifies the minimum allowed value for this field. This is not the "Pass" state.';
+                    ToolTip = 'Specifies the minimum allowed value for this test. This is not the "Pass" state.';
                     Caption = 'Minimum';
                     ShowCaption = true;
                     AutoFormatType = 0;
@@ -78,12 +78,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                     trigger OnValidate()
                     begin
-                        HandleFieldValidateAllowedRanges();
+                        HandleTestValidateAllowedRanges();
                     end;
                 }
                 field(ChooseMaxAllowed; MaxAllowed)
                 {
-                    ToolTip = 'Specifies the maximum allowed value for this field. This is not the "Pass" state.';
+                    ToolTip = 'Specifies the maximum allowed value for this test. This is not the "Pass" state.';
                     Caption = 'Maximum';
                     ShowCaption = true;
                     AutoFormatType = 0;
@@ -91,7 +91,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                     trigger OnValidate()
                     begin
-                        HandleFieldValidateAllowedRanges();
+                        HandleTestValidateAllowedRanges();
                     end;
                 }
             }
@@ -117,7 +117,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                     trigger OnValidate()
                     begin
-                        HandleFieldValidateAllowedRanges();
+                        HandleTestValidateAllowedRanges();
                     end;
                 }
 
@@ -173,7 +173,7 @@ page 20434 "Qlty. Field Number Card Part"
                             ColumnSpan = 2;
                             ApplicationArea = All;
                             CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible1;
 
                             trigger OnValidate()
@@ -231,7 +231,7 @@ page 20434 "Qlty. Field Number Card Part"
                         ColumnSpan = 2;
                         ApplicationArea = All;
                         CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                         Editable = Visible1;
 
                         trigger OnValidate()
@@ -260,7 +260,7 @@ page 20434 "Qlty. Field Number Card Part"
                         {
                             ApplicationArea = All;
                             CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                             Editable = Visible2;
 
                             trigger OnValidate()
@@ -311,7 +311,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                         Editable = Visible2;
 
                         trigger OnValidate()
@@ -338,7 +338,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field3; MatrixArrayConditionCellData[3])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible3;
 
                             trigger OnValidate()
@@ -389,7 +389,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible3;
 
                         trigger OnValidate()
@@ -411,7 +411,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible4;
 
                         trigger OnValidate()
@@ -432,7 +432,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field4; MatrixArrayConditionCellData[4])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible4;
 
                             trigger OnValidate()
@@ -489,7 +489,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible5;
 
                         trigger OnValidate()
@@ -510,7 +510,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field5; MatrixArrayConditionCellData[5])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible5;
 
                             trigger OnValidate()
@@ -567,7 +567,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible6;
 
                         trigger OnValidate()
@@ -588,7 +588,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field6; MatrixArrayConditionCellData[6])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible6;
 
                             trigger OnValidate()
@@ -645,7 +645,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible7;
 
                         trigger OnValidate()
@@ -666,7 +666,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field7; MatrixArrayConditionCellData[7])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible7;
 
                             trigger OnValidate()
@@ -723,7 +723,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible8;
 
                         trigger OnValidate()
@@ -744,7 +744,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field8; MatrixArrayConditionCellData[8])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible8;
 
                             trigger OnValidate()
@@ -801,7 +801,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible9;
 
                         trigger OnValidate()
@@ -822,7 +822,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field9; MatrixArrayConditionCellData[9])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible9;
 
                             trigger OnValidate()
@@ -879,7 +879,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
+                        ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible10;
 
                         trigger OnValidate()
@@ -900,7 +900,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field10; MatrixArrayConditionCellData[10])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
+                            ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible10;
 
                             trigger OnValidate()
@@ -956,7 +956,7 @@ page 20434 "Qlty. Field Number Card Part"
                 AboutTitle = 'Unit of Measure';
                 AboutText = 'Optionally set the unit of measure for the field';
 
-                field(ChooseUOM; QltyField."Unit of Measure Code")
+                field(ChooseUOM; QltyTest."Unit of Measure Code")
                 {
                     Caption = 'Optionally set the unit of measure for the field';
                     ShowCaption = true;
@@ -965,17 +965,17 @@ page 20434 "Qlty. Field Number Card Part"
 
                     trigger OnValidate()
                     begin
-                        QltyField.Modify();
-                        LoadExistingField(QltyField.Code);
+                        QltyTest.Modify();
+                        LoadExistingTest(QltyTest.Code);
                     end;
 
                     trigger OnAssistEdit()
                     var
                         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
                     begin
-                        QltyFilterHelpers.AssistEditUnitOfMeasure(QltyField."Unit of Measure Code");
-                        QltyField.Modify();
-                        LoadExistingField(QltyField.Code);
+                        QltyFilterHelpers.AssistEditUnitOfMeasure(QltyTest."Unit of Measure Code");
+                        QltyTest.Modify();
+                        LoadExistingTest(QltyTest.Code);
                     end;
                 }
             }
@@ -983,7 +983,7 @@ page 20434 "Qlty. Field Number Card Part"
     }
 
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         MatrixSourceRecordId: array[10] of RecordId;
@@ -1010,14 +1010,14 @@ page 20434 "Qlty. Field Number Card Part"
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
         MatrixVisibleState: array[10] of Boolean;
-        QltyFieldIds: List of [Code[20]];
+        QltyTestIds: List of [Code[20]];
         SimpleRangeTok: Label '%1..%2', Locked = true, Comment = '%1=Min, %2=max';
         RangeNonZeroTok: Label '<>0', Locked = true;
         RangeNonZeroHumanDescriptionTok: Label 'Any entered value.', Locked = true;
         RangeHumanDescriptionTok: Label '%1 to %2', Locked = true, Comment = '%1=Min, %2=max';
         DefaultRangeTok: Label '1..100', Locked = true;
 
-    procedure LoadExistingField(CurrentField: Code[20])
+    procedure LoadExistingTest(CurrentTest: Code[20])
     begin
         Clear(MinAllowed);
         Clear(MaxAllowed);
@@ -1029,15 +1029,15 @@ page 20434 "Qlty. Field Number Card Part"
         Clear(MatrixArrayCaptionSet);
         Clear(MatrixVisibleState);
 
-        if CurrentField = '' then
+        if CurrentTest = '' then
             exit;
 
-        if not QltyField.Get(CurrentField) then begin
-            QltyField.Init();
-            QltyField.Code := CurrentField;
-            QltyField.Insert();
+        if not QltyTest.Get(CurrentTest) then begin
+            QltyTest.Init();
+            QltyTest.Code := CurrentTest;
+            QltyTest.Insert();
         end;
-        QltyField.SetRecFilter();
+        QltyTest.SetRecFilter();
         UpdateRowData();
         ReverseEngineerAllowedValuesMinMax();
         HandleFieldValidateNumberRangeType();
@@ -1084,20 +1084,20 @@ page 20434 "Qlty. Field Number Card Part"
         Clear(AdvancedRange);
 
         RangeNumberType := RangeNumberType::"A range of numbers";
-        if QltyFieldIds.Contains(QltyField.Code) then
+        if QltyTestIds.Contains(QltyTest.Code) then
             RangeNumberType := RangeNumberType::Advanced;
 
-        AdvancedRange := QltyField."Allowable Values";
+        AdvancedRange := QltyTest."Allowable Values";
 
-        if QltyField.Code = '' then
+        if QltyTest.Code = '' then
             exit;
 
         if AdvancedRange = '' then
-            if QltyField."Wizard Internal" = QltyField."Wizard Internal"::"In Progress" then
+            if QltyTest."Wizard Internal" = QltyTest."Wizard Internal"::"In Progress" then
                 AdvancedRange := DefaultRangeTok;
 
         if QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
-            if not QltyFieldIds.Contains(QltyField.Code) then
+            if not QltyTestIds.Contains(QltyTest.Code) then
                 RangeNumberType := RangeNumberType::"A range of numbers";
         end else
             RangeNumberType := RangeNumberType::Advanced;
@@ -1121,18 +1121,18 @@ page 20434 "Qlty. Field Number Card Part"
         if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then
             AdvancedRange := Expression;
 
-        HandleFieldValidateAllowedRanges();
+        HandleTestValidateAllowedRanges();
     end;
 
-    local procedure HandleFieldValidateAllowedRanges()
+    local procedure HandleTestValidateAllowedRanges()
     begin
         if RangeNumberType = RangeNumberType::"A range of numbers" then
             AdvancedRange := StrSubstNo(SimpleRangeTok, Format(MinAllowed, 0, 9), Format(MaxAllowed, 0, 9));
 
-        QltyField.Get(QltyField.Code);
-        QltyField."Allowable Values" := CopyStr(AdvancedRange, 1, MaxStrLen(QltyField."Allowable Values"));
-        QltyField.Modify();
-        LoadExistingField(QltyField.Code);
+        QltyTest.Get(QltyTest.Code);
+        QltyTest."Allowable Values" := CopyStr(AdvancedRange, 1, MaxStrLen(QltyTest."Allowable Values"));
+        QltyTest.Modify();
+        LoadExistingTest(QltyTest.Code);
         UpdateFieldVisibilityState();
     end;
 
@@ -1191,11 +1191,11 @@ page 20434 "Qlty. Field Number Card Part"
     local procedure HandleFieldValidateNumberRangeType()
     begin
         if RangeNumberType = RangeNumberType::Advanced then begin
-            if not QltyFieldIds.Contains(QltyField.Code) then
-                QltyFieldIds.Add(QltyField.Code);
+            if not QltyTestIds.Contains(QltyTest.Code) then
+                QltyTestIds.Add(QltyTest.Code);
         end else
-            if QltyFieldIds.Contains(QltyField.Code) then
-                QltyFieldIds.Remove(QltyField.Code);
+            if QltyTestIds.Contains(QltyTest.Code) then
+                QltyTestIds.Remove(QltyTest.Code);
 
         UpdateFieldVisibilityState();
     end;
@@ -1210,7 +1210,7 @@ page 20434 "Qlty. Field Number Card Part"
     var
         Iterator: Integer;
     begin
-        if QltyField.Code = '' then
+        if QltyTest.Code = '' then
             exit;
 
         Clear(MatrixMinValue);
@@ -1223,7 +1223,7 @@ page 20434 "Qlty. Field Number Card Part"
 
         ReverseEngineerAllowedValuesMinMax();
 
-        QltyResultConditionMgmt.GetPromotedResultsForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForTest(QltyTest, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
             QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
@@ -1247,7 +1247,7 @@ page 20434 "Qlty. Field Number Card Part"
         QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
         QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
         QltyIResultConditConf.Modify(true);
-        LoadExistingField(QltyField.Code);
+        LoadExistingTest(QltyTest.Code);
         CurrPage.Update(false);
     end;
 
@@ -1258,7 +1258,7 @@ page 20434 "Qlty. Field Number Card Part"
         QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
         QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
         QltyIResultConditConf.Modify(true);
-        LoadExistingField(QltyField.Code);
+        LoadExistingTest(QltyTest.Code);
         CurrPage.Update(false);
     end;
 
@@ -1272,8 +1272,8 @@ page 20434 "Qlty. Field Number Card Part"
     /// </summary>
     protected procedure ValidateDefaultValue()
     begin
-        QltyField.Validate("Default Value", DefaultValue);
-        QltyField.Modify();
+        QltyTest.Validate("Default Value", DefaultValue);
+        QltyTest.Modify();
     end;
 
     /// <summary>
@@ -1281,7 +1281,7 @@ page 20434 "Qlty. Field Number Card Part"
     /// </summary>
     protected procedure AssistEditDefaultValue()
     begin
-        QltyField.AssistEditDefaultValue();
-        QltyField.Modify();
+        QltyTest.AssistEditDefaultValue();
+        QltyTest.Modify();
     end;
 }

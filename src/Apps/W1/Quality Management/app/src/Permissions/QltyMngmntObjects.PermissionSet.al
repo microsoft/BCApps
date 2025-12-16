@@ -12,7 +12,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Dispositions.InventoryAdjustment;
 using Microsoft.QualityManagement.Dispositions.ItemTracking;
 using Microsoft.QualityManagement.Dispositions.Move;
@@ -86,17 +86,17 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Workflow Setup" = X,
 
         // Pages
-        page "Qlty. Field Card Part" = X,
+        page "Qlty. Test Card Part" = X,
         page "Qlty. Lookup Field Choose" = X,
         page "Qlty. Edit Large Text" = X,
         page "Qlty. Inspection Template Edit" = X,
-        page "Qlty. Choose Existing Fields" = X,
+        page "Qlty. Choose Existing Tests" = X,
         page "Qlty. Manager RC" = X,
-        page "Qlty. Field Card" = X,
-        page "Qlty. Field Lookup" = X,
-        page "Qlty. Field Number Card Part" = X,
-        page "Qlty. Field Wizard" = X,
-        page "Qlty. Fields" = X,
+        page "Qlty. Test Card" = X,
+        page "Qlty. Test Lookup" = X,
+        page "Qlty. Test Number Card Part" = X,
+        page "Qlty. Test Wizard" = X,
+        page "Qlty. Tests" = X,
         page "Qlty. Inspection Gen. Rules" = X,
         page "Qlty. Inspection Result List" = X,
         page "Qlty. Lookup Code List" = X,
@@ -108,7 +108,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Prod. Gen. Rule Wizard" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,
         page "Qlty. Related Transfer Orders" = X,
-        page "Qlty. Report Selection" = X,
+        page "Qlty. Report Selection - QM" = X,
         page "Qlty. Routing Line Lookup" = X,
         page "Qlty. Inspection Template List" = X,
         page "Qlty. Inspection Template Subf" = X,
@@ -152,5 +152,5 @@ permissionset 20406 "QltyMngmnt - Objects"
         table "Qlty. Inspection Template Hdr." = X,
         table "Qlty. Inspection Line" = X,
         table "Qlty. Inspection Header" = X,
-        table "Qlty. Field" = X;
+        table "Qlty. Test" = X;
 }

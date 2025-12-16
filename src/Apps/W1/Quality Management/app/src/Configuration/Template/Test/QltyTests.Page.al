@@ -2,28 +2,28 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these test fields in Quality Inspection Templates
+/// This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates
 /// </summary>
-page 20401 "Qlty. Fields"
+page 20401 "Qlty. Tests"
 {
-    Caption = 'Quality Fields';
+    Caption = 'Quality Tests';
     AdditionalSearchTerms = 'Custom fields,field template,custom field template.';
-    AboutTitle = 'Configure Available Test Fields';
-    AboutText = 'This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these test fields in Quality Inspection Templates.';
-    CardPageId = "Qlty. Field Card";
+    AboutTitle = 'Configure Available Tests';
+    AboutText = 'This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+    CardPageId = "Qlty. Test Card";
     Editable = false;
     InsertAllowed = false;
     DeleteAllowed = false;
     RefreshOnActivate = true;
     PageType = List;
-    SourceTable = "Qlty. Field";
+    SourceTable = "Qlty. Test";
     SourceTableView = sorting(Code);
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
@@ -32,24 +32,24 @@ page 20401 "Qlty. Fields"
     {
         area(Content)
         {
-            repeater(GroupFields)
+            repeater(GroupTests)
             {
                 ShowCaption = false;
 
                 field("Code"; Rec.Code)
                 {
                     AboutTitle = 'Code';
-                    AboutText = 'The short code to identify the test field. You can enter a maximum of 20 characters, both numbers and letters.';
+                    AboutText = 'The short code to identify the test. You can enter a maximum of 20 characters, both numbers and letters.';
                 }
                 field(Description; Rec.Description)
                 {
                     AboutTitle = 'Description';
-                    AboutText = 'The friendly description for the Field. You can enter a maximum of 100 characters, both numbers and letters.';
+                    AboutText = 'The friendly description for the Test. You can enter a maximum of 100 characters, both numbers and letters.';
                 }
-                field("Field Type"; Rec."Field Type")
+                field("Test Value Type"; Rec."Test Value Type")
                 {
                     AboutTitle = 'Field Type';
-                    AboutText = 'Specifies the data type of the values you can enter or select for this field. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+                    AboutText = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
                 }
                 field("Allowable Values"; Rec."Allowable Values")
                 {
@@ -127,85 +127,85 @@ page 20401 "Qlty. Fields"
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[4];
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                 }
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                 }
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[5];
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                 }
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                 }
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[6];
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                 }
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                 }
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[7];
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                 }
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                 }
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[8];
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                 }
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                 }
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[9];
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                 }
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                 }
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[10];
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                 }
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
+                    ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                 }
                 field("Lookup Table No."; Rec."Lookup Table No.")
@@ -264,7 +264,7 @@ page 20401 "Qlty. Fields"
                 Caption = 'Delete';
                 Image = Delete;
                 Scope = Repeater;
-                ToolTip = 'Deletes this field. A field can only be deleted if it is not being used on an existing inspection.';
+                ToolTip = 'Deletes this test. A test can only be deleted if it is not being used on an existing inspection.';
 
                 trigger OnAction()
                 begin
@@ -276,18 +276,18 @@ page 20401 "Qlty. Fields"
         }
         area(Creation)
         {
-            action(NewField)
+            action(NewTest)
             {
                 Image = Default;
-                Caption = 'Add a Field';
-                ToolTip = 'Add a new Field.';
+                Caption = 'Add a Test';
+                ToolTip = 'Add a new Test.';
                 Scope = Repeater;
-                AboutTitle = 'Add field(s)';
-                AboutText = 'Add a new field or add existing fields to this template.';
+                AboutTitle = 'Add test(s)';
+                AboutText = 'Add a new test or add existing tests to this template.';
 
                 trigger OnAction()
                 begin
-                    AddFieldWizard();
+                    AddTestWizard();
                 end;
             }
         }
@@ -296,7 +296,7 @@ page 20401 "Qlty. Fields"
         }
         area(Promoted)
         {
-            actionref(NewField_Promoted; NewField)
+            actionref(NewTest_Promoted; NewTest)
             {
             }
             actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
@@ -344,7 +344,7 @@ page 20401 "Qlty. Fields"
 
     local procedure UpdateRowData()
     begin
-        QltyResultConditionMgmt.GetPromotedResultsForField(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
         Visible3 := MatrixVisibleState[3];
@@ -404,13 +404,13 @@ page 20401 "Qlty. Fields"
     end;
 
     /// <summary>
-    /// Use a wizard to add a new field.
+    /// Use a wizard to add a new test.
     /// </summary>
-    procedure AddFieldWizard()
+    procedure AddTestWizard()
     var
-        QltyFieldWizard: Page "Qlty. Field Wizard";
+        QltyTestWizard: Page "Qlty. Test Wizard";
     begin
-        QltyFieldWizard.RunModalForField();
+        QltyTestWizard.RunModalForTest();
         CurrPage.Update(false);
     end;
 }

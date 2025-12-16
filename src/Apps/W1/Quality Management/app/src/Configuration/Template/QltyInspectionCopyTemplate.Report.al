@@ -157,7 +157,7 @@ report 20402 "Qlty. Inspection Copy Template"
                 TargetQltyInspectionTemplateLine := FromQltyInspectionTemplateLine;
                 TargetQltyInspectionTemplateLine."Template Code" := TargetQltyInspectionTemplateHdr.Code;
                 TargetQltyInspectionTemplateLine.SetRecFilter();
-                TargetQltyInspectionTemplateLine.SetFilter("Field Code", '<>%1&<>''''', FromQltyInspectionTemplateLine."Field Code");
+                TargetQltyInspectionTemplateLine.SetFilter("Test Code", '<>%1&<>''''', FromQltyInspectionTemplateLine."Test Code");
                 if TargetQltyInspectionTemplateLine.FindFirst() then begin
                     LastTemplateLineNo += 10000;
                     TargetQltyInspectionTemplateLine := FromQltyInspectionTemplateLine;
@@ -167,7 +167,7 @@ report 20402 "Qlty. Inspection Copy Template"
                     TargetQltyInspectionTemplateLine.Insert();
                 end else begin
                     TargetQltyInspectionTemplateLine.SetRange("Template Code", TargetQltyInspectionTemplateHdr.Code);
-                    TargetQltyInspectionTemplateLine.SetRange("Field Code", FromQltyInspectionTemplateLine."Field Code");
+                    TargetQltyInspectionTemplateLine.SetRange("Test Code", FromQltyInspectionTemplateLine."Test Code");
                     TargetQltyInspectionTemplateLine.SetRange("Line No.", FromQltyInspectionTemplateLine."Line No.");
                     if not TargetQltyInspectionTemplateLine.FindFirst() then begin
                         TargetQltyInspectionTemplateLine := FromQltyInspectionTemplateLine;

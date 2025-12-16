@@ -59,7 +59,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A template with 3 fields is created
+        // [GIVEN] A template with 3 tests is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [GIVEN] All existing generation rules are deleted and an output prioritized rule is created
@@ -125,7 +125,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created when scrap journal is posted with AnyOutput configuration using prod line quantity
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -190,7 +190,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] No inspection is created when output journal with no quantities fails to post with AnyOutput configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -246,7 +246,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with AnyOutput configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
@@ -312,7 +312,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created when output journal is posted with AnyQuantity configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -376,7 +376,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created when scrap journal is posted with AnyQuantity configuration using prod line quantity
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -441,7 +441,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created with total quantity (output + scrap) when both are posted with AnyQuantity configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
@@ -506,7 +506,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] No inspection is created when output journal with no quantities (output/scrap) fails to post with AnyQuantity configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -562,7 +562,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] No inspection is created when only scrap is posted with OnlyWithQuantity configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -619,7 +619,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created when output journal is posted with OnlyWithQuantity configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
@@ -684,7 +684,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with OnlyWithQuantity configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
@@ -750,7 +750,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] No inspection is created when output journal with no quantities fails to post with OnlyWithQuantity configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -806,7 +806,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] No inspection is created when only output is posted with OnlyWithScrap configuration
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -862,7 +862,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
         // [SCENARIO] Inspection is created when scrap journal is posted with OnlyWithScrap configuration using prod line quantity
 
-        // [GIVEN] Setup exists and a template with 3 fields is created
+        // [GIVEN] Setup exists and a template with 3 tests is created
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);

@@ -7,9 +7,9 @@ namespace Microsoft.QualityManagement.Reports;
 using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
-page 20442 "Qlty. Report Selection"
+page 20442 "Qlty. Report Selection - QM"
 {
-    Caption = 'Report Selections Quality Management';
+    Caption = 'Report Selection - Quality Management';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";

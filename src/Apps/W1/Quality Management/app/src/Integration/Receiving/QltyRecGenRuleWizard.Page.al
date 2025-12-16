@@ -312,7 +312,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                         end;
                     }
                 }
-                field(Chooseadvanced; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -388,7 +388,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                             Error(InventoryPostingGroupErr, GetLastErrorText());
                     end;
                 }
-                field(Chooseadvanced_item; 'Click here to choose advanced fields...')
+                field(ChooseAdvanced_Item; 'Click here to choose advanced fields...')
                 {
                     ApplicationArea = All;
                     ShowCaption = false;

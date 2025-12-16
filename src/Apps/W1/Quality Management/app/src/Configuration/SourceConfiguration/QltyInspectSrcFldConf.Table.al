@@ -72,11 +72,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(7; "To Field No."; Integer)
         {
             Caption = 'To Field No.';
-            Description = 'Specifies the To Field No. When the target is an inspection this would be a field on the inspection itself.';
+            Description = 'Specifies the To Field No. When the target is an inspection this would be a test on the inspection itself.';
             NotBlank = true;
             BlankZero = true;
             TableRelation = Field."No." where(TableNo = field("To Table No."));
-            ToolTip = 'Specifies the To Field No. When the target is an inspection this would be a field on the inspection itself.';
+            ToolTip = 'Specifies the To Field No. When the target is an inspection this would be a test on the inspection itself.';
 
             trigger OnLookup()
             begin
@@ -113,7 +113,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
             Caption = 'To Field Name';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the To Field Name. When the target is an inspection this would be a field on the inspection itself.';
+            ToolTip = 'Specifies the To Field Name. When the target is an inspection this would be a test on the inspection itself.';
         }
         field(9; "To Type"; Enum "Qlty. Target Type")
         {
@@ -145,11 +145,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
                     Error(CanOnlyBeSetWhenToTypeIsInspectionErr);
             end;
         }
-        field(11; "Priority Field"; Enum "Qlty. Config. Field Priority")
+        field(11; "Priority Test"; Enum "Qlty. Config. Test Priority")
         {
-            Caption = 'Priority Field';
-            Description = 'Specifies if this field is a priority field. Priority fields will always overwrite existing values.';
-            ToolTip = 'Specifies if this field is a priority field. Priority fields will always overwrite existing values.';
+            Caption = 'Priority Test';
+            Description = 'Specifies if this test is a priority test. Priority tests will always overwrite existing values.';
+            ToolTip = 'Specifies if this test is a priority test. Priority tests will always overwrite existing values.';
         }
     }
 

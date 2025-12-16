@@ -2,17 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Template.Field;
+namespace Microsoft.QualityManagement.Configuration.Template.Test;
 
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// The field wizard is used to help guide a user with the creation or editing of a net new field.
+/// The test wizard is used to help guide a user with the creation or editing of a net new test.
 /// </summary>
-page 20432 "Qlty. Field Wizard"
+page 20432 "Qlty. Test Wizard"
 {
-    Caption = 'Quality Field Wizard';
+    Caption = 'Quality Test Wizard';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = QualityManagement;
@@ -23,78 +23,78 @@ page 20432 "Qlty. Field Wizard"
         {
             group(SettingsForStepNewOrExisting)
             {
-                Visible = (CurrentStepCounter = Step1NewOrExisting) and (not EditingExistingField);
+                Visible = (CurrentStepCounter = Step1NewOrExisting) and (not EditingExistingTest);
 
-                field(ChooseNewField; NewField)
+                field(ChooseNewTest; NewTest)
                 {
-                    Caption = 'New field';
-                    ToolTip = 'Specifies to add a new field.';
-
-                    trigger OnValidate()
-                    begin
-                        ChooseExistingFieldOrFields := not NewField;
-                        CurrPage.Update();
-                    end;
-                }
-                field(ChooseExistingField; ChooseExistingFieldOrFields)
-                {
-                    Caption = 'Existing fields';
-                    ToolTip = 'Specifies to add an existing field.';
+                    Caption = 'New test';
+                    ToolTip = 'Specifies to add a new test.';
 
                     trigger OnValidate()
                     begin
-                        NewField := not ChooseExistingFieldOrFields;
+                        ChooseExistingTestOrTests := not NewTest;
                         CurrPage.Update();
                     end;
                 }
-                group(SettingsForWrapExistingFields)
+                field(ChooseExistingTest; ChooseExistingTestOrTests)
                 {
-                    Visible = ChooseExistingFieldOrFields or NewField;
+                    Caption = 'Existing tests';
+                    ToolTip = 'Specifies to add an existing test.';
+
+                    trigger OnValidate()
+                    begin
+                        NewTest := not ChooseExistingTestOrTests;
+                        CurrPage.Update();
+                    end;
+                }
+                group(SettingsForWrapExistingTests)
+                {
+                    Visible = ChooseExistingTestOrTests or NewTest;
                     ShowCaption = false;
                     Caption = '';
 
-                    part("Qlty. Choose Existing Fields"; "Qlty. Choose Existing Fields")
+                    part("Qlty. Choose Existing Tests"; "Qlty. Choose Existing Tests")
                     {
-                        Enabled = ChooseExistingFieldOrFields;
+                        Enabled = ChooseExistingTestOrTests;
                         UpdatePropagation = Both;
                     }
                 }
             }
-            group(SettingsForEditingExistingField)
+            group(SettingsForEditingExistingTest)
             {
-                Caption = 'Edit Existing Field';
+                Caption = 'Edit Existing Test';
                 ShowCaption = false;
-                Visible = (Step2AddNewField = CurrentStepCounter) and EditingExistingField;
+                Visible = (Step2AddNewTest = CurrentStepCounter) and EditingExistingTest;
 
                 group(SettingsForEditExistingShortName)
                 {
-                    Caption = 'Short name (Field Code)';
-                    InstructionalText = 'A short name for this field. This code is what will be used to reference this new field.';
+                    Caption = 'Short name (Test Code)';
+                    InstructionalText = 'A short name for this test. This code is what will be used to reference this new test.';
 
-                    field(ChooseEditExistingShortName; FieldShortName)
+                    field(ChooseEditExistingShortName; TestShortName)
                     {
-                        ToolTip = 'Specifies a Short Name for this field.';
-                        Caption = 'Field Code:';
+                        ToolTip = 'Specifies a Short Name for this test.';
+                        Caption = 'Test Code:';
                         ShowCaption = true;
                         ShowMandatory = true;
                         Editable = false;
                     }
                 }
-                group(SettingsForExistingFieldDescription)
+                group(SettingsForExistingTestDescription)
                 {
                     Caption = 'Description';
-                    InstructionalText = 'Change the description for what this field represents.';
+                    InstructionalText = 'Change the description for what this test represents.';
 
-                    field(ChooseEditDescription; FieldDescription)
+                    field(ChooseEditDescription; TestDescription)
                     {
-                        ToolTip = 'Change the description for what this field represents.';
+                        ToolTip = 'Change the description for what this test represents.';
                         Caption = 'Description';
                         ShowCaption = false;
                         ShowMandatory = true;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldDescriptionOnValidate();
+                            HandleTestDescriptionOnValidate();
                         end;
                     }
                 }
@@ -117,32 +117,32 @@ page 20432 "Qlty. Field Wizard"
                     }
                 }
             }
-            group(SettingsForCreateSingleNewField)
+            group(SettingsForCreateSingleNewTest)
             {
-                Caption = 'Add a New Field';
+                Caption = 'Add a New Test';
                 ShowCaption = false;
-                Visible = (Step2AddNewField = CurrentStepCounter) and not EditingExistingField;
+                Visible = (Step2AddNewTest = CurrentStepCounter) and not EditingExistingTest;
 
                 group(SettingsForDescription)
                 {
                     Caption = 'Description';
-                    InstructionalText = 'Type a relevant description for what this new field represents.';
+                    InstructionalText = 'Type a relevant description for what this new test represents.';
 
-                    field(ChooseDescription; FieldDescription)
+                    field(ChooseDescription; TestDescription)
                     {
-                        ToolTip = 'Type a relevant description for what this new field represents.';
+                        ToolTip = 'Type a relevant description for what this new test represents.';
                         Caption = 'Description';
                         ShowCaption = false;
                         ShowMandatory = true;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldDescriptionOnValidate();
+                            HandleTestDescriptionOnValidate();
                         end;
                     }
                     group(SettingsForChooseDataLink)
                     {
-                        Visible = not ShowNewFieldCode;
+                        Visible = not ShowNewTestCode;
                         Caption = ' ';
                         ShowCaption = false;
 
@@ -152,31 +152,31 @@ page 20432 "Qlty. Field Wizard"
                             ToolTip = 'Choose the type of data this will hold.';
                             Editable = false;
                             ShowCaption = false;
-                            Visible = not ShowNewFieldCode;
+                            Visible = not ShowNewTestCode;
 
                             trigger OnDrillDown()
                             begin
-                                HandleFieldDescriptionOnValidate();
+                                HandleTestDescriptionOnValidate();
                             end;
                         }
                     }
                 }
                 group(SettingsForShortName)
                 {
-                    Caption = 'Short name (Field Code)';
-                    InstructionalText = 'A short name for this field. This code is what will be used to reference this new field.';
-                    Visible = ShowNewFieldCode;
+                    Caption = 'Short name (Test Code)';
+                    InstructionalText = 'A short name for this test. This code is what will be used to reference this new test.';
+                    Visible = ShowNewTestCode;
 
-                    field(ChooseShortName; FieldShortName)
+                    field(ChooseShortName; TestShortName)
                     {
-                        ToolTip = 'Specifies a Short Name for this field.';
+                        ToolTip = 'Specifies a Short Name for this test.';
                         Caption = 'Short name.';
                         ShowCaption = false;
                         ShowMandatory = true;
 
                         trigger OnValidate()
                         begin
-                            HandleFieldCodeOnValidate();
+                            HandleTestCodeOnValidate();
                         end;
                     }
                 }
@@ -184,7 +184,7 @@ page 20432 "Qlty. Field Wizard"
                 {
                     Caption = 'What type of data is it?';
                     InstructionalText = 'Is this a number, a choice from a pre-defined list, or something else?';
-                    Visible = ShowNewFieldType;
+                    Visible = ShowNewValueType;
 
                     field(ChooseType; SimpleFieldType)
                     {
@@ -204,7 +204,7 @@ page 20432 "Qlty. Field Wizard"
             {
                 Visible = (Step3FieldDataTypeDetails = CurrentStepCounter);
 
-                part(NumberFieldDetails; "Qlty. Field Number Card Part")
+                part(NumberFieldDetails; "Qlty. Test Number Card Part")
                 {
                     Visible = ShowNumberDataType;
                     UpdatePropagation = Both;
@@ -216,11 +216,11 @@ page 20432 "Qlty. Field Wizard"
                     UpdatePropagation = Both;
                     Caption = 'Choices';
                 }
-                part(FieldDetails; "Qlty. Field Card Part")
+                part(TestDetails; "Qlty. Test Card Part")
                 {
                     Visible = ShowAnythingElse;
                     UpdatePropagation = Both;
-                    Caption = 'Field Details';
+                    Caption = 'Test Details';
                 }
             }
         }
@@ -282,40 +282,40 @@ page 20432 "Qlty. Field Wizard"
     var
         CurrentStepCounter: Integer;
         FinishActionChosen: Boolean;
-        NewField: Boolean;
-        ChooseExistingFieldOrFields: Boolean;
+        NewTest: Boolean;
+        ChooseExistingTestOrTests: Boolean;
         IsBackEnabled: Boolean;
-        AddedOrChooseAField: Boolean;
+        AddedOrChooseATest: Boolean;
         IsNextEnabled: Boolean;
         IsFinishEnabled: Boolean;
         IsMovingForward: Boolean;
-        ShowNewFieldCode: Boolean;
-        ShowNewFieldType: Boolean;
+        ShowNewTestCode: Boolean;
+        ShowNewValueType: Boolean;
         ShowNumberDataType: Boolean;
         ShowChoiceDataType: Boolean;
         ShowAnythingElse: Boolean;
-        IsRunningFromFieldDirectly: Boolean;
-        EditingExistingField: Boolean;
+        IsRunningFromTestDirectly: Boolean;
+        EditingExistingTest: Boolean;
         Step1NewOrExisting: Integer;
-        Step2AddNewField: Integer;
+        Step2AddNewTest: Integer;
         Step3FieldDataTypeDetails: Integer;
-        FieldsToAdd: List of [Code[20]];
-        FieldDescription: Text[100];
-        FieldShortName: Code[20];
+        TestsToAdd: List of [Code[20]];
+        TestDescription: Text[100];
+        TestShortName: Code[20];
         SimpleFieldType: Option TypeNumber,TypeChoice,TypeFreeText,TypeDate,TypeAdvanced;
         ListOfAddedFields: List of [Code[20]];
-        ChoicesQst: Label 'Use the existing field,Change the description', Locked = true;
-        ChoicesMsg: Label 'There is already a field with that description. Do you want to use the existing field instead?';
+        ChoicesQst: Label 'Use the existing test,Change the description', Locked = true;
+        ChoicesMsg: Label 'There is already a test with that description. Do you want to use the existing test instead?';
         ShouldBeAtLeastThreeCharsErr: Label 'A description should be at least three characters.';
 
     trigger OnInit();
     begin
-        NewField := true;
+        NewTest := true;
         Step1NewOrExisting := 1;
-        Step2AddNewField := 2;
+        Step2AddNewTest := 2;
         Step3FieldDataTypeDetails := 3;
-        if IsRunningFromFieldDirectly then
-            ChangeToStep(Step2AddNewField)
+        if IsRunningFromTestDirectly then
+            ChangeToStep(Step2AddNewTest)
         else
             ChangeToStep(Step1NewOrExisting);
     end;
@@ -327,25 +327,25 @@ page 20432 "Qlty. Field Wizard"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         TempAddedField: Code[20];
     begin
         if not FinishActionChosen then
             foreach TempAddedField in ListOfAddedFields do begin
                 QltyInspectionTemplateLine.Reset();
-                QltyInspectionTemplateLine.SetRange("Field Code", TempAddedField);
+                QltyInspectionTemplateLine.SetRange("Test Code", TempAddedField);
                 if QltyInspectionTemplateLine.IsEmpty() then
-                    if QltyField.Get(TempAddedField) then
-                        if QltyField."Wizard Internal" = QltyField."Wizard Internal"::"In Progress" then
-                            if QltyField.Delete() then;
+                    if QltyTest.Get(TempAddedField) then
+                        if QltyTest."Wizard Internal" = QltyTest."Wizard Internal"::"In Progress" then
+                            if QltyTest.Delete() then;
             end
         else
             foreach TempAddedField in ListOfAddedFields do
-                if QltyField.Get(TempAddedField) then begin
-                    QltyField."Wizard Internal" := QltyField."Wizard Internal"::Complete;
-                    QltyField.UpdateAllowedValuesFromTableLookup();
-                    QltyField.Modify(false);
+                if QltyTest.Get(TempAddedField) then begin
+                    QltyTest."Wizard Internal" := QltyTest."Wizard Internal"::Complete;
+                    QltyTest.UpdateAllowedValuesFromTableLookup();
+                    QltyTest.Modify(false);
                 end;
     end;
 
@@ -380,19 +380,19 @@ page 20432 "Qlty. Field Wizard"
             Step1NewOrExisting:
                 begin
                     IsBackEnabled := false;
-                    IsNextEnabled := NewField;
+                    IsNextEnabled := NewTest;
                     IsFinishEnabled := false;
 
-                    if ChooseExistingFieldOrFields then begin
-                        UpdateChosenExistingFieldsFromPart();
-                        IsFinishEnabled := FieldsToAdd.Count() > 0;
+                    if ChooseExistingTestOrTests then begin
+                        UpdateChosenExistingTestsFromPart();
+                        IsFinishEnabled := TestsToAdd.Count() > 0;
                     end
                 end;
 
-            Step2AddNewField:
+            Step2AddNewTest:
                 begin
-                    IsBackEnabled := (not IsRunningFromFieldDirectly) and (not EditingExistingField);
-                    IsNextEnabled := (StrLen(FieldDescription) >= 2) and (StrLen(FieldShortName) >= 2);
+                    IsBackEnabled := (not IsRunningFromTestDirectly) and (not EditingExistingTest);
+                    IsNextEnabled := (StrLen(TestDescription) >= 2) and (StrLen(TestShortName) >= 2);
                     if IsNextEnabled and (SimpleFieldType in [SimpleFieldType::TypeFreeText, SimpleFieldType::TypeDate]) then begin
                         IsFinishEnabled := true;
                         IsNextEnabled := false;
@@ -408,16 +408,16 @@ page 20432 "Qlty. Field Wizard"
         end;
     end;
 
-    local procedure UpdateChosenExistingFieldsFromPart()
+    local procedure UpdateChosenExistingTestsFromPart()
     begin
-        CurrPage."Qlty. Choose Existing Fields".Page.GetFieldsToAdd(FieldsToAdd);
+        CurrPage."Qlty. Choose Existing Tests".Page.GetTestsToAdd(TestsToAdd);
     end;
 
     local procedure LeavingStepMovingForward(LeavingThisStep: Integer; var MovingToStep: Integer);
     begin
         OnLeavingStepMovingForward(LeavingThisStep, MovingToStep);
         case LeavingThisStep of
-            Step2AddNewField:
+            Step2AddNewTest:
                 AddOrUpdateInternalField();
             Step3FieldDataTypeDetails:
                 AddOrUpdateInternalField();
@@ -441,67 +441,67 @@ page 20432 "Qlty. Field Wizard"
         FinishActionChosen := true;
         AddOrUpdateInternalField();
         OnFinishActionAfterAddUpdateInternalField();
-        AddedOrChooseAField := NewField or EditingExistingField or (ChooseExistingFieldOrFields and (FieldsToAdd.Count() > 0));
+        AddedOrChooseATest := NewTest or EditingExistingTest or (ChooseExistingTestOrTests and (TestsToAdd.Count() > 0));
 
-        if AddedOrChooseAField and NewField then
-            if not FieldsToAdd.Contains(FieldShortName) then
-                FieldsToAdd.Add(FieldShortName);
+        if AddedOrChooseATest and NewTest then
+            if not TestsToAdd.Contains(TestShortName) then
+                TestsToAdd.Add(TestShortName);
 
         CurrPage.Close();
     end;
 
     procedure GetFieldsToAdd(var ListOfFieldsToAdd: List of [Code[20]]): Boolean
     begin
-        ListOfFieldsToAdd := FieldsToAdd;
-        exit(AddedOrChooseAField);
+        ListOfFieldsToAdd := TestsToAdd;
+        exit(AddedOrChooseATest);
     end;
 
-    local procedure HandleFieldDescriptionOnValidate()
+    local procedure HandleTestDescriptionOnValidate()
     var
-        TempQltyField: Record "Qlty. Field" temporary;
+        TempQltyTest: Record "Qlty. Test" temporary;
     begin
-        if StrLen(FieldDescription) < 3 then
+        if StrLen(TestDescription) < 3 then
             Error(ShouldBeAtLeastThreeCharsErr);
-        CheckForExistingFieldWithSameDescription();
+        CheckForExistingTestWithSameDescription();
 
-        if not EditingExistingField then
-            TempQltyField.SuggestUnusedFieldCodeFromDescription(FieldDescription, FieldShortName);
+        if not EditingExistingTest then
+            TempQltyTest.SuggestUnusedTestCodeFromDescription(TestDescription, TestShortName);
 
         UpdateNewExistingFieldVisibilityStates();
         EvaluateStep(CurrentStepCounter);
     end;
 
-    local procedure CheckForExistingFieldWithSameDescription()
+    local procedure CheckForExistingTestWithSameDescription()
     var
-        QltyField: Record "Qlty. Field";
+        QltyTest: Record "Qlty. Test";
     begin
-        if EditingExistingField then
-            QltyField.SetFilter(Code, '<>%1', FieldShortName);
+        if EditingExistingTest then
+            QltyTest.SetFilter(Code, '<>%1', TestShortName);
 
-        QltyField.SetRange(Description, FieldDescription);
-        if QltyField.FindFirst() then
+        QltyTest.SetRange(Description, TestDescription);
+        if QltyTest.FindFirst() then
             case StrMenu(ChoicesQst, 1, ChoicesMsg) of
                 1:
-                    if IsRunningFromFieldDirectly then
+                    if IsRunningFromTestDirectly then
                         CurrPage.Close()
                     else begin
                         CurrentStepCounter := Step1NewOrExisting;
-                        ChooseExistingFieldOrFields := true;
-                        NewField := false;
-                        CurrPage."Qlty. Choose Existing Fields".Page.SetChooseField(QltyField.Code, true);
+                        ChooseExistingTestOrTests := true;
+                        NewTest := false;
+                        CurrPage."Qlty. Choose Existing Tests".Page.SetChooseTest(QltyTest.Code, true);
                         CurrPage.Update();
                     end;
             end;
 
-        if not EditingExistingField then
-            QltyField.SuggestUnusedFieldCodeFromDescription(FieldDescription, FieldShortName);
+        if not EditingExistingTest then
+            QltyTest.SuggestUnusedTestCodeFromDescription(TestDescription, TestShortName);
     end;
 
-    local procedure HandleFieldCodeOnValidate()
+    local procedure HandleTestCodeOnValidate()
     var
-        TempQltyField: Record "Qlty. Field" temporary;
+        TempQltyTest: Record "Qlty. Test" temporary;
     begin
-        TempQltyField.SuggestUnusedFieldCodeFromDescription(FieldShortName, FieldShortName);
+        TempQltyTest.SuggestUnusedTestCodeFromDescription(TestShortName, TestShortName);
         UpdateNewExistingFieldVisibilityStates();
     end;
 
@@ -512,8 +512,8 @@ page 20432 "Qlty. Field Wizard"
 
     local procedure UpdateNewExistingFieldVisibilityStates()
     begin
-        ShowNewFieldCode := StrLen(FieldDescription) > 1;
-        ShowNewFieldType := StrLen(FieldShortName) > 1;
+        ShowNewTestCode := StrLen(TestDescription) > 1;
+        ShowNewValueType := StrLen(TestShortName) > 1;
 
         ShowNumberDataType := SimpleFieldType = SimpleFieldType::TypeNumber;
         ShowChoiceDataType := SimpleFieldType = SimpleFieldType::TypeChoice;
@@ -524,103 +524,103 @@ page 20432 "Qlty. Field Wizard"
 
     local procedure AddOrUpdateInternalField()
     var
-        QltyField: Record "Qlty. Field";
-        TempPreviousVersionOfQltyField: Record "Qlty. Field" temporary;
+        QltyTest: Record "Qlty. Test";
+        TempPreviousVersionOfQltyTest: Record "Qlty. Test" temporary;
         QltyLookupCode: Record "Qlty. Lookup Code";
     begin
-        if FieldShortName = '' then
+        if TestShortName = '' then
             exit;
 
-        if not QltyField.Get(FieldShortName) then begin
-            QltyField.Init();
-            QltyField."Wizard Internal" := QltyField."Wizard Internal"::"In Progress";
-            QltyField.Code := FieldShortName;
-            QltyField.Description := FieldDescription;
-            QltyField.Insert();
+        if not QltyTest.Get(TestShortName) then begin
+            QltyTest.Init();
+            QltyTest."Wizard Internal" := QltyTest."Wizard Internal"::"In Progress";
+            QltyTest.Code := TestShortName;
+            QltyTest.Description := TestDescription;
+            QltyTest.Insert();
         end;
 
-        TempPreviousVersionOfQltyField := QltyField;
-        QltyField.Description := FieldDescription;
-        if not ListOfAddedFields.Contains(FieldShortName) then
-            ListOfAddedFields.Add(FieldShortName);
+        TempPreviousVersionOfQltyTest := QltyTest;
+        QltyTest.Description := TestDescription;
+        if not ListOfAddedFields.Contains(TestShortName) then
+            ListOfAddedFields.Add(TestShortName);
         case SimpleFieldType of
             SimpleFieldType::TypeDate:
-                QltyField."Field Type" := QltyField."Field Type"::"Field Type Date";
+                QltyTest."Test Value Type" := QltyTest."Test Value Type"::"Value Type Date";
             SimpleFieldType::TypeFreeText:
-                QltyField."Field Type" := QltyField."Field Type"::"Field Type Text";
+                QltyTest."Test Value Type" := QltyTest."Test Value Type"::"Value Type Text";
             SimpleFieldType::TypeNumber:
                 begin
-                    QltyField."Field Type" := QltyField."Field Type"::"Field Type Decimal";
-                    QltyField."Allowable Values" := CopyStr(CurrPage.NumberFieldDetails.Page.GetAllowableValues(), 1, MaxStrLen(QltyField."Allowable Values"));
+                    QltyTest."Test Value Type" := QltyTest."Test Value Type"::"Value Type Decimal";
+                    QltyTest."Allowable Values" := CopyStr(CurrPage.NumberFieldDetails.Page.GetAllowableValues(), 1, MaxStrLen(QltyTest."Allowable Values"));
                 end;
             SimpleFieldType::TypeChoice:
                 begin
-                    QltyField."Field Type" := QltyField."Field Type"::"Field Type Table Lookup";
-                    if QltyField."Lookup Table No." = 0 then begin
-                        QltyField.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
-                        QltyField.Validate("Lookup Field No.", QltyLookupCode.FieldNo(Code));
+                    QltyTest."Test Value Type" := QltyTest."Test Value Type"::"Value Type Table Lookup";
+                    if QltyTest."Lookup Table No." = 0 then begin
+                        QltyTest.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
+                        QltyTest.Validate("Lookup Field No.", QltyLookupCode.FieldNo(Code));
                     end;
                 end;
         end;
-        if QltyField."Wizard Internal" = QltyField."Wizard Internal"::Complete then
-            if TempPreviousVersionOfQltyField."Field Type" <> QltyField."Field Type" then
-                QltyField.HandleOnValidateFieldType(false);
+        if QltyTest."Wizard Internal" = QltyTest."Wizard Internal"::Complete then
+            if TempPreviousVersionOfQltyTest."Test Value Type" <> QltyTest."Test Value Type" then
+                QltyTest.HandleOnValidateTestValueType(false);
 
-        QltyField.UpdateAllowedValuesFromTableLookup();
-        QltyField.Modify();
-        LoadPagePart(QltyField.Code);
+        QltyTest.UpdateAllowedValuesFromTableLookup();
+        QltyTest.Modify();
+        LoadPagePart(QltyTest.Code);
         CurrPage.Update(false);
     end;
 
     /// <summary>
-    /// Use this to start the edit field wizard page from the context of an existing field.
+    /// Use this to start the edit test wizard page from the context of an existing test.
     /// </summary>
-    /// <param name="QltyField"></param>
+    /// <param name="QltyTest"></param>
     /// <returns></returns>
-    procedure RunModalEditExistingField(var QltyField: Record "Qlty. Field"): Action
+    procedure RunModalEditExistingTest(var QltyTest: Record "Qlty. Test"): Action
     begin
-        EditingExistingField := true;
-        FieldShortName := QltyField.Code;
-        FieldDescription := QltyField.Description;
-        case QltyField."Field Type" of
-            QltyField."Field Type"::"Field Type Decimal":
+        EditingExistingTest := true;
+        TestShortName := QltyTest.Code;
+        TestDescription := QltyTest.Description;
+        case QltyTest."Test Value Type" of
+            QltyTest."Test Value Type"::"Value Type Decimal":
                 SimpleFieldType := SimpleFieldType::TypeNumber;
-            QltyField."Field Type"::"Field Type Table Lookup":
+            QltyTest."Test Value Type"::"Value Type Table Lookup":
                 SimpleFieldType := SimpleFieldType::TypeChoice;
-            QltyField."Field Type"::"Field Type Text":
+            QltyTest."Test Value Type"::"Value Type Text":
                 SimpleFieldType := SimpleFieldType::TypeFreeText;
-            QltyField."Field Type"::"Field Type Date":
+            QltyTest."Test Value Type"::"Value Type Date":
                 SimpleFieldType := SimpleFieldType::TypeDate;
             else
                 SimpleFieldType := SimpleFieldType::TypeAdvanced;
         end;
-        LoadPagePart(FieldShortName);
+        LoadPagePart(TestShortName);
         UpdateNewExistingFieldVisibilityStates();
-        ChangeToStep(Step2AddNewField);
+        ChangeToStep(Step2AddNewTest);
 
         exit(CurrPage.RunModal());
     end;
 
     /// <summary>
-    /// Use RunModalForField to start the page in a modal form for a new field.
+    /// Use RunModalForTest to start the page in a modal form for a new test.
     /// </summary>
     /// <returns></returns>
-    procedure RunModalForField(): Action
+    procedure RunModalForTest(): Action
     begin
-        IsRunningFromFieldDirectly := true;
-        ChangeToStep(Step2AddNewField);
+        IsRunningFromTestDirectly := true;
+        ChangeToStep(Step2AddNewTest);
         exit(CurrPage.RunModal());
     end;
 
-    local procedure LoadPagePart(FieldCode: Code[20])
+    local procedure LoadPagePart(TestCode: Code[20])
     begin
         case SimpleFieldType of
             SimpleFieldType::TypeNumber:
-                CurrPage.NumberFieldDetails.Page.LoadExistingField(FieldCode);
+                CurrPage.NumberFieldDetails.Page.LoadExistingTest(TestCode);
             SimpleFieldType::TypeChoice:
-                CurrPage.FieldChoices.Page.LoadExistingField(FieldCode);
+                CurrPage.FieldChoices.Page.LoadExistingTest(TestCode);
             SimpleFieldType::TypeAdvanced:
-                CurrPage.FieldDetails.Page.LoadExistingField(FieldCode);
+                CurrPage.TestDetails.Page.LoadExistingTest(TestCode);
         end;
     end;
 
