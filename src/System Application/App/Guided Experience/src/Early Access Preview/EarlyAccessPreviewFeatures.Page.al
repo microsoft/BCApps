@@ -58,13 +58,12 @@ page 1965 "Early Access Preview Features"
                     ToolTip = 'Specifies the URL to the help documentation for this feature.';
                     Visible = false;
                 }
-                field("Video URL"; WatchVideoLbl)
+                field("Video URL"; VideoFieldText)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the URL to a video demonstrating this feature.';
                     Caption = 'Video';
                     Enabled = HasVideoUrl;
-                    StyleExpr = VideoStyleExpr;
 
                     trigger OnDrillDown()
                     begin
@@ -171,26 +170,26 @@ page 1965 "Early Access Preview Features"
     begin
         HasVideoUrl := Rec."Video URL" <> '';
         HasHelpUrl := Rec."Help URL" <> '';
-        UpdateStyles();
+        UpdateFieldText();
     end;
 
     trigger OnAfterGetRecord()
     begin
-        UpdateStyles();
+        UpdateFieldText();
     end;
 
-    local procedure UpdateStyles()
+    local procedure UpdateFieldText()
     begin
         if Rec."Video URL" <> '' then
-            VideoStyleExpr := 'Standard'
+            VideoFieldText := WatchVideoLbl
         else
-            VideoStyleExpr := 'Subordinate';
+            VideoFieldText := '';
     end;
 
     var
         HasVideoUrl: Boolean;
         HasHelpUrl: Boolean;
-        VideoStyleExpr: Text;
+        VideoFieldText: Text;
         WatchVideoLbl: Label 'Watch Video';
 }
 
