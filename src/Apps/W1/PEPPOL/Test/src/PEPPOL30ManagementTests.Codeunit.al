@@ -3324,8 +3324,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual('', CustTaxSchemeID, 'Tax Scheme ID should be empty for Tax Category O.');
     end;
 
-    local procedure Initialize()
     var
+    local procedure Initialize()
         CountryRegion: Record "Country/Region";
     begin
         LibrarySetupStorage.Restore();
@@ -3571,6 +3571,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesHeader.Validate("Your Reference",
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
+        SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(
           SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
@@ -3592,7 +3593,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
         SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
-        SalesHeader.ShipToAddressEqualsSellToAddress();
+        SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(
           SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
@@ -3664,6 +3665,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         AddCustPEPPOLIdentifier(Customer."No.");
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.SetShipToAddress(ServiceHeader.Name, '', ServiceHeader.Address, ServiceHeader."Address 2",
+        ServiceHeader.City, ServiceHeader."Post Code", ServiceHeader.County, ServiceHeader."Country/Region Code");
         ServiceHeader.Modify(true);
         LibraryService.CreateServiceLineWithQuantity(
           ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
