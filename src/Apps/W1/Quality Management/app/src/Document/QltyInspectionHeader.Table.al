@@ -827,7 +827,7 @@ table 20405 "Qlty. Inspection Header"
             Rec."Planned Start Date" := CurrentDateTime();
 
         UpdateBrickFields();
-        QltyStartWorkflow.StartWorkflowTestChanged(Rec, xRec);
+        QltyStartWorkflow.StartWorkflowInspectionChanged(Rec, xRec);
         IsChangingStatus := false;
     end;
 
@@ -856,7 +856,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Assigns the test to the current user.
+    /// Assigns the inspection to the current user.
     /// </summary>
     procedure AssignToSelf()
     begin
@@ -872,7 +872,7 @@ table 20405 "Qlty. Inspection Header"
     /// <summary>
     /// Reopens an inspection
     /// </summary>
-    procedure ReopenTest()
+    procedure ReopenInspection()
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         Proceed: Boolean;
@@ -1434,14 +1434,14 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="UseItem"></param>
     /// <param name="UseTracking"></param>
     /// <param name="UseDocument"></param>
-    procedure SetRecordFiltersToFindTestFor(ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean)
+    procedure SetRecordFiltersToFindInspectionFor(ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean)
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
         Handled: Boolean;
     begin
-        OnBeforeSetRecordFiltersToFindTestFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument, Handled);
+        OnBeforeSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument, Handled);
         if Handled then
             exit;
 
@@ -1479,12 +1479,12 @@ table 20405 "Qlty. Inspection Header"
                 Rec.SetRange("Source Document No.", TempQltyInspectionHeader."Source Document No.");
         end;
 
-        OnAfterSetRecordFiltersToFindTestFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
+        OnAfterSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
     end;
 
     procedure GetMostRecentTestFor(RecordVariant: Variant) Success: Boolean
     begin
-        Rec.SetRecordFiltersToFindTestFor(false, RecordVariant, true, true, true);
+        Rec.SetRecordFiltersToFindInspectionFor(false, RecordVariant, true, true, true);
         Rec.SetCurrentKey("No.", "Reinspection No.");
         Rec.Ascending(false);
         Success := Rec.FindFirst();
@@ -1712,7 +1712,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Use to supplement or replace default system behavior of finding related tests.
+    /// Use to supplement or replace default system behavior of finding related inspections.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="ErrorIfMissingFilter"></param>
@@ -1722,7 +1722,7 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="UseDocument"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetRecordFiltersToFindTestFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var Handled: Boolean)
+    local procedure OnBeforeSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var Handled: Boolean)
     begin
     end;
 
@@ -1736,7 +1736,7 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="UseTracking"></param>
     /// <param name="UseDocument"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetRecordFiltersToFindTestFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean)
+    local procedure OnAfterSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean)
     begin
     end;
 

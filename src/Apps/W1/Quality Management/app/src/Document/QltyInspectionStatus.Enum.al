@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// The test status is what state the test itself is in.
+/// The inspection status is what state the inspection itself is in.
 /// </summary>
 enum 20422 "Qlty. Inspection Status"
 {

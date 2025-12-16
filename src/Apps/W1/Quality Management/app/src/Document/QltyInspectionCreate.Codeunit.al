@@ -400,7 +400,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="ReferenceVariant"></param>
     /// <param name="OptionalVariant2"></param>
     /// <param name="OptionalVariant3"></param>
-    /// <param name="QltyInspectionHeader">The created test</param>
+    /// <param name="QltyInspectionHeader">The created inspection</param>
     /// <returns></returns>
     internal procedure FindExistingInspectionWithMultipleVariants(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; var QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
     var
@@ -484,22 +484,22 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
     /// <param name="QltyInspectionHeader">The created test</param>
     /// <returns></returns>
-    local procedure GetExistingOrCreateNewInspectionFor(var TempSourceFieldsFilledStubTestBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; TargetRecordRef: RecordRef; OriginalTriggeringRecordRef: RecordRef; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TestIsNew: Boolean) HasInspection: Boolean
+    local procedure GetExistingOrCreateNewInspectionFor(var TempSourceFieldsFilledStubTestBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; TargetRecordRef: RecordRef; OriginalTriggeringRecordRef: RecordRef; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var InspectionIsNew: Boolean) HasInspection: Boolean
     var
         ExistingQltyInspectionHeader: Record "Qlty. Inspection Header";
         NeedNewInspection: Boolean;
-        HasExistingTest: Boolean;
+        HasExistingInspection: Boolean;
         ShouldCreateReinspection: Boolean;
         CouldApplyAnyFields: Boolean;
     begin
-        TestIsNew := false;
+        InspectionIsNew := false;
 
         QltyManagementSetup.Get();
         if QltyManagementSetup."Create Inspection Behavior" = QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection" then begin
             NeedNewInspection := true;
-            HasExistingTest := false;
+            HasExistingInspection := false;
         end else begin
-            HasExistingTest := FindExistingTestWithStub(TempSourceFieldsFilledStubTestBufferQltyInspectionHeader, TempQltyInspectionGenRule, ExistingQltyInspectionHeader, false);
+            HasExistingInspection := FindExistingTestWithStub(TempSourceFieldsFilledStubTestBufferQltyInspectionHeader, TempQltyInspectionGenRule, ExistingQltyInspectionHeader, false);
 
             case QltyManagementSetup."Create Inspection Behavior" of
                 QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection":
@@ -513,7 +513,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                         NeedNewInspection := true;
                     end;
                 QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching inspection is finished":
-                    if not HasExistingTest then begin
+                    if not HasExistingInspection then begin
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
                     end else begin
@@ -522,7 +522,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                         HasInspection := not NeedNewInspection;
                     end;
                 QltyManagementSetup."Create Inspection Behavior"::"Use existing open inspection if available":
-                    if not HasExistingTest then begin
+                    if not HasExistingInspection then begin
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
                     end else begin
@@ -532,17 +532,17 @@ codeunit 20404 "Qlty. Inspection - Create"
                     end;
                 QltyManagementSetup."Create Inspection Behavior"::"Use any existing inspection if available":
                     begin
-                        NeedNewInspection := not HasExistingTest;
+                        NeedNewInspection := not HasExistingInspection;
                         ShouldCreateReinspection := false;
                     end;
                 else
-                    OnCustomCreateInspectionBehavior(TargetRecordRef, OriginalTriggeringRecordRef, TempQltyInspectionGenRule, HasExistingTest, ExistingQltyInspectionHeader, NeedNewInspection, ShouldCreateReinspection);
+                    OnCustomCreateInspectionBehavior(TargetRecordRef, OriginalTriggeringRecordRef, TempQltyInspectionGenRule, HasExistingInspection, ExistingQltyInspectionHeader, NeedNewInspection, ShouldCreateReinspection);
             end;
         end;
         if NeedNewInspection then begin
             QltyInspectionHeader.Init();
             QltyInspectionHeader.SetIsCreating(true);
-            if HasExistingTest and ShouldCreateReinspection then
+            if HasExistingInspection and ShouldCreateReinspection then
                 InitReinspectionHeader(ExistingQltyInspectionHeader, QltyInspectionHeader);
 
             QltyInspectionHeader.TransferFields(TempSourceFieldsFilledStubTestBufferQltyInspectionHeader, false);
@@ -564,10 +564,10 @@ codeunit 20404 "Qlty. Inspection - Create"
                     Message(MultiRecordTestSourceFieldErr, QltyInspectionHeader."No.", TargetRecordRef.RecordId(), TargetRecordRef.Number(), OriginalTriggeringRecordRef.RecordId());
 
             HasInspection := QltyInspectionHeader.Insert(true);
-            TestIsNew := true;
+            InspectionIsNew := true;
             CreateQualityTestResultLinesFromTemplate(QltyInspectionHeader);
         end else
-            if HasExistingTest then
+            if HasExistingInspection then
                 if QltyInspectionHeader.Get(ExistingQltyInspectionHeader."No.", ExistingQltyInspectionHeader."Reinspection No.") then begin
                     QltyInspectionHeader.SetRecFilter();
                     HasInspection := true;

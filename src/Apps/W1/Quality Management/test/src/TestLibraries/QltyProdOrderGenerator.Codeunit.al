@@ -193,7 +193,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
         VATProductPostingGroup.Init();
-        VATProductPostingGroup.Code := 'VAT PRODUCT TEST';
+        VATProductPostingGroup.Code := 'VAT PRODUCT DEMO';
         if not VATProductPostingGroup.Insert() then
             exit;
 
@@ -305,7 +305,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
 
         Item."Routing No." := RoutingHeader."No.";
         Item."Replenishment System" := "Replenishment System"::"Prod. Order";
-        Item."VAT Prod. Posting Group" := 'VAT PRODUCT TEST';
+        Item."VAT Prod. Posting Group" := 'VAT PRODUCT DEMO';
         Item.Modify();
 
         SetupVAT();
@@ -322,7 +322,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
 
         Item."Routing No." := RoutingHeader."No.";
         Item."Replenishment System" := "Replenishment System"::"Prod. Order";
-        Item."VAT Prod. Posting Group" := 'VAT PRODUCT TEST';
+        Item."VAT Prod. Posting Group" := 'VAT PRODUCT DEMO';
         Item.Modify();
 
         SetupVAT();
@@ -353,7 +353,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         ProductionBOMLine: Record "Production BOM Line";
     begin
         LibraryInventory.CreateItem(Item);
-        Item.Validate("VAT Prod. Posting Group", 'VAT PRODUCT TEST');
+        Item.Validate("VAT Prod. Posting Group", 'VAT PRODUCT DEMO');
         Item.Modify();
 
         LibraryManufacturing.CreateProductionBOMLine(ProductionBOMHeader, ProductionBOMLine, '', "Production Bom Line Type"::Item, Item."No.", 1);

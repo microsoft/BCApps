@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Utilities;
 codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
 {
     var
-        ItemJournalLineDescriptionTemplateLbl: Label 'Test [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the test';
+        ItemJournalLineDescriptionTemplateLbl: Label 'Test [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
         DocumentTypeLbl: Label 'Item Reclassification';
 

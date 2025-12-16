@@ -63,7 +63,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// The maximum recursion to use when creating tests.
+    /// The maximum recursion to use when creating inspections.
     /// Used for traversal on source table configuration when finding applicable generation rules, and also when populating source fields.
     /// 
     /// This limit prevents infinite loops in complex configuration hierarchies and ensures reasonable performance

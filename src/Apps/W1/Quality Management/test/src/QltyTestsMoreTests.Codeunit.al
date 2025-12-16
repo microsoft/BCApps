@@ -1533,24 +1533,24 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_NullVariant()
+    procedure Table_SetRecordFiltersToFindInspectionFor_NullVariant()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ordId: RecordId;
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor throws an error when provided with a null RecordId
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor throws an error when provided with a null RecordId
 
         // [GIVEN] A null RecordId
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with the null RecordId
-        asserterror QltyInspectionHeader.SetRecordFiltersToFindTestFor(true, ordId, false, false, false);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with the null RecordId
+        asserterror QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, ordId, false, false, false);
 
         // [THEN] An error is thrown indicating the record cannot be found
         LibraryAssert.ExpectedError(StrSubstNo(UnableToFindRecordErr, ordId));
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_NoSourceItem()
+    procedure Table_SetRecordFiltersToFindInspectionFor_NoSourceItem()
     var
         Location: Record Location;
         Item: Record Item;
@@ -1562,7 +1562,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory: Codeunit "Library - Inventory";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor throws error when item cannot be identified
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when item cannot be identified
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1580,15 +1580,15 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with requireItemFilter = true
-        asserterror QltyInspectionHeader.SetRecordFiltersToFindTestFor(true, PurchaseLine, true, false, false);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with requireItemFilter = true
+        asserterror QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, PurchaseLine, true, false, false);
 
         // [THEN] An error is thrown indicating the item cannot be identified
         LibraryAssert.ExpectedError(StrSubstNo(UnableToIdentifyTheItemErr, PurchaseLine.RecordId()));
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_NoSourceTracking()
+    procedure Table_SetRecordFiltersToFindInspectionFor_NoSourceTracking()
     var
         Location: Record Location;
         Item: Record Item;
@@ -1599,7 +1599,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory: Codeunit "Library - Inventory";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor throws error when tracking information cannot be identified
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when tracking information cannot be identified
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1611,15 +1611,15 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with requireTrackingFilter = true
-        asserterror QltyInspectionHeader.SetRecordFiltersToFindTestFor(true, PurchaseLine, false, true, false);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with requireTrackingFilter = true
+        asserterror QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, PurchaseLine, false, true, false);
 
         // [THEN] An error is thrown indicating tracking information cannot be identified
         LibraryAssert.ExpectedError(StrSubstNo(UnableToIdentifyTheTrackingErr, PurchaseLine.RecordId()));
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_NoSourceDocument()
+    procedure Table_SetRecordFiltersToFindInspectionFor_NoSourceDocument()
     var
         Location: Record Location;
         Item: Record Item;
@@ -1631,7 +1631,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory: Codeunit "Library - Inventory";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor throws error when document information cannot be identified
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when document information cannot be identified
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1655,8 +1655,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionHeader."Source Serial No." := 'Serial';
         QltyInspectionHeader."Source Package No." := 'Package';
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with requireDocumentFilter = true
-        asserterror QltyInspectionHeader.SetRecordFiltersToFindTestFor(true, PurchaseLine, false, false, true);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with requireDocumentFilter = true
+        asserterror QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, PurchaseLine, false, false, true);
 
         // [THEN] An error is thrown indicating the document cannot be identified
         LibraryAssert.ExpectedError(StrSubstNo(UnableToIdentifyTheDocumentErr, PurchaseLine.RecordId()));

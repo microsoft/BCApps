@@ -58,7 +58,7 @@ codeunit 20426 "Qlty. Start Workflow"
         WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestReopensEvent(), QltyInspectionHeader);
     end;
 
-    internal procedure StartWorkflowTestChanged(var QltyInspectionHeader: Record "Qlty. Inspection Header"; xQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure StartWorkflowInspectionChanged(var QltyInspectionHeader: Record "Qlty. Inspection Header"; xQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         RecursionDetectionQltySessionHelper: Codeunit "Qlty. Session Helper";
         Temp: Text;

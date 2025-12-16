@@ -417,7 +417,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     end;
 
     /// <summary>
-    /// Sets the default automatic test creation triggers for generation rules based on the values set in Quality Management Setup
+    /// Sets the default automatic inspection creation triggers for generation rules based on the values set in Quality Management Setup
     /// </summary>
     procedure SetIntentAndDefaultTriggerValuesFromSetup()
     var

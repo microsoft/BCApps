@@ -28,7 +28,7 @@ codeunit 20424 "Qlty. Workflow Response"
     var
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         DocumentTypeLbl: Label 'Move';
-        UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from test %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the test, %2=from location, %3=to location';
+        UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from inspection %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the test, %2=from location, %3=to location';
 
     /// <summary>
     /// Note: The method signature for OnExecuteWorkflowResponse has changed at some point between BC 16 and BC 18.
@@ -152,7 +152,7 @@ codeunit 20424 "Qlty. Workflow Response"
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
                         if QltyInspectionHeader."No." <> '' then begin
-                            QltyInspectionHeader.ReopenTest();
+                            QltyInspectionHeader.ReopenInspection();
                             ResponseExecuted := true;
                         end;
                     end;

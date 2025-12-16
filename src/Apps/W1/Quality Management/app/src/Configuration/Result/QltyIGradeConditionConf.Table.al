@@ -36,7 +36,7 @@ table 20412 "Qlty. I. Grade Condition Conf."
         }
         field(3; "Target Reinspection No."; Integer)
         {
-            Caption = 'Reinspection No. (tests)';
+            Caption = 'Reinspection No. (inspections)';
             Description = 'Only applicable for Reinspections. Does not apply to field configurations or template configurations.';
             BlankZero = true;
         }

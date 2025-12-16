@@ -1318,7 +1318,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
@@ -1387,7 +1387,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
+        // [GIVEN] A quality inspection is created with variants in order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
@@ -1456,7 +1456,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All source record IDs have "Released" status (note: third ID is not checked due to variant ordering)
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
@@ -1524,7 +1524,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
@@ -1593,7 +1593,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
@@ -1673,7 +1673,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
@@ -1753,7 +1753,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
@@ -1833,7 +1833,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ItemJournalLine.Modify();
 
-        // [GIVEN] A quality test is created with variants in order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
+        // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
@@ -2116,7 +2116,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created for the production order with Released status
+        // [GIVEN] A quality inspection is created for the production order with Released status
         RecordRef.GetTable(ProdProductionOrder);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
@@ -2176,7 +2176,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created for the production order line with Released status
+        // [GIVEN] A quality inspection is created for the production order line with Released status
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
@@ -2236,7 +2236,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] A quality test is created for the production order routing line with Released status
+        // [GIVEN] A quality inspection is created for the production order routing line with Released status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedTest(TestQualityOrder);

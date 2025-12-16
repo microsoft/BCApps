@@ -172,35 +172,35 @@ page 20406 "Qlty. Inspection"
                         Editable = false;
                         Importance = Additional;
                         Caption = 'Created at';
-                        ToolTip = 'Specifies the date and time when the test was created.';
+                        ToolTip = 'Specifies the date and time when the inspection was created.';
                     }
                     field(SystemCreatedByUserID; QltyMiscHelpers.GetUserNameByUserSecurityID(Rec.SystemCreatedBy))
                     {
                         Editable = false;
                         Importance = Additional;
                         Caption = 'Created by User ID';
-                        ToolTip = 'Specifies the ID of the user who created the test.';
+                        ToolTip = 'Specifies the ID of the user who created the inspection.';
                     }
                     field(SystemModifiedAt; Rec.SystemModifiedAt)
                     {
                         Editable = false;
                         Importance = Additional;
                         Caption = 'Last modified at';
-                        ToolTip = 'Specifies the date and time when the test was last modified.';
+                        ToolTip = 'Specifies the date and time when the teinspectionst was last modified.';
                     }
                     field(SystemModifiedByUserID; QltyMiscHelpers.GetUserNameByUserSecurityID(Rec.SystemModifiedBy))
                     {
                         Editable = false;
                         Importance = Additional;
                         Caption = 'Last modified by User ID';
-                        ToolTip = 'Specifies the ID of the user who last modified the test.';
+                        ToolTip = 'Specifies the ID of the user who last modified the inspection.';
                     }
                 }
-                field("Existing Quality Tests This Record"; Rec."Existing Inspections This Rec.")
+                field("Existing Quality Inspections This Record"; Rec."Existing Inspections This Rec.")
                 {
                     Importance = Additional;
                 }
-                field("Existing Quality Tests This Item"; Rec."Existing Inspections This Item")
+                field("Existing Quality Inspections This Item"; Rec."Existing Inspections This Item")
                 {
                     Importance = Additional;
                 }
@@ -499,7 +499,7 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 begin
-                    Rec.ReopenTest();
+                    Rec.ReopenInspection();
                     CurrPage.Update(false);
                 end;
             }
@@ -612,7 +612,7 @@ page 20406 "Qlty. Inspection"
             {
                 PromotedCategory = Report;
                 Caption = 'Certificate of Analysis';
-                ToolTip = 'Certificate of Analysis (CoA) for this test.';
+                ToolTip = 'Certificate of Analysis (CoA) for this inspection.';
                 Image = Certificate;
                 Promoted = true;
                 PromotedIsBig = true;

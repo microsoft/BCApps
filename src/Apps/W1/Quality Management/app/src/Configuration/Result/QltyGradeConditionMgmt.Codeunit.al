@@ -10,7 +10,7 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
-/// Used to copy grade conditions from fields to templates, templates to tests, 
+/// Used to copy grade conditions from fields to templates, templates to inspections
 /// </summary>
 codeunit 20409 "Qlty. Grade Condition Mgmt."
 {

@@ -15,7 +15,7 @@ using Microsoft.Warehouse.Tracking;
 codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
 {
     var
-        WarehouseJournalLineDescriptionTemplateLbl: Label 'Test [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the test';
+        WarehouseJournalLineDescriptionTemplateLbl: Label 'Test [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclass batch.';
         DocumentTypeLbl: Label 'Warehouse Reclassification';
 

@@ -63,8 +63,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         IgnoreLbl: Label 'Ignore';
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
-        EntryTypeBlocked2Err: Label 'This transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
+        EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality inspection, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
+        EntryTypeBlocked2Err: Label 'This transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality inspection, %2=grade, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
         TrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no';
@@ -1473,7 +1473,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] A temporary inspection header with source document, item, lot, and serial number
-        TempQltyInspectionHeader."No." := 'TESTSOURCE';
+        TempQltyInspectionHeader."No." := 'INSPECTSOURCE';
         TempQltyInspectionHeader."Source Document No." := 'MYDOC123';
         TempQltyInspectionHeader."Source Item No." := 'ITEMABC';
         TempQltyInspectionHeader."Source Lot No." := 'LOTDEF';

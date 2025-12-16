@@ -1233,7 +1233,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
         UnusedVariant3: Variant;
-        FoundTest: Boolean;
+        FoundInspection: Boolean;
     begin
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests with FindAll option
 
@@ -1247,12 +1247,12 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] FindExistingTestWithVariant is called with FindAll=true when no tests exist
-        FoundTest := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
+        FoundInspection := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
 
         QltyInspectionGenRule.Delete();
 
         // [THEN] No inspection is found and the count is zero
-        LibraryAssert.IsFalse(FoundTest, 'Should not find any tests.');
+        LibraryAssert.IsFalse(FoundInspection, 'Should not find any inspections.');
         LibraryAssert.AreEqual(0, FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
 
@@ -1272,7 +1272,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
         UnusedVariant3: Variant;
-        FoundTest: Boolean;
+        FoundInspection: Boolean;
     begin
         // [SCENARIO] Retrieve all existing inspections including reinspections when FindAll is true. Uses a production order routing line and a reinspection. Should find both tests.
 
@@ -1290,11 +1290,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Clear(FoundQltyInspectionHeader);
 
         // [WHEN] FindExistingTestWithVariant is called with FindAll=true
-        FoundTest := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
+        FoundInspection := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, true);
         QltyInspectionGenRule.Delete();
 
         // [THEN] Both tests are found
-        LibraryAssert.IsTrue(FoundTest, 'Should claim test found.');
+        LibraryAssert.IsTrue(FoundInspection, 'Should claim test found.');
         LibraryAssert.AreEqual(2, FoundQltyInspectionHeader.Count(), 'There should be exactly two tests found.');
     end;
 
@@ -1312,9 +1312,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
         UnusedVariant3: Variant;
-        FoundTest: Boolean;
+        FoundInspection: Boolean;
     begin
-        // [SCENARIO] Verify no test is found when searching for nonexistent test with FindAll=false
+        // [SCENARIO] Verify no inspection is found when searching for nonexistent inspection with FindAll=false
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         Initialize();
@@ -1322,12 +1322,12 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
-        // [WHEN] FindExistingTestWithVariant is called with FindAll=false when no tests exist
-        FoundTest := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
+        // [WHEN] FindExistingTestWithVariant is called with FindAll=false when no inspection exist
+        FoundInspection := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
         QltyInspectionGenRule.Delete();
 
         // [THEN] No inspection is found and the count is zero
-        LibraryAssert.IsFalse(FoundTest, 'Should not find any tests.');
+        LibraryAssert.IsFalse(FoundInspection, 'Should not find any inspections.');
         LibraryAssert.AreEqual(0, FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
 
@@ -1347,7 +1347,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
         UnusedVariant3: Variant;
-        FoundTest: Boolean;
+        FoundInspection: Boolean;
     begin
         // [SCENARIO] Retrieve only the last test created when FindAll is false. Uses a production order routing line and a reinspection to ensure it only finds the last test created.
 
@@ -1363,11 +1363,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [WHEN] FindExistingTestWithVariant is called with FindAll=false
-        FoundTest := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
+        FoundInspection := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
         QltyInspectionGenRule.Delete();
 
         // [THEN] Only the last created inspection (the reinspection) is found
-        LibraryAssert.IsTrue(FoundTest, 'Should claim found test.');
+        LibraryAssert.IsTrue(FoundInspection, 'Should claim found test.');
         LibraryAssert.AreEqual(ReQltyInspectionHeader."Reinspection No.", FoundQltyInspectionHeader."Reinspection No.", 'The found test should match the last created inspection.');
     end;
 
@@ -1381,7 +1381,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdProductionOrder: Record "Production Order";
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        FoundTest: Boolean;
+        FoundInspection: Boolean;
     begin
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests
 
@@ -1390,11 +1390,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [WHEN] FindExistingInspectionWithVariant is called when no tests exist
-        FoundTest := QltyInspectionCreate.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
+        FoundInspection := QltyInspectionCreate.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
         // [THEN] No inspection is found and the count matches the total inspection count
-        LibraryAssert.IsFalse(FoundTest, 'Should not find any tests.');
+        LibraryAssert.IsFalse(FoundInspection, 'Should not find any inspections.');
         LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
 
@@ -1526,7 +1526,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         ProductionTrigger: Enum "Qlty. Production Trigger";
-        FoundTest: Boolean;
+        FoundInspection: Boolean;
     begin
         // [SCENARIO] Retrieve an existing inspection created from production output with multiple variants
 
@@ -1558,14 +1558,14 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
 
         // [WHEN] FindExistingInspectionWithMultipleVariants is called with the same variants
-        FoundTest := QltyInspectionCreate.FindExistingInspectionWithMultipleVariants(false, ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, FoundQltyInspectionHeader);
+        FoundInspection := QltyInspectionCreate.FindExistingInspectionWithMultipleVariants(false, ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, FoundQltyInspectionHeader);
 
         QltyManagementSetup."Production Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
         // [THEN] The test is found with the correct test number
-        LibraryAssert.IsTrue(FoundTest, 'Should have found tests.');
+        LibraryAssert.IsTrue(FoundInspection, 'Should have found tests.');
         LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'The search did not find the correct number of tests.');
         LibraryAssert.AreEqual(CreatedQltyInspectionHeader."No.", FoundQltyInspectionHeader."No.", 'The found test should match the created inspection.');
     end;
@@ -1584,7 +1584,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         BeforeCount: Integer;
-        FoundTest: Boolean;
+        FoundInspection: Boolean;
     begin
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests with multiple variants
 
@@ -1610,7 +1610,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule.Delete();
 
         // [THEN] No inspection is found and the count matches the initial count
-        LibraryAssert.IsFalse(FoundTest, 'There should not be any tests found.');
+        LibraryAssert.IsFalse(FoundInspection, 'There should not be any tests found.');
         LibraryAssert.AreEqual(BeforeCount, FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
 
@@ -1905,10 +1905,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup.Modify();
 
         // [THEN] No inspection is found
-        LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
+        LibraryAssert.IsFalse(TestFound, 'Should not find any inspections.');
 
         // [THEN] The count of found tests matches the initial count (zero)
-        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any tests.');
+        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any inspections.');
     end;
 
     [Test]
@@ -1948,8 +1948,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup.Modify();
 
         // [THEN] No inspection is found
-        LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
-        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any tests.');
+        LibraryAssert.IsFalse(TestFound, 'Should not find any inspections.');
+        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any inspections.');
     end;
 
     [Test]
@@ -1988,9 +1988,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup.Modify();
 
         // [THEN] No inspection is found
-        LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
+        LibraryAssert.IsFalse(TestFound, 'Should not find any inspections.');
         // [THEN] The count of found tests matches the initial count (zero)
-        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any tests.');
+        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any inspections.');
     end;
 
     [Test]
@@ -2029,9 +2029,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup.Modify();
 
         // [THEN] No inspection is found
-        LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
+        LibraryAssert.IsFalse(TestFound, 'Should not find any inspections.');
         // [THEN] The count of found tests matches the initial count (zero)
-        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any tests.');
+        LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any inspections.');
     end;
 
     [Test]

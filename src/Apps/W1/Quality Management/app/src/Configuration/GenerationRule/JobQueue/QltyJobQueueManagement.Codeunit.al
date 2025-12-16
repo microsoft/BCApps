@@ -22,14 +22,14 @@ codeunit 20455 "Qlty. Job Queue Management"
         ThereAreMultipleJobQueueEntriesPleaseReviewMsg: Label 'There are multiple job queue entries that appear related to the group of %1. Please review and adjust the job queue entry configuration if necessary.', Comment = '%1=the schedule group';
         ThereIsNoJobQueueForThisScheduleGroupYetDoYouWantToCreateQst: Label 'There is no job queue entry yet for the schedule group of %1. Do you want to create one?', Comment = '%1=the schedule group';
         JobQueueEntryMadeDoYouWantToSeeQst: Label 'A job queue entry has been made to help schedule this group of %1. Do you want to see it?', Comment = '%1=the schedule group';
-        TheScheduleGroupLbl: Label 'Schedule Test for : %1', Comment = '%1=the schedule group';
+        TheScheduleGroupLbl: Label 'Schedule Inspection for : %1', Comment = '%1=the schedule group';
         ThereIsAlreadyAJobQueueForThisScheduleGroupYetDoYouWantToCreateQst: Label 'There is already at least one job queue entry yet for the schedule group of %1. Do you want to create another one?', Comment = '%1=the schedule group';
         DoYouWantToSeeJobQueueEntriesQst: Label 'Do you want to see the job queue entries for the group of %1?', Comment = '%1=the schedule group';
 
     /// <summary>
     /// Checks whether a job queue entry already exists for a given schedule group.
     /// Uses FindJobQueueEntriesForScheduleGroup to search for matching job queue entries
-    /// that are configured to run scheduled test generation for the specified group.
+    /// that are configured to run scheduled inspection generation for the specified group.
     /// </summary>
     /// <param name="ScheduleGroup">The schedule group code to check for associated job queue entries</param>
     /// <returns>True if at least one job queue entry exists for this schedule group; False otherwise</returns>
@@ -145,7 +145,7 @@ codeunit 20455 "Qlty. Job Queue Management"
 
     /// <summary>
     /// Opens the Job Queue Entries page filtered to show only entries related to a specific schedule group.
-    /// Useful for users to view, modify, or troubleshoot scheduled test generation for a particular group.
+    /// Useful for users to view, modify, or troubleshoot scheduled inspection generation for a particular group.
     /// 
     /// The page will display all job queue entries configured to run the "Qlty. Schedule Inspection"
     /// report with filters matching the specified schedule group.
@@ -160,7 +160,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     end;
 
     /// <summary>
-    /// Creates a new job queue entry configured to run scheduled test generation for a schedule group.
+    /// Creates a new job queue entry configured to run scheduled inspection generation for a schedule group.
     /// Does not check for duplicates - multiple job queue entries are allowed to support different
     /// scheduling characteristics (e.g., hourly vs. daily) for the same schedule group.
     /// 
@@ -247,7 +247,7 @@ codeunit 20455 "Qlty. Job Queue Management"
 
     /// <summary>
     /// Validates that an inspection generation rule has required filters before allowing scheduled execution.
-    /// Throws an error if the rule lacks mandatory filters to prevent inadvertent over-generation of tests.
+    /// Throws an error if the rule lacks mandatory filters to prevent inadvertent over-generation of inspections.
     /// 
     /// Validation logic:
     /// At least one of these filters must be specified:

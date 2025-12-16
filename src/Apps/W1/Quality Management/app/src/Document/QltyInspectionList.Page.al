@@ -122,22 +122,22 @@ page 20408 "Qlty. Inspection List"
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
                     Caption = 'Created at';
-                    ToolTip = 'Specifies the date and time when the test was created.';
+                    ToolTip = 'Specifies the date and time when the inspection was created.';
                 }
                 field(SystemCreatedByUserID; QltyMiscHelpers.GetUserNameByUserSecurityID(Rec.SystemCreatedBy))
                 {
                     Caption = 'Created by User ID';
-                    ToolTip = 'Specifies the ID of the user who created the test.';
+                    ToolTip = 'Specifies the ID of the user who created the inspection.';
                 }
                 field(SystemModifiedAt; Rec.SystemModifiedAt)
                 {
                     Caption = 'Last modified at';
-                    ToolTip = 'Specifies the date and time when the test was last modified.';
+                    ToolTip = 'Specifies the date and time when the inspection was last modified.';
                 }
                 field(SystemModifiedByUserID; QltyMiscHelpers.GetUserNameByUserSecurityID(Rec.SystemModifiedBy))
                 {
                     Caption = 'Last modified by User ID';
-                    ToolTip = 'Specifies the ID of the user who last modified the test.';
+                    ToolTip = 'Specifies the ID of the user who last modified the inspection.';
                 }
             }
         }
@@ -267,7 +267,7 @@ page 20408 "Qlty. Inspection List"
                     CurrPage.SetSelectionFilter(TestsToReopenQualityOrder);
                     if TestsToReopenQualityOrder.FindSet(true) then
                         repeat
-                            TestsToReopenQualityOrder.ReopenTest();
+                            TestsToReopenQualityOrder.ReopenInspection();
                         until TestsToReopenQualityOrder.Next() = 0;
                     CurrPage.Update(false);
                 end;
@@ -277,9 +277,9 @@ page 20408 "Qlty. Inspection List"
                 Scope = Repeater;
                 Image = CreateInventoryPick;
                 Caption = 'Pick Up';
-                ToolTip = 'Specifies whether to assign the test to yourself.';
+                ToolTip = 'Specifies whether to assign the inspection to yourself.';
                 AboutTitle = 'Pick Up';
-                AboutText = 'Use this to assign the test to yourself.';
+                AboutText = 'Use this to assign the inspection to yourself.';
                 Visible = CanAssignToSelf;
                 Enabled = CanAssignToSelf;
 
@@ -301,9 +301,9 @@ page 20408 "Qlty. Inspection List"
                 Scope = Repeater;
                 Image = CreatePutAway;
                 Caption = 'Unassign';
-                ToolTip = 'Specifies whether to unassign this test.';
+                ToolTip = 'Specifies whether to unassign this inspection.';
                 AboutTitle = 'Unassign';
-                AboutText = 'Use this to unassign this test.';
+                AboutText = 'Use this to unassign this inspection.';
                 Visible = CanUnassign;
                 Enabled = CanUnassign;
 
@@ -423,7 +423,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Certificate of Analysis';
                 Enabled = RowActionsAreEnabled;
-                ToolTip = 'Certificate of Analysis (CoA) for this test.';
+                ToolTip = 'Certificate of Analysis (CoA) for this inspection.';
                 Image = Certificate;
                 Scope = Repeater;
                 Promoted = true;
@@ -731,7 +731,7 @@ page 20408 "Qlty. Inspection List"
 
     local procedure RunModalFilterWith(RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean) ResultAction: Action
     begin
-        Rec.SetRecordFiltersToFindTestFor(true, RecordVariant, UseItem, UseTracking, UseDocument);
+        Rec.SetRecordFiltersToFindInspectionFor(true, RecordVariant, UseItem, UseTracking, UseDocument);
         ResultAction := CurrPage.RunModal();
     end;
 }

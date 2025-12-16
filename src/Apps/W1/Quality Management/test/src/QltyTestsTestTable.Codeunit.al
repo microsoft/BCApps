@@ -1952,7 +1952,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_ItemFilter()
+    procedure Table_SetRecordFiltersToFindInspectionFor_ItemFilter()
     var
         Location: Record Location;
         Item: Record Item;
@@ -1967,7 +1967,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef: RecordRef;
         Filter: Text;
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor applies item number filter
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor applies item number filter
 
         Initialize();
 
@@ -1985,8 +1985,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created with the item
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with purchase line (useItem=true)
-        QltyInspectionHeader.SetRecordFiltersToFindTestFor(true, PurchaseLine, true, false, false);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with purchase line (useItem=true)
+        QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, PurchaseLine, true, false, false);
 
         // [THEN] Filter includes the item number
         RecordRef.GetTable(QltyInspectionHeader);
@@ -1995,7 +1995,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_LotTrackingFilter()
+    procedure Table_SetRecordFiltersToFindInspectionFor_LotTrackingFilter()
     var
         Location: Record Location;
         Item: Record Item;
@@ -2011,7 +2011,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef: RecordRef;
         Filter: Text;
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor applies lot number filter
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor applies lot number filter
 
         Initialize();
 
@@ -2034,8 +2034,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Tracking specification is created from reservation entry
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with tracking (useItemTracking=true)
-        QltyInspectionHeader.SetRecordFiltersToFindTestFor(true, TempSpecTrackingSpecification, false, true, false);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with tracking (useItemTracking=true)
+        QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, TempSpecTrackingSpecification, false, true, false);
 
         // [THEN] Filter includes the lot number
         RecordRef.GetTable(QltyInspectionHeader);
@@ -2044,7 +2044,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_SourceDocumentFilter()
+    procedure Table_SetRecordFiltersToFindInspectionFor_SourceDocumentFilter()
     var
         Location: Record Location;
         Item: Record Item;
@@ -2059,7 +2059,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef: RecordRef;
         Filter: Text;
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor applies source document number filter
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor applies source document number filter
 
         Initialize();
 
@@ -2079,8 +2079,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with purchase line (useSourceDocument=true)
-        QltyInspectionHeader.SetRecordFiltersToFindTestFor(true, PurchaseLine, false, false, true);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with purchase line (useSourceDocument=true)
+        QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, PurchaseLine, false, false, true);
 
         // [THEN] Filter includes the source document number
         RecordRef.GetTable(QltyInspectionHeader);

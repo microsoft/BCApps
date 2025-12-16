@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
 /// <summary>
-/// Use this page to configure what will automatically populate from other tables into your quality test inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.
+/// Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.
 /// </summary>
 page 20410 "Qlty. Inspect. Source Config."
 {
@@ -20,7 +20,7 @@ page 20410 "Qlty. Inspect. Source Config."
     ModifyAllowed = false;
     DeleteAllowed = false;
     AboutTitle = 'Populating data from tables in Business Central.';
-    AboutText = 'Use this page to configure what will automatically populate from other tables into your quality test inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
+    AboutText = 'Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.';
     ApplicationArea = QualityManagement;
 
     layout

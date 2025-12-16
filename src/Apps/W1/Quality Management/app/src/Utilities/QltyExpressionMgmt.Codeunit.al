@@ -34,7 +34,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         SpecialStringFunctionLookupTok: Label 'LOOKUP', Locked = true;
         SpecialStringFunctionFormatNumTok: Label 'FORMATNUM', Locked = true;
         NotAnExpressionErr: Label 'The inspection line %1 for field %2 is not a text expression field.', Comment = '%1=the record id, %2=the field';
-        RecreateTestErr: Label 'The inspection line %1 for field %2 does not match the template %3. This means the template could have changed since this test was made. Re-create this test to evaluate the expression.', Comment = '%1=the record id, %2=the field, %3=the template filters';
+        RecreateInspectionErr: Label 'The inspection line %1 for field %2 does not match the template %3. This means the template could have changed since this inspection was made. Re-create this inspection to evaluate the expression.', Comment = '%1=the record id, %2=the field, %3=the template filters';
         BadReplacementExpressionTok: Label '?', Locked = true;
         UnableToGetTableValueTableNotFoundErr: Label 'Cannot find a table based on [%1]', Comment = '%1=the table name';
         UnableToGetFieldValueTableNotFoundErr: Label 'Cannot find a field [%1] in table [%2]', Comment = '%1=the field name, %2=the table name';
@@ -42,21 +42,21 @@ codeunit 20416 "Qlty. Expression Mgmt."
         UOMTok: Label 'UOM', Locked = true;
 
     /// <summary>
-    /// Evaluates a text expression on a inspection line for a specific test.
+    /// Evaluates a text expression on a inspection line for a specific inspection.
     /// Validates that the line is a text expression field type and matches its template configuration.
     /// 
     /// Behavior:
     /// - Validates field type is "Field Type Text Expression"
     /// - Retrieves expression formula from template line
-    /// - Evaluates expression with test context
-    /// - Updates test value if changed
-    /// - Fires OnEvaluateTextExpressionOnTestLine for extensibility
+    /// - Evaluates expression with inspection context
+    /// - Updates inspection value if changed
+    /// - Fires OnEvaluateTextExpressionOnInspectionLine for extensibility
     /// 
     /// Error conditions:
     /// - Not a text expression field → Error
-    /// - Template mismatch → Error (suggests test needs recreation)
+    /// - Template mismatch → Error (suggests inspection needs recreation)
     /// 
-    /// Common usage: Auto-calculating field values during test execution based on formulas.
+    /// Common usage: Auto-calculating field values during inspection execution based on formulas.
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line containing the expression to evaluate</param>
     /// <param name="CurrentQltyInspectionHeader">The inspection header providing context for evaluation</param>
@@ -74,7 +74,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         QltyInspectionTemplateLine.SetRecFilter();
         QltyInspectionTemplateLine.SetRange("Field Code", QltyInspectionLine."Field Code");
         if not QltyInspectionTemplateLine.FindFirst() then
-            Error(RecreateTestErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Field Code", QltyInspectionTemplateLine.GetFilters());
+            Error(RecreateInspectionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Field Code", QltyInspectionTemplateLine.GetFilters());
 
         Value := EvaluateTextExpression(QltyInspectionTemplateLine."Expression Formula", CurrentQltyInspectionHeader, QltyInspectionLine);
         OnEvaluateTextExpressionOnTestLine(QltyInspectionLine, CurrentQltyInspectionHeader, QltyInspectionTemplateLine, QltyInspectionTemplateLine."Expression Formula", Value);
@@ -95,7 +95,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Use case: Simple field substitution in templates, labels, or filter expressions.
     /// </summary>
     /// <param name="Input">The text expression containing [FieldName] tokens to replace</param>
-    /// <param name="CurrentQltyInspectionHeader">If the test doesn't exist pass in a blank empty temporary record instead.</param>
+    /// <param name="CurrentQltyInspectionHeader">If the inspection doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
     procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"): Text
     var
@@ -113,7 +113,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Use case: Field substitution with line-level context (e.g., measure-specific calculations).
     /// </summary>
     /// <param name="Input">The text expression containing [FieldName] tokens to replace</param>
-    /// <param name="CurrentQltyInspectionHeader">If the test doesn't exist pass in a blank empty temporary record instead.</param>
+    /// <param name="CurrentQltyInspectionHeader">If the inspection doesn't exist pass in a blank empty temporary record instead.</param>
     /// <param name="CurrentQltyInspectionLine">If the inspection line doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
     procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentQltyInspectionLine: Record "Qlty. Inspection Line"): Text
@@ -148,7 +148,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// - Table lookups: [TableName:FieldName] → field value from related records
     /// - String functions: CLASSIFY(), REPLACE(), COPYSTR(), SELECTSTR(), LOOKUP(), FORMATNUM()
     /// 
-    /// Common usage: Complex expression evaluation in templates with full test context.
+    /// Common usage: Complex expression evaluation in templates with full inspection context.
     /// </summary>
     /// <param name="Input">The text expression to evaluate</param>
     /// <param name="CurrentQltyInspectionHeader">The inspection header providing field values for token replacement</param>

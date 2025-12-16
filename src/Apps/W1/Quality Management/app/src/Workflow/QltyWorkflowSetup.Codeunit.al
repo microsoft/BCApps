@@ -28,7 +28,7 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowResponseCreateInspectionTok: Label 'QLTY-R-CREATE-1', Locked = true;
         QMWorkflowResponseFinishTestTok: Label 'QLTY-R-FINISH-1', Locked = true;
         QMWorkflowResponseReopenTestTok: Label 'QLTY-R-REOPEN-1', Locked = true;
-        QMWorkflowResponseCreateReinspectionTok: Label 'QLTY-R-RETEST-1', Locked = true;
+        QMWorkflowResponseCreateReinspectionTok: Label 'QLTY-R-REINSPECT-1', Locked = true;
         QMWorkflowResponseBlockLotTok: Label 'QLTY-R-BLCKLOT-1', Locked = true;
         QMWorkflowResponseUnBlockLotTok: Label 'QLTY-R-UBLCKLOT-1', Locked = true;
         QMWorkflowResponseBlockSerialTok: Label 'QLTY-R-BLCKSERIAL-1', Locked = true;
