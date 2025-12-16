@@ -87,14 +87,14 @@ page 20407 "Qlty. Inspection Subform"
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[1];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = false;
                 }
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Description';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                     Visible = Visible1;
                 }
 
@@ -102,138 +102,138 @@ page 20407 "Qlty. Inspection Subform"
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[2];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 2';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = false;
                 }
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 2';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                     Visible = Visible2;
                 }
                 field(Field3; MatrixArrayConditionCellData[3])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[3];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = false;
                 }
                 field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                     Visible = Visible3;
                 }
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[4];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 4';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = false;
                 }
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 4';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                 }
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[5];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 5';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = false;
                 }
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 5';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                 }
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[6];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 6';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = false;
                 }
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 6';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                 }
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[7];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 7';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = false;
                 }
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 7';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                 }
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[8];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 8';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = false;
                 }
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 8';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                 }
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[9];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 9';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = false;
                 }
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 9';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                 }
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[10];
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 10';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = false;
                 }
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
                     Editable = false;
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 10';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                 }
-                field("Grade Code"; Rec."Grade Code")
+                field("Result Code"; Rec."Result Code")
                 {
                     Visible = false;
-                    StyleExpr = GradeStyleExpr;
+                    StyleExpr = ResultStyleExpr;
                 }
-                field("Grade Description"; Rec."Grade Description")
+                field("Result Description"; Rec."Result Description")
                 {
-                    StyleExpr = GradeStyleExpr;
+                    StyleExpr = ResultStyleExpr;
                 }
-                field("Grade Priority"; Rec."Grade Priority")
+                field("Result Priority"; Rec."Result Priority")
                 {
                     Visible = false;
                 }
@@ -269,7 +269,7 @@ page 20407 "Qlty. Inspection Subform"
 
     protected var
         CachedReadOnlyQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         MatrixArrayConditionCellData: array[10] of Text;
@@ -290,7 +290,7 @@ page 20407 "Qlty. Inspection Subform"
         CanEditLineNotes: Boolean;
         CanSeeLineNotes: Boolean;
         ShowUnitOfMeasure: Boolean;
-        GradeStyleExpr: Text;
+        ResultStyleExpr: Text;
         MeasurementNote: Text;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleText: Text;
@@ -320,7 +320,7 @@ page 20407 "Qlty. Inspection Subform"
         if Rec."Field Type" = Rec."Field Type"::"Field Type Label" then
             RowStyle := RowStyle::Strong;
 
-        GradeStyleExpr := Rec.GetGradeStyle();
+        ResultStyleExpr := Rec.GetResultStyle();
 
         RowStyleText := Format(RowStyle);
 
@@ -347,7 +347,7 @@ page 20407 "Qlty. Inspection Subform"
         Rec.CalcFields("Field Type");
         CanEditTestValue := GetCanEditTestValue();
 
-        QltyGradeConditionMgmt.GetPromotedGradesForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];

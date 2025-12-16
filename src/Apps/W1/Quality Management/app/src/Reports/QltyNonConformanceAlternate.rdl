@@ -576,7 +576,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=First(Fields!QltyInspection_Grade_Description.Value)</Value>
+                                      <Value>=First(Fields!QltyInspection_Result_Description.Value)</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -2135,12 +2135,12 @@
                 <TablixMember />
                 <TablixMember>
                   <Visibility>
-                    <Hidden>=CBool(Fields!PromptedGradeVisible_1.Value)=CBool(False)</Hidden>
+                    <Hidden>=CBool(Fields!PromptedResultVisible_1.Value)=CBool(False)</Hidden>
                   </Visibility>
                 </TablixMember>
                 <TablixMember>
                   <Visibility>
-                    <Hidden>=CBool(Fields!PromptedGradeVisible_2.Value)=CBool(False)</Hidden>
+                    <Hidden>=CBool(Fields!PromptedResultVisible_2.Value)=CBool(False)</Hidden>
                   </Visibility>
                 </TablixMember>
               </TablixMembers>
@@ -2608,11 +2608,11 @@ End Function
         <Field Name="QltyInspection_Status">
           <DataField>QltyInspection_Status</DataField>
         </Field>
-        <Field Name="QltyInspection_Grade_Code">
-          <DataField>QltyInspection_Grade_Code</DataField>
+        <Field Name="QltyInspection_Result_Code">
+          <DataField>QltyInspection_Result_Code</DataField>
         </Field>
-        <Field Name="QltyInspection_Grade_Description">
-          <DataField>QltyInspection_Grade_Description</DataField>
+        <Field Name="QltyInspection_Result_Description">
+          <DataField>QltyInspection_Result_Description</DataField>
         </Field>
         <Field Name="QltyInspection_No">
           <DataField>QltyInspection_No</DataField>
@@ -2824,104 +2824,104 @@ End Function
         <Field Name="Test_Value">
           <DataField>Test_Value</DataField>
         </Field>
-        <Field Name="Test_Grade">
-          <DataField>Test_Grade</DataField>
+        <Field Name="Test_Result">
+          <DataField>Test_Result</DataField>
         </Field>
-        <Field Name="Test_GradeDescription">
-          <DataField>Test_GradeDescription</DataField>
+        <Field Name="Test_ResultDescription">
+          <DataField>Test_ResultDescription</DataField>
         </Field>
         <Field Name="Field_LineCommentary">
           <DataField>Field_LineCommentary</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_1">
-          <DataField>PromptedGradeCaption_1</DataField>
+        <Field Name="PromptedResultCaption_1">
+          <DataField>PromptedResultCaption_1</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_1">
-          <DataField>PromptedGradeConditionDescription_1</DataField>
+        <Field Name="PromptedResultConditionDescription_1">
+          <DataField>PromptedResultConditionDescription_1</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_1">
-          <DataField>PromptedGradeVisible_1</DataField>
+        <Field Name="PromptedResultVisible_1">
+          <DataField>PromptedResultVisible_1</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_2">
-          <DataField>PromptedGradeCaption_2</DataField>
+        <Field Name="PromptedResultCaption_2">
+          <DataField>PromptedResultCaption_2</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_2">
-          <DataField>PromptedGradeConditionDescription_2</DataField>
+        <Field Name="PromptedResultConditionDescription_2">
+          <DataField>PromptedResultConditionDescription_2</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_2">
-          <DataField>PromptedGradeVisible_2</DataField>
+        <Field Name="PromptedResultVisible_2">
+          <DataField>PromptedResultVisible_2</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_3">
-          <DataField>PromptedGradeCaption_3</DataField>
+        <Field Name="PromptedResultCaption_3">
+          <DataField>PromptedResultCaption_3</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_3">
-          <DataField>PromptedGradeConditionDescription_3</DataField>
+        <Field Name="PromptedResultConditionDescription_3">
+          <DataField>PromptedResultConditionDescription_3</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_3">
-          <DataField>PromptedGradeVisible_3</DataField>
+        <Field Name="PromptedResultVisible_3">
+          <DataField>PromptedResultVisible_3</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_4">
-          <DataField>PromptedGradeCaption_4</DataField>
+        <Field Name="PromptedResultCaption_4">
+          <DataField>PromptedResultCaption_4</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_4">
-          <DataField>PromptedGradeConditionDescription_4</DataField>
+        <Field Name="PromptedResultConditionDescription_4">
+          <DataField>PromptedResultConditionDescription_4</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_4">
-          <DataField>PromptedGradeVisible_4</DataField>
+        <Field Name="PromptedResultVisible_4">
+          <DataField>PromptedResultVisible_4</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_5">
-          <DataField>PromptedGradeCaption_5</DataField>
+        <Field Name="PromptedResultCaption_5">
+          <DataField>PromptedResultCaption_5</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_5">
-          <DataField>PromptedGradeConditionDescription_5</DataField>
+        <Field Name="PromptedResultConditionDescription_5">
+          <DataField>PromptedResultConditionDescription_5</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_5">
-          <DataField>PromptedGradeVisible_5</DataField>
+        <Field Name="PromptedResultVisible_5">
+          <DataField>PromptedResultVisible_5</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_6">
-          <DataField>PromptedGradeCaption_6</DataField>
+        <Field Name="PromptedResultCaption_6">
+          <DataField>PromptedResultCaption_6</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_6">
-          <DataField>PromptedGradeConditionDescription_6</DataField>
+        <Field Name="PromptedResultConditionDescription_6">
+          <DataField>PromptedResultConditionDescription_6</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_6">
-          <DataField>PromptedGradeVisible_6</DataField>
+        <Field Name="PromptedResultVisible_6">
+          <DataField>PromptedResultVisible_6</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_7">
-          <DataField>PromptedGradeCaption_7</DataField>
+        <Field Name="PromptedResultCaption_7">
+          <DataField>PromptedResultCaption_7</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_7">
-          <DataField>PromptedGradeConditionDescription_7</DataField>
+        <Field Name="PromptedResultConditionDescription_7">
+          <DataField>PromptedResultConditionDescription_7</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_7">
-          <DataField>PromptedGradeVisible_7</DataField>
+        <Field Name="PromptedResultVisible_7">
+          <DataField>PromptedResultVisible_7</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_8">
-          <DataField>PromptedGradeCaption_8</DataField>
+        <Field Name="PromptedResultCaption_8">
+          <DataField>PromptedResultCaption_8</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_8">
-          <DataField>PromptedGradeConditionDescription_8</DataField>
+        <Field Name="PromptedResultConditionDescription_8">
+          <DataField>PromptedResultConditionDescription_8</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_8">
-          <DataField>PromptedGradeVisible_8</DataField>
+        <Field Name="PromptedResultVisible_8">
+          <DataField>PromptedResultVisible_8</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_9">
-          <DataField>PromptedGradeCaption_9</DataField>
+        <Field Name="PromptedResultCaption_9">
+          <DataField>PromptedResultCaption_9</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_9">
-          <DataField>PromptedGradeConditionDescription_9</DataField>
+        <Field Name="PromptedResultConditionDescription_9">
+          <DataField>PromptedResultConditionDescription_9</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_9">
-          <DataField>PromptedGradeVisible_9</DataField>
+        <Field Name="PromptedResultVisible_9">
+          <DataField>PromptedResultVisible_9</DataField>
         </Field>
-        <Field Name="PromptedGradeCaption_10">
-          <DataField>PromptedGradeCaption_10</DataField>
+        <Field Name="PromptedResultCaption_10">
+          <DataField>PromptedResultCaption_10</DataField>
         </Field>
-        <Field Name="PromptedGradeConditionDescription_10">
-          <DataField>PromptedGradeConditionDescription_10</DataField>
+        <Field Name="PromptedResultConditionDescription_10">
+          <DataField>PromptedResultConditionDescription_10</DataField>
         </Field>
-        <Field Name="PromptedGradeVisible_10">
-          <DataField>PromptedGradeVisible_10</DataField>
+        <Field Name="PromptedResultVisible_10">
+          <DataField>PromptedResultVisible_10</DataField>
         </Field>
         <Field Name="LabelField_Description">
           <DataField>LabelField_Description</DataField>

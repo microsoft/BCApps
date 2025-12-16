@@ -36,21 +36,21 @@ codeunit 20402 "Qlty. Auto Configure"
         DefaultQltyInspectionNoSeriesTok: Label 'QltyDEFAULT', Locked = true;
         DefaultQltyInspectionNoSeriesLabelTok: Label 'Quality Inspection Default', Locked = true;
         DefaultSeriesStartingNoTok: Label 'QI00000001', Locked = true;
-        DefaultGrade0InProgressCodeTok: Label 'INPROGRESS', Locked = true;
-        DefaultGrade0InProgressDescriptionTok: Label 'In Progress';
-        DefaultGrade0InProgressConditionNumberTok: Label '', Locked = true;
-        DefaultGrade0InProgressConditionTextTok: Label '', Locked = true;
-        DefaultGrade0InProgressConditionBooleanTok: Label '', Locked = true;
-        DefaultGrade1FailCodeTok: Label 'FAIL', Locked = true;
-        DefaultGrade1FailDescriptionTok: Label 'Fail';
-        DefaultGrade1FailConditionNumberTok: Label '<>0', Locked = true;
-        DefaultGrade1FailConditionTextTok: Label '<>''''', Locked = true;
-        DefaultGrade1FailConditionBooleanTok: Label 'No', Locked = true;
-        DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
-        DefaultGrade2PassDescriptionTok: Label 'Pass';
-        DefaultGrade2PassConditionNumberTok: Label '<>0', Locked = true;
-        DefaultGrade2PassConditionTextTok: Label '<>''''', Locked = true;
-        DefaultGrade2PassConditionBooleanTok: Label 'Yes', Locked = true;
+        DefaultResult0InProgressCodeTok: Label 'INPROGRESS', Locked = true;
+        DefaultResult0InProgressDescriptionTok: Label 'In Progress';
+        DefaultResult0InProgressConditionNumberTok: Label '', Locked = true;
+        DefaultResult0InProgressConditionTextTok: Label '', Locked = true;
+        DefaultResult0InProgressConditionBooleanTok: Label '', Locked = true;
+        DefaultResult1FailCodeTok: Label 'FAIL', Locked = true;
+        DefaultResult1FailDescriptionTok: Label 'Fail';
+        DefaultResult1FailConditionNumberTok: Label '<>0', Locked = true;
+        DefaultResult1FailConditionTextTok: Label '<>''''', Locked = true;
+        DefaultResult1FailConditionBooleanTok: Label 'No', Locked = true;
+        DefaultResult2PassCodeTok: Label 'PASS', Locked = true;
+        DefaultResult2PassDescriptionTok: Label 'Pass';
+        DefaultResult2PassConditionNumberTok: Label '<>0', Locked = true;
+        DefaultResult2PassConditionTextTok: Label '<>''''', Locked = true;
+        DefaultResult2PassConditionBooleanTok: Label 'Yes', Locked = true;
         BasicDefaultRecordsConfiguredMsg: Label 'Basic default configuration records have been configured. If you have previously adjusted those defaults then they have not been replaced.';
         WarehouseEntryToInspectTok: Label 'WHSEENTRYTOINSPECT', Locked = true;
         WarehouseEntryToInspectDescriptionTok: Label 'Warehouse Entry to Inspect', Locked = true;
@@ -100,71 +100,71 @@ codeunit 20402 "Qlty. Auto Configure"
         AssemblyOutputToInspectDescriptionTok: Label 'Posted Assembly Header to Inspect', Locked = true;
         ResourceBasedInstallFileTok: Label 'InstallFiles/PackageQM-EXPRESSDEMO.rapidstart', Locked = true;
 
-    internal procedure GetDefaultPassGrade(): Text
+    internal procedure GetDefaultPassResult(): Text
     begin
-        exit(DefaultGrade2PassCodeTok);
+        exit(DefaultResult2PassCodeTok);
     end;
 
     internal procedure EnsureBasicSetup(ShowMessage: Boolean)
     begin
         EnsureSetupRecord();
-        EnsureGrades();
+        EnsureResults();
         EnsureAtLeastOneSourceConfiguration(true);
         if ShowMessage then
             Message(BasicDefaultRecordsConfiguredMsg);
     end;
 
-    local procedure EnsureGrades()
+    local procedure EnsureResults()
     begin
-        EnsureSingleGrade(
-            DefaultGrade0InProgressCodeTok,
-            DefaultGrade0InProgressDescriptionTok,
+        EnsureSingleResult(
+            DefaultResult0InProgressCodeTok,
+            DefaultResult0InProgressDescriptionTok,
             false,
             0,
-            DefaultGrade0InProgressConditionNumberTok,
-            DefaultGrade0InProgressConditionTextTok,
-            DefaultGrade0InProgressConditionBooleanTok,
+            DefaultResult0InProgressConditionNumberTok,
+            DefaultResult0InProgressConditionTextTok,
+            DefaultResult0InProgressConditionBooleanTok,
             false);
-        EnsureSingleGrade(
-            DefaultGrade1FailCodeTok,
-            DefaultGrade1FailDescriptionTok,
+        EnsureSingleResult(
+            DefaultResult1FailCodeTok,
+            DefaultResult1FailDescriptionTok,
             false,
             1,
-            DefaultGrade1FailConditionNumberTok,
-            DefaultGrade1FailConditionTextTok,
-            DefaultGrade1FailConditionBooleanTok,
+            DefaultResult1FailConditionNumberTok,
+            DefaultResult1FailConditionTextTok,
+            DefaultResult1FailConditionBooleanTok,
             true);
-        EnsureSingleGrade(
-            DefaultGrade2PassCodeTok,
-            DefaultGrade2PassDescriptionTok,
+        EnsureSingleResult(
+            DefaultResult2PassCodeTok,
+            DefaultResult2PassDescriptionTok,
             true,
             2,
-            DefaultGrade2PassConditionNumberTok,
-            DefaultGrade2PassConditionTextTok,
-            DefaultGrade2PassConditionBooleanTok,
+            DefaultResult2PassConditionNumberTok,
+            DefaultResult2PassConditionTextTok,
+            DefaultResult2PassConditionBooleanTok,
             true);
     end;
 
-    local procedure EnsureSingleGrade(GradeCode: Text; GradeDescription: Text; IsPromoted: Boolean; EvaluationOrderLowestFirstHighestLast: Integer; DefaultNumericalCondition: Text; DefaultTextCondition: Text; DefaultBooleanCondition: Text; AllowFinish: Boolean)
+    local procedure EnsureSingleResult(ResultCode: Text; ResultDescription: Text; IsPromoted: Boolean; EvaluationOrderLowestFirstHighestLast: Integer; DefaultNumericalCondition: Text; DefaultTextCondition: Text; DefaultBooleanCondition: Text; AllowFinish: Boolean)
     var
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        if not QltyInspectionGrade.Get(CopyStr(GradeCode, 1, MaxStrLen(QltyInspectionGrade.Code))) then begin
-            QltyInspectionGrade.Init();
-            QltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(QltyInspectionGrade.Code));
-            QltyInspectionGrade.Description := CopyStr(GradeDescription, 1, MaxStrLen(QltyInspectionGrade.Description));
-            QltyInspectionGrade."Evaluation Sequence" := EvaluationOrderLowestFirstHighestLast;
-            QltyInspectionGrade."Default Number Condition" := CopyStr(DefaultNumericalCondition, 1, MaxStrLen(QltyInspectionGrade."Default Number Condition"));
-            QltyInspectionGrade."Default Text Condition" := CopyStr(DefaultTextCondition, 1, MaxStrLen(QltyInspectionGrade."Default Text Condition"));
-            QltyInspectionGrade."Default Boolean Condition" := CopyStr(DefaultBooleanCondition, 1, MaxStrLen(QltyInspectionGrade."Default Boolean Condition"));
+        if not QltyInspectionResult.Get(CopyStr(ResultCode, 1, MaxStrLen(QltyInspectionResult.Code))) then begin
+            QltyInspectionResult.Init();
+            QltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(QltyInspectionResult.Code));
+            QltyInspectionResult.Description := CopyStr(ResultDescription, 1, MaxStrLen(QltyInspectionResult.Description));
+            QltyInspectionResult."Evaluation Sequence" := EvaluationOrderLowestFirstHighestLast;
+            QltyInspectionResult."Default Number Condition" := CopyStr(DefaultNumericalCondition, 1, MaxStrLen(QltyInspectionResult."Default Number Condition"));
+            QltyInspectionResult."Default Text Condition" := CopyStr(DefaultTextCondition, 1, MaxStrLen(QltyInspectionResult."Default Text Condition"));
+            QltyInspectionResult."Default Boolean Condition" := CopyStr(DefaultBooleanCondition, 1, MaxStrLen(QltyInspectionResult."Default Boolean Condition"));
             if IsPromoted then
-                QltyInspectionGrade."Grade Visibility" := QltyInspectionGrade."Grade Visibility"::Promoted;
-            QltyInspectionGrade.AutoSetGradeCategoryFromName();
-            QltyInspectionGrade."Finish Allowed" := AllowFinish ? QltyInspectionGrade."Finish Allowed"::"Allow Finish" : QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
-            QltyInspectionGrade.Insert(true);
+                QltyInspectionResult."Result Visibility" := QltyInspectionResult."Result Visibility"::Promoted;
+            QltyInspectionResult.AutoSetResultCategoryFromName();
+            QltyInspectionResult."Finish Allowed" := AllowFinish ? QltyInspectionResult."Finish Allowed"::"Allow Finish" : QltyInspectionResult."Finish Allowed"::"Do Not Allow Finish";
+            QltyInspectionResult.Insert(true);
         end else begin
-            QltyInspectionGrade."Finish Allowed" := AllowFinish ? QltyInspectionGrade."Finish Allowed"::"Allow Finish" : QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
-            QltyInspectionGrade.Modify();
+            QltyInspectionResult."Finish Allowed" := AllowFinish ? QltyInspectionResult."Finish Allowed"::"Allow Finish" : QltyInspectionResult."Finish Allowed"::"Do Not Allow Finish";
+            QltyInspectionResult.Modify();
         end;
     end;
 
@@ -1795,13 +1795,13 @@ codeunit 20402 "Qlty. Auto Configure"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyField: Record "Qlty. Field";
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
         case true of
             QltyInspectionGenRule.IsEmpty(),
             QltyInspectionTemplateHdr.IsEmpty(),
             QltyField.IsEmpty(),
-            QltyInspectionGrade.IsEmpty():
+            QltyInspectionResult.IsEmpty():
                 exit(false);
         end;
 
@@ -1839,29 +1839,29 @@ codeunit 20402 "Qlty. Auto Configure"
     procedure ApplyConfigurationPackage()
     begin
         ApplyConfigurationPackageFromResource(ResourceBasedInstallFileTok);
-        UpdateGradeCategoryOnGradesInSystem();
+        UpdateResultCategoryOnResultsInSystem();
     end;
 
-    local procedure UpdateGradeCategoryOnGradesInSystem()
+    local procedure UpdateResultCategoryOnResultsInSystem()
     var
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        QltyInspectionGrade.SetRange("Grade Category", QltyInspectionGrade."Grade Category"::Uncategorized);
-        if QltyInspectionGrade.FindSet(true) then
+        QltyInspectionResult.SetRange("Result Category", QltyInspectionResult."Result Category"::Uncategorized);
+        if QltyInspectionResult.FindSet(true) then
             repeat
-                case QltyInspectionGrade.Code of
+                case QltyInspectionResult.Code of
                     'PASS', 'GOOD', 'ACCEPTABLE':
                         begin
-                            QltyInspectionGrade."Grade Category" := QltyInspectionGrade."Grade Category"::Acceptable;
-                            QltyInspectionGrade.Modify(false);
+                            QltyInspectionResult."Result Category" := QltyInspectionResult."Result Category"::Acceptable;
+                            QltyInspectionResult.Modify(false);
                         end;
                     'FAIL', 'BAD', 'UNACCEPTABLE', 'ERROR', 'REJECT':
                         begin
-                            QltyInspectionGrade."Grade Category" := QltyInspectionGrade."Grade Category"::"Not acceptable";
-                            QltyInspectionGrade.Modify(false);
+                            QltyInspectionResult."Result Category" := QltyInspectionResult."Result Category"::"Not acceptable";
+                            QltyInspectionResult.Modify(false);
                         end;
                 end;
-            until QltyInspectionGrade.Next() = 0;
+            until QltyInspectionResult.Next() = 0;
     end;
 
     /// <summary>

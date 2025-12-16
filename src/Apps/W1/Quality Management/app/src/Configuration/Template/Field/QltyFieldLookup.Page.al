@@ -49,7 +49,7 @@ page 20445 "Qlty. Field Lookup"
                 {
                     Editable = IsAllowableValuesEditable;
                     AboutTitle = 'Allowable Values';
-                    AboutText = 'What the staff inspector can enter and the range of information they can put in. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your grade conditions. If you had a grade of Pass being 80 to 100, you would then configure 80..100 for that grade.';
+                    AboutText = 'What the staff inspector can enter and the range of information they can put in. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
 
                     trigger OnAssistEdit()
                     begin
@@ -74,9 +74,9 @@ page 20445 "Qlty. Field Lookup"
                 field(Field1; MatrixArrayConditionCellData[1])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[1];
-                    ToolTip = 'Specifies the passing condition for this grade. If you had a grade of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Grade Condition Expression';
-                    AboutText = 'The passing condition for this grade. If you had a grade of Pass being 80 to 100, you would then configure 80..100 here.';
+                    ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                    AboutTitle = 'Result Condition Expression';
+                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible1;
                     Editable = Visible1;
 
@@ -88,9 +88,9 @@ page 20445 "Qlty. Field Lookup"
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
-                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Grade Condition Description';
-                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                    ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                    AboutTitle = 'Result Condition Description';
+                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible1;
                     Editable = Visible1;
 
@@ -102,9 +102,9 @@ page 20445 "Qlty. Field Lookup"
                 field(Field2; MatrixArrayConditionCellData[2])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[2];
-                    ToolTip = 'Specifies the passing condition for this grade. If you had a grade of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Grade Condition Expression';
-                    AboutText = 'The passing condition for this grade. If you had a grade of Pass being 80 to 100, you would then configure 80..100 here.';
+                    ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                    AboutTitle = 'Result Condition Expression';
+                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible2;
                     Editable = Visible2;
 
@@ -116,9 +116,9 @@ page 20445 "Qlty. Field Lookup"
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
-                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Grade Condition Description';
-                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                    ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                    AboutTitle = 'Result Condition Description';
+                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible2;
                     Editable = Visible2;
 
@@ -130,9 +130,9 @@ page 20445 "Qlty. Field Lookup"
                 field(Field3; MatrixArrayConditionCellData[3])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[3];
-                    ToolTip = 'Specifies the passing condition for this grade. If you had a grade of Pass being 80 to 100, you would then configure 80..100 here.';
-                    AboutTitle = 'Grade Condition Expression';
-                    AboutText = 'The passing condition for this grade. If you had a grade of Pass being 80 to 100, you would then configure 80..100 here.';
+                    ToolTip = 'Specifies the passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
+                    AboutTitle = 'Result Condition Expression';
+                    AboutText = 'The passing condition for this result. If you had a result of Pass being 80 to 100, you would then configure 80..100 here.';
                     Visible = Visible3;
                     Editable = Visible3;
 
@@ -145,9 +145,9 @@ page 20445 "Qlty. Field Lookup"
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
                     Editable = true;
-                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
-                    AboutTitle = 'Grade Condition Description';
-                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                    ToolTip = 'Specifies a description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
+                    AboutTitle = 'Result Condition Description';
+                    AboutText = 'A description for people of this result condition. If you had a result of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible3;
 
                     trigger OnValidate()
@@ -158,7 +158,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field4; MatrixArrayConditionCellData[4])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[4];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 4';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                     Editable = Visible4;
 
@@ -170,7 +170,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 4';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 4';
                     Visible = Visible4;
                     Editable = Visible4;
 
@@ -182,7 +182,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field5; MatrixArrayConditionCellData[5])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[5];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 5';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                     Editable = Visible5;
 
@@ -194,7 +194,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 5';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 5';
                     Visible = Visible5;
                     Editable = Visible5;
 
@@ -206,7 +206,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field6; MatrixArrayConditionCellData[6])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[6];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 6';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                     Editable = Visible6;
 
@@ -218,7 +218,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 6';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 6';
                     Visible = Visible6;
                     Editable = Visible6;
 
@@ -230,7 +230,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field7; MatrixArrayConditionCellData[7])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[7];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 7';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                     Editable = Visible7;
 
@@ -242,7 +242,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 7';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 7';
                     Visible = Visible7;
                     Editable = Visible7;
 
@@ -254,7 +254,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field8; MatrixArrayConditionCellData[8])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[8];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 8';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                     Editable = Visible8;
 
@@ -266,7 +266,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 8';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 8';
                     Visible = Visible8;
                     Editable = Visible8;
 
@@ -278,7 +278,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field9; MatrixArrayConditionCellData[9])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[9];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 9';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                     Editable = Visible9;
 
@@ -290,7 +290,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 9';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 9';
                     Visible = Visible9;
                     Editable = Visible9;
 
@@ -302,7 +302,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field10; MatrixArrayConditionCellData[10])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[10];
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 10';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                     Editable = Visible10;
 
@@ -314,7 +314,7 @@ page 20445 "Qlty. Field Lookup"
                 field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
-                    ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 10';
+                    ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 10';
                     Visible = Visible10;
                     Editable = Visible10;
 
@@ -427,7 +427,7 @@ page 20445 "Qlty. Field Lookup"
     }
 
     var
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
@@ -459,7 +459,7 @@ page 20445 "Qlty. Field Lookup"
     begin
         IsAllowableValuesEditable := not (Rec."Field Type" in [Rec."Field Type"::"Field Type Table Lookup"]);
 
-        QltyGradeConditionMgmt.GetPromotedGradesForField(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForField(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
         Visible3 := MatrixVisibleState[3];
@@ -474,21 +474,21 @@ page 20445 "Qlty. Field Lookup"
 
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIGradeConditionConf.Get(MatrixSourceRecordId[Matrix]);
-        QltyIGradeConditionConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
-        QltyIGradeConditionConf.Modify(true);
+        QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
+        QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
+        QltyIResultConditConf.Modify(true);
         CurrPage.Update(false);
     end;
 
     local procedure UpdateMatrixDataConditionDescription(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIGradeConditionConf.Get(MatrixSourceRecordId[Matrix]);
-        QltyIGradeConditionConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
-        QltyIGradeConditionConf.Modify(true);
+        QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
+        QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
+        QltyIResultConditConf.Modify(true);
         CurrPage.Update(false);
     end;
 

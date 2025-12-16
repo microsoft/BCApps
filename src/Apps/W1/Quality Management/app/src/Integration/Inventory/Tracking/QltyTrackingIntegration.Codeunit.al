@@ -22,8 +22,8 @@ codeunit 20415 "Qlty. Tracking Integration"
     InherentPermissions = X;
 
     var
-        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality inspection, %2=grade, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
-        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality inspection, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
+        EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
+        WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
         NavigatePageSearchFiltersTok: Label 'NAVIGATEFILTERS', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterCheckItemTrackingInformation', '', true, true)]
@@ -31,7 +31,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
         Blocked: Boolean;
         IsFinished: Boolean;
         Handled: Boolean;
@@ -39,7 +39,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     begin
         case true of
             not QltyInspectionHeader.ReadPermission(),
-            not QltyInspectionGrade.ReadPermission(),
+            not QltyInspectionResult.ReadPermission(),
             not QltyManagementSetup.GetSetupRecord():
                 exit;
         end;
@@ -100,39 +100,39 @@ codeunit 20415 "Qlty. Tracking Integration"
         end;
 
         repeat
-            if QltyInspectionHeader."Grade Code" <> '' then begin
+            if QltyInspectionHeader."Result Code" <> '' then begin
                 IsFinished := QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished;
-                if QltyInspectionGrade.Get(QltyInspectionHeader."Grade Code") then begin
+                if QltyInspectionResult.Get(QltyInspectionHeader."Result Code") then begin
                     case ItemJnlLine2."Entry Type" of
                         ItemJnlLine2."Entry Type"::"Assembly Consumption":
-                            Blocked := (QltyInspectionGrade."Lot Allow Assembly Consumption" = QltyInspectionGrade."Lot Allow Assembly Consumption"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Assembly Consumption" = QltyInspectionGrade."Lot Allow Assembly Consumption"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Assembly Consumption" = QltyInspectionResult."Lot Allow Assembly Consumption"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Assembly Consumption" = QltyInspectionResult."Lot Allow Assembly Consumption"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::"Assembly Output":
-                            Blocked := (QltyInspectionGrade."Lot Allow Assembly Output" = QltyInspectionGrade."Lot Allow Assembly Output"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Assembly Output" = QltyInspectionGrade."Lot Allow Assembly Output"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Assembly Output" = QltyInspectionResult."Lot Allow Assembly Output"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Assembly Output" = QltyInspectionResult."Lot Allow Assembly Output"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Consumption:
-                            Blocked := (QltyInspectionGrade."Lot Allow Consumption" = QltyInspectionGrade."Lot Allow Consumption"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Consumption" = QltyInspectionGrade."Lot Allow Consumption"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Consumption" = QltyInspectionResult."Lot Allow Consumption"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Consumption" = QltyInspectionResult."Lot Allow Consumption"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Output:
-                            Blocked := (QltyInspectionGrade."Lot Allow Output" = QltyInspectionGrade."Lot Allow Output"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Output" = QltyInspectionGrade."Lot Allow Output"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Output" = QltyInspectionResult."Lot Allow Output"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Output" = QltyInspectionResult."Lot Allow Output"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Purchase:
-                            Blocked := (QltyInspectionGrade."Lot Allow Purchase" = QltyInspectionGrade."Lot Allow Purchase"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Purchase" = QltyInspectionGrade."Lot Allow Purchase"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Purchase" = QltyInspectionResult."Lot Allow Purchase"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Purchase" = QltyInspectionResult."Lot Allow Purchase"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Sale:
-                            Blocked := (QltyInspectionGrade."Lot Allow Sales" = QltyInspectionGrade."Lot Allow Sales"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Sales" = QltyInspectionGrade."Lot Allow Sales"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Sales" = QltyInspectionResult."Lot Allow Sales"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Sales" = QltyInspectionResult."Lot Allow Sales"::"Allow finished only"));
 
                         ItemJnlLine2."Entry Type"::Transfer:
-                            Blocked := (QltyInspectionGrade."Lot Allow Transfer" = QltyInspectionGrade."Lot Allow Transfer"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Transfer" = QltyInspectionGrade."Lot Allow Transfer"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Transfer" = QltyInspectionResult."Lot Allow Transfer"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Transfer" = QltyInspectionResult."Lot Allow Transfer"::"Allow finished only"));
                     end;
-                    OnHandleCheckItemTrackingBeforeBlockErrorCheck(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, QltyInspectionGrade, Blocked);
+                    OnHandleCheckItemTrackingBeforeBlockErrorCheck(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, QltyInspectionResult, Blocked);
 
                     if Blocked then begin
                         TrackingDetails := TrackingSpecification."Lot No.";
@@ -148,7 +148,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         end;
                         Error(EntryTypeBlockedErr,
                             QltyInspectionHeader.GetFriendlyIdentifier(),
-                            QltyInspectionGrade.Code,
+                            QltyInspectionResult.Code,
                             ItemJnlLine2."Entry Type",
                             ItemJnlLine2."Item No.",
                             TrackingDetails);
@@ -180,14 +180,14 @@ codeunit 20415 "Qlty. Tracking Integration"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
         Blocked: Boolean;
         IsFinished: Boolean;
         Handled: Boolean;
     begin
         case true of
             not QltyInspectionHeader.ReadPermission(),
-            not QltyInspectionGrade.ReadPermission(),
+            not QltyInspectionResult.ReadPermission(),
             not QltyManagementSetup.GetSetupRecord():
                 exit;
         end;
@@ -251,42 +251,42 @@ codeunit 20415 "Qlty. Tracking Integration"
         end;
 
         repeat
-            if QltyInspectionHeader."Grade Code" <> '' then begin
+            if QltyInspectionHeader."Result Code" <> '' then begin
                 IsFinished := QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished;
 
-                if QltyInspectionGrade.Get(QltyInspectionHeader."Grade Code") then begin
+                if QltyInspectionResult.Get(QltyInspectionHeader."Result Code") then begin
                     case WarehouseActivityLine."Activity Type" of
                         WarehouseActivityLine."Activity Type"::"Invt. Movement":
-                            Blocked := (QltyInspectionGrade."Lot Allow Invt. Movement" = QltyInspectionGrade."Lot Allow Invt. Movement"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Invt. Movement" = QltyInspectionGrade."Lot Allow Invt. Movement"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Invt. Movement" = QltyInspectionResult."Lot Allow Invt. Movement"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Invt. Movement" = QltyInspectionResult."Lot Allow Invt. Movement"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::"Invt. Pick":
-                            Blocked := (QltyInspectionGrade."Lot Allow Invt. Pick" = QltyInspectionGrade."Lot Allow Invt. Pick"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Invt. Pick" = QltyInspectionGrade."Lot Allow Invt. Pick"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Invt. Pick" = QltyInspectionResult."Lot Allow Invt. Pick"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Invt. Pick" = QltyInspectionResult."Lot Allow Invt. Pick"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::"Invt. Put-away":
-                            Blocked := (QltyInspectionGrade."Lot Allow Invt. Put-away" = QltyInspectionGrade."Lot Allow Invt. Put-away"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Invt. Put-away" = QltyInspectionGrade."Lot Allow Invt. Put-away"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Invt. Put-away" = QltyInspectionResult."Lot Allow Invt. Put-away"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Invt. Put-away" = QltyInspectionResult."Lot Allow Invt. Put-away"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::Movement:
-                            Blocked := (QltyInspectionGrade."Lot Allow Movement" = QltyInspectionGrade."Lot Allow Movement"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Movement" = QltyInspectionGrade."Lot Allow Movement"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Movement" = QltyInspectionResult."Lot Allow Movement"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Movement" = QltyInspectionResult."Lot Allow Movement"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::Pick:
-                            Blocked := (QltyInspectionGrade."Lot Allow Pick" = QltyInspectionGrade."Lot Allow Pick"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Pick" = QltyInspectionGrade."Lot Allow Pick"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Pick" = QltyInspectionResult."Lot Allow Pick"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Pick" = QltyInspectionResult."Lot Allow Pick"::"Allow finished only"));
 
                         WarehouseActivityLine."Activity Type"::"Put-away":
-                            Blocked := (QltyInspectionGrade."Lot Allow Put-Away" = QltyInspectionGrade."Lot Allow Put-Away"::Block) or
-                                (not IsFinished and (QltyInspectionGrade."Lot Allow Put-away" = QltyInspectionGrade."Lot Allow Put-away"::"Allow finished only"));
+                            Blocked := (QltyInspectionResult."Lot Allow Put-Away" = QltyInspectionResult."Lot Allow Put-Away"::Block) or
+                                (not IsFinished and (QltyInspectionResult."Lot Allow Put-away" = QltyInspectionResult."Lot Allow Put-away"::"Allow finished only"));
                     end;
-                    OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(WarehouseActivityLine, QltyInspectionHeader, QltyInspectionGrade, Blocked);
+                    OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(WarehouseActivityLine, QltyInspectionHeader, QltyInspectionResult, Blocked);
 
                     if Blocked then
                         Error(
                             WarehouseEntryTypeBlockedErr,
                             QltyInspectionHeader.GetFriendlyIdentifier(),
-                            QltyInspectionGrade.Code,
+                            QltyInspectionResult.Code,
                             WarehouseActivityLine."Activity Type",
                             WarehouseActivityLine."Item No.",
                             WarehouseActivityLine."Lot No.",
@@ -449,10 +449,10 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// <param name="ItemJournalLine"></param>
     /// <param name="TrackingSpecification"></param>
     /// <param name="QltyInspectionHeader">Inspection has already been found at this point, this should be a reference to the inspection.</param>
-    /// <param name="QltyGrade">This is the grade being analyzed.</param>
+    /// <param name="QltyResult">This is the result being analyzed.</param>
     /// <param name="Blocked">Set to true to flag as blocked</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckItemTrackingBeforeBlockErrorCheck(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionGrade: Record "Qlty. Inspection Grade"; var Blocked: Boolean)
+    local procedure OnHandleCheckItemTrackingBeforeBlockErrorCheck(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionResult: Record "Qlty. Inspection Result"; var Blocked: Boolean)
     begin
     end;
 
@@ -476,10 +476,10 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>
     /// <param name="QltyInspectionHeader">Inspection has already been found at this point, this should be a reference to the inspection.</param>
-    /// <param name="QltyGrade">This is the grade being analyzed.</param>
+    /// <param name="QltyResult">This is the result being analyzed.</param>
     /// <param name="Blocked">Set to true to flag as blocked</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionGrade: Record "Qlty. Inspection Grade"; var Blocked: Boolean)
+    local procedure OnHandleCheckWhseItemTrackingBeforeBlockErrorCheck(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionResult: Record "Qlty. Inspection Result"; var Blocked: Boolean)
     begin
     end;
 }

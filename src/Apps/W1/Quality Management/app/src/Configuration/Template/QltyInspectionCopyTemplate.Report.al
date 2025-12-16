@@ -127,7 +127,7 @@ report 20402 "Qlty. Inspection Copy Template"
         TargetQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         LastTemplateLineNo: Integer;
     begin
         if (SpecificTemplate <> '') and (DescriptionToCopy = '') and (CopyFromQltyInspectionTemplateHdr.Description <> '') then
@@ -181,7 +181,7 @@ report 20402 "Qlty. Inspection Copy Template"
                         TargetQltyInspectionTemplateLine.Modify();
                     end;
                 end;
-                QltyGradeConditionMgmt.CopyGradeConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine, TargetQltyInspectionTemplateLine);
+                QltyResultConditionMgmt.CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine, TargetQltyInspectionTemplateLine);
             until FromQltyInspectionTemplateLine.Next() = 0;
     end;
 }

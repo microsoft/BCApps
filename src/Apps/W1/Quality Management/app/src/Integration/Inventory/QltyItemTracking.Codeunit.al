@@ -123,12 +123,12 @@ codeunit 20428 "Qlty. Item Tracking"
         PackageNoInformation.Insert(true);
     end;
 
-    procedure GetMostRecentGradeFor(ItemNo: Code[20]; VariantCodeFilter: Text; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]; var QualityGradeCode: Code[20]; var QualityGradeDescription: Text)
+    procedure GetMostRecentResultFor(ItemNo: Code[20]; VariantCodeFilter: Text; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]; var QualityResultCode: Code[20]; var QualityResultDescription: Text)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        Clear(QualityGradeCode);
-        Clear(QualityGradeDescription);
+        Clear(QualityResultCode);
+        Clear(QualityResultDescription);
 
         if not CheckIfQualityManagementIsEnabled() then
             exit;
@@ -148,10 +148,10 @@ codeunit 20428 "Qlty. Item Tracking"
         if PackageNo <> '' then
             QltyInspectionHeader.SetRange("Source Package No.", PackageNo);
 
-        QltyInspectionHeader.SetAutoCalcFields("Grade Description");
+        QltyInspectionHeader.SetAutoCalcFields("Result Description");
         if QltyInspectionHeader.FindFirst() then begin
-            QualityGradeCode := QltyInspectionHeader."Grade Code";
-            QualityGradeDescription := QltyInspectionHeader."Grade Description";
+            QualityResultCode := QltyInspectionHeader."Result Code";
+            QualityResultDescription := QltyInspectionHeader."Result Description";
         end;
     end;
 

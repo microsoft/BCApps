@@ -53,7 +53,7 @@ table 20401 "Qlty. Field"
         field(5; "Allowable Values"; Text[500])
         {
             Caption = 'Allowable Values';
-            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Field. Depending on the Field Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your grade conditions. If you had a grade of Pass being 80 to 100, you would then configure 80..100 for that grade.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Field. Depending on the Field Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
         }
         field(6; "Lookup Table No."; Integer)
         {
@@ -207,8 +207,8 @@ table 20401 "Qlty. Field"
     var
         FieldSelection: Codeunit "Field Selection";
         GenericFieldTok: Label 'MYFIELD', Locked = true;
-        ThereIsNoGradeErr: Label 'There is no grade called "%1". Please add the grade, or change the existing grade conditions.', Comment = '%1=the grade';
-        ReviewGradesErr: Label 'Advanced configuration required. Please review the grade configurations for field "%1", for grade "%2".', Comment = '%1=the field, %2=the grade';
+        ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
+        ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for field "%1", for result "%2".', Comment = '%1=the field, %2=the result';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
         ExistingInspectionErr: Label 'The field %1 exists on %2 inspections (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of inspections, %3=one example inspection, %4=example template.';
@@ -218,42 +218,42 @@ table 20401 "Qlty. Field"
         FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing inspections (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
 
     /// <summary>
-    /// Set a specific grade for the field. If AllowError is set to true it will error
+    /// Set a specific result for the field. If AllowError is set to true it will error
     /// when a problem occurs. If AllowError is set to false it will just return false
     /// when a problem occurs.
     /// </summary>
-    /// <param name="Grade"></param>
+    /// <param name="Result"></param>
     /// <param name="Condition"></param>
     /// <param name="AllowError"></param>
     /// <returns></returns>
-    procedure SetGradeCondition(Grade: Text; Condition: Text; AllowError: Boolean): Boolean
+    procedure SetResultCondition(Result: Text; Condition: Text; AllowError: Boolean): Boolean
     var
-        ExistingQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        ExistingQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
-        if not QltyInspectionGrade.Get(CopyStr(Grade, 1, MaxStrLen(QltyInspectionGrade.Code))) then
+        if not QltyInspectionResult.Get(CopyStr(Result, 1, MaxStrLen(QltyInspectionResult.Code))) then
             if AllowError then
-                Error(ThereIsNoGradeErr, Grade)
+                Error(ThereIsNoResultErr, Result)
             else
                 exit(false);
 
-        QltyGradeConditionMgmt.CopyGradeConditionsFromDefaultToField(Rec.Code, Rec."Field Type");
-        ExistingQltyIGradeConditionConf.SetRange("Field Code", Rec.Code);
-        ExistingQltyIGradeConditionConf.SetRange("Target Code", Rec.Code);
-        ExistingQltyIGradeConditionConf.SetRange("Grade Code", QltyInspectionGrade.Code);
-        ExistingQltyIGradeConditionConf.SetRange("Condition Type", ExistingQltyIGradeConditionConf."Condition Type"::Field);
+        QltyResultConditionMgmt.CopyResultConditionsFromDefaultToField(Rec.Code, Rec."Field Type");
+        ExistingQltyIResultConditConf.SetRange("Field Code", Rec.Code);
+        ExistingQltyIResultConditConf.SetRange("Target Code", Rec.Code);
+        ExistingQltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
+        ExistingQltyIResultConditConf.SetRange("Condition Type", ExistingQltyIResultConditConf."Condition Type"::Field);
 
-        if ExistingQltyIGradeConditionConf.Count() <> 1 then
+        if ExistingQltyIResultConditConf.Count() <> 1 then
             if AllowError then
-                Error(ReviewGradesErr, Rec.Code, QltyInspectionGrade.Code)
+                Error(ReviewResultsErr, Rec.Code, QltyInspectionResult.Code)
             else
                 exit(false);
 
-        if ExistingQltyIGradeConditionConf.FindFirst() then begin
-            ExistingQltyIGradeConditionConf.Validate(Condition, CopyStr(Condition, 1, MaxStrLen(ExistingQltyIGradeConditionConf.Condition)));
+        if ExistingQltyIResultConditConf.FindFirst() then begin
+            ExistingQltyIResultConditConf.Validate(Condition, CopyStr(Condition, 1, MaxStrLen(ExistingQltyIResultConditConf.Condition)));
 
-            exit(ExistingQltyIGradeConditionConf.Modify());
+            exit(ExistingQltyIResultConditConf.Modify());
         end else
             exit(false);
     end;
@@ -475,9 +475,9 @@ table 20401 "Qlty. Field"
     /// </summary>
     procedure ValidateAllowableValuesOnDefault()
     var
-        QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
-        QltyGradeEvaluation.ValidateAllowableValuesOnField(Rec);
+        QltyResultEvaluation.ValidateAllowableValuesOnField(Rec);
     end;
 
     /// <summary>
@@ -541,7 +541,7 @@ table 20401 "Qlty. Field"
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
         QltyInspectionLine.SetRange("Field Code", Rec.Code);
         if QltyInspectionLine.FindLast() then begin
@@ -562,7 +562,7 @@ table 20401 "Qlty. Field"
                 Rec.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
         end;
 
-        QltyGradeConditionMgmt.CopyGradeConditionsFromDefaultToField(Rec.Code, Rec."Field Type");
+        QltyResultConditionMgmt.CopyResultConditionsFromDefaultToField(Rec.Code, Rec."Field Type");
     end;
 
     procedure AssistEditExpressionFormula()

@@ -18,11 +18,11 @@ pageextension 20420 "Qlty. Package No. Info. Card" extends "Package No. Informat
             {
                 Caption = 'Quality Management';
 
-                field(QltyInspectionGradeDescription; MostRecentQltyGradeDescription)
+                field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
                 {
                     ApplicationArea = QualityManagement;
-                    Caption = 'Quality Grade';
-                    ToolTip = 'Specifies the most recent grade for this package number.';
+                    Caption = 'Quality Result';
+                    ToolTip = 'Specifies the most recent result for this package number.';
                     Editable = false;
 
                     trigger OnDrillDown()
@@ -46,13 +46,13 @@ pageextension 20420 "Qlty. Package No. Info. Card" extends "Package No. Informat
     }
 
     var
-        MostRecentQltyGradeDescription: Text;
+        MostRecentQltyResultDescription: Text;
 
     trigger OnAfterGetRecord()
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
-        DummyGradeCode: Code[20];
+        DummyResultCode: Code[20];
     begin
-        QltyItemTracking.GetMostRecentGradeFor(Rec."Item No.", Rec."Variant Code", '', '', Rec."Package No.", DummyGradeCode, MostRecentQltyGradeDescription);
+        QltyItemTracking.GetMostRecentResultFor(Rec."Item No.", Rec."Variant Code", '', '', Rec."Package No.", DummyResultCode, MostRecentQltyResultDescription);
     end;
 }

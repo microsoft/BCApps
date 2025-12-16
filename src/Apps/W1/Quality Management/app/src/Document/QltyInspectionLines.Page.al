@@ -63,14 +63,14 @@ page 20413 "Qlty. Inspection Lines"
                 {
                     Visible = false;
                 }
-                field("Grade Code"; Rec."Grade Code")
+                field("Result Code"; Rec."Result Code")
                 {
                     Visible = false;
                 }
-                field("Grade Description"; Rec."Grade Description")
+                field("Result Description"; Rec."Result Description")
                 {
                 }
-                field("Grade Priority"; Rec."Grade Priority")
+                field("Result Priority"; Rec."Result Priority")
                 {
                     Visible = false;
                 }

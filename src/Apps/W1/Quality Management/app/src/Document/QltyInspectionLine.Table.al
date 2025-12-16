@@ -101,7 +101,7 @@ table 20406 "Qlty. Inspection Line"
         {
             Caption = 'Allowable Values';
             Editable = false;
-            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Field. Depending on the Field Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your grade conditions. If you had a grade of Pass being 80 to 100, you would then configure 80..100 for that grade.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select for the Field. Depending on the Field Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
         }
         field(18; "Test Value"; Text[250])
         {
@@ -141,39 +141,39 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Numeric Value';
             ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations. eg: easier to use for Business Central charting.';
         }
-        field(28; "Grade Code"; Code[20])
+        field(28; "Result Code"; Code[20])
         {
             Editable = false;
-            Description = 'The grade is automatically determined based on the test value and grade configuration.';
-            TableRelation = "Qlty. Inspection Grade".Code;
-            Caption = 'Grade Code';
-            ToolTip = 'Specifies the grade is automatically determined based on the test value and grade configuration.';
+            Description = 'The result is automatically determined based on the test value and result configuration.';
+            TableRelation = "Qlty. Inspection Result".Code;
+            Caption = 'Result Code';
+            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
 
             trigger OnValidate()
             var
-                QltyGrade: Record "Qlty. Inspection Grade";
+                QltyResult: Record "Qlty. Inspection Result";
             begin
-                if QltyGrade.Get(Rec."Grade Code") then begin
-                    Rec."Grade Priority" := QltyGrade."Evaluation Sequence";
-                    Rec.CalcFields("Grade Description");
+                if QltyResult.Get(Rec."Result Code") then begin
+                    Rec."Result Priority" := QltyResult."Evaluation Sequence";
+                    Rec.CalcFields("Result Description");
                 end;
             end;
         }
-        field(29; "Grade Description"; Text[100])
+        field(29; "Result Description"; Text[100])
         {
-            Caption = 'Grade';
-            Description = 'The grade description for this test result. The grade is automatically determined based on the test value and grade configuration.';
+            Caption = 'Result';
+            Description = 'The result description for this test result. The result is automatically determined based on the test value and result configuration.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = lookup("Qlty. Inspection Grade"."Description" where("Code" = field("Grade Code")));
-            ToolTip = 'Specifies the grade description for this test result. The grade is automatically determined based on the test value and grade configuration.';
+            CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
+            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
         }
-        field(30; "Grade Priority"; Integer)
+        field(30; "Result Priority"; Integer)
         {
             Editable = false;
-            Description = 'The associated grade priority for this test result. The grade is automatically determined based on the test value and grade configuration.';
-            Caption = 'Grade Priority';
-            ToolTip = 'Specifies the associated grade priority for this test result. The grade is automatically determined based on the test value and grade configuration.';
+            Description = 'The associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
+            Caption = 'Result Priority';
+            ToolTip = 'Specifies the associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
         }
         field(33; "Failure State"; Enum "Qlty. Line Failure State")
         {
@@ -199,11 +199,11 @@ table 20406 "Qlty. Inspection Line"
         {
             Clustered = true;
         }
-        key(byGrade; "Template Code", "Inspection No.", "Reinspection No.", "Field Code", "Grade Code")
+        key(byResult; "Template Code", "Inspection No.", "Reinspection No.", "Field Code", "Result Code")
         {
-            SumIndexFields = "Grade Priority";
+            SumIndexFields = "Result Priority";
         }
-        key(byGradePriority; "Template Code", "Inspection No.", "Reinspection No.", "Grade Priority")
+        key(byResultPriority; "Template Code", "Inspection No.", "Reinspection No.", "Result Priority")
         {
         }
         key(byDate; "Template Code", "Inspection No.", "Reinspection No.", "Field Code", SystemCreatedAt, SystemModifiedAt)
@@ -226,21 +226,21 @@ table 20406 "Qlty. Inspection Line"
 
     trigger OnDelete()
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
-        QltyIGradeConditionConf.SetRange("Target Code", Rec."Inspection No.");
-        QltyIGradeConditionConf.SetRange("Target Reinspection No.", Rec."Reinspection No.");
-        QltyIGradeConditionConf.SetRange("Target Line No.", Rec."Line No.");
-        QltyIGradeConditionConf.DeleteAll();
+        QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
+        QltyIResultConditConf.SetRange("Target Code", Rec."Inspection No.");
+        QltyIResultConditConf.SetRange("Target Reinspection No.", Rec."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Line No.", Rec."Line No.");
+        QltyIResultConditConf.DeleteAll();
     end;
 
     protected procedure ValidateTestValue()
     var
-        QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         GetInspection();
-        QltyGradeEvaluation.ValidateQltyInspectionLine(Rec, QltyInspectionHeader, true);
+        QltyResultEvaluation.ValidateQltyInspectionLine(Rec, QltyInspectionHeader, true);
     end;
 
     local procedure GetInspection(): Boolean
@@ -385,22 +385,22 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Gets the preferred grade style to use.
+    /// Gets the preferred result style to use.
     /// </summary>
-    procedure GetGradeStyle(): Text
+    procedure GetResultStyle(): Text
     var
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        if QltyInspectionGrade.Get(Rec."Grade Code") then
-            exit(QltyInspectionGrade.GetGradeStyle());
+        if QltyInspectionResult.Get(Rec."Result Code") then
+            exit(QltyInspectionResult.GetResultStyle());
     end;
 
     procedure UpdateExpressionsInOtherInspectionLinesInSameInspection()
     var
         OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
         OfConsideredFieldCodes: List of [Text];
     begin
         if not GetInspection() then
@@ -430,23 +430,23 @@ table 20406 "Qlty. Inspection Line"
                     until OthersInSameQltyInspectionLine.Next() = 0;
             until QltyInspectionTemplateLine.Next() = 0;
 
-        QltyGradeEvaluation.GetInspectionLineConfigFilters(Rec, QltyIGradeConditionConf);
-        QltyIGradeConditionConf.SetFilter("Target Line No.", '<>%1', Rec."Line No.");
-        QltyIGradeConditionConf.SetFilter("Field Code", '<>%1', Rec."Field Code");
-        QltyIGradeConditionConf.SetFilter("Condition", StrSubstNo('@*[%1]*', Rec."Field Code"));
-        QltyIGradeConditionConf.SetLoadFields("Target Line No.", "Field Code");
+        QltyResultEvaluation.GetInspectionLineConfigFilters(Rec, QltyIResultConditConf);
+        QltyIResultConditConf.SetFilter("Target Line No.", '<>%1', Rec."Line No.");
+        QltyIResultConditConf.SetFilter("Field Code", '<>%1', Rec."Field Code");
+        QltyIResultConditConf.SetFilter("Condition", StrSubstNo('@*[%1]*', Rec."Field Code"));
+        QltyIResultConditConf.SetLoadFields("Target Line No.", "Field Code");
         OthersInSameQltyInspectionLine.Reset();
-        if QltyIGradeConditionConf.FindSet() then
+        if QltyIResultConditConf.FindSet() then
             repeat
                 OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
                 OthersInSameQltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
-                OthersInSameQltyInspectionLine.SetRange("Line No.", QltyIGradeConditionConf."Target Line No.");
-                OthersInSameQltyInspectionLine.SetRange("Field Code", QltyIGradeConditionConf."Field Code");
+                OthersInSameQltyInspectionLine.SetRange("Line No.", QltyIResultConditConf."Target Line No.");
+                OthersInSameQltyInspectionLine.SetRange("Field Code", QltyIResultConditConf."Field Code");
                 if OthersInSameQltyInspectionLine.FindFirst() then begin
                     OfConsideredFieldCodes.Add(OthersInSameQltyInspectionLine."Field Code");
                     OthersInSameQltyInspectionLine.ValidateTestValue();
                 end;
-            until QltyIGradeConditionConf.Next() = 0;
+            until QltyIResultConditConf.Next() = 0;
 
         OthersInSameQltyInspectionLine.Reset();
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");

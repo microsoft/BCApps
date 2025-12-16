@@ -32,18 +32,18 @@ codeunit 20420 "Qlty. Application Area Mgmt."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt. Facade", 'OnGetEssentialExperienceAppAreas', '', false, true)]
     local procedure HandleOnGetEssentialExperienceAppAreas(var TempApplicationAreaSetup: Record "Application Area Setup" temporary);
     begin
-        AutoEnableAppAreaForUpgrades(TempApplicationAreaSetup);
+        AutoEnableAppAreaForUpresults(TempApplicationAreaSetup);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt. Facade", 'OnGetPremiumExperienceAppAreas', '', false, true)]
     local procedure HandleOnGetPremiumExperienceAppAreas(var TempApplicationAreaSetup: Record "Application Area Setup" temporary);
     begin
-        AutoEnableAppAreaForUpgrades(TempApplicationAreaSetup);
+        AutoEnableAppAreaForUpresults(TempApplicationAreaSetup);
     end;
 
     #endregion Event Subscribers
 
-    local procedure AutoEnableAppAreaForUpgrades(var TempApplicationAreaSetup: Record "Application Area Setup" temporary)
+    local procedure AutoEnableAppAreaForUpresults(var TempApplicationAreaSetup: Record "Application Area Setup" temporary)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
     begin

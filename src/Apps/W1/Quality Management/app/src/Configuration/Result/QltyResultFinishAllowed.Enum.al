@@ -5,18 +5,18 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
-/// Whether to automatically configure this grade on new fields and new templates.
+/// Whether to automatically configure this result on new fields and new templates.
 /// </summary>
-enum 20413 "Qlty. Grade Copy Behavior"
+enum 20417 "Qlty. Result Finish Allowed"
 {
-    Caption = 'Quality Grade Copy Behavior';
+    Caption = 'Result Finish Allowed';
 
-    value(0; "Automatically copy the grade")
+    value(0; "Allow Finish")
     {
-        Caption = 'Automatically copy the grade';
+        Caption = 'Allow Finish';
     }
-    value(1; "Do not automatically copy")
+    value(1; "Do Not Allow Finish")
     {
-        Caption = 'Do not automatically copy';
+        Caption = 'Do Not Allow Finish';
     }
 }

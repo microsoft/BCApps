@@ -24,8 +24,8 @@ permissionset 20401 "QltyMngmnt - Read"
 
     Permissions =
         tabledata "Qlty. Inspection Gen. Rule" = R,
-        tabledata "Qlty. I. Grade Condition Conf." = R,
-        tabledata "Qlty. Inspection Grade" = R,
+        tabledata "Qlty. I. Result Condit. Conf." = R,
+        tabledata "Qlty. Inspection Result" = R,
         tabledata "Qlty. Lookup Code" = R,
         tabledata "Qlty. Management Setup" = R,
         tabledata "Qlty. Related Transfers Buffer" = RIMD,

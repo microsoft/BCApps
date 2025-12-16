@@ -24,8 +24,8 @@ permissionset 20405 "QltyMngmnt - Edit"
 
     Permissions =
         tabledata "Qlty. Inspection Gen. Rule" = IMD,
-        tabledata "Qlty. I. Grade Condition Conf." = IMD,
-        tabledata "Qlty. Inspection Grade" = IMD,
+        tabledata "Qlty. I. Result Condit. Conf." = IMD,
+        tabledata "Qlty. Inspection Result" = IMD,
         tabledata "Qlty. Lookup Code" = IMD,
         tabledata "Qlty. Management Setup" = IMD,
         tabledata "Qlty. Related Transfers Buffer" = IMD,

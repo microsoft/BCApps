@@ -52,9 +52,9 @@ codeunit 139969 "Qlty. Tests - Workflows"
         FilterTok: Label 'WHERE(No.=FILTER([Item:No.]))';
         ValueExprTok: Label 'Yes';
         NewLotTok: Label 'LOT123123';
-        EventFilterTok: Label 'Where("Grade Code"=Filter(%1))', Comment = '%1=grade code.';
-        DefaultGrade1FailCodeTok: Label 'FAIL', Locked = true;
-        DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
+        EventFilterTok: Label 'Where("Result Code"=Filter(%1))', Comment = '%1=result code.';
+        DefaultResult1FailCodeTok: Label 'FAIL', Locked = true;
+        DefaultResult2PassCodeTok: Label 'PASS', Locked = true;
         IsInitialized: Boolean;
 
     [Test]
@@ -427,7 +427,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         DestinationLocation: Record Location;
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         Bin: Record Bin;
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -447,7 +447,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         MoveBehavior: Enum "Qlty. Quantity Behavior";
     begin
-        // [SCENARIO] Create a transfer order for failed quantity when a quality inspection grade changes
+        // [SCENARIO] Create a transfer order for failed quantity when a quality inspection result changes
 
         Initialize();
 
@@ -486,12 +486,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
         Workflow.Enabled := true;
         Workflow.Modify();
 
-        ToLoadQltyInspectionGrade.SetRange("Grade Category", ToLoadQltyInspectionGrade."Grade Category"::"Not acceptable");
+        ToLoadQltyInspectionResult.SetRange("Result Category", ToLoadQltyInspectionResult."Result Category"::"Not acceptable");
         QltyInspectionHeader."Fail Quantity" := 2;
         QltyInspectionHeader.Modify();
 
-        // [WHEN] The inspection grade is set to a failing grade
-        QltyInspectionHeader.Validate("Grade Code", ToLoadQltyInspectionGrade.Code);
+        // [WHEN] The inspection result is set to a failing result
+        QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify(true);
 
         // [THEN] A direct transfer order is created with the failed quantity
@@ -1318,7 +1318,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         LotNoInformation: Record "Lot No. Information";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1328,7 +1328,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] Block a lot number when a quality inspection with failing grade is finished
+        // [SCENARIO] Block a lot number when a quality inspection with failing result is finished
 
         Initialize();
 
@@ -1349,13 +1349,13 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to block lot on inspection finished with failing grade condition
-        ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
+        // [GIVEN] A workflow configured to block lot on inspection finished with failing result condition
+        ToLoadQltyInspectionResult.Get(DefaultResult1FailCodeTok);
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
-        // [WHEN] The inspection grade is set to failing grade and inspection is finished
-        QltyInspectionHeader.Validate("Grade Code", ToLoadQltyInspectionGrade.Code);
+        // [WHEN] The inspection result is set to failing result and inspection is finished
+        QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify();
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
@@ -1378,7 +1378,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         LotNoInformation: Record "Lot No. Information";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1389,7 +1389,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] Unblock a lot number when a quality inspection with passing grade is finished
+        // [SCENARIO] Unblock a lot number when a quality inspection with passing result is finished
 
         Initialize();
 
@@ -1409,18 +1409,18 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
-        ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
+        ToLoadQltyInspectionResult.Get(DefaultResult2PassCodeTok);
         LibraryItemTracking.CreateLotNoInformation(LotNoInformation, Item."No.", '', ReservationEntry."Lot No.");
         LotNoInformation.Blocked := true;
         LotNoInformation.Modify();
         LibraryAssert.IsTrue(LotNoInformation.Blocked, 'Should be blocked.');
 
-        // [GIVEN] A workflow configured to unblock lot on inspection finished with passing grade condition
+        // [GIVEN] A workflow configured to unblock lot on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
-        // [WHEN] The inspection grade is set to passing grade and inspection is finished
-        QltyInspectionHeader.Validate("Grade Code", ToLoadQltyInspectionGrade.Code);
+        // [WHEN] The inspection result is set to passing result and inspection is finished
+        QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify();
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
@@ -1444,7 +1444,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         SerialNoInformation: Record "Serial No. Information";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1454,7 +1454,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] Block a serial number when a quality inspection with failing grade is finished
+        // [SCENARIO] Block a serial number when a quality inspection with failing result is finished
 
         Initialize();
 
@@ -1474,14 +1474,14 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
-        ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
+        ToLoadQltyInspectionResult.Get(DefaultResult1FailCodeTok);
 
-        // [GIVEN] A workflow configured to block serial on inspection finished with failing grade condition
+        // [GIVEN] A workflow configured to block serial on inspection finished with failing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
-        // [WHEN] The inspection grade is set to failing grade and inspection is finished
-        QltyInspectionHeader.Validate("Grade Code", ToLoadQltyInspectionGrade.Code);
+        // [WHEN] The inspection result is set to failing result and inspection is finished
+        QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify();
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
@@ -1505,7 +1505,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         SerialNoInformation: Record "Serial No. Information";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1516,7 +1516,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] Unblock a serial number when a quality inspection with passing grade is finished
+        // [SCENARIO] Unblock a serial number when a quality inspection with passing result is finished
 
         Initialize();
 
@@ -1536,18 +1536,18 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
-        ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
+        ToLoadQltyInspectionResult.Get(DefaultResult2PassCodeTok);
         LibraryItemTracking.CreateSerialNoInformation(SerialNoInformation, Item."No.", '', ReservationEntry."Serial No.");
         SerialNoInformation.Blocked := true;
         SerialNoInformation.Modify();
         LibraryAssert.IsTrue(SerialNoInformation.Blocked, 'Should be blocked.');
 
-        // [GIVEN] A workflow configured to unblock serial on inspection finished with passing grade condition
+        // [GIVEN] A workflow configured to unblock serial on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
-        // [WHEN] The inspection grade is set to passing grade and inspection is finished
-        QltyInspectionHeader.Validate("Grade Code", ToLoadQltyInspectionGrade.Code);
+        // [WHEN] The inspection result is set to passing result and inspection is finished
+        QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify();
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
@@ -1571,7 +1571,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         PackageNoInformation: Record "Package No. Information";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1581,7 +1581,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] Block a package number when a quality inspection with failing grade is finished
+        // [SCENARIO] Block a package number when a quality inspection with failing result is finished
 
         Initialize();
 
@@ -1601,14 +1601,14 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
-        ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
+        ToLoadQltyInspectionResult.Get(DefaultResult1FailCodeTok);
 
-        // [GIVEN] A workflow configured to block package on inspection finished with failing grade condition
+        // [GIVEN] A workflow configured to block package on inspection finished with failing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
-        // [WHEN] The inspection grade is set to failing grade and inspection is finished
-        QltyInspectionHeader.Validate("Grade Code", ToLoadQltyInspectionGrade.Code);
+        // [WHEN] The inspection result is set to failing result and inspection is finished
+        QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify();
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
@@ -1632,7 +1632,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         PackageNoInformation: Record "Package No. Information";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1643,7 +1643,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        // [SCENARIO] Unblock a package number when a quality inspection with passing grade is finished
+        // [SCENARIO] Unblock a package number when a quality inspection with passing result is finished
 
         Initialize();
 
@@ -1663,19 +1663,19 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
-        ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
+        ToLoadQltyInspectionResult.Get(DefaultResult2PassCodeTok);
         if not PackageNoInformation.Get(Item."No.", '', ReservationEntry."Package No.") then
             LibraryItemTracking.CreatePackageNoInformation(PackageNoInformation, Item."No.", ReservationEntry."Package No.");
         PackageNoInformation.Blocked := true;
         PackageNoInformation.Modify();
         LibraryAssert.IsTrue(PackageNoInformation.Blocked, 'Should be blocked.');
 
-        // [GIVEN] A workflow configured to unblock package on inspection finished with passing grade condition
+        // [GIVEN] A workflow configured to unblock package on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionGrade.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
-        // [WHEN] The inspection grade is set to passing grade and inspection is finished
-        QltyInspectionHeader.Validate("Grade Code", ToLoadQltyInspectionGrade.Code);
+        // [WHEN] The inspection result is set to passing result and inspection is finished
+        QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify();
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();

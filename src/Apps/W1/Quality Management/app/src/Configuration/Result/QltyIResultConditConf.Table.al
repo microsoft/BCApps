@@ -9,16 +9,16 @@ using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// For either a field, template line, or inspection instance this contains a description of the criteria to meet that grade. There should be one row per entity per grade.
+/// For either a field, template line, or inspection instance this contains a description of the criteria to meet that result. There should be one row per entity per result.
 /// </summary>
-table 20412 "Qlty. I. Grade Condition Conf."
+table 20412 "Qlty. I. Result Condit. Conf."
 {
-    Caption = 'Quality Inspection Grade Condition Configuration';
+    Caption = 'Quality Inspection Result Condition Configuration';
     DataClassification = CustomerContent;
 
     fields
     {
-        field(1; "Condition Type"; Enum "Qlty. Grade Condition Type")
+        field(1; "Condition Type"; Enum "Qlty. Result Condition Type")
         {
             Description = 'What this condition configuration applies to.';
             Caption = 'Condition Type';
@@ -52,25 +52,25 @@ table 20412 "Qlty. I. Grade Condition Conf."
         field(5; "Field Code"; Code[20])
         {
             Caption = 'Field Code';
-            Description = 'Which field this grade condition refers to.';
+            Description = 'Which field this result condition refers to.';
             NotBlank = false;
             TableRelation = "Qlty. Field".Code;
         }
-        field(6; "Grade Code"; Code[20])
+        field(6; "Result Code"; Code[20])
         {
-            Caption = 'Grade Code';
-            Description = 'The grade this refers to.';
-            TableRelation = "Qlty. Inspection Grade".Code;
+            Caption = 'Result Code';
+            Description = 'The result this refers to.';
+            TableRelation = "Qlty. Inspection Result".Code;
             NotBlank = true;
         }
-        field(7; "Grade Description"; Text[100])
+        field(7; "Result Description"; Text[100])
         {
-            Caption = 'Grade Description';
-            Description = 'The grade this refers to.';
+            Caption = 'Result Description';
+            Description = 'The result this refers to.';
             Editable = false;
             NotBlank = false;
             FieldClass = FlowField;
-            CalcFormula = lookup("Qlty. Inspection Grade".Description where(Code = field("Grade Code")));
+            CalcFormula = lookup("Qlty. Inspection Result".Description where(Code = field("Result Code")));
         }
         field(8; "Condition"; Text[500])
         {
@@ -79,14 +79,14 @@ table 20412 "Qlty. I. Grade Condition Conf."
 
             trigger OnValidate()
             var
-                QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+                QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
             begin
                 if Rec."Condition Type" = Rec."Condition Type"::Field then
                     if Rec.Condition <> xRec.Condition then begin
                         if xRec.Condition = Rec."Condition Description" then
                             Rec."Condition Description" := Rec.Condition;
 
-                        QltyGradeConditionMgmt.PromptUpdateTemplatesFromFieldsIfApplicable(Rec);
+                        QltyResultConditionMgmt.PromptUpdateTemplatesFromFieldsIfApplicable(Rec);
                     end;
             end;
         }
@@ -97,56 +97,56 @@ table 20412 "Qlty. I. Grade Condition Conf."
 
             trigger OnValidate()
             var
-                QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+                QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
             begin
                 if Rec."Condition Type" = Rec."Condition Type"::Field then
                     if Rec."Condition Description" <> xRec."Condition Description" then
-                        QltyGradeConditionMgmt.PromptUpdateTemplatesFromFieldsIfApplicable(Rec);
+                        QltyResultConditionMgmt.PromptUpdateTemplatesFromFieldsIfApplicable(Rec);
             end;
         }
         field(10; "Priority"; Integer)
         {
-            Description = 'The priority of the grade, this also defines the evaluation order. 0 gets evaluated first, 1 would get evaluated after, 2 evaluated after that. 0 is typically used for an incomplete / unfilled state. Lower numbers should be used to evaluate error scenarios where the default of ''notblank''. Higher numbers would typically be used';
+            Description = 'The priority of the result, this also defines the evaluation order. 0 gets evaluated first, 1 would get evaluated after, 2 evaluated after that. 0 is typically used for an incomplete / unfilled state. Lower numbers should be used to evaluate error scenarios where the default of ''notblank''. Higher numbers would typically be used';
             NotBlank = true;
             Caption = 'Priority';
         }
-        field(11; "Grade Visibility"; Enum "Qlty. Grade Visibility")
+        field(11; "Result Visibility"; Enum "Qlty. Result Visibility")
         {
-            Description = 'Whether to try and make this grade more prominent, this can optionally be used on some reports and forms.';
-            Caption = 'Grade Visibility';
+            Description = 'Whether to try and make this result more prominent, this can optionally be used on some reports and forms.';
+            Caption = 'Result Visibility';
         }
     }
 
     keys
     {
-        key(Key1; "Condition Type", "Target Code", "Target Reinspection No.", "Target Line No.", "Field Code", "Grade Code")
+        key(Key1; "Condition Type", "Target Code", "Target Reinspection No.", "Target Line No.", "Field Code", "Result Code")
         {
             Clustered = true;
         }
         key(SortByPriority; "Condition Type", Priority, "Target Code", "Target Reinspection No.", "Target Line No.")
         {
         }
-        key(SortByVisibility; "Condition Type", "Grade Visibility", Priority, "Target Code", "Target Reinspection No.", "Target Line No.")
+        key(SortByVisibility; "Condition Type", "Result Visibility", Priority, "Target Code", "Target Reinspection No.", "Target Line No.")
         {
         }
     }
 
     trigger OnInsert()
     begin
-        UpdateFromGrade();
+        UpdateFromResult();
     end;
 
     trigger OnModify()
     begin
-        UpdateFromGrade();
+        UpdateFromResult();
     end;
 
-    local procedure UpdateFromGrade()
+    local procedure UpdateFromResult()
     var
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        QltyInspectionGrade.Get("Grade Code");
-        Rec.Priority := QltyInspectionGrade."Evaluation Sequence";
-        Rec."Grade Visibility" := QltyInspectionGrade."Grade Visibility";
+        QltyInspectionResult.Get("Result Code");
+        Rec.Priority := QltyInspectionResult."Evaluation Sequence";
+        Rec."Result Visibility" := QltyInspectionResult."Result Visibility";
     end;
 }

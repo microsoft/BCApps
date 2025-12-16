@@ -63,8 +63,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         IgnoreLbl: Label 'Ignore';
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
-        EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality inspection, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
-        EntryTypeBlocked2Err: Label 'This transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality inspection, %2=grade, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
+        EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
+        EntryTypeBlocked2Err: Label 'This transaction was blocked because the quality inspection %1 has the result of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Results.', Comment = '%1=quality inspection, %2=result, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
         TrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no';
@@ -1815,7 +1815,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         AssemblyItem: Record Item;
         ComponentItem: Record Item;
         ItemJournalTemplate: Record "Item Journal Template";
@@ -1892,29 +1892,29 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Assembly line linked to the lot via item tracking
         LibraryItemTracking.CreateAssemblyLineItemTracking(ReservationEntry, AssemblyLine, '', LotNo, AssemblyLine."Quantity (Base)");
 
-        // [GIVEN] Inspection grade configured to block assembly consumption
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Assembly Consumption" := ToLoadQltyInspectionGrade."Lot Allow Assembly Consumption"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block assembly consumption
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Assembly Consumption" := ToLoadQltyInspectionResult."Lot Allow Assembly Consumption"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Finished inspection created for the component lot with blocking grade
+        // [GIVEN] Finished inspection created for the component lot with blocking result
         QltyInspectionHeader.Init();
         QltyInspectionHeader."Source Item No." := ComponentItem."No.";
         QltyInspectionHeader."Source Lot No." := LotNo;
         QltyInspectionHeader."Source Quantity (Base)" := AssemblyLine."Quantity (Base)";
         QltyInspectionHeader.Insert(true);
 
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
         // [WHEN] Posting the assembly order
-        // [THEN] An error is raised indicating assembly consumption is blocked by the grade
+        // [THEN] An error is raised indicating assembly consumption is blocked by the result
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, StrSubstNo(
             EntryTypeBlocked2Err,
             QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Consumption",
             ComponentItem."No.",
             LotNo));
@@ -1933,7 +1933,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         PurchaseLine: Record "Purchase Line";
         ItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -1945,9 +1945,9 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         Initialize();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
         QltyInspectionUtility.EnsureSetup();
@@ -1967,14 +1967,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block purchase
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Purchase" := ToLoadQltyInspectionGrade."Lot Allow Purchase"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block purchase
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Purchase" := ToLoadQltyInspectionResult."Lot Allow Purchase"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection assigned the blocking grade
-        ReQltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Reinspection assigned the blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Modify();
 
         // [GIVEN] Quality Management setup with HighestReinspectionNumber conditional lot find behavior
@@ -1986,11 +1986,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Posting the purchase document
-        // [THEN] An error is raised indicating purchase is blocked by the grade on the highest reinspection
+        // [THEN] An error is raised indicating purchase is blocked by the result on the highest reinspection
         asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
         LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlocked2Err,
             ReQltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::Purchase,
             PurchaseLine."No.",
             ReservationEntry."Package No."));
@@ -2003,7 +2003,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         AssemblyHeader: Record "Assembly Header";
@@ -2142,14 +2142,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block assembly output
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Assembly Output" := ToLoadQltyInspectionGrade."Lot Allow Assembly Output"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block assembly output
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Assembly Output" := ToLoadQltyInspectionResult."Lot Allow Assembly Output"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking grade
-        ReQltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Reinspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := ReQltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
@@ -2166,19 +2166,19 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] Original inspection also marked as finished with blocking grade (most recent modified)
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Original inspection also marked as finished with blocking result (most recent modified)
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
         // [WHEN] Posting the assembly header
-        // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified inspection grade
+        // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified inspection result
         EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlocked2Err,
             QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             ItemJournalLine."Entry Type"::"Assembly Output",
             AssemblyHeader."Item No.",
             StrSubstNo(TrackingDetailsTok, ReservationEntry."Lot No.", ReservationEntry."Serial No.")));
@@ -2189,7 +2189,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
@@ -2213,9 +2213,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection generation rules cleared
         QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
         QltyInspectionUtility.EnsureSetup();
@@ -2238,19 +2238,19 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block put-away
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Put-Away" := ToLoadQltyInspectionGrade."Lot Allow Put-Away"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block put-away
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Put-Away" := ToLoadQltyInspectionResult."Lot Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Original inspection marked as finished with blocking grade
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Original inspection marked as finished with blocking result
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
-        // [GIVEN] Reinspection assigned the blocking grade (highest finished reinspection)
-        ReQltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Reinspection assigned the blocking result (highest finished reinspection)
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Modify();
 
         // [GIVEN] Quality Management setup with HighestFinishedReinspectionNumber conditional lot find behavior
@@ -2259,13 +2259,13 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating put-away is blocked by the highest finished reinspection grade
+        // [THEN] An error is raised indicating put-away is blocked by the highest finished reinspection result
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
@@ -2277,7 +2277,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2299,9 +2299,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection generation rules cleared
         QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
         QltyInspectionUtility.EnsureSetup();
@@ -2321,14 +2321,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection created for purchase line with tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block put-away
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Put-Away" := ToLoadQltyInspectionGrade."Lot Allow Put-Away"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block put-away
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Put-Away" := ToLoadQltyInspectionResult."Lot Allow Put-Away"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Inspection marked as finished with blocking grade
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Inspection marked as finished with blocking result
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
@@ -2338,13 +2338,13 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating put-away is blocked by any finished inspection grade
+        // [THEN] An error is raised indicating put-away is blocked by any finished inspection result
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
@@ -2357,7 +2357,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
@@ -2382,9 +2382,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection generation rules cleared
         QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
         QltyInspectionUtility.EnsureSetup();
@@ -2414,14 +2414,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block inventory put-away
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Invt. Put-Away" := ToLoadQltyInspectionGrade."Lot Allow Invt. Put-Away"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block inventory put-away
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away" := ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking grade
-        ReQltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Reinspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
@@ -2435,19 +2435,19 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Original inspection also marked as finished with blocking grade (most recent modified)
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Original inspection also marked as finished with blocking result (most recent modified)
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating inventory put-away is blocked by the most recent finished modified inspection grade
+        // [THEN] An error is raised indicating inventory put-away is blocked by the most recent finished modified inspection result
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Put-away",
             Item."No.",
             ReservationEntry."Lot No.",
@@ -2460,7 +2460,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
@@ -2488,9 +2488,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection generation rules cleared
         QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
         QltyInspectionUtility.EnsureSetup();
@@ -2526,14 +2526,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block inventory movement
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Invt. Movement" := ToLoadQltyInspectionGrade."Lot Allow Invt. Movement"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block inventory movement
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Invt. Movement" := ToLoadQltyInspectionResult."Lot Allow Invt. Movement"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking grade
-        ReQltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Reinspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
         Commit();
@@ -2577,19 +2577,19 @@ codeunit 139964 "Qlty. Tests - Misc."
         WarehouseActivityLine.Validate(Quantity, PurchaseLine.Quantity);
         WarehouseActivityLine.Insert();
 
-        // [GIVEN] Original inspection also marked as finished with blocking grade
+        // [GIVEN] Original inspection also marked as finished with blocking result
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
         // [WHEN] Registering the warehouse inventory movement
-        // [THEN] An error is raised indicating inventory movement is blocked by the highest reinspection grade
+        // [THEN] An error is raised indicating inventory movement is blocked by the highest reinspection result
         asserterror LibraryWarehouse.RegisterWhseActivity(InventoryMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
             ReQltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::"Invt. Movement",
             Item."No.",
             ReservationEntry."Lot No.",
@@ -2602,7 +2602,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
@@ -2635,9 +2635,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection generation rules cleared
         QltyInspectionGenRule.DeleteAll();
 
-        // [GIVEN] Inspection grades cleared
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Inspection results cleared
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
         QltyInspectionUtility.EnsureSetup();
@@ -2665,14 +2665,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
-        // [GIVEN] Inspection grade configured to block movement
-        ToLoadQltyInspectionGrade.FindFirst();
-        QltyInspectionUtility.ClearGradeLotSettings(ToLoadQltyInspectionGrade);
-        ToLoadQltyInspectionGrade."Lot Allow Movement" := ToLoadQltyInspectionGrade."Lot Allow Movement"::Block;
-        ToLoadQltyInspectionGrade.Modify();
+        // [GIVEN] Inspection result configured to block movement
+        ToLoadQltyInspectionResult.FindFirst();
+        QltyInspectionUtility.ClearResultLotSettings(ToLoadQltyInspectionResult);
+        ToLoadQltyInspectionResult."Lot Allow Movement" := ToLoadQltyInspectionResult."Lot Allow Movement"::Block;
+        ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking grade
-        ReQltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Reinspection marked as finished with blocking result
+        ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := ReQltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
@@ -2699,8 +2699,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Original inspection assigned the blocking grade (most recent modified)
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        // [GIVEN] Original inspection assigned the blocking result (most recent modified)
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Modify();
 
         // [GIVEN] Warehouse worksheet template for Movement type ensured
@@ -2726,12 +2726,12 @@ codeunit 139964 "Qlty. Tests - Misc."
         WhseMovementWarehouseActivityHeader.FindFirst();
 
         // [WHEN] Registering the warehouse movement
-        // [THEN] An error is raised indicating movement is blocked by the most recent modified inspection grade
+        // [THEN] An error is raised indicating movement is blocked by the most recent modified inspection result
         asserterror LibraryWarehouse.RegisterWhseActivity(WhseMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
             QltyInspectionHeader.GetFriendlyIdentifier(),
-            ToLoadQltyInspectionGrade.Code,
+            ToLoadQltyInspectionResult.Code,
             WarehouseActivityLine."Activity Type"::Movement,
             Item."No.",
             ReservationEntry."Lot No.",

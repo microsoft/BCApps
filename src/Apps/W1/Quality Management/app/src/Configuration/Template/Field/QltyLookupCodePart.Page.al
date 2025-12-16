@@ -112,7 +112,7 @@ page 20435 "Qlty. Lookup Code Part"
                 ShowCaption = false;
                 Visible = NewLookup;
 
-                field(ChooseIsAcceptableForGrade1; IsAcceptableValuesForThisRow[1])
+                field(ChooseIsAcceptableForResult1; IsAcceptableValuesForThisRow[1])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[1];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -124,11 +124,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 1);
+                        SetAddOptionToResultCondition(Rec.Code, 1);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade2; IsAcceptableValuesForThisRow[2])
+                field(ChooseIsAcceptableForResult2; IsAcceptableValuesForThisRow[2])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[2];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -140,11 +140,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 2);
+                        SetAddOptionToResultCondition(Rec.Code, 2);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade3; IsAcceptableValuesForThisRow[3])
+                field(ChooseIsAcceptableForResult3; IsAcceptableValuesForThisRow[3])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[3];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -156,11 +156,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 3);
+                        SetAddOptionToResultCondition(Rec.Code, 3);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade4; IsAcceptableValuesForThisRow[4])
+                field(ChooseIsAcceptableForResult4; IsAcceptableValuesForThisRow[4])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[4];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -172,11 +172,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 4);
+                        SetAddOptionToResultCondition(Rec.Code, 4);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade5; IsAcceptableValuesForThisRow[5])
+                field(ChooseIsAcceptableForResult5; IsAcceptableValuesForThisRow[5])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[5];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -188,11 +188,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 5);
+                        SetAddOptionToResultCondition(Rec.Code, 5);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade6; IsAcceptableValuesForThisRow[6])
+                field(ChooseIsAcceptableForResult6; IsAcceptableValuesForThisRow[6])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[6];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -204,11 +204,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 6);
+                        SetAddOptionToResultCondition(Rec.Code, 6);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade7; IsAcceptableValuesForThisRow[7])
+                field(ChooseIsAcceptableForResult7; IsAcceptableValuesForThisRow[7])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[7];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -220,11 +220,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 7);
+                        SetAddOptionToResultCondition(Rec.Code, 7);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade8; IsAcceptableValuesForThisRow[8])
+                field(ChooseIsAcceptableForResult8; IsAcceptableValuesForThisRow[8])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[8];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -236,11 +236,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 8);
+                        SetAddOptionToResultCondition(Rec.Code, 8);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade9; IsAcceptableValuesForThisRow[9])
+                field(ChooseIsAcceptableForResult9; IsAcceptableValuesForThisRow[9])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[9];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -252,11 +252,11 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 9);
+                        SetAddOptionToResultCondition(Rec.Code, 9);
                         CurrPage.Update();
                     end;
                 }
-                field(ChooseIsAcceptableForGrade10; IsAcceptableValuesForThisRow[10])
+                field(ChooseIsAcceptableForResult10; IsAcceptableValuesForThisRow[10])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[10];
                     ToolTip = 'Specifies if this value should be used as a pass value.';
@@ -268,7 +268,7 @@ page 20435 "Qlty. Lookup Code Part"
                             exit;
                         if Rec.SystemId = NullGuid then
                             Rec.Insert();
-                        SetAddOptionToGradeCondition(Rec.Code, 10);
+                        SetAddOptionToResultCondition(Rec.Code, 10);
                         CurrPage.Update();
                     end;
                 }
@@ -304,7 +304,7 @@ page 20435 "Qlty. Lookup Code Part"
 
     var
         QltyField: Record "Qlty. Field";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         NewLookup: Boolean;
         ExistingTable: Boolean;
@@ -340,7 +340,7 @@ page 20435 "Qlty. Lookup Code Part"
 
     trigger OnOpenPage()
     begin
-        UpdateRowGradeInformation();
+        UpdateRowResultInformation();
     end;
 
     trigger OnAfterGetRecord()
@@ -401,7 +401,7 @@ page 20435 "Qlty. Lookup Code Part"
         if QltyField.Code <> '' then
             if QltyField.Modify(true) then;
 
-        UpdateGradeOptions();
+        UpdateResultOptions();
         CurrPage.Update(false);
     end;
 
@@ -425,13 +425,13 @@ page 20435 "Qlty. Lookup Code Part"
     /// <summary>
     /// Introduced to allow setting values implicitly when creating new records.
     /// </summary>
-    local procedure UpdateGradeOptions()
+    local procedure UpdateResultOptions()
     var
         Iterator: Integer;
     begin
         for Iterator := 1 to 10 do
             if IsAcceptableValuesForThisRow[Iterator] then
-                SetAddOptionToGradeCondition(Rec.Code, Iterator);
+                SetAddOptionToResultCondition(Rec.Code, Iterator);
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -524,19 +524,19 @@ page 20435 "Qlty. Lookup Code Part"
             TableFilter := QltyField."Lookup Table Filter";
         end;
 
-        UpdateRowGradeInformation();
+        UpdateRowResultInformation();
 
-        LoadExistingGradeSelections();
+        LoadExistingResultSelections();
         CurrPage.Update(false);
         OldField := CurrentField;
     end;
 
-    local procedure UpdateRowGradeInformation()
+    local procedure UpdateRowResultInformation()
     begin
         if QltyField.Code = '' then
             exit;
 
-        QltyGradeConditionMgmt.GetPromotedGradesForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -555,38 +555,38 @@ page 20435 "Qlty. Lookup Code Part"
         exit(Option + KeySeparatorTok + Format(Position, 0, 9));
     end;
 
-    procedure SetAddOptionToGradeCondition(Option: Code[100]; GradePosition: Integer)
+    procedure SetAddOptionToResultCondition(Option: Code[100]; ResultPosition: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        GradeConditionRecordRef: RecordRef;
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        ResultConditionRecordRef: RecordRef;
         IgnorePreviousValue: Boolean;
         InAcceptable: Boolean;
-        AllGradeConditions: Text;
+        AllResultConditions: Text;
     begin
-        InAcceptable := IsAcceptableValuesForThisRow[GradePosition];
-        if DictionaryOptionsThatAreDefaults.Set(GetKey(Option, GradePosition), InAcceptable, IgnorePreviousValue) then;
+        InAcceptable := IsAcceptableValuesForThisRow[ResultPosition];
+        if DictionaryOptionsThatAreDefaults.Set(GetKey(Option, ResultPosition), InAcceptable, IgnorePreviousValue) then;
         if not InAcceptable then
-            if DictionaryOptionsThatAreDefaults.Remove(GetKey(Option, GradePosition)) then;
+            if DictionaryOptionsThatAreDefaults.Remove(GetKey(Option, ResultPosition)) then;
 
         if QltyField.Code <> '' then begin
             if InAcceptable then
-                AllGradeConditions := CollectAllGradeConditionsWithAddedOption(GradePosition, Option)
+                AllResultConditions := CollectAllResultConditionsWithAddedOption(ResultPosition, Option)
             else
-                AllGradeConditions := CollectAllGradeConditions(GradePosition);
+                AllResultConditions := CollectAllResultConditions(ResultPosition);
 
-            GradeConditionRecordRef := MatrixSourceRecordId[GradePosition].GetRecord();
-            GradeConditionRecordRef.SetTable(QltyIGradeConditionConf);
-            QltyIGradeConditionConf.SetRecFilter();
-            QltyIGradeConditionConf.FindFirst();
-            QltyIGradeConditionConf.Condition := CopyStr(AllGradeConditions, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
-            QltyIGradeConditionConf.Modify(true);
+            ResultConditionRecordRef := MatrixSourceRecordId[ResultPosition].GetRecord();
+            ResultConditionRecordRef.SetTable(QltyIResultConditConf);
+            QltyIResultConditConf.SetRecFilter();
+            QltyIResultConditConf.FindFirst();
+            QltyIResultConditConf.Condition := CopyStr(AllResultConditions, 1, MaxStrLen(QltyIResultConditConf.Condition));
+            QltyIResultConditConf.Modify(true);
         end;
     end;
 
-    procedure LoadExistingGradeSelections()
+    procedure LoadExistingResultSelections()
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        GradeConditionRecordRef: RecordRef;
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        ResultConditionRecordRef: RecordRef;
         Iterator: Integer;
         AllAllowedForCondition: List of [Text];
         AllowedForCondition: Text;
@@ -597,23 +597,23 @@ page 20435 "Qlty. Lookup Code Part"
         for Iterator := 1 to ArrayLen(MatrixSourceRecordId) do
             if MatrixArrayCaptionSet[Iterator] <> '' then
                 if MatrixSourceRecordId[Iterator].TableNo() <> 0 then begin
-                    GradeConditionRecordRef := MatrixSourceRecordId[Iterator].GetRecord();
-                    GradeConditionRecordRef.SetTable(QltyIGradeConditionConf);
-                    QltyIGradeConditionConf.SetRecFilter();
-                    if QltyIGradeConditionConf.FindFirst() then begin
-                        AllAllowedForCondition := QltyIGradeConditionConf.Condition.Split('|');
+                    ResultConditionRecordRef := MatrixSourceRecordId[Iterator].GetRecord();
+                    ResultConditionRecordRef.SetTable(QltyIResultConditConf);
+                    QltyIResultConditConf.SetRecFilter();
+                    if QltyIResultConditConf.FindFirst() then begin
+                        AllAllowedForCondition := QltyIResultConditConf.Condition.Split('|');
                         foreach AllowedForCondition in AllAllowedForCondition do
                             if DictionaryOptionsThatAreDefaults.Set(GetKey(CopyStr(AllowedForCondition, 1, 100), Iterator), true, IgnorePreviousValue) then;
                     end;
                 end;
     end;
 
-    procedure CollectAllGradeConditions(GradePosition: Integer): Text;
+    procedure CollectAllResultConditions(ResultPosition: Integer): Text;
     begin
-        exit(CollectAllGradeConditionsWithAddedOption(GradePosition, ''));
+        exit(CollectAllResultConditionsWithAddedOption(ResultPosition, ''));
     end;
 
-    local procedure CollectAllGradeConditionsWithAddedOption(GradePosition: Integer; EnsureOption: Code[100]) AllConditions: Text;
+    local procedure CollectAllResultConditionsWithAddedOption(ResultPosition: Integer; EnsureOption: Code[100]) AllConditions: Text;
     var
         QltyLookupCode: Record "Qlty. Lookup Code";
         AtLeastOne: Boolean;
@@ -622,7 +622,7 @@ page 20435 "Qlty. Lookup Code Part"
         QltyLookupCode.CopyFilters(Rec);
         if QltyLookupCode.FindSet() then
             repeat
-                if DictionaryOptionsThatAreDefaults.Get(GetKey(QltyLookupCode.Code, GradePosition), IsSet) then
+                if DictionaryOptionsThatAreDefaults.Get(GetKey(QltyLookupCode.Code, ResultPosition), IsSet) then
                     if IsSet then begin
                         if AtLeastOne then
                             AllConditions += '|';

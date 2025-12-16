@@ -14,11 +14,11 @@ pageextension 20411 "Qlty. Lot No. Info. List" extends "Lot No. Information List
     {
         addafter("Test Quality")
         {
-            field(QltyInspectionGradeDescription; MostRecentQltyGradeDescription)
+            field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
             {
                 ApplicationArea = QualityManagement;
-                Caption = 'Quality Grade';
-                ToolTip = 'Specifies the most recent grade for this lot number.';
+                Caption = 'Quality Result';
+                ToolTip = 'Specifies the most recent result for this lot number.';
                 Editable = false;
 
                 trigger OnDrillDown()
@@ -41,13 +41,13 @@ pageextension 20411 "Qlty. Lot No. Info. List" extends "Lot No. Information List
     }
 
     var
-        MostRecentQltyGradeDescription: Text;
+        MostRecentQltyResultDescription: Text;
 
     trigger OnAfterGetRecord()
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
-        DummyGradeCode: Code[20];
+        DummyResultCode: Code[20];
     begin
-        QltyItemTracking.GetMostRecentGradeFor(Rec."Item No.", Rec."Variant Code", Rec."Lot No.", '', '', DummyGradeCode, MostRecentQltyGradeDescription);
+        QltyItemTracking.GetMostRecentResultFor(Rec."Item No.", Rec."Variant Code", Rec."Lot No.", '', '', DummyResultCode, MostRecentQltyResultDescription);
     end;
 }

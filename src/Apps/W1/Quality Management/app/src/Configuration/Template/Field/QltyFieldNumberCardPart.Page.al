@@ -138,7 +138,7 @@ page 20434 "Qlty. Field Number Card Part"
                 label(lblInfo2)
                 {
                     ApplicationArea = All;
-                    Caption = 'In this section you will define conditions for grades, such as pass grades.';
+                    Caption = 'In this section you will define conditions for results, such as pass results.';
                 }
                 group(SettingsForNothingVisible)
                 {
@@ -148,7 +148,7 @@ page 20434 "Qlty. Field Number Card Part"
                     label(lblgrpNothingVisibleInfo)
                     {
                         ApplicationArea = All;
-                        Caption = 'There are no grades available to display.';
+                        Caption = 'There are no results available to display.';
                     }
                 }
                 group(SettingsForVisible1)
@@ -173,7 +173,7 @@ page 20434 "Qlty. Field Number Card Part"
                             ColumnSpan = 2;
                             ApplicationArea = All;
                             CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible1;
 
                             trigger OnValidate()
@@ -197,7 +197,7 @@ page 20434 "Qlty. Field Number Card Part"
                         {
                             ColumnSpan = 2;
                             ApplicationArea = All;
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Min';
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
@@ -206,14 +206,14 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax1; MatrixMaxValue[1])
                         {
                             ColumnSpan = 2;
                             ApplicationArea = All;
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Max';
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
@@ -222,7 +222,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -231,7 +231,7 @@ page 20434 "Qlty. Field Number Card Part"
                         ColumnSpan = 2;
                         ApplicationArea = All;
                         CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                         Editable = Visible1;
 
                         trigger OnValidate()
@@ -260,7 +260,7 @@ page 20434 "Qlty. Field Number Card Part"
                         {
                             ApplicationArea = All;
                             CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 2';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                             Editable = Visible2;
 
                             trigger OnValidate()
@@ -281,7 +281,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin2; MatrixMinValue[2])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -290,12 +290,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax2; MatrixMaxValue[2])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -304,14 +304,14 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
                     field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 2';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                         Editable = Visible2;
 
                         trigger OnValidate()
@@ -338,7 +338,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field3; MatrixArrayConditionCellData[3])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible3;
 
                             trigger OnValidate()
@@ -359,7 +359,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin3; MatrixMinValue[3])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -368,12 +368,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax3; MatrixMaxValue[3])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -382,14 +382,14 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
                     field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible3;
 
                         trigger OnValidate()
@@ -411,7 +411,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible4;
 
                         trigger OnValidate()
@@ -432,7 +432,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field4; MatrixArrayConditionCellData[4])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible4;
 
                             trigger OnValidate()
@@ -453,7 +453,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin4; MatrixMinValue[4])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -462,12 +462,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax4; MatrixMaxValue[4])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -476,7 +476,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -489,7 +489,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible5;
 
                         trigger OnValidate()
@@ -510,7 +510,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field5; MatrixArrayConditionCellData[5])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible5;
 
                             trigger OnValidate()
@@ -531,7 +531,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin5; MatrixMinValue[5])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -540,12 +540,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax5; MatrixMaxValue[5])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -554,7 +554,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -567,7 +567,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible6;
 
                         trigger OnValidate()
@@ -588,7 +588,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field6; MatrixArrayConditionCellData[6])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible6;
 
                             trigger OnValidate()
@@ -609,7 +609,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin6; MatrixMinValue[6])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -618,12 +618,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax6; MatrixMaxValue[6])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -632,7 +632,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -645,7 +645,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible7;
 
                         trigger OnValidate()
@@ -666,7 +666,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field7; MatrixArrayConditionCellData[7])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible7;
 
                             trigger OnValidate()
@@ -687,7 +687,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin7; MatrixMinValue[7])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -696,12 +696,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax7; MatrixMaxValue[7])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -710,7 +710,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -723,7 +723,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible8;
 
                         trigger OnValidate()
@@ -744,7 +744,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field8; MatrixArrayConditionCellData[8])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible8;
 
                             trigger OnValidate()
@@ -765,7 +765,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin8; MatrixMinValue[8])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -774,12 +774,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax8; MatrixMaxValue[8])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -788,7 +788,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -801,7 +801,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible9;
 
                         trigger OnValidate()
@@ -822,7 +822,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field9; MatrixArrayConditionCellData[9])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible9;
 
                             trigger OnValidate()
@@ -843,7 +843,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin9; MatrixMinValue[9])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -852,12 +852,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax9; MatrixMaxValue[9])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -866,7 +866,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -879,7 +879,7 @@ page 20434 "Qlty. Field Number Card Part"
                     field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                     {
                         CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
-                        ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 3';
+                        ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible10;
 
                         trigger OnValidate()
@@ -900,7 +900,7 @@ page 20434 "Qlty. Field Number Card Part"
                         field(Field10; MatrixArrayConditionCellData[10])
                         {
                             CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Cond.';
-                            ToolTip = 'Specifies a field condition for a promoted grade. This is dynamic based on the promoted grades, this is grade condition 1';
+                            ToolTip = 'Specifies a field condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible10;
 
                             trigger OnValidate()
@@ -921,7 +921,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                         field(ChooseMin10; MatrixMinValue[10])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this grade. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result. ';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -930,12 +930,12 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                         field(ChooseMax10; MatrixMaxValue[10])
                         {
-                            ToolTip = 'Specifies the maximum allowed value for this grade.';
+                            ToolTip = 'Specifies the maximum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Max';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -944,7 +944,7 @@ page 20434 "Qlty. Field Number Card Part"
 
                             trigger OnValidate()
                             begin
-                                HandleFieldValidateEasyGrade();
+                                HandleFieldValidateEasyResult();
                             end;
                         }
                     }
@@ -984,7 +984,7 @@ page 20434 "Qlty. Field Number Card Part"
 
     var
         QltyField: Record "Qlty. Field";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         MatrixSourceRecordId: array[10] of RecordId;
         Visible1: Boolean;
@@ -1136,16 +1136,16 @@ page 20434 "Qlty. Field Number Card Part"
         UpdateFieldVisibilityState();
     end;
 
-    local procedure HandleFieldValidateEasyGrade()
+    local procedure HandleFieldValidateEasyResult()
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         Iterator: Integer;
         Condition: Text;
         ConditionDesc: Text;
     begin
         for Iterator := 1 to ArrayLen(MatrixSourceRecordId) do
             if MatrixVisibleState[Iterator] then begin
-                QltyIGradeConditionConf.Get(MatrixSourceRecordId[Iterator]);
+                QltyIResultConditConf.Get(MatrixSourceRecordId[Iterator]);
                 if (MatrixMinValue[Iterator] = 0) and (MatrixMaxValue[Iterator] = 0) then begin
                     Condition := RangeNonZeroTok;
                     ConditionDesc := RangeNonZeroHumanDescriptionTok;
@@ -1153,10 +1153,10 @@ page 20434 "Qlty. Field Number Card Part"
                     Condition := StrSubstNo(SimpleRangeTok, Format(MatrixMinValue[Iterator], 0, 9), Format(MatrixMaxValue[Iterator], 0, 9));
                     ConditionDesc := StrSubstNo(RangeHumanDescriptionTok, MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
                 end;
-                QltyIGradeConditionConf.Condition := CopyStr(Condition, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
-                MatrixArrayConditionCellData[Iterator] := QltyIGradeConditionConf.Condition;
-                QltyIGradeConditionConf."Condition Description" := CopyStr(ConditionDesc, 1, MaxStrLen(QltyIGradeConditionConf."Condition Description"));
-                QltyIGradeConditionConf.Modify();
+                QltyIResultConditConf.Condition := CopyStr(Condition, 1, MaxStrLen(QltyIResultConditConf.Condition));
+                MatrixArrayConditionCellData[Iterator] := QltyIResultConditConf.Condition;
+                QltyIResultConditConf."Condition Description" := CopyStr(ConditionDesc, 1, MaxStrLen(QltyIResultConditConf."Condition Description"));
+                QltyIResultConditConf.Modify();
             end;
 
         UpdateRowData();
@@ -1164,26 +1164,26 @@ page 20434 "Qlty. Field Number Card Part"
 
     procedure AssistEditCondition(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
     begin
         Expression := MatrixArrayConditionCellData[Matrix];
         if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-            MatrixArrayConditionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
+            MatrixArrayConditionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             HandleFieldValidateAdvancedSyntax(Matrix);
         end;
     end;
 
     procedure AssistEditConditionDescription(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
     begin
         Expression := MatrixArrayConditionDescriptionCellData[Matrix];
         if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-            MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIGradeConditionConf.Condition));
+            MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             HandleFieldValidateConditionDescription(Matrix);
         end;
     end;
@@ -1223,7 +1223,7 @@ page 20434 "Qlty. Field Number Card Part"
 
         ReverseEngineerAllowedValuesMinMax();
 
-        QltyGradeConditionMgmt.GetPromotedGradesForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyResultConditionMgmt.GetPromotedResultsForField(QltyField, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
             QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
@@ -1241,23 +1241,23 @@ page 20434 "Qlty. Field Number Card Part"
 
     local procedure HandleFieldValidateAdvancedSyntax(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIGradeConditionConf.Get(MatrixSourceRecordId[Matrix]);
-        QltyIGradeConditionConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIGradeConditionConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
-        QltyIGradeConditionConf.Modify(true);
+        QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
+        QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[Matrix]);
+        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[Matrix], MatrixMaxValue[Matrix]);
+        QltyIResultConditConf.Modify(true);
         LoadExistingField(QltyField.Code);
         CurrPage.Update(false);
     end;
 
     local procedure HandleFieldValidateConditionDescription(Matrix: Integer)
     var
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        QltyIGradeConditionConf.Get(MatrixSourceRecordId[Matrix]);
-        QltyIGradeConditionConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
-        QltyIGradeConditionConf.Modify(true);
+        QltyIResultConditConf.Get(MatrixSourceRecordId[Matrix]);
+        QltyIResultConditConf.Validate("Condition Description", MatrixArrayConditionDescriptionCellData[Matrix]);
+        QltyIResultConditConf.Modify(true);
         LoadExistingField(QltyField.Code);
         CurrPage.Update(false);
     end;

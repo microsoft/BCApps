@@ -351,7 +351,7 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// <summary>
     /// Looks at sampling fields to determine number of passed or failed samples. This can exceed the sample size to allow for oversampling.
     /// Pass Conditions: the samples must have passed all sampling field measurements
-    /// Fail Conditions: One or more fail grades for a sample designates it as failed.
+    /// Fail Conditions: One or more fail results for a sample designates it as failed.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="QuantityBehavior"></param>

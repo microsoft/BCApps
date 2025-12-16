@@ -50,7 +50,7 @@ table 20403 "Qlty. Inspection Template Line"
                         Rec."Unit of Measure Code" := QltyField."Unit of Measure Code";
                     end;
 
-                EnsureGrades(Rec."Field Code" <> xRec."Field Code");
+                EnsureResults(Rec."Field Code" <> xRec."Field Code");
             end;
         }
         field(4; Description; Text[100])
@@ -131,7 +131,7 @@ table 20403 "Qlty. Inspection Template Line"
             exit;
 
         InitLineNoIfNeeded();
-        EnsureGrades(true);
+        EnsureResults(true);
         Rec.CalcFields("Field Type");
     end;
 
@@ -150,21 +150,21 @@ table 20403 "Qlty. Inspection Template Line"
 
     trigger OnModify()
     begin
-        EnsureGrades(false);
+        EnsureResults(false);
         Rec.CalcFields("Field Type");
         if Rec."Field Type" in [Rec."Field Type"::"Field Type Text Expression"] then
             ValidateExpressionFormula();
     end;
 
     /// <summary>
-    /// Ensures grades exist for this template line.
+    /// Ensures results exist for this template line.
     /// </summary>
     /// <param name="ForceOverwriteConditions"></param>
-    procedure EnsureGrades(ForceOverwriteConditions: Boolean)
+    procedure EnsureResults(ForceOverwriteConditions: Boolean)
     var
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
-        QltyGradeConditionMgmt.CopyGradeConditionsFromFieldToTemplateLine(Rec."Template Code", Rec."Line No.", '', ForceOverwriteConditions);
+        QltyResultConditionMgmt.CopyResultConditionsFromFieldToTemplateLine(Rec."Template Code", Rec."Line No.", '', ForceOverwriteConditions);
     end;
 
     /// <summary>

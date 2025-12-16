@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Template.Field;
 
 /// <summary>
-/// Used to help control if pass/fail grade criteria is case sensitive or not.
+/// Used to help control if pass/fail result criteria is case sensitive or not.
 /// </summary>
 enum 20440 "Qlty. Case Sensitivity"
 {

@@ -100,13 +100,13 @@ page 20421 "Qlty. Manager RC"
                 {
                     Caption = 'Advanced Quality Management Configuration';
 
-                    action(Qlty_AdvancedGrades)
+                    action(Qlty_AdvancedResults)
                     {
-                        Caption = 'Quality Inspection Grades';
+                        Caption = 'Quality Inspection Results';
                         Image = CodesList;
-                        RunObject = Page "Qlty. Inspection Grade List";
+                        RunObject = Page "Qlty. Inspection Result List";
                         RunPageMode = Edit;
-                        ToolTip = 'Grades are effectively the incomplete/pass/fail state of an inspection. The document specific lot blocking available with grades is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
+                        ToolTip = 'Results are effectively the incomplete/pass/fail state of an inspection. The document specific lot blocking available with results is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.';
                     }
                 }
             }

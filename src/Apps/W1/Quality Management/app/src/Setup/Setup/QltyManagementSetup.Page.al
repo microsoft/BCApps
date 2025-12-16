@@ -499,15 +499,15 @@ page 20400 "Qlty. Management Setup"
                 RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageMode = Edit;
             }
-            action(Grades)
+            action(Results)
             {
                 ApplicationArea = All;
-                Caption = 'Grades';
-                ToolTip = 'View the Quality Inspection Grades. Grades are effectively the incomplete/pass/fail state of an inspection. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
+                Caption = 'Results';
+                ToolTip = 'View the Quality Inspection Results. Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
                 Image = Permission;
-                AboutTitle = 'Grades';
-                AboutText = 'Grades are effectively the incomplete/pass/fail state of an inspection. It is typical to have three grades (incomplete, fail, pass), however you can configure as many grades as you want, and in what circumstances. The grades with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
-                RunObject = Page "Qlty. Inspection Grade List";
+                AboutTitle = 'Results';
+                AboutText = 'Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
+                RunObject = Page "Qlty. Inspection Result List";
                 RunPageMode = Edit;
             }
         }

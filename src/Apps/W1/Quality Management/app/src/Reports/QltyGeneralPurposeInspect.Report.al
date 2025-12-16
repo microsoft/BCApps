@@ -32,8 +32,8 @@ report 20405 "Qlty. General Purpose Inspect."
             column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
-            column(QltyInspection_Grade_Code; "Grade Code") { }
-            column(QltyInspection_Grade_Description; "Grade Description") { }
+            column(QltyInspection_Result_Code; "Result Code") { }
+            column(QltyInspection_Result_Description; "Result Description") { }
             column(QltyInspection_No; CurrentInspection."No.") { }
             column(QltyInspection_ReinspectionNo; CurrentInspection."Reinspection No.") { }
             column(QltyInspection_Finished_By_User_ID; "Finished By User ID") { }
@@ -87,7 +87,7 @@ report 20405 "Qlty. General Purpose Inspect."
             {
                 DataItemLink = "Inspection No." = field("No."), "Reinspection No." = field("Reinspection No.");
                 RequestFilterFields = "Field Code";
-                CalcFields = "Grade Description";
+                CalcFields = "Result Description";
 
                 column(Field_Code; "Field Code") { }
                 column(Field_Description; Description) { }
@@ -110,97 +110,97 @@ report 20405 "Qlty. General Purpose Inspect."
                 column(Field_EnteredByNameAndTimestamp; EnteredByNameAndTimestamp) { }
 
                 column(Test_Value; CurrentInspectionLine.GetLargeText()) { }
-                column(Test_Grade; "Grade Code") { }
-                column(Test_GradeDescription; GradeDescription) { }
+                column(Test_Result; "Result Code") { }
+                column(Test_ResultDescription; ResultDescription) { }
                 column(Field_LineCommentary; CurrentInspectionLine.GetMeasurementNote()) { }
-                column(PromptedGradeCaption_1; MatrixArrayCaptionSet[1])
+                column(PromptedResultCaption_1; MatrixArrayCaptionSet[1])
                 {
                 }
-                column(PromptedGradeConditionDescription_1; MatrixArrayConditionDescriptionCellData[1])
+                column(PromptedResultConditionDescription_1; MatrixArrayConditionDescriptionCellData[1])
                 {
                 }
-                column(PromptedGradeVisible_1; MatrixVisibleState[1])
+                column(PromptedResultVisible_1; MatrixVisibleState[1])
                 {
                 }
-                column(PromptedGradeCaption_2; MatrixArrayCaptionSet[2])
+                column(PromptedResultCaption_2; MatrixArrayCaptionSet[2])
                 {
                 }
-                column(PromptedGradeConditionDescription_2; MatrixArrayConditionDescriptionCellData[2])
+                column(PromptedResultConditionDescription_2; MatrixArrayConditionDescriptionCellData[2])
                 {
                 }
-                column(PromptedGradeVisible_2; MatrixVisibleState[2])
+                column(PromptedResultVisible_2; MatrixVisibleState[2])
                 {
                 }
-                column(PromptedGradeCaption_3; MatrixArrayCaptionSet[3])
+                column(PromptedResultCaption_3; MatrixArrayCaptionSet[3])
                 {
                 }
-                column(PromptedGradeConditionDescription_3; MatrixArrayConditionDescriptionCellData[3])
+                column(PromptedResultConditionDescription_3; MatrixArrayConditionDescriptionCellData[3])
                 {
                 }
-                column(PromptedGradeVisible_3; MatrixVisibleState[3])
+                column(PromptedResultVisible_3; MatrixVisibleState[3])
                 {
                 }
-                column(PromptedGradeCaption_4; MatrixArrayCaptionSet[4])
+                column(PromptedResultCaption_4; MatrixArrayCaptionSet[4])
                 {
                 }
-                column(PromptedGradeConditionDescription_4; MatrixArrayConditionDescriptionCellData[4])
+                column(PromptedResultConditionDescription_4; MatrixArrayConditionDescriptionCellData[4])
                 {
                 }
-                column(PromptedGradeVisible_4; MatrixVisibleState[4])
+                column(PromptedResultVisible_4; MatrixVisibleState[4])
                 {
                 }
-                column(PromptedGradeCaption_5; MatrixArrayCaptionSet[5])
+                column(PromptedResultCaption_5; MatrixArrayCaptionSet[5])
                 {
                 }
-                column(PromptedGradeConditionDescription_5; MatrixArrayConditionDescriptionCellData[5])
+                column(PromptedResultConditionDescription_5; MatrixArrayConditionDescriptionCellData[5])
                 {
                 }
-                column(PromptedGradeVisible_5; MatrixVisibleState[5])
+                column(PromptedResultVisible_5; MatrixVisibleState[5])
                 {
                 }
-                column(PromptedGradeCaption_6; MatrixArrayCaptionSet[6])
+                column(PromptedResultCaption_6; MatrixArrayCaptionSet[6])
                 {
                 }
-                column(PromptedGradeConditionDescription_6; MatrixArrayConditionDescriptionCellData[6])
+                column(PromptedResultConditionDescription_6; MatrixArrayConditionDescriptionCellData[6])
                 {
                 }
-                column(PromptedGradeVisible_6; MatrixVisibleState[6])
+                column(PromptedResultVisible_6; MatrixVisibleState[6])
                 {
                 }
-                column(PromptedGradeCaption_7; MatrixArrayCaptionSet[7])
+                column(PromptedResultCaption_7; MatrixArrayCaptionSet[7])
                 {
                 }
-                column(PromptedGradeConditionDescription_7; MatrixArrayConditionDescriptionCellData[7])
+                column(PromptedResultConditionDescription_7; MatrixArrayConditionDescriptionCellData[7])
                 {
                 }
-                column(PromptedGradeVisible_7; MatrixVisibleState[7])
+                column(PromptedResultVisible_7; MatrixVisibleState[7])
                 {
                 }
-                column(PromptedGradeCaption_8; MatrixArrayCaptionSet[8])
+                column(PromptedResultCaption_8; MatrixArrayCaptionSet[8])
                 {
                 }
-                column(PromptedGradeConditionDescription_8; MatrixArrayConditionDescriptionCellData[8])
+                column(PromptedResultConditionDescription_8; MatrixArrayConditionDescriptionCellData[8])
                 {
                 }
-                column(PromptedGradeVisible_8; MatrixVisibleState[8])
+                column(PromptedResultVisible_8; MatrixVisibleState[8])
                 {
                 }
-                column(PromptedGradeCaption_9; MatrixArrayCaptionSet[9])
+                column(PromptedResultCaption_9; MatrixArrayCaptionSet[9])
                 {
                 }
-                column(PromptedGradeConditionDescription_9; MatrixArrayConditionDescriptionCellData[9])
+                column(PromptedResultConditionDescription_9; MatrixArrayConditionDescriptionCellData[9])
                 {
                 }
-                column(PromptedGradeVisible_9; MatrixVisibleState[9])
+                column(PromptedResultVisible_9; MatrixVisibleState[9])
                 {
                 }
-                column(PromptedGradeCaption_10; MatrixArrayCaptionSet[10])
+                column(PromptedResultCaption_10; MatrixArrayCaptionSet[10])
                 {
                 }
-                column(PromptedGradeConditionDescription_10; MatrixArrayConditionDescriptionCellData[10])
+                column(PromptedResultConditionDescription_10; MatrixArrayConditionDescriptionCellData[10])
                 {
                 }
-                column(PromptedGradeVisible_10; MatrixVisibleState[10])
+                column(PromptedResultVisible_10; MatrixVisibleState[10])
                 {
                 }
                 column(LabelField_Description; LabelFieldDescription)
@@ -212,7 +212,7 @@ report 20405 "Qlty. General Purpose Inspect."
 
                 trigger OnAfterGetRecord()
                 var
-                    QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+                    QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
                     DummyRecordId: RecordId;
                     CombinedText: TextBuilder;
                 begin
@@ -221,7 +221,7 @@ report 20405 "Qlty. General Purpose Inspect."
                     Clear(MatrixArrayConditionDescriptionCellData);
                     Clear(MatrixArrayCaptionSet);
                     Clear(MatrixVisibleState);
-                    GradeDescription := '';
+                    ResultDescription := '';
 
                     InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
                     if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
@@ -241,10 +241,10 @@ report 20405 "Qlty. General Purpose Inspect."
                     else
                         Clear(EnteredByNameAndTimestamp);
 
-                    GradeDescription := CurrentInspectionLine."Grade Description";
-                    if GradeDescription = '' then
-                        GradeDescription := CurrentInspectionLine."Grade Code";
-                    QltyGradeConditionMgmt.GetPromotedGradesForInspectionLine(CurrentInspectionLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+                    ResultDescription := CurrentInspectionLine."Result Description";
+                    if ResultDescription = '' then
+                        ResultDescription := CurrentInspectionLine."Result Code";
+                    QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(CurrentInspectionLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
 
                     if FieldIsLabel then
                         LabelFieldDescription := CurrentInspectionLine.Description
@@ -347,7 +347,7 @@ report 20405 "Qlty. General Purpose Inspect."
         MatrixSourceRecordId: array[10] of RecordId;
         ArrayCompanyInformation: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];
-        GradeDescription: Text;
+        ResultDescription: Text;
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;

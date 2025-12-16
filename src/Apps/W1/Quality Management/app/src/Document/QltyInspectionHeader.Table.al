@@ -323,13 +323,13 @@ table 20405 "Qlty. Inspection Header"
 
             trigger OnValidate()
             var
-                QltyInspectionGrade: Record "Qlty. Inspection Grade";
+                QltyInspectionResult: Record "Qlty. Inspection Result";
                 QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
             begin
                 if Rec.Status = Rec.Status::Finished then begin
-                    if QltyInspectionGrade.Get(Rec."Grade Code") then
-                        if QltyInspectionGrade."Finish Allowed" <> QltyInspectionGrade."Finish Allowed"::"Allow Finish" then
-                            Error(CannotFinishInspectionBecauseTheInspectionIsInGradeErr, Rec."No.", QltyInspectionGrade.Code);
+                    if QltyInspectionResult.Get(Rec."Result Code") then
+                        if QltyInspectionResult."Finish Allowed" <> QltyInspectionResult."Finish Allowed"::"Allow Finish" then
+                            Error(CannotFinishInspectionBecauseTheInspectionIsInResultErr, Rec."No.", QltyInspectionResult.Code);
 
                     Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
                     Rec."Finished Date" := CurrentDateTime();
@@ -417,42 +417,42 @@ table 20405 "Qlty. Inspection Header"
                     Error(YouCannotChangeTheAssignmentOfTheInspectionErr, UserId(), Rec."No.", Rec."Reinspection No.");
             end;
         }
-        field(52; "Grade Code"; Code[20])
+        field(52; "Result Code"; Code[20])
         {
             Editable = false;
-            TableRelation = "Qlty. Inspection Grade".Code;
-            Description = 'The grade is automatically determined based on the test value and grade configuration.';
-            Caption = 'Grade Code';
-            ToolTip = 'Specifies the grade is automatically determined based on the test value and grade configuration.';
+            TableRelation = "Qlty. Inspection Result".Code;
+            Description = 'The result is automatically determined based on the test value and result configuration.';
+            Caption = 'Result Code';
+            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
 
             trigger OnValidate()
             var
-                QltyInspectionGrade: Record "Qlty. Inspection Grade";
+                QltyInspectionResult: Record "Qlty. Inspection Result";
             begin
-                if Rec."Grade Code" = '' then
-                    Rec."Grade Priority" := 0
+                if Rec."Result Code" = '' then
+                    Rec."Result Priority" := 0
                 else begin
-                    QltyInspectionGrade.Get("Grade Code");
-                    Rec."Grade Priority" := "Grade Priority";
+                    QltyInspectionResult.Get("Result Code");
+                    Rec."Result Priority" := "Result Priority";
                 end;
-                Rec.CalcFields("Grade Description");
+                Rec.CalcFields("Result Description");
             end;
         }
-        field(53; "Grade Description"; Text[100])
+        field(53; "Result Description"; Text[100])
         {
-            Caption = 'Grade';
-            Description = 'The grade description for this test result. The grade is automatically determined based on the test value and grade configuration.';
+            Caption = 'Result';
+            Description = 'The result description for this test result. The result is automatically determined based on the test value and result configuration.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = lookup("Qlty. Inspection Grade"."Description" where("Code" = field("Grade Code")));
-            ToolTip = 'Specifies the grade description for this test result. The grade is automatically determined based on the test value and grade configuration.';
+            CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
+            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
         }
-        field(54; "Grade Priority"; Integer)
+        field(54; "Result Priority"; Integer)
         {
-            Description = 'The associated grade priority for this test result. The grade is automatically determined based on the test value and grade configuration.';
+            Description = 'The associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
             Editable = false;
-            Caption = 'Grade Priority';
-            ToolTip = 'Specifies the associated grade priority for this test result. The grade is automatically determined based on the test value and grade configuration.';
+            Caption = 'Result Priority';
+            ToolTip = 'Specifies the associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
         }
         field(56; "Planned Start Date"; DateTime)
         {
@@ -646,7 +646,7 @@ table 20405 "Qlty. Inspection Header"
         NotSerialTrackedErr: Label 'The item %1 does not appear to be serial tracked.', Comment = '%1=the item';
         NotLotTrackedErr: Label 'The item %1 does not appear to be lot tracked.', Comment = '%1=the item';
         NotPackageTrackedErr: Label 'The item %1 does not appear to be package tracked.', Comment = '%1=the item';
-        CannotFinishInspectionBecauseTheInspectionIsInGradeErr: Label 'Cannot finish the inspection %1 because the inspection currently has the grade %2, which is configured to disallow finishing.', Comment = '%1=the inspection, %2=the grade code.';
+        CannotFinishInspectionBecauseTheInspectionIsInResultErr: Label 'Cannot finish the inspection %1 because the inspection currently has the result %2, which is configured to disallow finishing.', Comment = '%1=the inspection, %2=the result code.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
@@ -654,7 +654,7 @@ table 20405 "Qlty. Inspection Header"
     trigger OnDelete()
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
         case Rec.Status of
             Rec.Status::Open:
@@ -667,10 +667,10 @@ table 20405 "Qlty. Inspection Header"
         QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
         QltyInspectionLine.DeleteAll();
 
-        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
-        QltyIGradeConditionConf.SetRange("Target Code", Rec."No.");
-        QltyIGradeConditionConf.SetRange("Target Reinspection No.", Rec."Reinspection No.");
-        QltyIGradeConditionConf.DeleteAll();
+        QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
+        QltyIResultConditConf.SetRange("Target Code", Rec."No.");
+        QltyIResultConditConf.SetRange("Target Reinspection No.", Rec."Reinspection No.");
+        QltyIResultConditConf.DeleteAll();
     end;
 
     trigger OnInsert()
@@ -726,9 +726,9 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// This will upgrade the grade on the test based on the grades from the line.
+    /// This will upresult the result on the test based on the results from the line.
     /// </summary>
-    procedure UpdateGradeFromLines()
+    procedure UpdateResultFromLines()
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
         Handled: Boolean;
@@ -736,8 +736,8 @@ table 20405 "Qlty. Inspection Header"
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
         QltyInspectionLine.SetFilter("Field Type", '<>%1', QltyInspectionLine."Field Type"::"Field Type Label");
-        QltyInspectionLine.SetCurrentKey("Grade Priority");
-        OnBeforeFindLineUpdateGradeFromLines(Rec, QltyInspectionLine, Handled);
+        QltyInspectionLine.SetCurrentKey("Result Priority");
+        OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, Handled);
         if Handled then
             exit;
 
@@ -746,11 +746,11 @@ table 20405 "Qlty. Inspection Header"
             QltyInspectionLine.SetRange("Failure State");
 
         if QltyInspectionLine.FindFirst() then
-            Rec.Validate("Grade Code", QltyInspectionLine."Grade Code")
+            Rec.Validate("Result Code", QltyInspectionLine."Result Code")
         else
-            Rec."Grade Code" := '';
+            Rec."Result Code" := '';
 
-        OnAfterFindLineUpdateGradeFromLines(Rec, QltyInspectionLine);
+        OnAfterFindLineUpdateResultFromLines(Rec, QltyInspectionLine);
     end;
 
     local procedure OnInsertUpdateReinspectionIterationState()
@@ -821,7 +821,7 @@ table 20405 "Qlty. Inspection Header"
                         Rec.AssignToSelf();
         end;
 
-        Rec.UpdateGradeFromLines();
+        Rec.UpdateResultFromLines();
 
         if Rec."Planned Start Date" = 0DT then
             Rec."Planned Start Date" := CurrentDateTime();
@@ -1839,13 +1839,13 @@ table 20405 "Qlty. Inspection Header"
 
     /// <summary>
     /// This is called when the Quality Inspection header is being updated automatically based on the inspection lines.
-    /// Use this to inspect or adjust the grade that the system automatically chose.
+    /// Use this to inspect or adjust the result that the system automatically chose.
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     /// <param name="QltyInspectionLine"></param>
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterFindLineUpdateGradeFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line")
+    local procedure OnAfterFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line")
     begin
     end;
 
@@ -1860,7 +1860,7 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="QltyInspectionLine"></param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindLineUpdateGradeFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
+    local procedure OnBeforeFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
     begin
     end;
 }

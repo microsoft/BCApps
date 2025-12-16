@@ -5,18 +5,18 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
-/// Whether to automatically configure this grade on new fields and new templates.
+/// Whether to try and make this result more prominent, this can optionally be used on some reports and forms.
 /// </summary>
-enum 20417 "Qlty. Grade Finish Allowed"
+enum 20416 "Qlty. Result Visibility"
 {
-    Caption = 'Grade Finish Allowed';
+    Caption = 'Quality Result Visibility';
 
-    value(0; "Allow Finish")
+    value(0; "Configuration only")
     {
-        Caption = 'Allow Finish';
+        Caption = 'Configuration only';
     }
-    value(1; "Do Not Allow Finish")
+    value(1; Promoted)
     {
-        Caption = 'Do Not Allow Finish';
+        Caption = 'Promoted';
     }
 }

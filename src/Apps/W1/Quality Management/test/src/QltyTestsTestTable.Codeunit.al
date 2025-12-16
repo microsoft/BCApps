@@ -91,9 +91,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConditionFilterPostedRcptTok: Label 'WHERE(Reference Document=FILTER(Posted Rcpt.))';
         ConditionFilterInternalPutAwayTok: Label 'WHERE(Whse. Document Type=FILTER(Internal Put-away))';
         ConditionFilterMovementTok: Label 'WHERE(Entry Type=FILTER(Movement))';
-        GradeCode1Tok: Label '><{}.@!`~''';
-        GradeCode2Tok: Label '"|\/?&*()';
-        CannotBeRemovedExistingInspectionErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
+        ResultCode1Tok: Label '><{}.@!`~''';
+        ResultCode2Tok: Label '"|\/?&*()';
+        CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
         IsInitialized: Boolean;
 
     [Test]
@@ -2661,8 +2661,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure FieldCardPage_UpdatePassConditionAndDescription()
     var
         ToLoadQltyField: Record "Qlty. Field";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyFieldCard: TestPage "Qlty. Field Card";
         FieldCodeTxt: Text;
@@ -2671,9 +2671,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         Initialize();
 
-        // [GIVEN] Existing grades are deleted
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Existing results are deleted
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetup();
@@ -2703,21 +2703,21 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [WHEN] Pass condition description AssistEdit is invoked
         QltyFieldCard.Field1_Desc.AssistEdit();
 
-        // [GIVEN] Default pass grade is retrieved
-        ToLoadQltyInspectionGrade.Get(QltyAutoConfigure.GetDefaultPassGrade());
+        // [GIVEN] Default pass result is retrieved
+        ToLoadQltyInspectionResult.Get(QltyAutoConfigure.GetDefaultPassResult());
 
-        // [GIVEN] Grade condition configuration for field is retrieved
-        ToLoadQltyIGradeConditionConf.SetRange("Field Code", ToLoadQltyField.Code);
-        ToLoadQltyIGradeConditionConf.SetRange("Target Code", ToLoadQltyField.Code);
-        ToLoadQltyIGradeConditionConf.SetRange("Grade Code", ToLoadQltyInspectionGrade.Code);
-        ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Field);
-        ToLoadQltyIGradeConditionConf.FindFirst();
+        // [GIVEN] Result condition configuration for field is retrieved
+        ToLoadQltyIResultConditConf.SetRange("Field Code", ToLoadQltyField.Code);
+        ToLoadQltyIResultConditConf.SetRange("Target Code", ToLoadQltyField.Code);
+        ToLoadQltyIResultConditConf.SetRange("Result Code", ToLoadQltyInspectionResult.Code);
+        ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Field);
+        ToLoadQltyIResultConditConf.FindFirst();
 
         // [THEN] Condition is updated
-        LibraryAssert.AreEqual(PassConditionExpressionTok, ToLoadQltyIGradeConditionConf.Condition, 'Should be same condition.');
+        LibraryAssert.AreEqual(PassConditionExpressionTok, ToLoadQltyIResultConditConf.Condition, 'Should be same condition.');
 
         // [THEN] Condition description is updated
-        LibraryAssert.AreEqual(PassConditionDescExpressionTok, ToLoadQltyIGradeConditionConf."Condition Description", 'Should be same description.')
+        LibraryAssert.AreEqual(PassConditionDescExpressionTok, ToLoadQltyIResultConditConf."Condition Description", 'Should be same description.')
     end;
 
     [Test]
@@ -4344,46 +4344,46 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure GradeTable_TestValidateGradeCode()
+    procedure ResultTable_TestValidateResultCode()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        // [SCENARIO] Validate grade code by removing special characters
+        // [SCENARIO] Validate result code by removing special characters
         Initialize();
 
-        // [WHEN] Validating grade code with special characters (GradeCode1Tok)
-        ToLoadQltyInspectionGrade.Validate(Code, 'GRADE' + GradeCode1Tok);
+        // [WHEN] Validating result code with special characters (ResultCode1Tok)
+        ToLoadQltyInspectionResult.Validate(Code, 'RESULT' + ResultCode1Tok);
 
         // [THEN] Special characters are removed from code
-        LibraryAssert.AreEqual(ToLoadQltyInspectionGrade.Code, 'GRADE', 'Should remove special characters in grade code');
+        LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, 'RESULT', 'Should remove special characters in result code');
 
-        // [WHEN] Validating grade code with different special characters (GradeCode2Tok)
-        ToLoadQltyInspectionGrade.Validate(Code, 'GRADE' + GradeCode2Tok);
+        // [WHEN] Validating result code with different special characters (ResultCode2Tok)
+        ToLoadQltyInspectionResult.Validate(Code, 'RESULT' + ResultCode2Tok);
 
         // [THEN] Special characters are removed from code
-        LibraryAssert.AreEqual(ToLoadQltyInspectionGrade.Code, 'GRADE', 'Should remove special characters in grade code');
+        LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, 'RESULT', 'Should remove special characters in result code');
     end;
 
     [Test]
-    procedure GradeTable_TestOnDelete_ExistingTestLines_ShouldError()
+    procedure ResultTable_TestOnDelete_ExistingTestLines_ShouldError()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        GradeCode: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Cannot delete grade when it is referenced by existing inspection lines
+        // [SCENARIO] Cannot delete result when it is referenced by existing inspection lines
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A template is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
@@ -4392,50 +4392,50 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         QltyInspectionHeader.Insert();
 
-        // [GIVEN] An inspection line is created with the grade code
+        // [GIVEN] An inspection line is created with the result code
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
         QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
-        QltyInspectionLine."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        QltyInspectionLine."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionLine.Insert();
 
-        // [WHEN] Attempting to delete the grade
-        asserterror ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Attempting to delete the result
+        asserterror ToLoadQltyInspectionResult.Delete(true);
 
         // [THEN] An error is thrown preventing deletion
         LibraryAssert.ExpectedError(CannotBeRemovedExistingInspectionErr);
     end;
 
     [Test]
-    procedure GradeTable_TestOnDelete_ExistingInspection_ShouldError()
+    procedure ResultTable_TestOnDelete_ExistingInspection_ShouldError()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        GradeCode: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Cannot delete grade when it is referenced by existing inspection headers
+        // [SCENARIO] Cannot delete result when it is referenced by existing inspection headers
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A template is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
-        // [GIVEN] An inspection header is created with the grade code
+        // [GIVEN] An inspection header is created with the result code
         QltyInspectionHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Insert();
 
-        // [WHEN] Attempting to delete the grade
-        asserterror ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Attempting to delete the result
+        asserterror ToLoadQltyInspectionResult.Delete(true);
 
         // [THEN] An error is thrown preventing deletion
         LibraryAssert.ExpectedError(CannotBeRemovedExistingInspectionErr);
@@ -4443,27 +4443,27 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure GradeTable_TestOnDelete_ExistingInspectionGradeConditions()
+    procedure ResultTable_TestOnDelete_ExistingInspectionResultConditions()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        GradeCode: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Delete grade with existing inspection grade conditions after confirmation
+        // [SCENARIO] Delete result with existing inspection result conditions after confirmation
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A template with one field is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
@@ -4479,201 +4479,201 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
-        QltyInspectionLine."Grade Code" := ToLoadQltyInspectionGrade.Code;
+        QltyInspectionLine."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionLine.Insert();
 
-        // [GIVEN] A grade condition is created for the inspection
-        ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Inspection;
-        ToLoadQltyIGradeConditionConf."Target Code" := QltyInspectionHeader."No.";
-        ToLoadQltyIGradeConditionConf."Target Reinspection No." := QltyInspectionHeader."Reinspection No.";
-        ToLoadQltyIGradeConditionConf."Target Line No." := QltyInspectionLine."Line No.";
-        ToLoadQltyIGradeConditionConf."Field Code" := QltyInspectionLine."Field Code";
-        ToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the inspection
+        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Inspection;
+        ToLoadQltyIResultConditConf."Target Code" := QltyInspectionHeader."No.";
+        ToLoadQltyIResultConditConf."Target Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        ToLoadQltyIResultConditConf."Target Line No." := QltyInspectionLine."Line No.";
+        ToLoadQltyIResultConditConf."Field Code" := QltyInspectionLine."Field Code";
+        ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        ToLoadQltyIResultConditConf.Insert();
 
         // [GIVEN] Inspection line and header are deleted
         QltyInspectionLine.Delete();
         QltyInspectionHeader.Delete();
 
-        // [WHEN] Deleting the grade with confirmation
-        ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Deleting the result with confirmation
+        ToLoadQltyInspectionResult.Delete(true);
 
-        // [THEN] Grade is successfully deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.IsTrue(ToLoadQltyInspectionGrade.IsEmpty(), 'Should have deleted grade.');
+        // [THEN] Result is successfully deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ToLoadQltyInspectionResult.Code);
+        LibraryAssert.IsTrue(ToLoadQltyInspectionResult.IsEmpty(), 'Should have deleted result.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure GradeTable_TestOnDelete_ExistingFieldGradeConditions()
+    procedure ResultTable_TestOnDelete_ExistingFieldResultConditions()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToLoadQltyField: Record "Qlty. Field";
-        GradeCode: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Delete grade with existing field grade conditions after confirmation
+        // [SCENARIO] Delete result with existing field result conditions after confirmation
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A field is created
-        ToLoadQltyField.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyField.Code));
+        ToLoadQltyField.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField."Field Type" := ToLoadQltyField."Field Type"::"Field Type Integer";
         ToLoadQltyField.Insert();
 
-        // [GIVEN] A grade condition is created for the field
-        ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Field;
-        ToLoadQltyIGradeConditionConf."Target Code" := ToLoadQltyField.Code;
-        ToLoadQltyIGradeConditionConf."Field Code" := ToLoadQltyField.Code;
-        ToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the field
+        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Field;
+        ToLoadQltyIResultConditConf."Target Code" := ToLoadQltyField.Code;
+        ToLoadQltyIResultConditConf."Field Code" := ToLoadQltyField.Code;
+        ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        ToLoadQltyIResultConditConf.Insert();
 
-        // [WHEN] Deleting the grade with confirmation
-        ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Deleting the result with confirmation
+        ToLoadQltyInspectionResult.Delete(true);
 
-        // [THEN] Grade is successfully deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.IsTrue(ToLoadQltyInspectionGrade.IsEmpty(), 'Should have deleted grade.')
+        // [THEN] Result is successfully deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ToLoadQltyInspectionResult.Code);
+        LibraryAssert.IsTrue(ToLoadQltyInspectionResult.IsEmpty(), 'Should have deleted result.')
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure GradeTable_TestOnDelete_ExistingTemplateGradeConditions()
+    procedure ResultTable_TestOnDelete_ExistingTemplateResultConditions()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        GradeCode: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Delete grade with existing template grade conditions after confirmation
+        // [SCENARIO] Delete result with existing template result conditions after confirmation
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A template with one field is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] A grade condition is created for the template
-        ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Template;
-        ToLoadQltyIGradeConditionConf."Target Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        ToLoadQltyIGradeConditionConf."Target Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
-        ToLoadQltyIGradeConditionConf."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
-        ToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the template
+        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Template;
+        ToLoadQltyIResultConditConf."Target Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        ToLoadQltyIResultConditConf."Target Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
+        ToLoadQltyIResultConditConf."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
+        ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        ToLoadQltyIResultConditConf.Insert();
 
-        // [WHEN] Deleting the grade with confirmation
-        ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Deleting the result with confirmation
+        ToLoadQltyInspectionResult.Delete(true);
 
-        // [THEN] Grade is successfully deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.IsTrue(ToLoadQltyInspectionGrade.IsEmpty(), 'Should have deleted grade.')
+        // [THEN] Result is successfully deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ToLoadQltyInspectionResult.Code);
+        LibraryAssert.IsTrue(ToLoadQltyInspectionResult.IsEmpty(), 'Should have deleted result.')
     end;
 
     [Test]
     [HandlerFunctions('StrMenuPageHandler')]
-    procedure GradeTable_AssistEditGradeStyle()
+    procedure ResultTable_AssistEditResultStyle()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionGradeList: TestPage "Qlty. Inspection Grade List";
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionResultList: TestPage "Qlty. Inspection Result List";
+        ResultCode: Text;
     begin
-        // [SCENARIO] Use AssistEdit to configure grade style on grade list page
+        // [SCENARIO] Use AssistEdit to configure result style on result list page
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created with StrongAccent style
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade."Override Style" := 'StrongAccent';
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created with StrongAccent style
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult."Override Style" := 'StrongAccent';
+        ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] Grade list page is opened and navigated to the grade
-        QltyInspectionGradeList.OpenEdit();
-        QltyInspectionGradeList.GoToRecord(ToLoadQltyInspectionGrade);
+        // [GIVEN] Result list page is opened and navigated to the result
+        QltyInspectionResultList.OpenEdit();
+        QltyInspectionResultList.GoToRecord(ToLoadQltyInspectionResult);
 
         // [WHEN] AssistEdit is invoked on Override Style field
-        QltyInspectionGradeList."Override Style".AssistEdit();
-        QltyInspectionGradeList.Close();
+        QltyInspectionResultList."Override Style".AssistEdit();
+        QltyInspectionResultList.Close();
 
         // [THEN] Override style is updated to None
-        ToLoadQltyInspectionGrade.Get(ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.AreEqual('None', ToLoadQltyInspectionGrade."Override Style", 'Override style should be updated.');
+        ToLoadQltyInspectionResult.Get(ToLoadQltyInspectionResult.Code);
+        LibraryAssert.AreEqual('None', ToLoadQltyInspectionResult."Override Style", 'Override style should be updated.');
     end;
 
     [Test]
-    procedure GradeTable_GetGradeStyle()
+    procedure ResultTable_GetResultStyle()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        GradeStyle: Text;
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ResultStyle: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Get appropriate grade style based on category and override style
+        // [SCENARIO] Get appropriate result style based on category and override style
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade with Acceptable category is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result with Acceptable category is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
-        // [WHEN] Getting grade style for Acceptable category
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        // [WHEN] Getting result style for Acceptable category
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Style is Favorable
-        LibraryAssert.AreEqual('Favorable', GradeStyle, 'Should have favorable style.');
+        LibraryAssert.AreEqual('Favorable', ResultStyle, 'Should have favorable style.');
 
         // [WHEN] Changing category to Not acceptable
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::"Not acceptable";
-        ToLoadQltyInspectionGrade.Modify();
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::"Not acceptable";
+        ToLoadQltyInspectionResult.Modify();
 
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Style is Unfavorable
-        LibraryAssert.AreEqual('Unfavorable', GradeStyle, 'Should have unfavorable style.');
+        LibraryAssert.AreEqual('Unfavorable', ResultStyle, 'Should have unfavorable style.');
 
         // [WHEN] Changing category to Uncategorized
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Uncategorized;
-        ToLoadQltyInspectionGrade.Modify();
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Uncategorized;
+        ToLoadQltyInspectionResult.Modify();
 
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Style is None
-        LibraryAssert.AreEqual('None', GradeStyle, 'Should have no style.');
+        LibraryAssert.AreEqual('None', ResultStyle, 'Should have no style.');
 
         // [WHEN] Setting override style to Attention
-        ToLoadQltyInspectionGrade."Override Style" := 'Attention';
-        ToLoadQltyInspectionGrade.Modify();
+        ToLoadQltyInspectionResult."Override Style" := 'Attention';
+        ToLoadQltyInspectionResult.Modify();
 
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Override style takes precedence
-        LibraryAssert.AreEqual('Attention', GradeStyle, 'Should have override style.');
+        LibraryAssert.AreEqual('Attention', ResultStyle, 'Should have override style.');
     end;
 
     [Test]
@@ -4716,34 +4716,34 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure TemplateTable_AddFieldToTemplate()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        FieldToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        DurationTemplateToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        FieldToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        DurationTemplateToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToLoadQltyField: Record "Qlty. Field";
-        GradeCode: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Add field to template creates template line and copies grade conditions
+        // [SCENARIO] Add field to template creates template line and copies result conditions
         Initialize();
 
-        // [GIVEN] A grade is created
-        QltyInspectionUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A field is created
-        ToLoadQltyField.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyField.Code));
+        ToLoadQltyField.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyField.Code));
         ToLoadQltyField."Field Type" := ToLoadQltyField."Field Type"::"Field Type Integer";
         ToLoadQltyField.Insert();
 
-        // [GIVEN] A grade condition is created for the field
-        FieldToLoadQltyIGradeConditionConf."Condition Type" := FieldToLoadQltyIGradeConditionConf."Condition Type"::Field;
-        FieldToLoadQltyIGradeConditionConf."Target Code" := ToLoadQltyField.Code;
-        FieldToLoadQltyIGradeConditionConf."Field Code" := ToLoadQltyField.Code;
-        FieldToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        FieldToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the field
+        FieldToLoadQltyIResultConditConf."Condition Type" := FieldToLoadQltyIResultConditConf."Condition Type"::Field;
+        FieldToLoadQltyIResultConditConf."Target Code" := ToLoadQltyField.Code;
+        FieldToLoadQltyIResultConditConf."Field Code" := ToLoadQltyField.Code;
+        FieldToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        FieldToLoadQltyIResultConditConf.Insert();
 
         // [GIVEN] An empty template is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
@@ -4756,14 +4756,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
         LibraryAssert.AreEqual(ToLoadQltyField.Code, ConfigurationToLoadQltyInspectionTemplateLine."Field Code", 'Should be correct field code.');
 
-        // [THEN] Grade condition is copied to template
-        DurationTemplateToLoadQltyIGradeConditionConf.SetRange("Condition Type", DurationTemplateToLoadQltyIGradeConditionConf."Condition Type"::Template);
-        DurationTemplateToLoadQltyIGradeConditionConf.SetRange("Target Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        DurationTemplateToLoadQltyIGradeConditionConf.FindFirst();
+        // [THEN] Result condition is copied to template
+        DurationTemplateToLoadQltyIResultConditConf.SetRange("Condition Type", DurationTemplateToLoadQltyIResultConditConf."Condition Type"::Template);
+        DurationTemplateToLoadQltyIResultConditConf.SetRange("Target Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        DurationTemplateToLoadQltyIResultConditConf.FindFirst();
 
-        // [THEN] Template grade condition has correct field and grade codes
-        LibraryAssert.AreEqual(ToLoadQltyField.Code, DurationTemplateToLoadQltyIGradeConditionConf."Field Code", 'Should be correct field code.');
-        LibraryAssert.AreEqual(ToLoadQltyInspectionGrade.Code, DurationTemplateToLoadQltyIGradeConditionConf."Grade Code", 'Should be correct grade code.');
+        // [THEN] Template result condition has correct field and result codes
+        LibraryAssert.AreEqual(ToLoadQltyField.Code, DurationTemplateToLoadQltyIResultConditConf."Field Code", 'Should be correct field code.');
+        LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, DurationTemplateToLoadQltyIResultConditConf."Result Code", 'Should be correct result code.');
     end;
 
     local procedure Initialize()

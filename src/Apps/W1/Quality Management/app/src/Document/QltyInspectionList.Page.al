@@ -56,11 +56,11 @@ page 20408 "Qlty. Inspection List"
                 field(Status; Rec.Status)
                 {
                 }
-                field("Grade Code"; Rec."Grade Code")
+                field("Result Code"; Rec."Result Code")
                 {
                     Visible = false;
                 }
-                field("Grade Description"; Rec."Grade Description")
+                field("Result Description"; Rec."Result Description")
                 {
                 }
                 field("Finished Date"; Rec."Finished Date")
@@ -71,7 +71,7 @@ page 20408 "Qlty. Inspection List"
                     Visible = false;
                     Editable = false;
                 }
-                field("Grade Priority"; Rec."Grade Priority")
+                field("Result Priority"; Rec."Result Priority")
                 {
                     Visible = false;
                 }

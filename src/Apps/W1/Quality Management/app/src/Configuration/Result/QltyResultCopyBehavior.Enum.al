@@ -5,18 +5,18 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
-/// Whether to try and make this grade more prominent, this can optionally be used on some reports and forms.
+/// Whether to automatically configure this result on new fields and new templates.
 /// </summary>
-enum 20416 "Qlty. Grade Visibility"
+enum 20413 "Qlty. Result Copy Behavior"
 {
-    Caption = 'Quality Grade Visibility';
+    Caption = 'Quality Result Copy Behavior';
 
-    value(0; "Configuration only")
+    value(0; "Automatically copy the result")
     {
-        Caption = 'Configuration only';
+        Caption = 'Automatically copy the result';
     }
-    value(1; Promoted)
+    value(1; "Do not automatically copy")
     {
-        Caption = 'Promoted';
+        Caption = 'Do not automatically copy';
     }
 }

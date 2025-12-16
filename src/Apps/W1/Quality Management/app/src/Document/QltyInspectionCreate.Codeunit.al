@@ -25,7 +25,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     Permissions =
         tabledata "Qlty. Inspection Header" = Rim,
         tabledata "Qlty. Inspection Line" = Rim,
-        tabledata "Qlty. I. Grade Condition Conf." = RIM;
+        tabledata "Qlty. I. Result Condit. Conf." = RIM;
 
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -260,7 +260,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. I. Grade Condition Conf.", 'RIM', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Start Workflow", 'X', InherentPermissionsScope::Both)]
     local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
@@ -345,7 +345,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 QltyInspectionHeader.Modify(false);
             end;
 
-            QltyInspectionHeader.UpdateGradeFromLines();
+            QltyInspectionHeader.UpdateResultFromLines();
             QltyInspectionHeader.UpdateBrickFields();
 
             QltyInspectionHeader.SetIsCreating(true);
@@ -584,8 +584,8 @@ codeunit 20404 "Qlty. Inspection - Create"
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
-        QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         QltyInspectionTemplateLine.SetRange("Template Code", QltyInspectionHeader."Template Code");
         QltyInspectionTemplateLine.SetAutoCalcFields("Allowable Values");
@@ -604,7 +604,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 QltyInspectionLine."Allowable Values" := QltyInspectionTemplateLine."Allowable Values";
                 QltyInspectionLine."Unit of Measure Code" := QltyInspectionTemplateLine."Unit of Measure Code";
                 QltyInspectionLine.Insert();
-                QltyGradeConditionMgmt.CopyGradeConditionsFromTemplateToInspection(QltyInspectionTemplateLine, QltyInspectionLine);
+                QltyResultConditionMgmt.CopyResultConditionsFromTemplateToInspection(QltyInspectionTemplateLine, QltyInspectionLine);
                 QltyInspectionHeader.SetPreventAutoAssignment(true);
             until QltyInspectionTemplateLine.Next() = 0;
 
@@ -613,7 +613,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         if QltyInspectionLine.FindSet(true) then
             repeat
-                if QltyGradeEvaluation.TryValidateQltyInspectionLine(QltyInspectionLine, QltyInspectionHeader) then begin
+                if QltyResultEvaluation.TryValidateQltyInspectionLine(QltyInspectionLine, QltyInspectionHeader) then begin
                     QltyInspectionLine.Modify(true);
                     QltyInspectionHeader.Modify(true);
                 end;
@@ -751,7 +751,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         CreatedReinspectionQltyInspectionHeader.Status := CreatedReinspectionQltyInspectionHeader.Status::Open;
         CreatedReinspectionQltyInspectionHeader."Finished By User ID" := '';
         CreatedReinspectionQltyInspectionHeader."Finished Date" := 0DT;
-        CreatedReinspectionQltyInspectionHeader.Validate("Grade Code", '');
+        CreatedReinspectionQltyInspectionHeader.Validate("Result Code", '');
     end;
 
     /// <summary>

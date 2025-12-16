@@ -14,12 +14,12 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
     {
         addafter(QtyAvailable)
         {
-            field(QltyInspectionGradeDescription; MostRecentQltyGradeDescription)
+            field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
             {
                 AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
-                Caption = 'Quality Grade';
-                ToolTip = 'Specifies the most recent grade for this lot number.';
+                Caption = 'Quality Result';
+                ToolTip = 'Specifies the most recent result for this lot number.';
                 Editable = false;
 
                 trigger OnDrillDown()
@@ -47,13 +47,13 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
     }
 
     var
-        MostRecentQltyGradeDescription: Text;
+        MostRecentQltyResultDescription: Text;
 
     trigger OnAfterGetRecord()
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
-        DummyGradeCode: Code[20];
+        DummyResultCode: Code[20];
     begin
-        QltyItemTracking.GetMostRecentGradeFor(Rec."Item No.", Rec."Variant Code Filter", Rec."Lot No.", Rec."Serial No.", Rec."Package No.", DummyGradeCode, MostRecentQltyGradeDescription);
+        QltyItemTracking.GetMostRecentResultFor(Rec."Item No.", Rec."Variant Code Filter", Rec."Lot No.", Rec."Serial No.", Rec."Package No.", DummyResultCode, MostRecentQltyResultDescription);
     end;
 }

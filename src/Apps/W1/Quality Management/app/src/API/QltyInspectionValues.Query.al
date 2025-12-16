@@ -53,8 +53,8 @@ query 20401 "Qlty. Inspection Values"
             {
                 Method = Year;
             }
-            column(gradeCode; "Grade Code") { }
-            column(gradeDescription; "Grade Description") { }
+            column(resultCode; "Result Code") { }
+            column(resultDescription; "Result Description") { }
             column(sourceItemNo; "Source Item No.") { }
             column(sourceVariantCode; "Source Variant Code") { }
             column(sourceLotNo; "Source Lot No.") { }
@@ -90,7 +90,7 @@ query 20401 "Qlty. Inspection Values"
                 {
                     Caption = 'lineFieldType', Locked = true;
                 }
-                column(lineGradeCode; "Grade Code") { }
+                column(lineResultCode; "Result Code") { }
                 column(lineNumericValue; "Numeric Value") { }
                 column(lineTestValue; "Test Value") { }
                 column(lineSystemModifiedBy; SystemModifiedBy) { }

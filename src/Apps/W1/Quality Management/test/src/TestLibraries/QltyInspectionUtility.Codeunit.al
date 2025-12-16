@@ -34,7 +34,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         LibraryAssert: Codeunit "Library Assert";
         LibraryUtility: Codeunit "Library - Utility";
         NoSeriesCodeunit: Codeunit "No. Series";
-        DefaultGrade2PassCodeLbl: Label 'PASS', Locked = true;
+        DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
 
     procedure EnsureSetup()
     var
@@ -153,7 +153,7 @@ codeunit 139950 "Qlty. Inspection Utility"
 
     procedure CreateField(var QltyField: Record "Qlty. Field"; QltyFieldType: Enum "Qlty. Field Type")
     var
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
         ToFieldRecordRef: RecordRef;
     begin
         Clear(QltyField);
@@ -165,14 +165,14 @@ codeunit 139950 "Qlty. Inspection Utility"
         ToFieldRecordRef.SetTable(QltyField);
         QltyField.Insert();
 
-        if QltyInspectionGrade.Get(DefaultGrade2PassCodeLbl) then
+        if QltyInspectionResult.Get(DefaultResult2PassCodeLbl) then
             case QltyFieldType of
                 QltyFieldType::"Field Type Text", QltyFieldType::"Field Type Text Expression":
-                    QltyField.SetGradeCondition(DefaultGrade2PassCodeLbl, '<>HARDCODEDFAIL', true);
+                    QltyField.SetResultCondition(DefaultResult2PassCodeLbl, '<>HARDCODEDFAIL', true);
                 QltyFieldType::"Field Type Decimal", QltyFieldType::"Field Type Integer":
-                    QltyField.SetGradeCondition(DefaultGrade2PassCodeLbl, '<>-123', true);
+                    QltyField.SetResultCondition(DefaultResult2PassCodeLbl, '<>-123', true);
                 QltyFieldType::"Field Type Boolean":
-                    QltyField.SetGradeCondition(DefaultGrade2PassCodeLbl, '<>FALSE', true);
+                    QltyField.SetResultCondition(DefaultResult2PassCodeLbl, '<>FALSE', true);
             end;
     end;
 
@@ -589,22 +589,22 @@ codeunit 139950 "Qlty. Inspection Utility"
         ReclassWarehouseJournalLine.Modify(true);
     end;
 
-    procedure ClearGradeLotSettings(var QltyInspectionGrade: Record "Qlty. Inspection Grade")
+    procedure ClearResultLotSettings(var QltyInspectionResult: Record "Qlty. Inspection Result")
     begin
-        QltyInspectionGrade."Lot Allow Sales" := QltyInspectionGrade."Lot Allow Sales"::Allow;
-        QltyInspectionGrade."Lot Allow Assembly Consumption" := QltyInspectionGrade."Lot Allow Assembly Consumption"::Allow;
-        QltyInspectionGrade."Lot Allow Assembly Output" := QltyInspectionGrade."Lot Allow Assembly Output"::Allow;
-        QltyInspectionGrade."Lot Allow Consumption" := QltyInspectionGrade."Lot Allow Consumption"::Allow;
-        QltyInspectionGrade."Lot Allow Invt. Movement" := QltyInspectionGrade."Lot Allow Invt. Movement"::Allow;
-        QltyInspectionGrade."Lot Allow Invt. Pick" := QltyInspectionGrade."Lot Allow Invt. Pick"::Allow;
-        QltyInspectionGrade."Lot Allow Invt. Put-Away" := QltyInspectionGrade."Lot Allow Invt. Put-Away"::Allow;
-        QltyInspectionGrade."Lot Allow Movement" := QltyInspectionGrade."Lot Allow Movement"::Allow;
-        QltyInspectionGrade."Lot Allow Output" := QltyInspectionGrade."Lot Allow Output"::Allow;
-        QltyInspectionGrade."Lot Allow Pick" := QltyInspectionGrade."Lot Allow Pick"::Allow;
-        QltyInspectionGrade."Lot Allow Purchase" := QltyInspectionGrade."Lot Allow Purchase"::Allow;
-        QltyInspectionGrade."Lot Allow Put-Away" := QltyInspectionGrade."Lot Allow Put-Away"::Allow;
-        QltyInspectionGrade."Lot Allow Transfer" := QltyInspectionGrade."Lot Allow Transfer"::Allow;
-        QltyInspectionGrade.Modify();
+        QltyInspectionResult."Lot Allow Sales" := QltyInspectionResult."Lot Allow Sales"::Allow;
+        QltyInspectionResult."Lot Allow Assembly Consumption" := QltyInspectionResult."Lot Allow Assembly Consumption"::Allow;
+        QltyInspectionResult."Lot Allow Assembly Output" := QltyInspectionResult."Lot Allow Assembly Output"::Allow;
+        QltyInspectionResult."Lot Allow Consumption" := QltyInspectionResult."Lot Allow Consumption"::Allow;
+        QltyInspectionResult."Lot Allow Invt. Movement" := QltyInspectionResult."Lot Allow Invt. Movement"::Allow;
+        QltyInspectionResult."Lot Allow Invt. Pick" := QltyInspectionResult."Lot Allow Invt. Pick"::Allow;
+        QltyInspectionResult."Lot Allow Invt. Put-Away" := QltyInspectionResult."Lot Allow Invt. Put-Away"::Allow;
+        QltyInspectionResult."Lot Allow Movement" := QltyInspectionResult."Lot Allow Movement"::Allow;
+        QltyInspectionResult."Lot Allow Output" := QltyInspectionResult."Lot Allow Output"::Allow;
+        QltyInspectionResult."Lot Allow Pick" := QltyInspectionResult."Lot Allow Pick"::Allow;
+        QltyInspectionResult."Lot Allow Purchase" := QltyInspectionResult."Lot Allow Purchase"::Allow;
+        QltyInspectionResult."Lot Allow Put-Away" := QltyInspectionResult."Lot Allow Put-Away"::Allow;
+        QltyInspectionResult."Lot Allow Transfer" := QltyInspectionResult."Lot Allow Transfer"::Allow;
+        QltyInspectionResult.Modify();
     end;
 
     procedure ClearSetupTriggerDefaults(var QltyManagementSetup: Record "Qlty. Management Setup")

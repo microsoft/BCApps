@@ -7,9 +7,9 @@ namespace Microsoft.QualityManagement.Configuration.Result;
 /// <summary>
 /// What a condition configuration applies to.
 /// </summary>
-enum 20414 "Qlty. Grade Condition Type"
+enum 20414 "Qlty. Result Condition Type"
 {
-    Caption = 'Quality Grade Condition Type';
+    Caption = 'Quality Result Condition Type';
 
     value(0; Field)
     {

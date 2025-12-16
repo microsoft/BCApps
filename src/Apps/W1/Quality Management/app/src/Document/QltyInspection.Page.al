@@ -102,14 +102,14 @@ page 20406 "Qlty. Inspection"
                         Visible = false;
                         Editable = false;
                     }
-                    field("Grade Code"; Rec."Grade Code")
+                    field("Result Code"; Rec."Result Code")
                     {
                         Importance = Additional;
                     }
-                    field("Grade Description"; Rec."Grade Description")
+                    field("Result Description"; Rec."Result Description")
                     {
                     }
-                    field("Grade Priority"; Rec."Grade Priority")
+                    field("Result Priority"; Rec."Result Priority")
                     {
                         Importance = Additional;
                     }
@@ -908,9 +908,9 @@ page 20406 "Qlty. Inspection"
     begin
         if DataCaptionExpression = '' then begin
             if Rec."Source Item No." <> '' then
-                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Item No." + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Grade Description") + ' - ' + Format(Rec.Status))
+                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Item No." + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status))
             else
-                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Grade Description") + ' - ' + Format(Rec.Status));
+                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status));
         end else begin
             DataCaptionExpression := QltyExpressionMgmt.EvaluateTextExpression(DataCaptionExpression, Rec);
             exit(DataCaptionExpression);

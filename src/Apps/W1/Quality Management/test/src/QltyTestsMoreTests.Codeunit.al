@@ -50,9 +50,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         AttributeNameToValue: Dictionary of [Text, Text];
         MessageTxt: Text;
         TemplateCodeTok: Label 'TemplateCode', Locked = true;
-        GradeCodeTxt: Label 'UNAVAILABLE';
+        ResultCodeTxt: Label 'UNAVAILABLE';
         DefaultTopLeftTok: Label 'Inspection', Locked = true;
-        DefaultMiddleLeftTok: Label 'Grade', Locked = true;
+        DefaultMiddleLeftTok: Label 'Result', Locked = true;
         DefaultMiddleRightTok: Label 'Details', Locked = true;
         DefaultBottomLeftTok: Label 'Document', Locked = true;
         DefaultBottomRightTok: Label 'Status', Locked = true;
@@ -68,8 +68,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         VendorFilterCountryTok: Label 'WHERE(Country/Region Code=FILTER(CA))', Locked = true;
         VendorFilterNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Vendor No.', Locked = true;
-        ThereIsNoGradeErr: Label 'There is no grade called "%1". Please add the grade, or change the existing grade conditions.', Comment = '%1=the grade';
-        ReviewGradesErr: Label 'Advanced configuration required. Please review the grade configurations for field "%1", for grade "%2".', Comment = '%1=the field, %2=the grade';
+        ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
+        ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for field "%1", for result "%2".', Comment = '%1=the field, %2=the result';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.', Locked = true;
         FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of inspections. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
         ConditionFilterItemNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
@@ -78,7 +78,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         UnableToIdentifyTheItemErr: Label 'Unable to identify the item for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheTrackingErr: Label 'Unable to identify the tracking for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
-        DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
+        DefaultResult2PassCodeTok: Label 'PASS', Locked = true;
         ExpressionFormulaFieldCodeTok: Label '[%1]', Comment = '%1=The first field code', Locked = true;
         TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
@@ -347,100 +347,100 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure FieldTable_SetGradeCondition_CannotGetGrade_ShouldError()
+    procedure FieldTable_SetResultCondition_CannotGetResult_ShouldError()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyField: Record "Qlty. Field";
     begin
-        // [SCENARIO] Setting a grade condition should error if the grade does not exist and ThrowError is true
+        // [SCENARIO] Setting a result condition should error if the result does not exist and ThrowError is true
 
-        // [GIVEN] Any existing grade with code 'UNAVAILABLE' is deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, GradeCodeTxt);
-        if ToLoadQltyInspectionGrade.FindFirst() then
-            ToLoadQltyInspectionGrade.Delete();
+        // [GIVEN] Any existing result with code 'UNAVAILABLE' is deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
+        if ToLoadQltyInspectionResult.FindFirst() then
+            ToLoadQltyInspectionResult.Delete();
 
-        // [WHEN] Attempting to set a grade condition for a non-existent grade with ThrowError = true
-        asserterror ToLoadQltyField.SetGradeCondition(GradeCodeTxt, '', true);
+        // [WHEN] Attempting to set a result condition for a non-existent result with ThrowError = true
+        asserterror ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', true);
 
-        // [THEN] An error is raised indicating the grade does not exist
-        LibraryAssert.ExpectedError(StrSubstNo(ThereIsNoGradeErr, GradeCodeTxt));
+        // [THEN] An error is raised indicating the result does not exist
+        LibraryAssert.ExpectedError(StrSubstNo(ThereIsNoResultErr, ResultCodeTxt));
     end;
 
     [Test]
-    procedure FieldTable_SetGradeCondition_CannotGetGrade_ShouldExit()
+    procedure FieldTable_SetResultCondition_CannotGetResult_ShouldExit()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyField: Record "Qlty. Field";
     begin
-        // [SCENARIO] Setting a grade condition should exit gracefully if the grade does not exist and ThrowError is false
+        // [SCENARIO] Setting a result condition should exit gracefully if the result does not exist and ThrowError is false
 
-        // [GIVEN] Any existing grade with code 'UNAVAILABLE' is deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, GradeCodeTxt);
-        if ToLoadQltyInspectionGrade.FindFirst() then
-            ToLoadQltyInspectionGrade.Delete();
+        // [GIVEN] Any existing result with code 'UNAVAILABLE' is deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
+        if ToLoadQltyInspectionResult.FindFirst() then
+            ToLoadQltyInspectionResult.Delete();
 
-        // [WHEN] Attempting to set a grade condition for a non-existent grade with ThrowError = false
-        ToLoadQltyField.SetGradeCondition(GradeCodeTxt, '', false);
+        // [WHEN] Attempting to set a result condition for a non-existent result with ThrowError = false
+        ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', false);
 
         // [THEN] The operation exits gracefully without raising an error
     end;
 
     [Test]
-    procedure FieldTable_SetGradeCondition_CannotGetGradeConfig_ShouldError()
+    procedure FieldTable_SetResultCondition_CannotGetResultConfig_ShouldError()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToLoadQltyField: Record "Qlty. Field";
         FieldCodeTxt: Text;
     begin
-        // [SCENARIO] Setting a grade condition should error if the grade exists but has no configuration and ThrowError is true
+        // [SCENARIO] Setting a result condition should error if the result exists but has no configuration and ThrowError is true
 
-        // [GIVEN] A grade with code 'UNAVAILABLE' exists
-        ToLoadQltyInspectionGrade.SetRange(Code, GradeCodeTxt);
-        if not ToLoadQltyInspectionGrade.FindFirst() then begin
-            ToLoadQltyInspectionGrade.Validate(Code, GradeCodeTxt);
-            ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A result with code 'UNAVAILABLE' exists
+        ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
+        if not ToLoadQltyInspectionResult.FindFirst() then begin
+            ToLoadQltyInspectionResult.Validate(Code, ResultCodeTxt);
+            ToLoadQltyInspectionResult.Insert();
         end;
 
-        // [GIVEN] Any existing grade condition configurations for this grade are deleted
-        ToLoadQltyIGradeConditionConf.SetRange("Grade Code", GradeCodeTxt);
-        if ToLoadQltyIGradeConditionConf.FindSet() then
-            ToLoadQltyIGradeConditionConf.DeleteAll();
+        // [GIVEN] Any existing result condition configurations for this result are deleted
+        ToLoadQltyIResultConditConf.SetRange("Result Code", ResultCodeTxt);
+        if ToLoadQltyIResultConditConf.FindSet() then
+            ToLoadQltyIResultConditConf.DeleteAll();
 
         // [GIVEN] A random field code is generated and a field is created
         QltyInspectionUtility.GenerateRandomCharacters(20, FieldCodeTxt);
         ToLoadQltyField.Validate(Code, CopyStr(FieldCodeTxt, 1, MaxStrLen(ToLoadQltyField.Code)));
 
-        // [WHEN] Attempting to set a grade condition with no configuration and ThrowError = true
-        asserterror ToLoadQltyField.SetGradeCondition(GradeCodeTxt, '', true);
+        // [WHEN] Attempting to set a result condition with no configuration and ThrowError = true
+        asserterror ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', true);
 
-        // [THEN] An error is raised indicating the grade configuration needs review
-        LibraryAssert.ExpectedError(StrSubstNo(ReviewGradesErr, FieldCodeTxt, GradeCodeTxt));
+        // [THEN] An error is raised indicating the result configuration needs review
+        LibraryAssert.ExpectedError(StrSubstNo(ReviewResultsErr, FieldCodeTxt, ResultCodeTxt));
     end;
 
     [Test]
-    procedure FieldTable_SetGradeCondition_CannotGetGradeConfig_ShouldExit()
+    procedure FieldTable_SetResultCondition_CannotGetResultConfig_ShouldExit()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToLoadQltyField: Record "Qlty. Field";
     begin
-        // [SCENARIO] Setting a grade condition should exit gracefully if the grade exists but has no configuration and ThrowError is false
+        // [SCENARIO] Setting a result condition should exit gracefully if the result exists but has no configuration and ThrowError is false
 
-        // [GIVEN] A grade with code 'UNAVAILABLE' exists
-        ToLoadQltyInspectionGrade.SetRange(Code, GradeCodeTxt);
-        if not ToLoadQltyInspectionGrade.FindFirst() then begin
-            ToLoadQltyInspectionGrade.Validate(Code, GradeCodeTxt);
-            ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A result with code 'UNAVAILABLE' exists
+        ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
+        if not ToLoadQltyInspectionResult.FindFirst() then begin
+            ToLoadQltyInspectionResult.Validate(Code, ResultCodeTxt);
+            ToLoadQltyInspectionResult.Insert();
         end;
 
-        // [GIVEN] Any existing grade condition configurations for this grade are deleted
-        ToLoadQltyIGradeConditionConf.SetRange("Grade Code", GradeCodeTxt);
-        if ToLoadQltyIGradeConditionConf.FindSet() then
-            ToLoadQltyIGradeConditionConf.DeleteAll();
+        // [GIVEN] Any existing result condition configurations for this result are deleted
+        ToLoadQltyIResultConditConf.SetRange("Result Code", ResultCodeTxt);
+        if ToLoadQltyIResultConditConf.FindSet() then
+            ToLoadQltyIResultConditConf.DeleteAll();
 
-        // [WHEN] Attempting to set a grade condition with no configuration and ThrowError = false
-        ToLoadQltyField.SetGradeCondition(GradeCodeTxt, '', false);
+        // [WHEN] Attempting to set a result condition with no configuration and ThrowError = false
+        ToLoadQltyField.SetResultCondition(ResultCodeTxt, '', false);
 
         // [THEN] The operation exits gracefully without raising an error
     end;
@@ -654,7 +654,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [THEN] Brick Top Left Header is set to default value 'Test'
         LibraryAssert.AreEqual(DefaultTopLeftTok, QltyManagementSetup."Brick Top Left Header", 'Top left header should be default value');
 
-        // [THEN] Brick Middle Left Header is set to default value 'Grade'
+        // [THEN] Brick Middle Left Header is set to default value 'Result'
         LibraryAssert.AreEqual(DefaultMiddleLeftTok, QltyManagementSetup."Brick Middle Left Header", 'Middle left header should be default value');
 
         // [THEN] Brick Middle Right Header is set to default value 'Details'
@@ -1689,13 +1689,13 @@ codeunit 139965 "Qlty. Tests - More Tests"
     [Test]
     procedure LineTable_OnDelete()
     var
-        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        // [SCENARIO] OnDelete trigger removes associated grade condition configurations
+        // [SCENARIO] OnDelete trigger removes associated result condition configurations
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1711,29 +1711,29 @@ codeunit 139965 "Qlty. Tests - More Tests"
         until QltyInspectionLine.Next() = 0;
         LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, there should be an inspection line.');
 
-        Clear(ToLoadQltyIGradeConditionConf);
-        ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Inspection);
-        ToLoadQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionHeader."No.");
-        ToLoadQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        QltyInspectionGrade.SetRange("Copy Behavior", QltyInspectionGrade."Copy Behavior"::"Automatically copy the grade");
+        Clear(ToLoadQltyIResultConditConf);
+        ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Inspection);
+        ToLoadQltyIResultConditConf.SetRange("Target Code", QltyInspectionHeader."No.");
+        ToLoadQltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
         LibraryAssert.AreEqual(
-            1 * (QltyInspectionGrade.Count() * QltyInspectionLine.Count()),
-            ToLoadQltyIGradeConditionConf.Count(),
-            'Should be at least one grade condition config per field per grade');
+            1 * (QltyInspectionResult.Count() * QltyInspectionLine.Count()),
+            ToLoadQltyIResultConditConf.Count(),
+            'Should be at least one result condition config per field per result');
 
         // [WHEN] The inspection line is deleted
         QltyInspectionLine.Delete(true);
 
-        // [THEN] All associated grade condition configurations are deleted
-        Clear(ToLoadQltyIGradeConditionConf);
-        ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Inspection);
-        ToLoadQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionHeader."No.");
-        ToLoadQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
-        ToLoadQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        LibraryAssert.AreEqual(0, ToLoadQltyIGradeConditionConf.Count(), 'Should be no grade condition config lines for the inspection line.');
-        ToLoadQltyIGradeConditionConf.SetRange("Target Line No.");
+        // [THEN] All associated result condition configurations are deleted
+        Clear(ToLoadQltyIResultConditConf);
+        ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Inspection);
+        ToLoadQltyIResultConditConf.SetRange("Target Code", QltyInspectionHeader."No.");
+        ToLoadQltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        ToLoadQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        LibraryAssert.AreEqual(0, ToLoadQltyIResultConditConf.Count(), 'Should be no result condition config lines for the inspection line.');
+        ToLoadQltyIResultConditConf.SetRange("Target Line No.");
         QltyInspectionHeader.Delete(true);
-        LibraryAssert.AreEqual(0, ToLoadQltyIGradeConditionConf.Count(), 'Should be no grade condition config lines for the inspection.');
+        LibraryAssert.AreEqual(0, ToLoadQltyIResultConditConf.Count(), 'Should be no result condition config lines for the inspection.');
     end;
 
     [Test]
@@ -1921,7 +1921,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateFieldAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, TextExpressionQltyField, TextExpressionQltyField."Field Type"::"Field Type Text Expression");
 
         // [GIVEN] The text expression field is configured to reference the text field
-        TextExpressionQltyField.SetGradeCondition(DefaultGrade2PassCodeTok, StrSubstNo(ExpressionFormulaFieldCodeTok, TextQltyField.Code), true);
+        TextExpressionQltyField.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaFieldCodeTok, TextQltyField.Code), true);
         TextExpressionQltyField.Modify();
         ExpressionQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ExpressionQltyInspectionTemplateLine.SetRange("Field Code", TextExpressionQltyField.Code);

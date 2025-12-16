@@ -7,9 +7,9 @@ namespace Microsoft.QualityManagement.Configuration.Result;
 /// <summary>
 /// A general categorization of whether this result represents good or bad.
 /// </summary>
-enum 20434 "Qlty. Grade Category"
+enum 20434 "Qlty. Result Category"
 {
-    Caption = 'Quality Grade Category';
+    Caption = 'Quality Result Category';
 
     value(0; Uncategorized)
     {

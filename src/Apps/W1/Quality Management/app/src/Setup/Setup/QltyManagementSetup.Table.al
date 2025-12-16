@@ -525,12 +525,12 @@ table 20400 "Qlty. Management Setup"
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
         DefaultTopLeftExpressionTxt: Label '[No.] [Reinspection No.]', Locked = true;
-        DefaultMiddleLeftExpressionTxt: Label '[Grade Description]', Locked = true;
+        DefaultMiddleLeftExpressionTxt: Label '[Result Description]', Locked = true;
         DefaultMiddleRightExpressionTxt: Label '[Description] [Source Item No.] [Source Lot No.]  [Source Serial No.]', Locked = true;
         DefaultBottomLeftExpressionTxt: Label '[Source Document No.]', Locked = true;
         DefaultBottomRightExpressionTxt: Label '[Status] [Finished Date]', Locked = true;
         DefaultTopLeftLbl: Label 'Inspection', Locked = true;
-        DefaultMiddleLeftLbl: Label 'Grade', Locked = true;
+        DefaultMiddleLeftLbl: Label 'Result', Locked = true;
         DefaultMiddleRightLbl: Label 'Details', Locked = true;
         DefaultBottomLeftLbl: Label 'Document', Locked = true;
         DefaultBottomRightLabelLbl: Label 'Status', Locked = true;
