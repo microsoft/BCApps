@@ -7,6 +7,7 @@ namespace Microsoft.Peppol.Test;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
@@ -26,6 +27,7 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using System.Environment.Configuration;
 using System.Utilities;
@@ -624,6 +626,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
 
         CompanyInfo.Get();
         CountryRegion.Get(CompanyInfo."Country/Region Code");
+        DummySalesHeader."Bill-to Country/Region Code" := CompanyInfo."Country/Region Code";
 
         // Exercise
         PEPPOLPartyInfoProvider := GetFormat();
@@ -701,6 +704,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CountryRegion.Modify(false);
 
         DummySalesHeader."VAT Registration No." := LibraryUtility.GenerateGUID();
+        DummySalesHeader."Bill-to Country/Region Code" := CompanyInfo."Country/Region Code";
 
         // Exercise
         PEPPOLPartyInfoProvider := GetFormat();
@@ -1222,6 +1226,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CreateItemWithPrice(Item, 10);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Cust."No.");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+
+
 
         SalesLine.SetRecFilter();
         SalesLine.SetRange("Line No.");
@@ -1761,6 +1767,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
     procedure GetLineAllowanceChargeInfo()
     var
         CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        GenPostingSetup: Record "General Posting Setup";
         Cust: Record Customer;
         Item: Record Item;
         SalesHeader: Record "Sales Header";
@@ -1796,6 +1803,9 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.SetRecFilter();
         SalesLine.SetRange("Line No.");
         CODEUNIT.Run(CODEUNIT::"Sales-Calc. Discount", SalesLine);
+
+        // Ensure that Sales Invoice Discount Account is set to a valid G/L Account
+        GenPostingSetup.ModifyAll("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo());
 
         SalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
         SalesInvoiceLine.Get(SalesInvoiceNo, SalesLine."Line No.");
@@ -3326,7 +3336,9 @@ codeunit 139235 "PEPPOL30 Management Tests"
 
     var
     local procedure Initialize()
+    var
         CountryRegion: Record "Country/Region";
+        GenPostingSetup: Record "General Posting Setup";
     begin
         LibrarySetupStorage.Restore();
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"PEPPOL30 Management Tests");
@@ -3363,6 +3375,9 @@ codeunit 139235 "PEPPOL30 Management Tests"
         UpdateElectronicDocumentFormatSetup();
         LibraryService.SetupServiceMgtNoSeries();
         LibrarySetupStorage.Save(DATABASE::"Company Information");
+
+        GenPostingSetup.ModifyAll("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo());
+        GenPostingSetup.ModifyAll("Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
 
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"PEPPOL30 Management Tests");
@@ -3660,7 +3675,17 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Customer: Record Customer;
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
+        ServMgtSetup: Record "Service Mgt. Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
     begin
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
+        GenJournalTemplate.Modify(false);
+        ServMgtSetup.GetRecordOnce();
+        ServMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
+        ServMgtSetup."Serv. Cr. Memo Templ. Name" := GenJournalTemplate.Name;
+        ServMgtSetup.Modify(false);
+
         LibrarySales.CreateCustomerWithAddress(Customer);
         AddCustPEPPOLIdentifier(Customer."No.");
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
