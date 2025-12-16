@@ -1457,7 +1457,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.AreEqual(QltyInspectionHeader."Source Quantity (Base)", QltyInspectionHeader."Pass Quantity" + QltyInspectionHeader."Fail Quantity", 'The source quantity should match the total of the pass and fail quantity.');
     end;
 
-
     [Test]
     procedure Table_ValidateFailQuantity()
     var
