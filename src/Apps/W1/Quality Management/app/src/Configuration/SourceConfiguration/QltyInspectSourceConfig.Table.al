@@ -101,7 +101,7 @@ table 20407 "Qlty. Inspect. Source Config."
         }
         field(7; "To Type"; Enum "Qlty. Target Type")
         {
-            InitValue = Test;
+            InitValue = Inspection;
             Caption = 'To Type';
             ToolTip = 'Specifies whether this connects to an inspection, or a chained table.';
 

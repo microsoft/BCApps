@@ -88,9 +88,9 @@ page 20445 "Qlty. Field Lookup"
                 field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
-                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording tests and will show up on the Certificate of Analysis.';
+                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     AboutTitle = 'Grade Condition Description';
-                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording tests and will show up on the Certificate of Analysis.';
+                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible1;
                     Editable = Visible1;
 
@@ -116,9 +116,9 @@ page 20445 "Qlty. Field Lookup"
                 field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
-                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording tests and will show up on the Certificate of Analysis.';
+                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     AboutTitle = 'Grade Condition Description';
-                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording tests and will show up on the Certificate of Analysis.';
+                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible2;
                     Editable = Visible2;
 
@@ -145,9 +145,9 @@ page 20445 "Qlty. Field Lookup"
                 {
                     CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
                     Editable = true;
-                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording tests and will show up on the Certificate of Analysis.';
+                    ToolTip = 'Specifies a description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     AboutTitle = 'Grade Condition Description';
-                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording tests and will show up on the Certificate of Analysis.';
+                    AboutText = 'A description for people of this grade condition. If you had a grade of Pass being 80 to 100, you would put in text describing this. This text will be visible when recording inspections and will show up on the Certificate of Analysis.';
                     Visible = Visible3;
 
                     trigger OnValidate()

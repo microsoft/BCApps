@@ -2016,40 +2016,40 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [WHEN] ValidateTestLine is called with blank value
         NumericMeasureQltyInspectionLine."Test Value" := '';
         NumericMeasureQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLine(NumericMeasureQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
         // [THEN] Grade is INPROGRESS for blank value
         LibraryAssert.AreEqual('INPROGRESS', NumericMeasureQltyInspectionLine."Grade Code", 'blank value');
 
         // [THEN] ValidateTestLineWithAllowableValues also returns INPROGRESS for blank value
         NumericMeasureQltyInspectionLine."Test Value" := '';
         NumericMeasureQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
+        QltyGradeEvaluation.ValidateInspectionLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.AreEqual('INPROGRESS', NumericMeasureQltyInspectionLine."Grade Code", 'blank value with testing allowable values.');
 
         // [THEN] Value 6 (minimum of grade range) evaluates to PASS
         NumericMeasureQltyInspectionLine."Test Value" := '6';
         NumericMeasureQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLine(NumericMeasureQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
         LibraryAssert.AreEqual('PASS', NumericMeasureQltyInspectionLine."Grade Code", 'min value inspection line grade');
 
         // [THEN] Value 7.0001 (exceeding maximum) evaluates to FAIL
         NumericMeasureQltyInspectionLine."Test Value" := '7.0001';
         NumericMeasureQltyInspectionLine.Modify();
 
-        QltyGradeEvaluation.ValidateTestLine(NumericMeasureQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
         LibraryAssert.AreEqual('FAIL', NumericMeasureQltyInspectionLine."Grade Code", 'slightly exceeding max inspection line grade');
-        QltyGradeEvaluation.ValidateTestLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
+        QltyGradeEvaluation.ValidateInspectionLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.AreEqual('FAIL', NumericMeasureQltyInspectionLine."Grade Code", 'slightly exceeding max inspection line grade');
 
         // [THEN] Value 5.999999 (below minimum) evaluates to FAIL
         NumericMeasureQltyInspectionLine."Test Value" := '5.999999';
         NumericMeasureQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLine(NumericMeasureQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
         LibraryAssert.AreEqual('FAIL', NumericMeasureQltyInspectionLine."Grade Code", 'slightly before min inspection line grade');
         // [THEN] Value 6.999999 (near maximum) evaluates to PASS
         NumericMeasureQltyInspectionLine."Test Value" := '6.999999';
         NumericMeasureQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLine(NumericMeasureQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
 
         LibraryAssert.AreEqual('PASS', NumericMeasureQltyInspectionLine."Grade Code", 'slightly before min inspection line grade');
 
@@ -2058,7 +2058,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         NumericMeasureQltyInspectionLine.Modify(false);
 
         ClearLastError();
-        asserterror QltyGradeEvaluation.ValidateTestLine(NumericMeasureQltyInspectionLine);
+        asserterror QltyGradeEvaluation.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
 
         LibraryAssert.ExpectedError(StrSubstNo(Expected3Err, NumericMeasureQltyInspectionLine."Description"));
     end;
@@ -2143,39 +2143,39 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [WHEN] ValidateTestLine is called with blank value
         OptionListQltyInspectionLine."Test Value" := '';
         OptionListQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLine(OptionListQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(OptionListQltyInspectionLine);
         // [THEN] Grade is INPROGRESS for blank value
         LibraryAssert.AreEqual('INPROGRESS', OptionListQltyInspectionLine."Grade Code", 'blank value');
 
         // [THEN] ValidateTestLineWithAllowableValues also returns INPROGRESS for blank value
         OptionListQltyInspectionLine."Test Value" := '';
         OptionListQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
+        QltyGradeEvaluation.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.AreEqual('INPROGRESS', OptionListQltyInspectionLine."Grade Code", 'blank value with testing allowable values.');
 
         // [THEN] Value 'C' (first PASS option in template condition) evaluates to PASS
         OptionListQltyInspectionLine."Test Value" := 'C';
         OptionListQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLine(OptionListQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(OptionListQltyInspectionLine);
         LibraryAssert.AreEqual('PASS', OptionListQltyInspectionLine."Grade Code", 'one of 2 options');
 
         // [THEN] Value 'D' (second PASS option in template condition) evaluates to PASS
         OptionListQltyInspectionLine."Test Value" := 'D';
         OptionListQltyInspectionLine.Modify();
-        QltyGradeEvaluation.ValidateTestLine(OptionListQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(OptionListQltyInspectionLine);
         LibraryAssert.AreEqual('PASS', OptionListQltyInspectionLine."Grade Code", 'two of two options.');
 
         // [THEN] Value 'A' (in allowable values but not in template PASS condition) evaluates to FAIL
         OptionListQltyInspectionLine."Test Value" := 'A';
         OptionListQltyInspectionLine.Modify();
 
-        QltyGradeEvaluation.ValidateTestLine(OptionListQltyInspectionLine);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(OptionListQltyInspectionLine);
         LibraryAssert.AreEqual('FAIL', OptionListQltyInspectionLine."Grade Code", 'allowed but failing.');
 
         // [THEN] Value 'F' (not in allowable values) causes an error
         ClearLastError();
         OptionListQltyInspectionLine."Test Value" := 'F';
-        asserterror QltyGradeEvaluation.ValidateTestLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
+        asserterror QltyGradeEvaluation.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);
         LibraryAssert.ExpectedError(StrSubstNo(Expected4Err, OptionListQltyInspectionLine."Field Code"));
     end;
 

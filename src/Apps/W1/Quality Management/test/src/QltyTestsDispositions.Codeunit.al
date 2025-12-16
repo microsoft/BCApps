@@ -1803,7 +1803,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] The test generation rule and journal batch are then deleted to trigger the error condition
+        // [GIVEN] The inspection generation rule and journal batch are then deleted to trigger the error condition
         QltyInspectionGenRule.Delete();
         ItemJournalBatch.Delete();
 
@@ -1862,7 +1862,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup."Whse. Adjustment Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] The test generation rule and journal batch are then deleted to trigger the error condition
+        // [GIVEN] The inspection generation rule and journal batch are then deleted to trigger the error condition
         QltyInspectionGenRule.Delete();
         WarehouseJournalBatch.Delete();
 
@@ -3813,7 +3813,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Validate that no warehouse journal lines are created when no inventory is found at the filtered location
 
-        // [GIVEN] Quality management setup and test generation rule are initialized
+        // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
@@ -3876,7 +3876,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Validate that an error is raised when attempting lot disposition without specifying new tracking information
 
-        // [GIVEN] Quality management setup and test generation rule are initialized
+        // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
@@ -4038,7 +4038,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create a direct transfer order for untracked items from a non-directed location with bins
 
-        // [GIVEN] Quality management setup and test generation rule are initialized
+        // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetup();
         EnsureInspectionTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -4110,7 +4110,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create, release, and post a direct transfer order for untracked items
 
-        // [GIVEN] Quality management setup and test generation rule are initialized
+        // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetup();
         EnsureInspectionTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -4191,7 +4191,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create an in-transit transfer order for lot-tracked items with variants
 
-        // [GIVEN] Quality management setup and test generation rule are initialized
+        // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
@@ -4284,7 +4284,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create an in-transit transfer order for lot-tracked items in a directed pick and put location
 
-        // [GIVEN] Quality management setup and test generation rule for warehouse entry are initialized
+        // [GIVEN] Quality management setup and inspection generation rule for warehouse entry are initialized
         QltyInspectionUtility.EnsureSetup();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
 

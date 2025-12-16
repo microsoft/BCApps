@@ -218,7 +218,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// - InspectionGenerationRuleDataItemTok: XPath to the DataItem node
     /// - DataItemOfInspectionGenerationRuleTok: The name attribute value of the DataItem
     /// </summary>
-    /// <param name="FilterOfQltyInspectionGenRule">The test generation rule record with filters applied (only filter view is used, not data)</param>
+    /// <param name="FilterOfQltyInspectionGenRule">The inspection generation rule record with filters applied (only filter view is used, not data)</param>
     /// <returns>XML string containing the report parameters suitable for job queue entry storage</returns>
     local procedure GetXmlFilterContents(var FilterOfQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule") XmlOfReportParameters: Text
     var
@@ -275,7 +275,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// 1. Find all job queue entries running Report "Qlty. Schedule Inspection" (20412)
     /// 2. For each entry, parse the XML report parameters
     /// 3. Extract the filter view string from the DataItem node (XPath: InspectionGenerationRuleDataItemTok)
-    /// 4. Clean and apply the filter view to a temporary test generation rule record
+    /// 4. Clean and apply the filter view to a temporary inspection generation rule record
     /// 5. Check if the "Schedule Group" filter matches the requested schedule group
     /// 6. Mark matching job queue entries and build ID filter
     /// 7. Return marked entries with ID filter applied

@@ -284,7 +284,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     }
 
     var
-        TriggerNotActiveConfirmQst: Label 'You have set an automatic trigger but the test generation rule activation is set to "%1". Do you want to update the activation trigger to "%2?"', Comment = '%1=current activation trigger,%2=proposed activation trigger';
+        TriggerNotActiveConfirmQst: Label 'You have set an automatic trigger but the inspection generation rule activation is set to "%1". Do you want to update the activation trigger to "%2?"', Comment = '%1=current activation trigger,%2=proposed activation trigger';
         RuleCurrentlyDisabledLbl: Label 'The generation rule Sort Order %1, Template Code %2 is currently disabled. It will need to have an activation trigger of "Automatic Only" or "Manual or Automatic" before it will be triggered by "%3"', Comment = '%1=generation rule sort order,%2=generation rule template code,%3=auto trigger';
         DefaultScheduleGroupLbl: Label 'QM', Locked = true;
         ChooseTemplateFirstErr: Label 'Please choose the template first.';

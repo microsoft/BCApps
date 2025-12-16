@@ -196,7 +196,7 @@ page 20406 "Qlty. Inspection"
                         ToolTip = 'Specifies the ID of the user who last modified the test.';
                     }
                 }
-                field("Existing Quality Tests This Record"; Rec."Existing Inspections This Record")
+                field("Existing Quality Tests This Record"; Rec."Existing Inspections This Rec.")
                 {
                     Importance = Additional;
                 }

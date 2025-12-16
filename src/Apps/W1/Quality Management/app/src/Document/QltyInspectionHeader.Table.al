@@ -345,7 +345,7 @@ table 20405 "Qlty. Inspection Header"
                     end
             end;
         }
-        field(42; "Existing Inspections This Record"; Integer)
+        field(42; "Existing Inspections This Rec."; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where("Source Table No." = field("Source Table No."),
                                                                 "Source Type" = field("Source Type"),

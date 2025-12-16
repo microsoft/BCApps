@@ -240,7 +240,7 @@ table 20406 "Qlty. Inspection Line"
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
     begin
         GetTest();
-        QltyGradeEvaluation.ValidateTestLine(Rec, QltyInspectionHeader, true);
+        QltyGradeEvaluation.ValidateQltyInspectionLine(Rec, QltyInspectionHeader, true);
     end;
 
     local procedure GetTest(): Boolean

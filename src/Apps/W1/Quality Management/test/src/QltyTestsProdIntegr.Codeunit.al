@@ -1083,7 +1083,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
+        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
         QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
@@ -1148,7 +1148,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
+        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
         QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
@@ -1207,7 +1207,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
+        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
         QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
@@ -1272,7 +1272,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Test generation rule has Production Trigger set to OnProductionOrderRelease
+        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
         QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
@@ -1940,7 +1940,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ItemJournalBatch.Modify();
         LibraryAssembly.AddCompInventory(AssemblyHeader, WorkDate(), 0);
 
-        // [GIVEN] Test generation rule has Assembly Trigger set to OnAssemblyOutputPost
+        // [GIVEN] Inspection generation rule has Assembly Trigger set to OnAssemblyOutputPost
         QltyInspectionGenRule."Assembly Trigger" := QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost;
         QltyInspectionGenRule.Modify();
 
@@ -2017,7 +2017,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssembly.CreateAssemblyOrder(AssemblyHeader, WorkDate(), Location.Code, 2);
         LibraryAssembly.AddCompInventory(AssemblyHeader, WorkDate(), 0);
 
-        // [GIVEN] Test generation rule has Assembly Trigger set to OnAssemblyOutputPost
+        // [GIVEN] Inspection generation rule has Assembly Trigger set to OnAssemblyOutputPost
         QltyInspectionGenRule."Assembly Trigger" := QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost;
         QltyInspectionGenRule.Modify();
 

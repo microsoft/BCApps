@@ -73,7 +73,7 @@ report 20412 "Qlty. Schedule Inspection"
         CreatedQltyInspectionIds: List of [Code[20]];
         ZeroInspectionsCreatedMsg: Label 'No tests were created.';
         SomeInspectionsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
-        ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the test generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive test generation. ';
+        ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the inspection generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive test generation. ';
 
     trigger OnInitReport()
     begin

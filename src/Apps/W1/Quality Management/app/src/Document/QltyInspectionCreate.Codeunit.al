@@ -613,7 +613,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
         if QltyInspectionLine.FindSet(true) then
             repeat
-                if QltyGradeEvaluation.TryValidateTestLine(QltyInspectionLine, QltyInspectionHeader) then begin
+                if QltyGradeEvaluation.TryValidateQltyInspectionLine(QltyInspectionLine, QltyInspectionHeader) then begin
                     QltyInspectionLine.Modify(true);
                     QltyInspectionHeader.Modify(true);
                 end;
