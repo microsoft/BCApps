@@ -2467,7 +2467,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
@@ -2552,7 +2551,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
@@ -2626,7 +2624,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
