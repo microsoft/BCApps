@@ -10,7 +10,7 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Journal;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Assembly;
@@ -50,13 +50,13 @@ table 20400 "Qlty. Management Setup"
         field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
         {
             Caption = 'Create Inspection Behavior';
-            ToolTip = 'Specifies the behavior of when to create a new Quality Inspection when existing tests occur.';
+            ToolTip = 'Specifies the behavior of when to create a new Quality Inspection when existing inspections occur.';
         }
         field(5; "Find Existing Behavior"; Enum "Qlty. Find Existing Behavior")
         {
             Caption = 'Find Existing Behavior';
-            Description = 'When looking for existing tests, this defines what it looks for.';
-            ToolTip = 'Specifies what criteria the system looks for when searching for existing tests.';
+            Description = 'When looking for existing inspections, this defines what it looks for.';
+            ToolTip = 'Specifies what criteria the system looks for when searching for existing inspections.';
         }
         field(6; "Certificate Contact No."; Code[20])
         {
@@ -535,7 +535,7 @@ table 20400 "Qlty. Management Setup"
         DefaultBottomLeftLbl: Label 'Document', Locked = true;
         DefaultBottomRightLabelLbl: Label 'Status', Locked = true;
         ExcludeBrickFieldTok: Label '<>Brick*', Locked = true;
-        MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg: Label 'The mobile fields have been updated for all existing tests.';
+        MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg: Label 'The mobile fields have been updated for all existing inspections.';
 
     trigger OnInsert()
     begin
@@ -638,7 +638,7 @@ table 20400 "Qlty. Management Setup"
     end;
 
     /// <summary>
-    /// UpdateBrickFieldsOnAllExistingInspection will update the brick fields on all existing tests.
+    /// UpdateBrickFieldsOnAllExistingInspection will update the brick fields on all existing inspections.
     /// Use this if you need to adjust the brick summary on all tests.
     /// </summary>
     procedure UpdateBrickFieldsOnAllExistingInspection()

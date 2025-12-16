@@ -180,7 +180,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// Updates source records for tests where the source is a production order
+    /// Updates source records for inspections where the source is a production order
     /// </summary>
     /// <param name="OldProductionOrder"></param>
     /// <param name="NewProductionOrder"></param>
@@ -231,7 +231,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// Updates tests where the source is a production order line
+    /// Updates inspections where the source is a production order line
     /// </summary>
     /// <param name="OldProdOrderLine"></param>
     /// <param name="NewProdOrderLine"></param>
@@ -282,7 +282,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// Updates tests where the source is a production order routing line
+    /// Updates inspections where the source is a production order routing line
     /// </summary>
     /// <param name="OldProdOrderRoutingLine"></param>
     /// <param name="NewProdOrderRoutingLine"></param>
@@ -562,7 +562,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <summary>
     /// OnBeforeProductionAttemptCreatePostAutomaticTest is called before attempting to automatically create an inspection for production related events prior to posting to posting.
     /// </summary>
-    /// <param name="ProdOrderRoutingLine">Typically the 'main' record the tests are associated against.</param>
+    /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
     /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
@@ -575,7 +575,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <summary>
     /// OnAfterProductionAttemptCreateAutomaticTest is called after attempting to automatically create an inspection for production.
     /// </summary>
-    /// <param name="ProdOrderRoutingLine">Typically the 'main' record the tests are associated against.</param>
+    /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
     /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
@@ -596,13 +596,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
     /// <summary>
     /// OnAfterProductionAttemptCreateReleaseAutomaticTest is called before attempting to automatically create an inspection for production related releasing.
-    /// Use this if you need to collect multiple tests that could be created as part of a posting sequence.
+    /// Use this if you need to collect multiple inspections that could be created as part of a posting sequence.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
-    /// <param name="CreatedAtLeastOneTestForRoutingLine">A flag indicating if at least one test for the production order routing line was created</param>
-    /// <param name="CreatedAtLeastOneTestForOrderLine">A flag indicating if at least one test for the production order line was created</param>
-    /// <param name="CreatedTestForProdOrder">A flag indicating if at least one test for the production order was created</param>
-    /// <param name="OfTests">A list of record ids of the tests that were created</param>
+    /// <param name="CreatedAtLeastOneTestForRoutingLine">A flag indicating if at least one inspection for the production order routing line was created</param>
+    /// <param name="CreatedAtLeastOneTestForOrderLine">A flag indicating if at least one inspection for the production order line was created</param>
+    /// <param name="CreatedTestForProdOrder">A flag indicating if at least one inspection for the production order was created</param>
+    /// <param name="OfTests">A list of record ids of the inspections that were created</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProductionAttemptCreateReleaseAutomaticTest(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneTestForRoutingLine: Boolean; CreatedAtLeastOneTestForOrderLine: Boolean; CreatedTestForProdOrder: Boolean; OfTestIds: List of [RecordId])
     begin

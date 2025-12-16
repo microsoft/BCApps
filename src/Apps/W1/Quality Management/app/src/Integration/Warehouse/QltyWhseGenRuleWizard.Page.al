@@ -15,7 +15,7 @@ using Microsoft.Warehouse.Structure;
 
 page 20460 "Qlty. Whse. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Warehouse Movement Quality Test Generation Rule Wizard';
+    Caption = 'Quality Management - Warehouse Movement Quality Inspection Generation Rule Wizard';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = Warehouse;

@@ -18,7 +18,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
@@ -64,7 +64,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
         InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
         ExpressionFormulaTok: Label '[No.]';
-        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing inspections (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         VendorFilterCountryTok: Label 'WHERE(Country/Region Code=FILTER(CA))', Locked = true;
         VendorFilterNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Vendor No.', Locked = true;
@@ -74,7 +74,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of tests. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
         ConditionFilterItemNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
         ConditionFilterAttributeTok: Label '"%1"=Filter(%2)', Comment = '%1 = Attribute Name, %2 = Attribute Value', Locked = true;
-        UnableToFindRecordErr: Label 'Unable to show tests with the supplied record. [%1]', Comment = '%1=the record being supplied.';
+        UnableToFindRecordErr: Label 'Unable to show inspections with the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheItemErr: Label 'Unable to identify the item for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheTrackingErr: Label 'Unable to identify the tracking for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
@@ -1975,7 +1975,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig.Validate(Code, CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code)));
 
         // [WHEN] To Type is validated and set to Test
-        SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Test);
+        SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Inspection);
 
         // [THEN] To Table No. is automatically set to the Qlty. Inspection Header table
         LibraryAssert.AreEqual(Database::"Qlty. Inspection Header", SpecificQltyInspectSourceConfig."To Table No.", 'To table should be test table.');
@@ -2195,14 +2195,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Test);
+        SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Inspection);
         SpecificQltyInspectSourceConfig.Insert(true);
 
         // [GIVEN] A source field configuration line is initialized with To Type = Test
         SpecificQltyInspectSrcFldConf.Init();
         SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
         SpecificQltyInspectSrcFldConf."Line No." := 10000;
-        SpecificQltyInspectSrcFldConf.Validate("To Type", SpecificQltyInspectSrcFldConf."To Type"::Test);
+        SpecificQltyInspectSrcFldConf.Validate("To Type", SpecificQltyInspectSrcFldConf."To Type"::Inspection);
 
         // [WHEN] To Field No. is validated to Source Custom 1 field
         SpecificQltyInspectSrcFldConf.Validate("To Field No.", QltyInspectionHeader.FieldNo("Source Custom 1"));
@@ -2225,7 +2225,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Test);
+        SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Inspection);
         SpecificQltyInspectSourceConfig.Insert(true);
 
         // [GIVEN] A source field configuration line is initialized

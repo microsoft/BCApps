@@ -688,8 +688,8 @@ page 20408 "Qlty. Inspection List"
     begin
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
+        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
+        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
         CanCreateReinspection := RowActionsAreEnabled and QltyPermissionMgmt.CanCreateReinspection();
     end;
 
@@ -698,13 +698,13 @@ page 20408 "Qlty. Inspection List"
         CanAssignToSelf := false;
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
+        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
+        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
 
-        if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOthersTests()) then
+        if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
             CanAssignToSelf := RowActionsAreEnabled;
 
-        if (Rec."Assigned User ID" = UserId()) or (((Rec."Assigned User ID" <> '') and QltyPermissionMgmt.CanChangeOthersTests()))
+        if (Rec."Assigned User ID" = UserId()) or (((Rec."Assigned User ID" <> '') and QltyPermissionMgmt.CanChangeOtherInspections()))
          then
             CanUnassign := RowActionsAreEnabled;
     end;

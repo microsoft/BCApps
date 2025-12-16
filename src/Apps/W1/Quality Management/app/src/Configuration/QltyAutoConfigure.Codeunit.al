@@ -13,7 +13,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
@@ -1724,7 +1724,7 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSourceConfig."From Table Filter" := CopyStr(FromFilter, 1, MaxStrLen(QltyInspectSourceConfig."From Table Filter"));
             QltyInspectSourceConfig.Validate("From Table No.", FromTable);
             if ToTable = Database::"Qlty. Inspection Header" then
-                QltyInspectSourceConfig."To Type" := QltyInspectSourceConfig."To Type"::Test
+                QltyInspectSourceConfig."To Type" := QltyInspectSourceConfig."To Type"::Inspection
             else
                 if TrackingOnly then
                     QltyInspectSourceConfig."To Type" := QltyInspectSourceConfig."To Type"::"Item Tracking only"
@@ -1770,7 +1770,7 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSrcFldConf."From Field No." := FromField;
 
             if ToTable = Database::"Qlty. Inspection Header" then
-                QltyInspectSrcFldConf."To Type" := QltyInspectSrcFldConf."To Type"::Test
+                QltyInspectSrcFldConf."To Type" := QltyInspectSrcFldConf."To Type"::Inspection
             else
                 if TrackingOnly then
                     QltyInspectSrcFldConf."To Type" := QltyInspectSrcFldConf."To Type"::"Item Tracking only"

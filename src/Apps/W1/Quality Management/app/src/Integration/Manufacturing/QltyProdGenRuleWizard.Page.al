@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Utilities;
 
 page 20462 "Qlty. Prod. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Production and Assembly Quality Test Generation Rule Wizard';
+    Caption = 'Quality Management - Production and Assembly Quality Inspection Generation Rule Wizard';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = QualityManagement;

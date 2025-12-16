@@ -255,16 +255,16 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// - Item Filter
     /// - Item Attribute Filter
     /// 
-    /// Rationale: Without filters, scheduled rules could generate excessive tests for all items or conditions,
-    /// potentially causing performance issues or unwanted test creation.
+    /// Rationale: Without filters, scheduled rules could generate excessive inspections for all items or conditions,
+    /// potentially causing performance issues or unwanted inspection creation.
     /// 
     /// Error thrown: FilterMandatoryErr with schedule group in message
     /// </summary>
-    /// <param name="TestThisQltyInspectionGenRule">The test generation rule to validate for scheduling</param>
-    procedure CheckIfGenerationRuleCanBeScheduled(var TestThisQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    /// <param name="ThisQltyInspectionGenRule">The inspection generation rule to validate for scheduling</param>
+    procedure CheckIfGenerationRuleCanBeScheduled(var ThisQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     begin
-        if (TestThisQltyInspectionGenRule."Condition Filter" = '') and (TestThisQltyInspectionGenRule."Item Filter" = '') and (TestThisQltyInspectionGenRule."Item Attribute Filter" = '') then
-            Error(FilterMandatoryErr, TestThisQltyInspectionGenRule."Schedule Group");
+        if (ThisQltyInspectionGenRule."Condition Filter" = '') and (ThisQltyInspectionGenRule."Item Filter" = '') and (ThisQltyInspectionGenRule."Item Attribute Filter" = '') then
+            Error(FilterMandatoryErr, ThisQltyInspectionGenRule."Schedule Group");
     end;
 
     /// <summary>

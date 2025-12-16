@@ -15,7 +15,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
@@ -89,7 +89,7 @@ codeunit 139950 "Qlty. Inspection Utility"
 
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
         OutCreatedQltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual((1), OutCreatedQltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual((1), OutCreatedQltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
         LibraryAssert.IsTrue(ClaimedATestWasCreated, 'A test flag should have been created');
 
         QltyInspectionCreate.GetCreatedTest(OutCreatedQltyInspectionHeader);

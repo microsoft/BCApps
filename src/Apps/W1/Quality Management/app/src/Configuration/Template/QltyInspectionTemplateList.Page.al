@@ -123,8 +123,8 @@ page 20404 "Qlty. Inspection Template List"
             action(ExistingInspection)
             {
                 Scope = Repeater;
-                Caption = 'Existing Tests';
-                ToolTip = 'Review existing tests created using this template.';
+                Caption = 'Existing Inspections';
+                ToolTip = 'Review existing inspections created using this template.';
                 Image = Report;
                 Promoted = true;
                 PromotedCategory = Process;

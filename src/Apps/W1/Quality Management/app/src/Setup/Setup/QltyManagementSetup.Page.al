@@ -6,7 +6,7 @@ namespace Microsoft.QualityManagement.Setup.Setup;
 
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
@@ -53,14 +53,14 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'Create Inspection Behavior';
-                        AboutText = 'Defines the behavior of when to create a new Quality Inspection when existing tests occur.';
+                        AboutText = 'Defines the behavior of when to create a new Quality Inspection when existing inspections occur.';
                     }
                     field("Find Existing Behavior"; Rec."Find Existing Behavior")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'Find Existing Test Behavior';
-                        AboutText = 'When looking for existing tests, this defines what it looks for.';
+                        AboutText = 'When looking for existing inspections, this defines what it looks for.';
                     }
                     field("Conditional Lot Find Behavior"; Rec."Conditional Lot Find Behavior")
                     {
@@ -456,11 +456,11 @@ page 20400 "Qlty. Management Setup"
                         Rec.Modify();
                     end;
                 }
-                field(ChooseBrickUpdateExistingInspection; 'Update Existing Tests')
+                field(ChooseBrickUpdateExistingInspection; 'Update Existing Inspections')
                 {
                     ApplicationArea = All;
                     Caption = ' ';
-                    ToolTip = 'Click this to update existing tests with your new brick expressions.';
+                    ToolTip = 'Click this to update existing inspections with your new brick expressions.';
                     Editable = false;
                     ShowCaption = false;
 

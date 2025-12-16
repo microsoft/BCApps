@@ -16,7 +16,7 @@ using Microsoft.Warehouse.Journal;
 
 page 20461 "Qlty. Rec. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Receipt Quality Test Generation Rule Wizard';
+    Caption = 'Quality Management - Receipt Quality Inspection Generation Rule Wizard';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = QualityManagement;

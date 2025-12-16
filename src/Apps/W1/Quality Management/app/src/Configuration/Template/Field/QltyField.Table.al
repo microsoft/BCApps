@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Template.Field;
 
 using Microsoft.Foundation.UOM;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
@@ -211,11 +211,11 @@ table 20401 "Qlty. Field"
         ReviewGradesErr: Label 'Advanced configuration required. Please review the grade configurations for field "%1", for grade "%2".', Comment = '%1=the field, %2=the grade';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
-        ExistingTestErr: Label 'The field %1 exists on %2 tests (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of tests, %3=one example test, %4=example template.';
+        ExistingTestErr: Label 'The field %1 exists on %2 inspections (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of tests, %3=one example test, %4=example template.';
         DeleteQst: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
         DeleteErr: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
-        FieldTypeErrTitleMsg: Label 'Field Type cannot be changed for a field that has been used in tests. ';
-        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing tests (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        FieldTypeErrTitleMsg: Label 'Field Type cannot be changed for a field that has been used in inspections. ';
+        FieldTypeErrInfoMsg: Label '%1Consider replacing this field in the template with a new one, or deleting existing inspections (if allowed). The field was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
 
     /// <summary>
     /// Set a specific grade for the field. If AllowError is set to true it will error

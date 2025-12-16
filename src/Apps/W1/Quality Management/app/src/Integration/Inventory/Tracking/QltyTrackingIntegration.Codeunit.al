@@ -10,7 +10,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.QualityManagement.Utilities;
@@ -448,7 +448,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="TrackingSpecification"></param>
-    /// <param name="QltyInspectionHeader">Test has already been found at this point, this should be a reference to the test.</param>
+    /// <param name="QltyInspectionHeader">Inspection has already been found at this point, this should be a reference to the inspection.</param>
     /// <param name="QltyGrade">This is the grade being analyzed.</param>
     /// <param name="Blocked">Set to true to flag as blocked</param>
     [IntegrationEvent(false, false)]
@@ -475,7 +475,7 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// Used for inventory movements, inventory picks, inventory putaways, movements, picks, putaways.
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>
-    /// <param name="QltyInspectionHeader">Test has already been found at this point, this should be a reference to the test.</param>
+    /// <param name="QltyInspectionHeader">Inspection has already been found at this point, this should be a reference to the inspection.</param>
     /// <param name="QltyGrade">This is the grade being analyzed.</param>
     /// <param name="Blocked">Set to true to flag as blocked</param>
     [IntegrationEvent(false, false)]

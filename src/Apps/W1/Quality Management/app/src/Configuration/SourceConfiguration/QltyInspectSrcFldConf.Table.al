@@ -125,11 +125,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
                 QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
             begin
                 if QltyInspectSourceConfig.Get(Rec.Code) then
-                    if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Test then
-                        if Rec."To Type" <> Rec."To Type"::Test then
+                    if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Inspection then
+                        if Rec."To Type" <> Rec."To Type"::Inspection then
                             Error(TargetConfigErr);
 
-                if Rec."To Type" = Rec."To Type"::Test then
+                if Rec."To Type" = Rec."To Type"::Inspection then
                     Rec."To Table No." := Database::"Qlty. Inspection Header";
             end;
         }
@@ -141,7 +141,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
 
             trigger OnValidate()
             begin
-                if (Rec."Display As" <> '') and (Rec."To Type" <> Rec."To Type"::Test) then
+                if (Rec."Display As" <> '') and (Rec."To Type" <> Rec."To Type"::Inspection) then
                     Error(CanOnlyBeSetWhenToTypeIsTestErr);
             end;
         }
@@ -167,7 +167,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         SourceTok: Label 'Source*', Locked = true;
-        TargetConfigErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the test. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
+        TargetConfigErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
         CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is an inspection';
         ChooseAFromFieldFirstErr: Label 'Please choose a "from" field first before choosing a "to" field.';
         TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4.  Are you sure you want to also map the same field here? ', Comment = '%1=the config, %2=the field being mapped in the test, %3=the field it is coming from, %4=the table it is coming from. ';
@@ -206,7 +206,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         FieldNumber: Integer;
     begin
         if GetFromFieldRecord(CurrentField) then begin
-            if (Rec."To Table No." = Database::"Qlty. Inspection Header") or (Rec."To Type" = Rec."To Type"::Test) then
+            if (Rec."To Table No." = Database::"Qlty. Inspection Header") or (Rec."To Type" = Rec."To Type"::Inspection) then
                 if CurrentField.Type = CurrentField.Type::Option then
                     FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Header", -1, SourceTok)
                 else

@@ -15,9 +15,9 @@ enum 20400 "Qlty. Target Type"
     {
         Caption = 'Chained table';
     }
-    value(1; Test)
+    value(1; Inspection)
     {
-        Caption = 'Test';
+        Caption = 'Inspection';
     }
     value(2; "Item Tracking only")
     {

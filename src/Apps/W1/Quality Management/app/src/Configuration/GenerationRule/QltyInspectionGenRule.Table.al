@@ -155,7 +155,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         {
             Caption = 'Activation Trigger';
             InitValue = "Manual or Automatic";
-            ToolTip = 'Specifies whether the generation rule is active for manually created tests only, automatically created tests only, both, or disabled entirely.';
+            ToolTip = 'Specifies whether the generation rule is active for manually created inspections only, automatically created inspections only, both, or disabled entirely.';
         }
         field(22; "Warehouse Receive Trigger"; Enum "Qlty. Whse. Receive Trigger")
         {

@@ -136,7 +136,7 @@ codeunit 20408 "Qlty. Traversal"
         QltyInspectSourceConfig.SetRange(Enabled, true);
         QltyInspectSourceConfig.SetRange("From Table No.", InputTable);
         QltyInspectSourceConfig.SetRange("To Table No.", Database::"Qlty. Inspection Header");
-        QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Test);
+        QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Inspection);
         if QltyInspectSourceConfig.FindSet() then
             repeat
                 TempAvailableQltyInspectSourceConfig.Reset();
@@ -313,7 +313,7 @@ codeunit 20408 "Qlty. Traversal"
         TempValueToSetAsText: Text;
     begin
         QltyInspectSrcFldConf.SetRange(Code, TempQltyInspectSourceConfig.Code);
-        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
+        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
         QltyInspectSrcFldConf.SetFilter("To Field No.", '<>0');
         QltyInspectSrcFldConf.SetFilter("From Field No.", '<>0');
         QltyInspectSrcFldConf.SetLoadFields("From Field No.", "To Field No.", "Priority Field");
@@ -515,7 +515,7 @@ codeunit 20408 "Qlty. Traversal"
                 QltyInspectSrcFldConf.SetRange(Code, QltyInspectSourceConfig.Code);
                 QltyInspectSrcFldConf.SetRange("To Table No.", ToTable);
                 QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
-                QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
+                QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
                 if QltyInspectSrcFldConf.FindFirst() then begin
                     if QltyInspectSrcFldConf."Display As" <> '' then
                         ResultText := QltyInspectSrcFldConf."Display As"
@@ -542,7 +542,7 @@ codeunit 20408 "Qlty. Traversal"
                         QltyInspectSrcFldConf.SetRange(Code, QltyInspectSrcFldConf.Code);
                         QltyInspectSrcFldConf.SetRange("To Table No.", ToTable);
                         QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
-                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
+                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
                         Test := GetSourceFieldInfoFromChain(
                             ListOfConsideredSourceRecords,
                             Recursion,
@@ -569,7 +569,7 @@ codeunit 20408 "Qlty. Traversal"
                         QltyInspectSrcFldConf.SetRange(Code, QltyInspectSrcFldConf.Code);
                         QltyInspectSrcFldConf.SetRange("To Table No.", FromTable);
                         QltyInspectSrcFldConf.SetRange("To Field No.", TestFieldNo);
-                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
+                        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
                         Test := GetSourceFieldInfoFromChain(
                             ListOfConsideredSourceRecords,
                             Recursion,
@@ -625,7 +625,7 @@ codeunit 20408 "Qlty. Traversal"
         PreviousView := InFromThisRecordRef.GetView();
 
         FromQltyInspectSourceConfig.SetRange("From Table No.", InFromThisRecordRef.Number());
-        FromQltyInspectSourceConfig.SetFilter("To Type", '<>%1', FromQltyInspectSourceConfig."To Type"::Test);
+        FromQltyInspectSourceConfig.SetFilter("To Type", '<>%1', FromQltyInspectSourceConfig."To Type"::Inspection);
         if FromQltyInspectSourceConfig.FindSet() then
             repeat
                 InFromThisRecordRef.SetRecFilter();
@@ -780,7 +780,7 @@ codeunit 20408 "Qlty. Traversal"
 
         // Search through Quality Inspection configuration
         QltyInspectSrcFldConf.SetRange("From Table No.", RecordRef.Number());
-        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
+        QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
         QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
         QltyInspectSrcFldConf.SetRange("To Field No.", TempQltyInspectionHeader.FieldNo("Source Item No."));
         if QltyInspectSrcFldConf.FindSet() then
@@ -1135,7 +1135,7 @@ codeunit 20408 "Qlty. Traversal"
         if CurrentField.FindSet() then
             repeat
                 QltyInspectSrcFldConf.SetRange("From Table No.", RecordRef.Number());
-                QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
+                QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
                 QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
                 QltyInspectSrcFldConf.SetRange("From Field No.", CurrentField."No.");
                 if QltyInspectSrcFldConf.FindSet() then
@@ -1307,7 +1307,7 @@ codeunit 20408 "Qlty. Traversal"
         if CurrentField.FindSet() then
             repeat
                 QltyInspectSrcFldConf.SetRange("From Table No.", RecordRef.Number());
-                QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Test);
+                QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::Inspection);
                 QltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
                 QltyInspectSrcFldConf.SetRange("From Field No.", CurrentField."No.");
                 if QltyInspectSrcFldConf.FindSet() then

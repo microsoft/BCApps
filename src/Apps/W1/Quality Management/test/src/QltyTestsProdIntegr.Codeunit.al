@@ -92,14 +92,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The output journal is posted
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses the correct template, item, and source quantity of 5
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -157,14 +157,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -188,7 +188,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no quantities fails to post with AnyOutput configuration
+        // [SCENARIO] No inspection is created when output journal with no quantities fails to post with AnyOutput configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -221,7 +221,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         asserterror LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created
+        // [THEN] No inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
@@ -279,14 +279,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity matches output quantity (5, not scrap 3)
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -343,14 +343,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity of 5
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -408,14 +408,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -474,14 +474,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template and source quantity matches output quantity (5)
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -504,7 +504,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no quantities (output/scrap) fails to post with AnyQuantity configuration
+        // [SCENARIO] No inspection is created when output journal with no quantities (output/scrap) fails to post with AnyQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -537,7 +537,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         asserterror LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created
+        // [THEN] No inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
@@ -560,7 +560,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when only scrap is posted with OnlyWithQuantity configuration
+        // [SCENARIO] No inspection is created when only scrap is posted with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -594,7 +594,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created (OnlyWithQuantity ignores scrap-only)
+        // [THEN] No inspection is created (OnlyWithQuantity ignores scrap-only)
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
@@ -651,14 +651,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity of 5
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -717,14 +717,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity matches output (5, not scrap)
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -748,7 +748,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no quantities fails to post with OnlyWithQuantity configuration
+        // [SCENARIO] No inspection is created when output journal with no quantities fails to post with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -781,7 +781,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         asserterror LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created
+        // [THEN] No inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
@@ -804,7 +804,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when only output is posted with OnlyWithScrap configuration
+        // [SCENARIO] No inspection is created when only output is posted with OnlyWithScrap configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -837,7 +837,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] No test is created (OnlyWithScrap ignores output-only)
+        // [THEN] No inspection is created (OnlyWithScrap ignores output-only)
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
@@ -894,14 +894,14 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -966,11 +966,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Document Line No.", ProdOrderLine."Line No.");
         QltyInspectionHeader.FindLast();
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One test should have been created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
         // [THEN] Test uses correct template, item, and source quantity matches output quantity (5)
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
@@ -994,7 +994,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] No test is created when output journal with no output or scrap quantity fails to post with OnlyWithScrap configuration
+        // [SCENARIO] No inspection is created when output journal with no output or scrap quantity fails to post with OnlyWithScrap configuration
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1032,7 +1032,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] No test is created
+        // [THEN] No inspection is created
         LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
     end;
 
@@ -1090,9 +1090,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the item
+        // [THEN] One inspection is created for the item
         CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.IsTrue(not CreatedQltyInspectionHeader.IsEmpty(), 'One test should be created and should match item.');
+        LibraryAssert.IsTrue(not CreatedQltyInspectionHeader.IsEmpty(), 'One inspection should be created and should match item.');
     end;
 
     [Test]
@@ -1155,7 +1155,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the item
+        // [THEN] One inspection is created for the item
         CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'Test should match item.');
     end;
@@ -1214,9 +1214,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the lot-tracked item
+        // [THEN] One inspection is created for the lot-tracked item
         CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.IsTrue(not CreatedQltyInspectionHeader.IsEmpty(), 'One test should be created and match item.');
+        LibraryAssert.IsTrue(not CreatedQltyInspectionHeader.IsEmpty(), 'One inspection should be created and match item.');
     end;
 
     [Test]
@@ -1279,9 +1279,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Released
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] One test is created for the lot-tracked item
+        // [THEN] One inspection is created for the lot-tracked item
         CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'One test should be created and should match item.');
+        LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'One inspection should be created and should match item.');
     end;
 
     [Test]
@@ -1983,7 +1983,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         NoSeries: Codeunit "No. Series";
         BeforeCount: Integer;
     begin
-        // [SCENARIO] One test is created when assembly order with untracked item is posted
+        // [SCENARIO] One inspection is created when assembly order with untracked item is posted
 
         // [GIVEN] A no. series is created for test setup
         LibraryUtility.CreateNoSeries(ToUseNoSeries, true, true, false);
@@ -2027,7 +2027,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
-        // [THEN] One test is created
+        // [THEN] One inspection is created
         LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one new inspection.');
 
         // [THEN] Test uses correct template, location, and quantity matches assembly order quantity

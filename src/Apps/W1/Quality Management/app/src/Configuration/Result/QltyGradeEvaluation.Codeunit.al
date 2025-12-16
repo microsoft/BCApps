@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Grade;
+namespace Microsoft.QualityManagement.Configuration.Result;
 
 using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
@@ -29,7 +29,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
     begin
         if (not Rec.IsTemporary()) and (Rec."Inspection No." <> '') then
             OptionalQltyInspectionHeader.Get(Rec."Inspection No.", Rec."Reinspection No.");
-        ValidateTestLine(Rec, OptionalQltyInspectionHeader, true);
+        ValidateQltyInspectionLine(Rec, OptionalQltyInspectionHeader, true);
     end;
 
     /// <summary>
@@ -37,17 +37,17 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// The test is used to help with expression evaluation.
     /// </summary>
     /// <param name="OptionalQltyInspectionHeader"></param>
-    /// <param name="TestQltyIGradeConditionConf"></param>
+    /// <param name="QltyIGradeConditionConf"></param>
     /// <param name="QltyFieldType"></param>
     /// <param name="TestValue"></param>
     /// <param name="CaseOption"></param>
     /// <returns></returns>
-    internal procedure EvaluateGrade(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+    internal procedure EvaluateGrade(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyFieldType: Enum "Qlty. Field Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
     var
         TempNotUsedOptionalQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        exit(EvaluateGrade(OptionalQltyInspectionHeader, TempNotUsedOptionalQltyInspectionLine, TestQltyIGradeConditionConf, QltyFieldType, TestValue, QltyCaseSensitivity));
+        exit(EvaluateGrade(OptionalQltyInspectionHeader, TempNotUsedOptionalQltyInspectionLine, QltyIGradeConditionConf, QltyFieldType, TestValue, QltyCaseSensitivity));
     end;
 
     /// <summary>
@@ -55,12 +55,12 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// The test is used to help with expression evaluation.
     /// </summary>
     /// <param name="OptionalQltyInspectionHeader"></param>
-    /// <param name="TestQltyIGradeConditionConf"></param>
+    /// <param name="QltyIGradeConditionConf"></param>
     /// <param name="QltyFieldType"></param>
     /// <param name="TestValue"></param>
     /// <param name="CaseOption"></param>
     /// <returns></returns>
-    procedure EvaluateGrade(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; QltyFieldType: Enum "Qlty. Field Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
+    procedure EvaluateGrade(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; QltyFieldType: Enum "Qlty. Field Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
     var
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         TempHighestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf." temporary;
@@ -72,7 +72,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
         Small: Text[250];
         Condition: Text;
     begin
-        OnBeforeEvaluateGrade(TestQltyIGradeConditionConf, QltyFieldType, TestValue, Result, Handled);
+        OnBeforeEvaluateGrade(QltyIGradeConditionConf, QltyFieldType, TestValue, Result, Handled);
         if Handled then
             exit;
 
@@ -82,39 +82,39 @@ codeunit 20410 "Qlty. Grade Evaluation"
             exit;
 
         repeat
-            TestQltyIGradeConditionConf.SetRange("Grade Code", QltyInspectionGrade.Code);
-            if TestQltyIGradeConditionConf.FindSet() then
+            QltyIGradeConditionConf.SetRange("Grade Code", QltyInspectionGrade.Code);
+            if QltyIGradeConditionConf.FindSet() then
                 repeat
                     LoopConditionMet := false;
 
-                    Condition := TestQltyIGradeConditionConf.Condition;
+                    Condition := QltyIGradeConditionConf.Condition;
                     if Condition.Contains('[') then
                         Condition := QltyExpressionMgmt.EvaluateTextExpression(Condition, OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
 
                     case QltyFieldType of
                         QltyFieldType::"Field Type Decimal":
-                            LoopConditionMet := TestValueDecimal(TestValue, Condition);
+                            LoopConditionMet := CheckIfValueIsDecimal(TestValue, Condition);
                         QltyFieldType::"Field Type Integer":
-                            LoopConditionMet := TestValueInteger(TestValue, Condition);
+                            LoopConditionMet := CheckIfValueIsInteger(TestValue, Condition);
                         QltyFieldType::"Field Type Boolean":
                             if QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(TestValue) and
                                QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(Condition)
                             then
                                 LoopConditionMet := QltyMiscHelpers.GetBooleanFor(TestValue) = QltyMiscHelpers.GetBooleanFor(Condition)
                             else
-                                LoopConditionMet := TestValueString(TestValue, Condition, QltyCaseSensitivity);
+                                LoopConditionMet := CheckIfValueIsString(TestValue, Condition, QltyCaseSensitivity);
                         QltyFieldType::"Field Type Text", QltyFieldType::"Field Type Option", QltyFieldType::"Field Type Table Lookup", QltyFieldType::"Field Type Text Expression":
-                            LoopConditionMet := TestValueString(TestValue, Condition, QltyCaseSensitivity);
+                            LoopConditionMet := CheckIfValueIsString(TestValue, Condition, QltyCaseSensitivity);
                         QltyFieldType::"Field Type Date":
                             begin
                                 Small := CopyStr(TestValue, 1, MaxStrLen(Small));
-                                LoopConditionMet := TestValueDate(Small, Condition, false);
+                                LoopConditionMet := CheckIfValueIsDate(Small, Condition, false);
                                 TestValue := Small;
                             end;
                         QltyFieldType::"Field Type DateTime":
                             begin
                                 Small := CopyStr(TestValue, 1, MaxStrLen(Small));
-                                LoopConditionMet := TestValueDateTime(Small, Condition, false);
+                                LoopConditionMet := CheckIfValueIsDateTime(Small, Condition, false);
                                 TestValue := Small;
                             end;
                         QltyFieldType::"Field Type Label":
@@ -122,13 +122,13 @@ codeunit 20410 "Qlty. Grade Evaluation"
                     end;
                     if LoopConditionMet then begin
                         AnyConditionMet := true;
-                        TempHighestQltyIGradeConditionConf := TestQltyIGradeConditionConf;
+                        TempHighestQltyIGradeConditionConf := QltyIGradeConditionConf;
                     end;
-                until TestQltyIGradeConditionConf.Next() = 0;
+                until QltyIGradeConditionConf.Next() = 0;
 
         until QltyInspectionGrade.Next() = 0;
 
-        OnAfterEvaluateGrade(TestQltyIGradeConditionConf, QltyFieldType, TestValue, Result, TempHighestQltyIGradeConditionConf, Handled);
+        OnAfterEvaluateGrade(QltyIGradeConditionConf, QltyFieldType, TestValue, Result, TempHighestQltyIGradeConditionConf, Handled);
         if Handled then
             exit;
 
@@ -140,13 +140,13 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// Call this procedure to validate the inspection line.
     /// </summary>
     /// <param name="QltyInspectionLine"></param>
-    internal procedure ValidateTestLine(var QltyInspectionLine: Record "Qlty. Inspection Line")
+    internal procedure ValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line")
     var
         OptionalQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         if (not QltyInspectionLine.IsTemporary()) and (QltyInspectionLine."Inspection No." <> '') then
             if OptionalQltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
-        ValidateTestLine(QltyInspectionLine, OptionalQltyInspectionHeader, true);
+        ValidateQltyInspectionLine(QltyInspectionLine, OptionalQltyInspectionHeader, true);
     end;
 
     /// <summary>
@@ -157,9 +157,9 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// <param name="OptionalQltyInspectionHeader"></param>
     /// <returns></returns>
     [TryFunction]
-    procedure TryValidateTestLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
+    procedure TryValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
-        ValidateTestLine(QltyInspectionLine, OptionalQltyInspectionHeader, false);
+        ValidateQltyInspectionLine(QltyInspectionLine, OptionalQltyInspectionHeader, false);
     end;
 
     /// <summary>
@@ -168,31 +168,31 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// <param name="QltyInspectionLine"></param>
     /// <param name="OptionalQltyInspectionHeader"></param>
     /// <param name="Modify">Set to true to modify the grade(default), false to avoid modifying.</param>
-    procedure ValidateTestLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; Modify: Boolean)
+    procedure ValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; Modify: Boolean)
     begin
-        ValidateTestLineWithAllowableValues(QltyInspectionLine, OptionalQltyInspectionHeader, true, Modify);
+        ValidateInspectionLineWithAllowableValues(QltyInspectionLine, OptionalQltyInspectionHeader, true, Modify);
     end;
 
-    procedure ValidateTestLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; Modify: Boolean)
+    procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; Modify: Boolean)
     var
         QltyField: Record "Qlty. Field";
         TestLineQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         Grade: Code[20];
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";
     begin
         QltyInspectionLine.CalcFields("Field Type");
 
         if CheckForAllowableValues then
-            ValidateAllowableValuesOnTestLine(QltyInspectionLine, OptionalQltyInspectionHeader);
+            ValidateAllowableValuesOnInspectionLine(QltyInspectionLine, OptionalQltyInspectionHeader);
 
-        GetTestGradeConditionConfigFilters(QltyInspectionLine, TestQltyIGradeConditionConf);
+        GetTestGradeConditionConfigFilters(QltyInspectionLine, QltyIGradeConditionConf);
 
         QltyCaseSensitivity := QltyCaseSensitivity::Sensitive;
         if QltyField.Get(QltyInspectionLine."Field Code") then
             QltyCaseSensitivity := QltyField."Case Sensitive";
 
-        Grade := EvaluateGrade(OptionalQltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, QltyInspectionLine."Field Type", QltyInspectionLine."Test Value", QltyCaseSensitivity);
+        Grade := EvaluateGrade(OptionalQltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, QltyInspectionLine."Field Type", QltyInspectionLine."Test Value", QltyCaseSensitivity);
 
         QltyInspectionLine."Failure State" := QltyInspectionLine."Failure State"::" ";
         if Grade <> '' then begin
@@ -223,32 +223,32 @@ codeunit 20410 "Qlty. Grade Evaluation"
         TemplateLineQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
     end;
 
-    local procedure GetTestGradeConditionConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.")
+    local procedure GetTestGradeConditionConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.")
     begin
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
-        if TestQltyIGradeConditionConf.IsEmpty() then begin
-            TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Template);
-            TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Template Code");
-            TestQltyIGradeConditionConf.SetRange("Target Reinspection No.");
-            TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Template Line No.");
-            TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
-            if TestQltyIGradeConditionConf.IsEmpty() then begin
-                TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Field);
-                TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Field Code");
-                TestQltyIGradeConditionConf.SetRange("Target Reinspection No.");
-                TestQltyIGradeConditionConf.SetRange("Target Line No.");
-                TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        if QltyIGradeConditionConf.IsEmpty() then begin
+            QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Template);
+            QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Template Code");
+            QltyIGradeConditionConf.SetRange("Target Reinspection No.");
+            QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Template Line No.");
+            QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+            if QltyIGradeConditionConf.IsEmpty() then begin
+                QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Field);
+                QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Field Code");
+                QltyIGradeConditionConf.SetRange("Target Reinspection No.");
+                QltyIGradeConditionConf.SetRange("Target Line No.");
+                QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
             end;
         end;
     end;
 
-    local procedure ValidateAllowableValuesOnTestLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
+    local procedure ValidateAllowableValuesOnInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyField: Record "Qlty. Field";
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
@@ -349,7 +349,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
                     if (TextToValidate <> '') and (not Evaluate(ValueAsDecimal, TextToValidate)) then
                         Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
 
-                    if not QltyGradeEvaluation.TestValueDecimal(TextToValidate, AllowableValues) then
+                    if not QltyGradeEvaluation.CheckIfValueIsDecimal(TextToValidate, AllowableValues) then
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
                 end;
             QltyFieldType::"Field Type Integer":
@@ -357,14 +357,14 @@ codeunit 20410 "Qlty. Grade Evaluation"
                     if (TextToValidate <> '') and (not Evaluate(ValueAsInteger, TextToValidate)) then
                         Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
 
-                    if not QltyGradeEvaluation.TestValueInteger(TextToValidate, AllowableValues) then
+                    if not QltyGradeEvaluation.CheckIfValueIsInteger(TextToValidate, AllowableValues) then
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
                 end;
             QltyFieldType::"Field Type DateTime":
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then begin
                     if (TextToValidate <> '') and (not Evaluate(DateAndTimeValue, TextToValidate)) then
                         Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
-                    if not QltyGradeEvaluation.TestValueDateTime(TextToValidate, AllowableValues, true) then
+                    if not QltyGradeEvaluation.CheckIfValueIsDateTime(TextToValidate, AllowableValues, true) then
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
                 end;
             QltyFieldType::"Field Type Date":
@@ -372,7 +372,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
                     if (TextToValidate <> '') and (not Evaluate(DateOnlyValue, TextToValidate)) then
                         Error(InvalidDataTypeErr, TextToValidate, NumberOrNameOfFieldNameForError, QltyFieldType);
 
-                    if not QltyGradeEvaluation.TestValueDate(TextToValidate, AllowableValues, true) then
+                    if not QltyGradeEvaluation.CheckIfValueIsDate(TextToValidate, AllowableValues, true) then
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
                 end;
             QltyFieldType::"Field Type Boolean":
@@ -392,7 +392,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
                 end;
             QltyFieldType::"Field Type Text":
                 if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
-                    if not QltyGradeEvaluation.TestValueString(TextToValidate, ConvertStr(AllowableValues, ',', '|'), QltyCaseSensitivity) then
+                    if not QltyGradeEvaluation.CheckIfValueIsString(TextToValidate, ConvertStr(AllowableValues, ',', '|'), QltyCaseSensitivity) then
                         Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfFieldNameForError, AllowableValues);
 
             QltyFieldType::"Field Type Option",
@@ -421,48 +421,48 @@ codeunit 20410 "Qlty. Grade Evaluation"
         OnAfterValidateAllowableValuesOnText(NumberOrNameOfFieldNameForError, TextToValidate, AllowableValues, QltyFieldType, TempBufferQltyLookupCode, QltyCaseSensitivity);
     end;
 
-    internal procedure TestValueDecimal(TestValue: Text; AcceptableValue: Text): Boolean
+    internal procedure CheckIfValueIsDecimal(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         TempNumericalQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
-        TestValueAsDecimal: Decimal;
+        ValueAsDecimal: Decimal;
     begin
-        if TestValue = '' then
-            TestValueAsDecimal := 0
+        if ValueToCheck = '' then
+            ValueAsDecimal := 0
         else
-            Evaluate(TestValueAsDecimal, TestValue);
+            Evaluate(ValueAsDecimal, ValueToCheck);
 
-        if (AcceptableValue = '') and (TestValue <> '') then
+        if (AcceptableValue = '') and (ValueToCheck <> '') then
             exit(true);
 
         if AcceptableValue = '<>''''' then
             AcceptableValue := '<>0';
 
-        if (TestValue = '') and not (AcceptableValue in ['', '=''''', '<>0']) then
+        if (ValueToCheck = '') and not (AcceptableValue in ['', '=''''', '<>0']) then
             exit(false);
 
-        TempNumericalQltyInspectionLine."Numeric Value" := TestValueAsDecimal;
+        TempNumericalQltyInspectionLine."Numeric Value" := ValueAsDecimal;
         if TempNumericalQltyInspectionLine.Insert(false) then;
         TempNumericalQltyInspectionLine.SetFilter("Numeric Value", AcceptableValue);
         exit(not TempNumericalQltyInspectionLine.IsEmpty());
     end;
 
-    internal procedure TestValueInteger(TestValue: Text; AcceptableValue: Text): Boolean
+    internal procedure CheckIfValueIsInteger(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         TempInteger: Record "Integer" temporary;
         ValueAsInteger: Integer;
     begin
-        if TestValue = '' then
+        if ValueToCheck = '' then
             ValueAsInteger := 0
         else
-            Evaluate(ValueAsInteger, TestValue);
+            Evaluate(ValueAsInteger, ValueToCheck);
 
-        if (AcceptableValue = '') and (TestValue <> '') then
+        if (AcceptableValue = '') and (ValueToCheck <> '') then
             exit(true);
 
         if AcceptableValue = '<>''''' then
             AcceptableValue := '<>0';
 
-        if (TestValue = '') and not (AcceptableValue in ['', '=''''', '<>0']) then
+        if (ValueToCheck = '') and not (AcceptableValue in ['', '=''''', '<>0']) then
             exit(false);
 
         TempInteger.Number := ValueAsInteger;
@@ -481,21 +481,21 @@ codeunit 20410 "Qlty. Grade Evaluation"
         Result := AcceptableValue in [IsDefaultNumberTok, IsDefaultTextTok];
     end;
 
-    procedure TestValueDateTime(var TestValue: Text[250]; AcceptableValue: Text; AdjustTestValueIfGood: Boolean) IsGood: Boolean
+    procedure CheckIfValueIsDateTime(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         ValueAsDateTime: DateTime;
     begin
-        if TestValue = '' then
+        if ValueToCheck = '' then
             ValueAsDateTime := 0DT
         else
-            Evaluate(ValueAsDateTime, TestValue);
+            Evaluate(ValueAsDateTime, ValueToCheck);
 
         if IsAnythingExceptEmptyCondition(AcceptableValue) then
-            if TestValue <> '' then begin
+            if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustTestValueIfGood then
-                    TestValue := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(TestValue));
+                if AdjustValueIfGood then
+                    ValueToCheck := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(ValueToCheck));
 
                 exit(IsGood);
             end else begin
@@ -504,10 +504,10 @@ codeunit 20410 "Qlty. Grade Evaluation"
             end;
 
         if IsBlankOrEmptyCondition(AcceptableValue) then
-            if TestValue <> '' then begin
+            if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustTestValueIfGood then
-                    TestValue := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(TestValue));
+                if AdjustValueIfGood then
+                    ValueToCheck := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(ValueToCheck));
 
                 exit(IsGood);
             end else begin
@@ -519,27 +519,27 @@ codeunit 20410 "Qlty. Grade Evaluation"
         TempQltyInspectionHeader.Insert();
         TempQltyInspectionHeader.SetFilter("Finished Date", AcceptableValue);
         IsGood := not TempQltyInspectionHeader.IsEmpty();
-        if IsGood and AdjustTestValueIfGood then
-            TestValue := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(TestValue));
+        if IsGood and AdjustValueIfGood then
+            ValueToCheck := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(ValueToCheck));
 
         exit(IsGood);
     end;
 
-    procedure TestValueDate(var TestValue: Text[250]; AcceptableValue: Text; AdjustTestValueIfGood: Boolean) IsGood: Boolean
+    procedure CheckIfValueIsDate(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempDateLookupBuffer: Record "Date Lookup Buffer" temporary;
         ValueAsDate: Date;
     begin
-        if TestValue = '' then
+        if ValueToCheck = '' then
             ValueAsDate := 0D
         else
-            Evaluate(ValueAsDate, TestValue);
+            Evaluate(ValueAsDate, ValueToCheck);
 
         if IsAnythingExceptEmptyCondition(AcceptableValue) then
-            if TestValue <> '' then begin
+            if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustTestValueIfGood then
-                    TestValue := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(TestValue));
+                if AdjustValueIfGood then
+                    ValueToCheck := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(ValueToCheck));
 
                 exit(IsGood);
             end else begin
@@ -548,10 +548,10 @@ codeunit 20410 "Qlty. Grade Evaluation"
             end;
 
         if IsBlankOrEmptyCondition(AcceptableValue) then
-            if TestValue <> '' then begin
+            if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustTestValueIfGood then
-                    TestValue := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(TestValue));
+                if AdjustValueIfGood then
+                    ValueToCheck := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(ValueToCheck));
 
                 exit(IsGood);
             end else begin
@@ -563,31 +563,31 @@ codeunit 20410 "Qlty. Grade Evaluation"
         TempDateLookupBuffer.Insert();
         TempDateLookupBuffer.SetFilter("Period Start", AcceptableValue);
         IsGood := not TempDateLookupBuffer.IsEmpty();
-        if IsGood and AdjustTestValueIfGood then
-            TestValue := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(TestValue));
+        if IsGood and AdjustValueIfGood then
+            ValueToCheck := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(ValueToCheck));
 
         exit(IsGood);
     end;
 
-    internal procedure TestValueString(TestValue: Text; AcceptableValue: Text): Boolean
+    internal procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";
     begin
-        exit(TestValueString(TestValue, AcceptableValue, QltyCaseSensitivity::Sensitive));
+        exit(CheckIfValueIsString(ValueToCheck, AcceptableValue, QltyCaseSensitivity::Sensitive));
     end;
 
-    internal procedure TestValueString(TestValue: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
+    internal procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
     var
         TempTestStringValueQltyField: Record "Qlty. Field" temporary;
     begin
         if IsAnythingExceptEmptyCondition(AcceptableValue) then
-            exit(TestValue <> '');
+            exit(ValueToCheck <> '');
 
         if QltyCaseSensitivity = QltyCaseSensitivity::Insensitive then begin
-            TempTestStringValueQltyField."Allowable Values" := CopyStr(TestValue.ToLower(), 1, MaxStrLen(TempTestStringValueQltyField."Allowable Values"));
+            TempTestStringValueQltyField."Allowable Values" := CopyStr(ValueToCheck.ToLower(), 1, MaxStrLen(TempTestStringValueQltyField."Allowable Values"));
             AcceptableValue := AcceptableValue.ToLower();
         end else
-            TempTestStringValueQltyField."Allowable Values" := CopyStr(TestValue, 1, MaxStrLen(TempTestStringValueQltyField."Allowable Values"));
+            TempTestStringValueQltyField."Allowable Values" := CopyStr(ValueToCheck, 1, MaxStrLen(TempTestStringValueQltyField."Allowable Values"));
 
         TempTestStringValueQltyField.Insert();
         TempTestStringValueQltyField.SetFilter("Allowable Values", AcceptableValue);
@@ -597,27 +597,27 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// <summary>
     /// OnBeforeEvaluateGrade gives an opportunity to change how a grade is evaluated.
     /// </summary>
-    /// <param name="TestQltyIGradeConditionConf">var Record "Qlty. Grade Condition Config".</param>
+    /// <param name="QltyIGradeConditionConf">var Record "Qlty. Grade Condition Config".</param>
     /// <param name="FieldType">var Rnum "Qlty. Field Type".</param>
     /// <param name="TestValue">var Text.</param>
     /// <param name="OutCode">The grade.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateGrade(var TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; var QltyFieldType: Enum "Qlty. Field Type"; var TestValue: Text; var Result: Code[20]; var Handled: Boolean)
+    local procedure OnBeforeEvaluateGrade(var QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; var QltyFieldType: Enum "Qlty. Field Type"; var TestValue: Text; var Result: Code[20]; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// OnAfterEvaluateGrade gives an opportunity to run additional logic after a grade has been determined by the system.
     /// </summary>
-    /// <param name="TestQltyIGradeConditionConf">var Record "Qlty. Grade Condition Config".</param>
+    /// <param name="QltyIGradeConditionConf">var Record "Qlty. Grade Condition Config".</param>
     /// <param name="FieldType">var Enum "Qlty. Field Type".</param>
     /// <param name="TestValue">var Text.</param>
     /// <param name="Result">var Code[20].</param>
     /// <param name="TempHighestQltyIGradeConditionConf">var Record "Qlty. I. Grade Condition Conf." temporary.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterEvaluateGrade(var TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; var QltyFieldType: Enum "Qlty. Field Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf." temporary; var Handled: Boolean)
+    local procedure OnAfterEvaluateGrade(var QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; var QltyFieldType: Enum "Qlty. Field Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf." temporary; var Handled: Boolean)
     begin
     end;
 

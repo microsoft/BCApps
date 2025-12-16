@@ -33,8 +33,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match  %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
         ProgrammerErrNotARecordRefErr: Label 'Cannot find tests with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
-        UnableToCreateATestForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
-        UnableToCreateATestForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
+        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
+        UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
         IsInitialized: Boolean;
 
     [Test]
@@ -48,7 +48,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -66,28 +66,28 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspection is called with AlwaysCreate set to true
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionGenRule.Delete();
 
         // [THEN] The function claims an inspection was found or created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'Should claim an inspection has been found/created');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests increase by 1.');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test has the correct template code
+        // [THEN] The created inspection has the correct template code
         QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
             CreatedQltyInspectionHeader."Template Code",
             'Inspection generation rules created an unexpected test. Remaining asserts are invalid. Either a problem in choosing the correct generation rule or a problem in the unit test itself.');
 
-        // [THEN] The created test has the correct document number, item, and template
+        // [THEN] The created inspection has the correct document number, item, and template
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.SetRange("Template Code", QltyInspectionTemplateHdr.Code);
@@ -99,8 +99,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        CreatedTestFirstQltyInspectionHeader: Record "Qlty. Inspection Header";
-        CreatedTestSecondQltyInspectionHeader: Record "Qlty. Inspection Header";
+        CreatedFirstQltyInspectionHeader: Record "Qlty. Inspection Header";
+        CreatedSecondQltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ProdProductionOrder: Record "Production Order";
@@ -108,21 +108,21 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
         QltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Create test with AlwaysCreate behavior creates a new inspection even when one exists
+        // [SCENARIO] Create inspection with AlwaysCreate behavior creates a new inspection even when one exists
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] A first test is created
+        // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
-        QltyInspectionCreate.GetCreatedTest(CreatedTestFirstQltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedTest(CreatedFirstQltyInspectionHeader);
 
         // [GIVEN] The Create Inspection Behavior is set to "Always create new inspection"
         QltyManagementSetup.Get();
@@ -137,8 +137,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspection is called again for the same routing line
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
-        QltyInspectionCreate.GetCreatedTest(CreatedTestSecondQltyInspectionHeader);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        QltyInspectionCreate.GetCreatedTest(CreatedSecondQltyInspectionHeader);
 
         QltyManagementSetup."Create Inspection Behavior" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -148,10 +148,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         AfterCount := QltyInspectionHeader.Count();
 
         // [THEN] A new inspection is created and the second test has a different number than the first
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreNotEqual(CreatedTestFirstQltyInspectionHeader."No.", CreatedTestSecondQltyInspectionHeader."No.", 'New inspection should not be a reinspection.');
+        LibraryAssert.AreNotEqual(CreatedFirstQltyInspectionHeader."No.", CreatedSecondQltyInspectionHeader."No.", 'New inspection should not be a reinspection.');
     end;
 
     [Test]
@@ -168,18 +168,18 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
         QltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Create test with CreateAReinspectionAny behavior creates a reinspection when an inspection already exists
+        // [SCENARIO] Create inspection with CreateAReinspectionAny behavior creates a reinspection when an inspection already exists
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] A first test is created
+        // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestFirstQltyInspectionHeader);
@@ -195,7 +195,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspection is called again for the same routing line
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestSecondQltyInspectionHeader);
 
         QltyManagementSetup."Create Inspection Behavior" := QltyCreateInspectBehavior;
@@ -206,7 +206,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         AfterCount := QltyInspectionHeader.Count();
 
         // [THEN] A reinspection is created and the second test has the same number as the first with incremented Reinspection No.
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests increase by 1');
         LibraryAssert.AreEqual(CreatedTestFirstQltyInspectionHeader."No.", CreatedTestSecondQltyInspectionHeader."No.", 'New inspection should be a reinspection.');
         LibraryAssert.AreEqual((CreatedTestFirstQltyInspectionHeader."Reinspection No." + 1), CreatedTestSecondQltyInspectionHeader."Reinspection No.", 'New inspection "Reinspection No." should have incremented.');
@@ -228,31 +228,31 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create test with CreateAReinspectionFinished behavior, using a production order routing line, retrieves existing test when it is not finished
+        // [SCENARIO] Create inspection with CreateAReinspectionFinished behavior, using a production order routing line, retrieves existing inspection when it is not finished
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] A first test is created
+        // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestFirstQltyInspectionHeader);
 
-        // [GIVEN] The Create Inspection Behavior is set to "Create reinspection if matching test is finished"
+        // [GIVEN] The Create Inspection Behavior is set to "Create reinspection if matching inspection is finished"
         QltyManagementSetup.Get();
         QltyCreateInspectBehavior := QltyManagementSetup."Create Inspection Behavior";
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching test is finished";
+        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching inspection is finished";
         QltyManagementSetup.Modify();
 
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
 
-        // [WHEN] CreateInspection is called again for the same routing line when the first test is not finished
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        // [WHEN] CreateInspection is called again for the same routing line when the first inspection is not finished
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestSecondQltyInspectionHeader);
 
         QltyManagementSetup."Create Inspection Behavior" := QltyCreateInspectBehavior;
@@ -262,11 +262,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] No new inspection is created and the same test is retrieved with the same number and Reinspection No.
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        // [THEN] No new inspection is created and the same inspection is retrieved with the same number and Reinspection No.
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual(BeforeCount, AfterCount, 'Should not be any new inspections counted.');
-        LibraryAssert.AreEqual(CreatedTestFirstQltyInspectionHeader."No.", CreatedTestSecondQltyInspectionHeader."No.", 'Should retrieve same test.');
-        LibraryAssert.AreEqual(CreatedTestFirstQltyInspectionHeader."Reinspection No.", CreatedTestSecondQltyInspectionHeader."Reinspection No.", 'Should retrieve same test.');
+        LibraryAssert.AreEqual(CreatedTestFirstQltyInspectionHeader."No.", CreatedTestSecondQltyInspectionHeader."No.", 'Should retrieve same inspection.');
+        LibraryAssert.AreEqual(CreatedTestFirstQltyInspectionHeader."Reinspection No.", CreatedTestSecondQltyInspectionHeader."Reinspection No.", 'Should retrieve same inspection.');
     end;
 
     [Test]
@@ -285,35 +285,35 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create test with CreateAReinspectionFinished behavior, using a production order routing line, creates a reinspection when the existing test is finished
+        // [SCENARIO] Create inspection with CreateAReinspectionFinished behavior, using a production order routing line, creates a reinspection when the existing inspection is finished
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] A first test is created
+        // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestFirstQltyInspectionHeader);
 
-        // [GIVEN] The Create Inspection Behavior is set to "Create reinspection if matching test is finished"
+        // [GIVEN] The Create Inspection Behavior is set to "Create reinspection if matching inspection is finished"
         QltyManagementSetup.Get();
         QltyCreateInspectBehavior := QltyManagementSetup."Create Inspection Behavior";
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching test is finished";
+        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching inspection is finished";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] The first test is marked as Finished
+        // [GIVEN] The first inspection is marked as Finished
         CreatedTestFirstQltyInspectionHeader.Status := CreatedTestFirstQltyInspectionHeader.Status::Finished;
         CreatedTestFirstQltyInspectionHeader.Modify();
 
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
 
-        // [WHEN] CreateInspection is called again for the same routing line with the first test finished
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        // [WHEN] CreateInspection is called again for the same routing line with the first inspection finished
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestSecondQltyInspectionHeader);
 
         QltyManagementSetup."Create Inspection Behavior" := QltyCreateInspectBehavior;
@@ -323,8 +323,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] A reinspection is created with incremented Reinspection No. and overall test count increases by 1
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        // [THEN] A reinspection is created with incremented Reinspection No. and overall inspection count increases by 1
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests increase by 1.');
         LibraryAssert.AreEqual(CreatedTestFirstQltyInspectionHeader."No.", CreatedTestSecondQltyInspectionHeader."No.", 'New inspection should be a reinspection.');
         LibraryAssert.AreEqual((CreatedTestFirstQltyInspectionHeader."Reinspection No." + 1), CreatedTestSecondQltyInspectionHeader."Reinspection No.", 'New inspection "Reinspection No." should have incremented.');
@@ -346,16 +346,16 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create test with UseExistingTestOpenElseNew behavior, using a production order routing line, creates a new inspection when existing test is finished
+        // [SCENARIO] Create inspection with UseExistingTestOpenElseNew behavior, using a production order routing line, creates a new inspection when existing inspection is finished
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] A first test is created
+        // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestFirstQltyInspectionHeader);
@@ -366,15 +366,15 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Use existing open inspection if available";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] The first test is marked as Finished
+        // [GIVEN] The first inspection is marked as Finished
         CreatedTestFirstQltyInspectionHeader.Status := CreatedTestFirstQltyInspectionHeader.Status::Finished;
         CreatedTestFirstQltyInspectionHeader.Modify();
 
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
 
-        // [WHEN] CreateInspection is called again for the same routing line with the first test finished
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        // [WHEN] CreateInspection is called again for the same routing line with the first inspection finished
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestSecondQltyInspectionHeader);
 
         QltyManagementSetup."Create Inspection Behavior" := QltyCreateInspectBehavior;
@@ -385,7 +385,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         AfterCount := QltyInspectionHeader.Count();
 
         // [THEN] A new inspection is created that is not a reinspection
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
         LibraryAssert.AreNotEqual(CreatedTestFirstQltyInspectionHeader."No.", CreatedTestSecondQltyInspectionHeader."No.", 'New inspection should not be a reinspection.');
     end;
@@ -406,16 +406,16 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create test with UseExistingTestOpenElseNew behavior, using a production order routing line, retrieves existing open inspection
+        // [SCENARIO] Create inspection with UseExistingTestOpenElseNew behavior, using a production order routing line, retrieves existing open inspection
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] A first test is created and left open
+        // [GIVEN] A first inspection is created and left open
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestFirstQltyInspectionHeader);
@@ -429,8 +429,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
 
-        // [WHEN] CreateInspection is called again for the same routing line with the first test still open
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        // [WHEN] CreateInspection is called again for the same routing line with the first inspection still open
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestSecondQltyInspectionHeader);
 
         QltyManagementSetup."Create Inspection Behavior" := QltyCreateInspectBehavior;
@@ -440,8 +440,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] No new inspection is created and the same test is retrieved
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'Should claim an inspection has been found/created.');
+        // [THEN] No new inspection is created and the same inspection is retrieved
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual(BeforeCount, AfterCount, 'Should not be any new inspections counted.');
         LibraryAssert.AreEqual(CreatedTestFirstQltyInspectionHeader."No.", CreatedTestSecondQltyInspectionHeader."No.", 'Should have retrieved same record.');
     end;
@@ -462,27 +462,27 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         PreviousQltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create test with UseExistingTestAnyElseNew behavior, using a production order routing line, retrieves existing test even if finished
+        // [SCENARIO] Create inspection with UseExistingTestAnyElseNew behavior, using a production order routing line, retrieves existing inspection even if finished
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] A first test is created
+        // [GIVEN] A first inspection is created
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestFirstQltyInspectionHeader);
 
-        // [GIVEN] The Create Inspection Behavior is set to "Use any existing test if available"
+        // [GIVEN] The Create Inspection Behavior is set to "Use any existing inspection if available"
         QltyManagementSetup.Get();
         PreviousQltyCreateInspectBehavior := QltyManagementSetup."Create Inspection Behavior";
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Use any existing test if available";
+        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Use any existing inspection if available";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] The first test is marked as Finished
+        // [GIVEN] The first inspection is marked as Finished
         CreatedTestFirstQltyInspectionHeader.Status := CreatedTestFirstQltyInspectionHeader.Status::Finished;
         CreatedTestFirstQltyInspectionHeader.Modify();
 
@@ -490,7 +490,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] CreateInspection is called again for the same routing line
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedTest(CreatedTestSecondQltyInspectionHeader);
 
         QltyManagementSetup."Create Inspection Behavior" := PreviousQltyCreateInspectBehavior;
@@ -500,8 +500,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] The existing test is found and no new inspection is created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been found.');
+        // [THEN] The existing inspection is found and no new inspection is created
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been found.');
         LibraryAssert.AreEqual(BeforeCount, AfterCount, 'Expected overall tests count not to change.');
     end;
 
@@ -519,19 +519,19 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyCreateInspectBehavior: Enum "Qlty. Create Inspect. Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create test with UseExistingTestAnyElseNew behavior, using a production order routing line, creates a new inspection when no existing test
+        // [SCENARIO] Create inspection with UseExistingTestAnyElseNew behavior, using a production order routing line, creates a new inspection when no existing inspection
 
         Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] The Create Inspection Behavior is set to "Use any existing test if available"
+        // [GIVEN] The Create Inspection Behavior is set to "Use any existing inspection if available"
         QltyManagementSetup.Get();
         QltyCreateInspectBehavior := QltyManagementSetup."Create Inspection Behavior";
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Use any existing test if available";
+        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Use any existing inspection if available";
         QltyManagementSetup.Modify();
 
         QltyInspectionHeader.Reset();
@@ -539,8 +539,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
-        // [WHEN] CreateInspection is called when no existing test exists
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        // [WHEN] CreateInspection is called when no existing inspection exists
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
 
         QltyManagementSetup."Create Inspection Behavior" := QltyCreateInspectBehavior;
         QltyManagementSetup.Modify();
@@ -549,8 +549,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] A new inspection is created and overall test count increases by 1
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created');
+        // [THEN] A new inspection is created and overall inspection count increases by 1
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests to increase by 1.');
     end;
 
@@ -565,7 +565,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -583,20 +583,20 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspectionWithVariant is called with AlwaysCreate set to true
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, true);
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created.');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         LibraryAssert.AreEqual(BeforeCount + 1, AfterCount, 'Expected overall tests count to increase by 1.');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test has the correct template code
+        // [THEN] The created inspection has the correct template code
         QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
@@ -624,7 +624,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -642,20 +642,20 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
 
         // [WHEN] CreateInspectionWithVariantAndTemplate is called with specific template code
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, QltyInspectionTemplateHdr.Code);
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests count to increase by 1.');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test uses the specified template code
+        // [THEN] The created inspection uses the specified template code
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
@@ -688,7 +688,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProductionTrigger: Enum "Qlty. Production Trigger";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -719,7 +719,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with the production output
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, '');
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, '');
         QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
 
         QltyManagementSetup."Production Trigger" := ProductionTrigger;
@@ -727,17 +727,17 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup.Modify();
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created.');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test has the correct template code
+        // [THEN] The created inspection has the correct template code
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
             CreatedQltyInspectionHeader."Template Code",
@@ -766,7 +766,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         UnusedVariant1: Variant;
         ProductionTrigger: Enum "Qlty. Production Trigger";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -791,24 +791,24 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with 2nd variant (ProdOrderRoutingLine) provided
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, '');
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, '');
         QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
         QltyManagementSetup."Production Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created.');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests to increase by 1.');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test has the correct template code and item
+        // [THEN] The created inspection has the correct template code and item
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
             CreatedQltyInspectionHeader."Template Code",
@@ -836,8 +836,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
-        ProductionTrigger: Enum "Qlty. Production Trigger";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        QltyProductionTrigger: Enum "Qlty. Production Trigger";
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -850,7 +850,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] Production trigger is disabled temporarily
         QltyManagementSetup.Get();
-        ProductionTrigger := QltyManagementSetup."Production Trigger";
+        QltyProductionTrigger := QltyManagementSetup."Production Trigger";
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
 
@@ -862,26 +862,26 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with 3rd variant (ProdOrderRoutingLine) provided
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, ProdOrderRoutingLine, ProdOrderLine, false, '');
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, ProdOrderRoutingLine, ProdOrderLine, false, '');
         QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
 
-        QltyManagementSetup."Production Trigger" := ProductionTrigger;
+        QltyManagementSetup."Production Trigger" := QltyProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created.');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 if not triggered on output post
+        // [THEN] Overall inspection count increases by 1 if not triggered on output post
         if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::OnProductionOutputPost then
             LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests to increase by 1.');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
 
-        // [THEN] There is exactly one test for this operation with correct template
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        // [THEN] There is exactly one inspection for this operation with correct template
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
@@ -912,7 +912,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant2: Variant;
         UnusedVariant3: Variant;
         ProductionTrigger: Enum "Qlty. Production Trigger";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -937,7 +937,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariants is called with 4th variant (ProdOrderRoutingLine) provided
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, UnusedVariant3, ProdOrderRoutingLine, false, '');
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, UnusedVariant3, ProdOrderRoutingLine, false, '');
         QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
 
         QltyManagementSetup."Production Trigger" := ProductionTrigger;
@@ -945,17 +945,17 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule.Delete();
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been created');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been created');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test has the correct template code and item
+        // [THEN] The created inspection has the correct template code and item
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
             CreatedQltyInspectionHeader."Template Code",
@@ -982,7 +982,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProductionTrigger: Enum "Qlty. Production Trigger";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -1014,24 +1014,24 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariantsAndTemplate is called with specific template code
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
 
         QltyManagementSetup."Production Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test uses the specified template code
+        // [THEN] The created inspection uses the specified template code
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
         LibraryAssert.AreEqual(
@@ -1062,7 +1062,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ProductionTrigger: Enum "Qlty. Production Trigger";
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -1092,29 +1092,29 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         OutputItemLedgerEntry.SetRange("Item No.", Item."No.");
         OutputItemLedgerEntry.FindFirst();
 
-        // [GIVEN] The initial test count is recorded
+        // [GIVEN] The initial inspection count is recorded
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
         ClearLastError();
 
         // [WHEN] CreateInspectionWithMultiVariantsAndTemplate is called with specific template code (no generation rule scenario)
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
 
         QltyManagementSetup."Production Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
 
         // [THEN] An inspection is claimed to be created
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created.');
 
-        // [THEN] Overall test count increases by 1 and there is exactly one test for this operation
+        // [THEN] Overall inspection count increases by 1 and there is exactly one inspection for this operation
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test uses the specified template code even without a generation rule
+        // [THEN] The created inspection uses the specified template code even without a generation rule
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
@@ -1139,7 +1139,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -1149,7 +1149,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] A production order with routing line is set up with an inspection template and generation rule
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] The initial test count is captured
+        // [GIVEN] The initial inspection count is captured
         QltyInspectionHeader.Reset();
         BeforeCount := QltyInspectionHeader.Count();
         ClearLastError();
@@ -1158,24 +1158,24 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [WHEN] CreateInspectionWithSpecificTemplate is called with the template code
         // [WHEN] CreateInspectionWithSpecificTemplate is called with the template code
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, QltyInspectionTemplateHdr.Code);
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, QltyInspectionTemplateHdr.Code);
 
         QltyInspectionGenRule.Delete();
 
         // [THEN] The test creation is confirmed successful
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been claimed to be created.');
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been claimed to be created.');
 
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] The overall test count increases by one
+        // [THEN] The overall inspection count increases by one
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
 
-        // [THEN] Exactly one test exists for this production order operation
+        // [THEN] Exactly one inspection exists for this production order operation
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one test for this operation.');
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
 
-        // [THEN] The created test uses the specified template code
+        // [THEN] The created inspection uses the specified template code
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
         LibraryAssert.AreEqual(
             QltyInspectionTemplateHdr.Code,
@@ -1251,7 +1251,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         QltyInspectionGenRule.Delete();
 
-        // [THEN] No test is found and the count is zero
+        // [THEN] No inspection is found and the count is zero
         LibraryAssert.IsFalse(FoundTest, 'Should not find any tests.');
         LibraryAssert.AreEqual(0, FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
@@ -1274,7 +1274,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant3: Variant;
         FoundTest: Boolean;
     begin
-        // [SCENARIO] Retrieve all existing tests including reinspections when FindAll is true. Uses a production order routing line and a reinspection. Should find both tests.
+        // [SCENARIO] Retrieve all existing inspections including reinspections when FindAll is true. Uses a production order routing line and a reinspection. Should find both tests.
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         Initialize();
@@ -1326,7 +1326,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FoundTest := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
         QltyInspectionGenRule.Delete();
 
-        // [THEN] No test is found and the count is zero
+        // [THEN] No inspection is found and the count is zero
         LibraryAssert.IsFalse(FoundTest, 'Should not find any tests.');
         LibraryAssert.AreEqual(0, FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
@@ -1366,9 +1366,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FoundTest := QltyInspectionCreate.FindExistingTestWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
         QltyInspectionGenRule.Delete();
 
-        // [THEN] Only the last created test (the reinspection) is found
+        // [THEN] Only the last created inspection (the reinspection) is found
         LibraryAssert.IsTrue(FoundTest, 'Should claim found test.');
-        LibraryAssert.AreEqual(ReQltyInspectionHeader."Reinspection No.", FoundQltyInspectionHeader."Reinspection No.", 'The found test should match the last created test.');
+        LibraryAssert.AreEqual(ReQltyInspectionHeader."Reinspection No.", FoundQltyInspectionHeader."Reinspection No.", 'The found test should match the last created inspection.');
     end;
 
     [Test]
@@ -1393,7 +1393,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FoundTest := QltyInspectionCreate.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
-        // [THEN] No test is found and the count matches the total test count
+        // [THEN] No inspection is found and the count matches the total inspection count
         LibraryAssert.IsFalse(FoundTest, 'Should not find any tests.');
         LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
@@ -1410,7 +1410,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
     begin
-        // [SCENARIO] Retrieve an existing test when one exists for the production order routing line
+        // [SCENARIO] Retrieve an existing inspection when one exists for the production order routing line
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         Initialize();
@@ -1425,8 +1425,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate.FindExistingInspectionWithVariant(false, ProdOrderRoutingLine, FoundQltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
-        // [THEN] Exactly one test is found with the correct test number
-        LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'There should be exactly one test found.');
+        // [THEN] Exactly one inspection is found with the correct test number
+        LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'There should be exactly one inspection found.');
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", FoundQltyInspectionHeader."No.", 'Should find the correct test.');
     end;
 
@@ -1528,7 +1528,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProductionTrigger: Enum "Qlty. Production Trigger";
         FoundTest: Boolean;
     begin
-        // [SCENARIO] Retrieve an existing test created from production output with multiple variants
+        // [SCENARIO] Retrieve an existing inspection created from production output with multiple variants
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         Initialize();
@@ -1567,7 +1567,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [THEN] The test is found with the correct test number
         LibraryAssert.IsTrue(FoundTest, 'Should have found tests.');
         LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'The search did not find the correct number of tests.');
-        LibraryAssert.AreEqual(CreatedQltyInspectionHeader."No.", FoundQltyInspectionHeader."No.", 'The found test should match the created test.');
+        LibraryAssert.AreEqual(CreatedQltyInspectionHeader."No.", FoundQltyInspectionHeader."No.", 'The found test should match the created inspection.');
     end;
 
     [Test]
@@ -1609,7 +1609,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate.FindExistingInspectionWithMultipleVariants(false, ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, FoundQltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
-        // [THEN] No test is found and the count matches the initial count
+        // [THEN] No inspection is found and the count matches the initial count
         LibraryAssert.IsFalse(FoundTest, 'There should not be any tests found.');
         LibraryAssert.AreEqual(BeforeCount, FoundQltyInspectionHeader.Count(), 'There should not be any tests found.');
     end;
@@ -1629,7 +1629,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FindBehavior: Enum "Qlty. Find Existing Behavior";
         TestFound: Boolean;
     begin
-        // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using standard source fields matching
+        // [SCENARIO] Find an existing inspection from a purchase order for a lot-tracked item, by searching using standard source fields matching
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
         Initialize();
@@ -1654,9 +1654,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [THEN] The test is found successfully
         LibraryAssert.IsTrue(TestFound, 'Should find tests.');
-        // [THEN] Exactly one test is found
+        // [THEN] Exactly one inspection is found
         LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'Should find exact number of tests.');
-        // [THEN] The found test matches the created test
+        // [THEN] The found test matches the created inspection
         LibraryAssert.AreEqual(FoundQltyInspectionHeader."No.", QltyInspectionHeader."No.", 'Should find the correct test.');
     end;
 
@@ -1675,7 +1675,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FindBehavior: Enum "Qlty. Find Existing Behavior";
         TestFound: Boolean;
     begin
-        // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using source record matching
+        // [SCENARIO] Find an existing inspection from a purchase order for a lot-tracked item, by searching using source record matching
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
         Initialize();
@@ -1702,10 +1702,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [THEN] The test is found successfully
         LibraryAssert.IsTrue(TestFound, 'Should find tests.');
 
-        // [THEN] Exactly one test is found
+        // [THEN] Exactly one inspection is found
         LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'Should find exact number of tests.');
 
-        // [THEN] The found test matches the created test
+        // [THEN] The found test matches the created inspection
         LibraryAssert.AreEqual(FoundQltyInspectionHeader."No.", QltyInspectionHeader."No.", 'Should find the correct test.');
     end;
 
@@ -1725,7 +1725,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FindBehavior: Enum "Qlty. Find Existing Behavior";
         TestFound: Boolean;
     begin
-        // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by source record matching even when no generation rule exists
+        // [SCENARIO] Find an existing inspection from a purchase order for a lot-tracked item, by source record matching even when no generation rule exists
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
         Initialize();
@@ -1757,10 +1757,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [THEN] The test is found successfully
         LibraryAssert.IsTrue(TestFound, 'Should find tests.');
 
-        // [THEN] Exactly one test is found
+        // [THEN] Exactly one inspection is found
         LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'Should find exact number of tests.');
 
-        // [THEN] The found test matches the created test
+        // [THEN] The found test matches the created inspection
         LibraryAssert.AreEqual(FoundQltyInspectionHeader."No.", QltyInspectionHeader."No.", 'Should find the correct test.');
     end;
 
@@ -1779,7 +1779,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FindBehavior: Enum "Qlty. Find Existing Behavior";
         TestFound: Boolean;
     begin
-        // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using item tracking information
+        // [SCENARIO] Find an existing inspection from a purchase order for a lot-tracked item, by searching using item tracking information
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
         Initialize();
@@ -1807,10 +1807,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [THEN] The test is found successfully
         LibraryAssert.IsTrue(TestFound, 'Should find tests.');
 
-        // [THEN] Exactly one test is found
+        // [THEN] Exactly one inspection is found
         LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'Should find exact number of tests.');
 
-        // [THEN] The found test matches the created test
+        // [THEN] The found test matches the created inspection
         LibraryAssert.AreEqual(FoundQltyInspectionHeader."No.", QltyInspectionHeader."No.", 'Should find the correct test.');
     end;
 
@@ -1829,7 +1829,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FindBehavior: Enum "Qlty. Find Existing Behavior";
         TestFound: Boolean;
     begin
-        // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using document and item only
+        // [SCENARIO] Find an existing inspection from a purchase order for a lot-tracked item, by searching using document and item only
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
         Initialize();
@@ -1856,10 +1856,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [THEN] The test is found successfully
         LibraryAssert.IsTrue(TestFound, 'Should find tests.');
 
-        // [THEN] Exactly one test is found
+        // [THEN] Exactly one inspection is found
         LibraryAssert.AreEqual(1, FoundQltyInspectionHeader.Count(), 'Should find exact number of tests.');
 
-        // [THEN] The found test matches the created test
+        // [THEN] The found test matches the created inspection
         LibraryAssert.AreEqual(FoundQltyInspectionHeader."No.", QltyInspectionHeader."No.", 'Should find the correct test.');
     end;
 
@@ -1904,7 +1904,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup."Find Existing Behavior" := FindBehavior;
         QltyManagementSetup.Modify();
 
-        // [THEN] No test is found
+        // [THEN] No inspection is found
         LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
 
         // [THEN] The count of found tests matches the initial count (zero)
@@ -1947,7 +1947,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup."Find Existing Behavior" := FindBehavior;
         QltyManagementSetup.Modify();
 
-        // [THEN] No test is found
+        // [THEN] No inspection is found
         LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
         LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any tests.');
     end;
@@ -1987,7 +1987,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup."Find Existing Behavior" := FindBehavior;
         QltyManagementSetup.Modify();
 
-        // [THEN] No test is found
+        // [THEN] No inspection is found
         LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
         // [THEN] The count of found tests matches the initial count (zero)
         LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any tests.');
@@ -2028,7 +2028,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyManagementSetup."Find Existing Behavior" := FindBehavior;
         QltyManagementSetup.Modify();
 
-        // [THEN] No test is found
+        // [THEN] No inspection is found
         LibraryAssert.IsFalse(TestFound, 'Should not find any tests.');
         // [THEN] The count of found tests matches the initial count (zero)
         LibraryAssert.AreEqual(QltyInspectionHeader.Count(), FoundQltyInspectionHeader.Count(), 'Should not find any tests.');
@@ -2045,7 +2045,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
         // [SCENARIO] Create a reinspection for an existing quality inspection
 
@@ -2055,20 +2055,20 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] An inspection is created from the production order routing line
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been created');
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been created');
 
-        // [GIVEN] The created test is retrieved
+        // [GIVEN] The created inspection is retrieved
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
-        // [WHEN] CreateReinspection is called with the existing test
+        // [WHEN] CreateReinspection is called with the existing inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
-        // [THEN] The reinspection has the same template code as the original test
+        // [THEN] The reinspection has the same template code as the original inspection
         LibraryAssert.AreEqual(QltyInspectionHeader."Template Code", ReQltyInspectionHeader."Template Code", 'Template does not match.');
-        // [THEN] The reinspection has the same test number as the original test
+        // [THEN] The reinspection has the same inspection number as the original inspection
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", ReQltyInspectionHeader."No.", 'Test No. does not match.');
         // [THEN] The reinspection number is incremented by 1
         LibraryAssert.AreEqual((QltyInspectionHeader."Reinspection No." + 1), ReQltyInspectionHeader."Reinspection No.", 'Reinspection No. did not increment.');
@@ -2085,7 +2085,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        ClaimedATestWasFoundOrCreated: Boolean;
+        ClaimedInspectionWasFoundOrCreated: Boolean;
         TestStillExists: Boolean;
     begin
         // [SCENARIO] Retrieve the most recently created quality inspection
@@ -2096,23 +2096,23 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] An inspection is created from the production order routing line
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedATestWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
-        LibraryAssert.IsTrue(ClaimedATestWasFoundOrCreated, 'A test should have been created');
+        ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'A test should have been created');
 
-        // [GIVEN] The last created test is found in the database
+        // [GIVEN] The last created inspection is found in the database
         QltyInspectionHeader.FindLast();
 
-        // [WHEN] GetCreatedTest is called to retrieve the most recently created test
+        // [WHEN] GetCreatedTest is called to retrieve the most recently created inspection
         TestStillExists := QltyInspectionCreate.GetCreatedTest(CreatedQltyInspectionHeader);
 
         QltyInspectionGenRule.Delete();
 
         // [THEN] The test is confirmed to exist
         LibraryAssert.IsTrue(TestStillExists, 'Test should be said to exist.');
-        // [THEN] The retrieved test has the same test number as the last created test
-        LibraryAssert.AreEqual(QltyInspectionHeader."No.", CreatedQltyInspectionHeader."No.", 'Should get the last created test.');
-        // [THEN] The retrieved test has the same reinspection number as the last created test
-        LibraryAssert.AreEqual(QltyInspectionHeader."Reinspection No.", CreatedQltyInspectionHeader."Reinspection No.", 'Should get the last created test.');
+        // [THEN] The retrieved test has the same inspection number as the last created inspection
+        LibraryAssert.AreEqual(QltyInspectionHeader."No.", CreatedQltyInspectionHeader."No.", 'Should get the last created inspection.');
+        // [THEN] The retrieved test has the same reinspection number as the last created inspection
+        LibraryAssert.AreEqual(QltyInspectionHeader."Reinspection No.", CreatedQltyInspectionHeader."Reinspection No.", 'Should get the last created inspection.');
     end;
 
     [Test]
@@ -2173,7 +2173,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         TempSpecTrackingSpecification.Insert();
         TempSpecTrackingSpecification.Mark(true);
-        // [GIVEN] The initial test count is recorded
+        // [GIVEN] The initial inspection count is recorded
         CountBefore := QltyInspectionHeader.Count();
 
         // [WHEN] CreateMultipleTestsForMarkedTrackingSpecification is called with the marked tracking specifications
@@ -2184,10 +2184,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [THEN] Two tests are created (one for each marked tracking specification)
         LibraryAssert.AreEqual((CountBefore + 2), CountAfter, 'The tests should have been created.');
-        // [THEN] One test is created for the first purchase order
+        // [THEN] One inspection is created for the first purchase order
         QltyInspectionHeader.SetRange("Source Document No.", PurchaseHeader[1]."No.");
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'Should have created an inspection.');
-        // [THEN] One test is created for the second purchase order
+        // [THEN] One inspection is created for the second purchase order
         QltyInspectionHeader.SetRange("Source Document No.", PurchaseHeader[2]."No.");
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'Should have created an inspection.');
     end;
@@ -2267,7 +2267,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [THEN] Only 1 test is created
         LibraryAssert.AreEqual((CountBefore + 1), CountAfter, 'Only 1 test should have been created.');
-        // [THEN] The created test is associated with the preferred order purchase header
+        // [THEN] The created inspection is associated with the preferred order purchase header
         QltyInspectionHeader.SetRange("Source Document No.", PreferredOrderPurchaseHeader."No.");
         LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'Should have created 1 test for a purch order.');
     end;
@@ -2455,7 +2455,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [THEN] 1 test is created
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Did not create the correct number of tests.');
-        // [THEN] The created test is associated with the selected production order
+        // [THEN] The created inspection is associated with the selected production order
         CreatedQltyInspectionHeader.SetRange("Source Document No.", ProductionOrder);
         CreatedQltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'Did not create test for correct production order.');
@@ -2480,10 +2480,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [WHEN] CreateMultipleTestsForMultipleRecords is called with an empty RecordRef
         asserterror QltyInspectionCreate.CreateMultipleTestsForMultipleRecords(ProdOrderRoutingLineRecordRef, false);
         // [THEN] An error is raised indicating unable to create an inspection for the record
-        LibraryAssert.ExpectedError(StrSubstNo(UnableToCreateATestForRecordErr, ProdOrderRoutingLineRecordRef.Name));
+        LibraryAssert.ExpectedError(StrSubstNo(UnableToCreateInspectionForRecordErr, ProdOrderRoutingLineRecordRef.Name));
         // [THEN] No tests are created
         AfterCount := QltyInspectionHeader.Count();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'Should not have created tests.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'Should not have created inspections.');
     end;
 
     [Test]
@@ -2529,7 +2529,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [WHEN] CreateMultipleTestsForMultipleRecords is called without any generation rule configured
         asserterror QltyInspectionCreate.CreateMultipleTestsForMultipleRecords(ProdOrderRoutingLineRecordRef, false);
         // [THEN] An error is raised indicating unable to create an inspection for the parent or child record
-        LibraryAssert.ExpectedError(StrSubstNo(UnableToCreateATestForParentOrChildErr, ProdOrderLine.TableName, ProdOrderRoutingLineRecordRef.Name));
+        LibraryAssert.ExpectedError(StrSubstNo(UnableToCreateInspectionForParentOrChildErr, ProdOrderLine.TableName, ProdOrderRoutingLineRecordRef.Name));
     end;
 
     local procedure CreateInspectionWithTracking(var PurOrdPurchaseLine: Record "Purchase Line"; var TempSpecTrackingSpecification: Record "Tracking Specification" temporary; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")

@@ -82,8 +82,8 @@ page 20411 "Qlty. Source Config Line Part"
 
         Rec."From Table No." := QltyInspectSourceConfig."From Table No.";
         Rec."To Table No." := QltyInspectSourceConfig."To Table No.";
-        if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Test then begin
-            Rec."To Type" := Rec."To Type"::Test;
+        if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Inspection then begin
+            Rec."To Type" := Rec."To Type"::Inspection;
             Rec."To Table No." := Database::"Qlty. Inspection Header";
         end;
     end;

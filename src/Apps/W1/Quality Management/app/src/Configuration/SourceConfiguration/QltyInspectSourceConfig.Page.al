@@ -147,7 +147,7 @@ page 20410 "Qlty. Inspect. Source Config."
 
     local procedure UpdateControls()
     begin
-        ShowToTable := Rec."To Type" <> Rec."To Type"::Test;
+        ShowToTable := Rec."To Type" <> Rec."To Type"::Inspection;
     end;
 
     local procedure GetDataCaptionExpression(): Text

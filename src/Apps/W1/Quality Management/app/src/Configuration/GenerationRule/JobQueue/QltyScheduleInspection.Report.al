@@ -71,8 +71,8 @@ report 20412 "Qlty. Schedule Inspection"
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ShowWarningIfCreateInspection: Boolean;
         CreatedQltyInspectionIds: List of [Code[20]];
-        ZeroTestsCreatedMsg: Label 'No tests were created.';
-        SomeTestsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
+        ZeroInspectionsCreatedMsg: Label 'No tests were created.';
+        SomeInspectionsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
         ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the test generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive test generation. ';
 
     trigger OnInitReport()
@@ -92,9 +92,9 @@ report 20412 "Qlty. Schedule Inspection"
     begin
         if GuiAllowed() then
             if CreatedQltyInspectionIds.Count() = 0 then
-                Message(ZeroTestsCreatedMsg)
+                Message(ZeroInspectionsCreatedMsg)
             else
-                if Confirm(StrSubstNo(SomeTestsWereCreatedQst, CreatedQltyInspectionIds.Count())) then
+                if Confirm(StrSubstNo(SomeInspectionsWereCreatedQst, CreatedQltyInspectionIds.Count())) then
                     QltyInspectionCreate.DisplayTestsIfConfigured(true, CreatedQltyInspectionIds);
     end;
 

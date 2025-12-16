@@ -411,7 +411,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     end;
 
     /// <summary>
-    /// USe this to integrate with  auto tests before the tests are created from warehouse receipt lines.
+    /// UUse this to integrate with auto inspections before the inspections are created from warehouse receipt lines.
     /// </summary>
     /// <param name="WarehouseReceiptLine"></param>
     /// <param name="WarehouseReceiptHeader"></param>
@@ -438,7 +438,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     end;
 
     /// <summary>
-    /// USe this to integrate with purchase auto tests before the tests are created.
+    /// UUse this to integrate with purchase auto inspections before the inspections are created.
     /// </summary>
     /// <param name="WarehouseJournalLine">var Record "Warehouse Journal Line".</param>
     /// <param name="PostedWhseReceiptHeader">Record "Posted Whse. Receipt Header".</param>

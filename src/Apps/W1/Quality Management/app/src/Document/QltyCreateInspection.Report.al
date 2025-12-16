@@ -255,7 +255,7 @@ report 20400 "Qlty. Create Inspection"
         if (QltyInspectionTemplateCode <> '') and (SourceTable = '') then begin
             QltyInspectSourceConfig.Reset();
             if QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then begin
-                QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Test);
+                QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Inspection);
                 QltyInspectSourceConfig.SetRange(Enabled, true);
                 if TempCompatibleQltyInspectionGenRule.FindSet() then
                     repeat

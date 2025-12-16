@@ -15,7 +15,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
@@ -187,7 +187,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
             Clear(SpecificQltyInspectSrcFldConf);
             SpecificQltyInspectSrcFldConf.Init();
             SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
-            SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
+            SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
             SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
             SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
             SpecificQltyInspectSrcFldConf."To Table No." := SpecificQltyInspectSourceConfig."To Table No.";
@@ -200,7 +200,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
             SpecificQltyInspectSrcFldConf.Insert();
         end;
 
-        // [GIVEN] A workflow configured to create new inspection from existing test
+        // [GIVEN] A workflow configured to create new inspection from existing inspection
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Header");
 
         QltyManagementSetup.Get();
@@ -211,11 +211,11 @@ codeunit 139969 "Qlty. Tests - Workflows"
         BeforeCount := QltyInspectionHeader.Count();
         OriginalQltyInspectionHeader.SetRange(Status, OriginalQltyInspectionHeader.Status::Open);
 
-        // [WHEN] The original test status is changed to finished
+        // [WHEN] The original inspection status is changed to finished
         OriginalQltyInspectionHeader.Validate(Status, OriginalQltyInspectionHeader.Status::Finished);
         OriginalQltyInspectionHeader.Modify();
 
-        // [THEN] A new inspection is created with source configuration fields applied from the original test
+        // [THEN] A new inspection is created with source configuration fields applied from the original inspection
         LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one new inspection created.');
         CreatedQltyInspectionHeader.SetRange("Source Document No.", OriginalQltyInspectionHeader."Source Document No.");
         CreatedQltyInspectionHeader.SetRange("Source Document Line No.", OriginalQltyInspectionHeader."Source Document Line No.");
@@ -1180,7 +1180,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
-        // [THEN] A new reinspection is created with same test number but incremented reinspection number
+        // [THEN] A new reinspection is created with same inspection number but incremented reinspection number
         LibraryAssert.AreEqual(CreatedTests + 1, CreatedQltyInspectionHeader.Count(), 'Should be one more test created.');
         CreatedQltyInspectionHeader.SetRange("No.", QltyInspectionHeader."No.");
         LibraryAssert.AreEqual(2, CreatedQltyInspectionHeader.Count(), 'Should be 2 tests (one original and one reinspection)');
@@ -1878,7 +1878,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Header");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
         SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
 
@@ -1887,7 +1887,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := PurchaseHeader.FieldNo("No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
         SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();

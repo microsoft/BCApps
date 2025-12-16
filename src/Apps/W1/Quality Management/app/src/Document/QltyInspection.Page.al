@@ -196,11 +196,11 @@ page 20406 "Qlty. Inspection"
                         ToolTip = 'Specifies the ID of the user who last modified the test.';
                     }
                 }
-                field("Existing Quality Tests This Record"; Rec."Existing Tests This Record")
+                field("Existing Quality Tests This Record"; Rec."Existing Inspections This Record")
                 {
                     Importance = Additional;
                 }
-                field("Existing Quality Tests This Item"; Rec."Existing Tests This Item")
+                field("Existing Quality Tests This Item"; Rec."Existing Inspections This Item")
                 {
                     Importance = Additional;
                 }
@@ -850,8 +850,8 @@ page 20406 "Qlty. Inspection"
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        CanReopen := QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentReinspection();
-        CanFinish := QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
+        CanReopen := QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
+        CanFinish := QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
         CanCreateReinspection := QltyPermissionMgmt.CanCreateReinspection();
         if Rec.Status = Rec.Status::Open then
             if QltyPermissionMgmt.CanChangeTrackingNo() then begin

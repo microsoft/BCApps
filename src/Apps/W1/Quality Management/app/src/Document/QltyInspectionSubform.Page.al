@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Document;
 
 using Microsoft.QualityManagement.AccessControl;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>

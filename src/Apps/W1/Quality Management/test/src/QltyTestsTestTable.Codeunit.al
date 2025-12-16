@@ -19,7 +19,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
@@ -4453,7 +4453,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionLine: Record "Qlty. Inspection Line";
         GradeCode: Text;
     begin
-        // [SCENARIO] Delete grade with existing test grade conditions after confirmation
+        // [SCENARIO] Delete grade with existing inspection grade conditions after confirmation
         Initialize();
 
         // [GIVEN] All existing grades are deleted

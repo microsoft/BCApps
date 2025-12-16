@@ -107,7 +107,7 @@ table 20407 "Qlty. Inspect. Source Config."
 
             trigger OnValidate()
             begin
-                if Rec."To Type" = Rec."To Type"::Test then
+                if Rec."To Type" = Rec."To Type"::Inspection then
                     Rec.Validate("To Table No.", Database::"Qlty. Inspection Header");
             end;
         }
@@ -165,13 +165,13 @@ table 20407 "Qlty. Inspect. Source Config."
 
     local procedure PreventRecursion()
     var
-        TestOthersQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        OtherQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
     begin
-        TestOthersQltyInspectSourceConfig.SetRange("From Table No.", Rec."To Table No.");
-        TestOthersQltyInspectSourceConfig.SetRange("To Table No.", Rec."From Table No.");
-        TestOthersQltyInspectSourceConfig.SetFilter(Code, '<>%1', Rec.Code);
-        if TestOthersQltyInspectSourceConfig.FindFirst() then
-            Error(CannotHaveATemplateWithReversedFromAndToErr, TestOthersQltyInspectSourceConfig.Code);
+        OtherQltyInspectSourceConfig.SetRange("From Table No.", Rec."To Table No.");
+        OtherQltyInspectSourceConfig.SetRange("To Table No.", Rec."From Table No.");
+        OtherQltyInspectSourceConfig.SetFilter(Code, '<>%1', Rec.Code);
+        if OtherQltyInspectSourceConfig.FindFirst() then
+            Error(CannotHaveATemplateWithReversedFromAndToErr, OtherQltyInspectSourceConfig.Code);
     end;
 
     trigger OnModify()

@@ -86,7 +86,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -144,7 +144,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -200,7 +200,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -258,7 +258,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code and lot number
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -315,7 +315,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -371,7 +371,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code and lot number
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -428,7 +428,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -487,7 +487,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -573,7 +573,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -656,7 +656,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -732,7 +732,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code, location, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -810,7 +810,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code, location, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -883,7 +883,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code, location, lot number, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -956,7 +956,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code, location, and quantity
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -1441,7 +1441,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code and quantity matching qty. to receive
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
@@ -1499,7 +1499,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] One quality inspection is created with matching template code and quantity matching qty. to receive
-        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one test created.');
+        LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one inspection created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');

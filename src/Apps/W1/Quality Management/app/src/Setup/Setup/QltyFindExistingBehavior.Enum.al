@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Setup.Setup;
 
 /// <summary>
-/// Controls how existing tests are found.
+/// Controls how existing inspections are found.
 /// In some scenarios it's only about the source record, in others it is only item tracking, and in some it's standard source, document, and template.
 /// </summary>
 enum 20403 "Qlty. Find Existing Behavior"

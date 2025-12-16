@@ -9,7 +9,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Inventory;
@@ -38,13 +38,13 @@ codeunit 20404 "Qlty. Inspection - Create"
         AvoidThrowingErrorWhenPossible: Boolean;
         ProgrammerErrNotARecordRefErr: Label 'Cannot find tests with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Generation Rule to match  %1. Ensure there is a Quality Inspection Generation Rule that will match this record.', Comment = '%1=The record identifier';
-        UnableToCreateATestForErr: Label 'Unable to create an inspection for the record [%1], please review the Quality Inspection Source Configuration and also the Quality Inspection Generation Rules, you likely need additional configuration to work with this record.', Comment = '%1=the record id of what is being attempted to have an inspection created for.';
+        UnableToCreateInspectionForErr: Label 'Unable to create an inspection for the record [%1], please review the Quality Inspection Source Configuration and also the Quality Inspection Generation Rules, you likely need additional configuration to work with this record.', Comment = '%1=the record id of what is being attempted to have an inspection created for.';
         NoSpecificTemplateTok: Label '', Locked = true;
         MultiRecordTestSourceFieldErr: Label 'Test %1 has been created, however neither %2 nor %4 had applicable source fields to map to the test. Navigate to the Quality Source Configuration for table %3 and apply source field mapping.', Comment = '%1=the test, %2=target record,  %3=the number to set configuration for,%4=triggering record';
         RegisteredLogEventIDTok: Label 'QIERR0001', Locked = true;
         DetailRecordTok: Label 'Target', Locked = true;
-        UnableToCreateATestForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
-        UnableToCreateATestForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
+        UnableToCreateInspectionForParentOrChildErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
+        UnableToCreateInspectionForRecordErr: Label 'Cannot find enough details to make an inspection for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your inspection generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
         RecordShouldBeTemporaryErr: Label 'This code is only intended to run in a temporary fashion. This error is likely occurring from an integration issue.';
         UnknownRecordTok: Label 'Unknown record', Locked = true;
 
@@ -291,7 +291,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         TempQltyInspectionGenRule.CopyFilters(TempFiltersQltyInspectionGenRule);
 
         if IsManualCreation then
-            QltyPermissionMgmt.TestCanCreateManualInspection()
+            QltyPermissionMgmt.VerifyCanCreateManualInspection()
         else
             if not QltyPermissionMgmt.CanCreateAutoInspection() then
                 exit(QltyInspectionCreateStatus::"Unable to Create");
@@ -371,9 +371,9 @@ codeunit 20404 "Qlty. Inspection - Create"
                 then
                     Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader);
         end else begin
-            LogCreateInspectionProblem(TargetRecordRef, UnableToCreateATestForErr, Format(OriginalRecordId));
+            LogCreateInspectionProblem(TargetRecordRef, UnableToCreateInspectionForErr, Format(OriginalRecordId));
             if IsManualCreation and (not AvoidThrowingErrorWhenPossible) then
-                Error(UnableToCreateATestForErr, Format(OriginalRecordId));
+                Error(UnableToCreateInspectionForErr, Format(OriginalRecordId));
         end;
 
         OnAfterCreateInspectionAfterDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectionGenRule, QltyInspectionHeader, OptionalRec2Variant, OptionalRec3Variant);
@@ -395,7 +395,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Finds existing tests based on the multiple variants supplied.
+    /// Finds existing inspections based on the multiple variants supplied.
     /// </summary>
     /// <param name="ReferenceVariant"></param>
     /// <param name="OptionalVariant2"></param>
@@ -421,7 +421,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Finds existing tests based on the setup on the quality inspector.
+    /// Finds existing inspections based on the setup on the quality inspector.
     /// </summary>
     /// <param name="TargetRecordRef">The main target record that the test will be created against</param>
     /// <param name="QltyInspectionHeader">The created test</param>
@@ -512,7 +512,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                         ShouldCreateReinspection := true;
                         NeedNewInspection := true;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching test is finished":
+                QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching inspection is finished":
                     if not HasExistingTest then begin
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
@@ -530,7 +530,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                         ShouldCreateReinspection := false;
                         HasInspection := not NeedNewInspection;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Use any existing test if available":
+                QltyManagementSetup."Create Inspection Behavior"::"Use any existing inspection if available":
                     begin
                         NeedNewInspection := not HasExistingTest;
                         ShouldCreateReinspection := false;
@@ -912,9 +912,9 @@ codeunit 20404 "Qlty. Inspection - Create"
                 exit;
 
             if ParentRecordRef.Number() <> 0 then
-                Error(UnableToCreateATestForParentOrChildErr, ParentRecordRef.Name, SetOfRecordsRecordRef.Name)
+                Error(UnableToCreateInspectionForParentOrChildErr, ParentRecordRef.Name, SetOfRecordsRecordRef.Name)
             else
-                Error(UnableToCreateATestForRecordErr, SetOfRecordsRecordRef.Name);
+                Error(UnableToCreateInspectionForRecordErr, SetOfRecordsRecordRef.Name);
         end;
     end;
 

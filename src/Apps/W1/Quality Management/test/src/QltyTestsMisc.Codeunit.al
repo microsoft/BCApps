@@ -23,7 +23,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
@@ -2067,7 +2067,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Assembly Header");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
         SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
 
@@ -2076,7 +2076,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("Item No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
         SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Item No.");
         SpecificQltyInspectSrcFldConf.Insert();
@@ -2087,7 +2087,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
         SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
@@ -2098,7 +2098,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("Document Type");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
         SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Type");
         SpecificQltyInspectSrcFldConf.Insert();
@@ -2109,7 +2109,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("Quantity to Assemble (Base)");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
         SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Quantity (Base)");
         SpecificQltyInspectSrcFldConf.Insert();
@@ -2139,7 +2139,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
 
-        // [GIVEN] Reinspection created from original test
+        // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [GIVEN] Inspection grade configured to block assembly output

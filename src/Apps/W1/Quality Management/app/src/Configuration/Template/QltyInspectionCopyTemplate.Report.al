@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Inventory.Item;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
 /// Copy/Duplicate an Existing Quality Inspection Template.

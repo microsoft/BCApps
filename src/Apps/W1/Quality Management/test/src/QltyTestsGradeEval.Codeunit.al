@@ -7,7 +7,7 @@ namespace Microsoft.Test.QualityManagement;
 using Microsoft.Manufacturing.Document;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
@@ -64,43 +64,43 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [GIVEN] A grade evaluation codeunit instance
         // [WHEN] Testing blank and zero values with different allowable ranges
         // [THEN] Blank values pass with blank allowable ranges but fail with numerical ranges, and zero passes within its valid range
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal('', ''), 'blank string with blank allowable');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal('', '0..1'), 'blank string with numerical range.');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal('0', '0..1'), 'zero numerical range.');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal('0', '-100..100'), 'zero numerical range-extended.');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal('', '-100..100'), 'blank numerical range-extended.');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal('0', ''), 'zero with blank range.');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal('', ''), 'blank string with blank allowable');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal('', '0..1'), 'blank string with numerical range.');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal('0', '0..1'), 'zero numerical range.');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal('0', '-100..100'), 'zero numerical range-extended.');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal('', '-100..100'), 'blank numerical range-extended.');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal('0', ''), 'zero with blank range.');
 
         // [WHEN] Testing decimal value '3' with various conditions
         TestValue := '3';
         // [THEN] Value passes exact match, range, and comparison validations correctly
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, ''), 'Decimal basic no condition');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '3'), 'Decimal basic exact');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '3' + GetRegionalDecimalSeparator() + '000000000000000'), 'Decimal basic exact lots of precision');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, ''), 'Decimal basic no condition');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '3'), 'Decimal basic exact');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '3' + GetRegionalDecimalSeparator() + '000000000000000'), 'Decimal basic exact lots of precision');
 
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal(TestValue, '2' + GetRegionalDecimalSeparator() + '99999'), 'Decimal basic almost 3 under');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal(TestValue, '3' + GetRegionalDecimalSeparator() + '00001'), 'Decimal basic almost 3 over');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal(TestValue, '2'), 'Decimal basic not 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '<>0'), 'Decimal basic not zero');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '<>'''''), 'Decimal basic not zero, demo person special');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '>0'), 'Decimal basic more than zero');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '2' + GetRegionalDecimalSeparator() + '99999'), 'Decimal basic almost 3 under');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '3' + GetRegionalDecimalSeparator() + '00001'), 'Decimal basic almost 3 over');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '2'), 'Decimal basic not 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '<>0'), 'Decimal basic not zero');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '<>'''''), 'Decimal basic not zero, demo person special');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '>0'), 'Decimal basic more than zero');
 
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '<=3'), 'Decimal basic lteq 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '>=3'), 'Decimal basic gteq 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '<4'), 'Decimal basic lt 4');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '>2' + GetRegionalDecimalSeparator() + '9999'), 'Decimal basic gt 2');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '<=3'), 'Decimal basic lteq 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '>=3'), 'Decimal basic gteq 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '<4'), 'Decimal basic lt 4');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '>2' + GetRegionalDecimalSeparator() + '9999'), 'Decimal basic gt 2');
 
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '2..4'), 'Decimal basic range');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '2..4'), 'Decimal basic range');
 
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '3..3'), 'Decimal basic range');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '3..3'), 'Decimal basic range');
 
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal(TestValue, '-100..2' + GetRegionalDecimalSeparator() + '9'), 'Decimal basic range less');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '-100..2' + GetRegionalDecimalSeparator() + '9'), 'Decimal basic range less');
 
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal(TestValue, '3' + GetRegionalDecimalSeparator() + '0001..100'), 'Decimal basic range more');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '3' + GetRegionalDecimalSeparator() + '0001..100'), 'Decimal basic range more');
 
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDecimal(TestValue, '1|2|3|4'), 'Decimal basic range list');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '1|2|3|4'), 'Decimal basic range list');
 
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDecimal(TestValue, '1|2|4'), 'Decimal basic range list');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDecimal(TestValue, '1|2|4'), 'Decimal basic range list');
     end;
 
     [Test]
@@ -116,22 +116,22 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         // [WHEN] Testing the integer value against various conditions
         // [THEN] The value passes validation for exact matches, ranges, comparisons, and list inclusions
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, ''), 'Integer basic no condition');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger('', ''), 'Integer basic blank.');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '3'), 'Integer basic exact');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueInteger(TestValue, '2'), 'Integer basic not 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '<>0'), 'Integer basic not zero');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '>0'), 'Integer basic more than zero');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '<=3'), 'Integer basic lteq 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '>=3'), 'Integer basic gteq 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '<4'), 'Integer basic lt 4');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '>2'), 'Integer basic gt 2');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '2..4'), 'Integer basic range');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '3..3'), 'Integer basic range');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueInteger(TestValue, '-100..2'), 'Integer basic range less');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueInteger(TestValue, '4..100'), 'Integer basic range more');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueInteger(TestValue, '1|2|3|4'), 'Integer list');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueInteger(TestValue, '1|2|4'), 'Integer list missing');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, ''), 'Integer basic no condition');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger('', ''), 'Integer basic blank.');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '3'), 'Integer basic exact');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '2'), 'Integer basic not 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '<>0'), 'Integer basic not zero');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '>0'), 'Integer basic more than zero');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '<=3'), 'Integer basic lteq 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '>=3'), 'Integer basic gteq 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '<4'), 'Integer basic lt 4');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '>2'), 'Integer basic gt 2');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '2..4'), 'Integer basic range');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '3..3'), 'Integer basic range');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '-100..2'), 'Integer basic range less');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '4..100'), 'Integer basic range more');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '1|2|3|4'), 'Integer list');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsInteger(TestValue, '1|2|4'), 'Integer list missing');
     end;
 
     [Test]
@@ -150,27 +150,27 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         // [WHEN] Testing string values with various conditions including wildcards and case sensitivity
         // [THEN] Values pass validation for exact matches, wildcard patterns, and respect case sensitivity settings
         DatabaseIsCaseSensitive := IsDatabaseCaseSensitive();
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString(TestValue, ''), 'String basic no condition');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString(TestValue, '3'), 'String basic exact');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString(TestValue, '2'), 'String basic not 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString(TestValue, '<>0'), 'String basic not zero');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString(TestValue, '<>'''''), 'String basic not blank');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('abcdefg', '*b*'), 'String basic wildcard 1');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('abcdefg', '*g'), 'String basic wildcard 2');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'caseSensitive'), 'String case sensitive 1');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString(TestValue, ''), 'String basic no condition');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString(TestValue, '3'), 'String basic exact');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsString(TestValue, '2'), 'String basic not 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString(TestValue, '<>0'), 'String basic not zero');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString(TestValue, '<>'''''), 'String basic not blank');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('abcdefg', '*b*'), 'String basic wildcard 1');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('abcdefg', '*g'), 'String basic wildcard 2');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'caseSensitive'), 'String case sensitive 1');
         if DatabaseIsCaseSensitive then begin
-            LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive'), 'String case sensitive 2');
-            LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'CaseSensitive'), 'String case sensitive 3');
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Insensitive), 'String case sensitive 4');
-            LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Sensitive), 'String case sensitive 5');
+            LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'casesensitive'), 'String case sensitive 2');
+            LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'CaseSensitive'), 'String case sensitive 3');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'casesensitive', CaseOption::Insensitive), 'String case sensitive 4');
+            LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'casesensitive', CaseOption::Sensitive), 'String case sensitive 5');
         end else begin
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive'), 'String case sensitive 2');
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'CaseSensitive'), 'String case sensitive 3');
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Insensitive), 'String case sensitive 4');
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Sensitive), 'String case sensitive 5');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'casesensitive'), 'String case sensitive 2');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'CaseSensitive'), 'String case sensitive 3');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'casesensitive', CaseOption::Insensitive), 'String case sensitive 4');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('caseSensitive', 'casesensitive', CaseOption::Sensitive), 'String case sensitive 5');
         end;
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('wildCardSearch', '*ard*'), 'String wildcard 1');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('wildCardSearch', 'wild*'), 'String wildcard 2');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('wildCardSearch', '*ard*'), 'String wildcard 1');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsString('wildCardSearch', 'wild*'), 'String wildcard 2');
     end;
 
     [TryFunction]
@@ -180,7 +180,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestValue: Text[250];
     begin
         TestValue := 'not a date';
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDate(TestValue, '', false), 'Date basic not a date 1');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '', false), 'Date basic not a date 1');
     end;
 
     [TryFunction]
@@ -190,7 +190,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestValue: Text[250];
     begin
         TestValue := 'not a datetime';
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDateTime(TestValue, '', false), 'Datetime basic not a date time 1');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, '', false), 'Datetime basic not a date time 1');
     end;
 
     [Test]
@@ -222,7 +222,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         Date := DMY2Date(28, 1, Year);
         OriginalTestValue := TestValue;
 
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '', false),
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '', false),
             'Date basic no condition 2');
         if IsDayMonthYearLocal() then
             LibraryAssert.AreNotEqual(TestValue, format(Date, 0, '<Day,2>' + GetDateSeparator() + '<Month,2>' + GetDateSeparator() + '<Year>'), 'Back and forth date - no change')
@@ -230,41 +230,41 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
             LibraryAssert.AreNotEqual(TestValue, format(Date, 0, '<Month,2>' + GetDateSeparator() + '<Day,2>' + GetDateSeparator() + '<Year>'), 'Back and forth date - no change');
 
         TestValue := OriginalTestValue;
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '', true), 'Date basic no condition 1');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '', true), 'Date basic no condition 1');
         LibraryAssert.AreEqual(TestValue, format(Date, 0, '<Year4>-<Month,2>-<Day,2>'), 'Back and forth date - should change');
 
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '1' + GetDateSeparator() + '1..2' + GetDateSeparator() + '2', false), 'Date basic date range 1');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, StrSubstNo('1' + GetDateSeparator() + '1' + GetDateSeparator() + '%1..2' + GetDateSeparator() + '2' + GetDateSeparator() + '%1', YearAsString), false), 'Date basic date range 2');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, StrSubstNo('>1' + GetDateSeparator() + '1' + GetDateSeparator() + '%1', YearAsString), false), 'Date basic date range 3');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '1' + GetDateSeparator() + '1..2' + GetDateSeparator() + '2', false), 'Date basic date range 1');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, StrSubstNo('1' + GetDateSeparator() + '1' + GetDateSeparator() + '%1..2' + GetDateSeparator() + '2' + GetDateSeparator() + '%1', YearAsString), false), 'Date basic date range 2');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, StrSubstNo('>1' + GetDateSeparator() + '1' + GetDateSeparator() + '%1', YearAsString), false), 'Date basic date range 3');
 
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, StrSubstNo('<=%1', format(Date)), false), 'Date basic date range 4');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, StrSubstNo('<=%1', format(Date)), false), 'Date basic date range 4');
         if IsDayMonthYearLocal() then begin
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '28' + GetDateSeparator() + '1', false),
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '28' + GetDateSeparator() + '1', false),
                 'Date basic NO CONVERT');
             LibraryAssert.AreNotEqual('28-1' + YearAsString, TestValue, 'date basic NO CONVERT');
 
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '28-1', true), 'Date basic convert');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '28-1', true), 'Date basic convert');
         end else begin
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '1' + GetDateSeparator() + '28', false), 'Date basic NO CONVERT');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '1' + GetDateSeparator() + '28', false), 'Date basic NO CONVERT');
             LibraryAssert.AreNotEqual('1/28/' + YearAsString, TestValue, 'date basic NO CONVERT');
 
-            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '1/28', true), 'Date basic convert');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '1/28', true), 'Date basic convert');
         end;
 
         LibraryAssert.AreEqual(YearAsString + '-01-28', TestValue, 'date basic convert 1');
 
         TestValue := '2023-12-31';
         Date := DMY2Date(31, 12, 2023);
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, '', true), 'Date universal date value');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '', true), 'Date universal date value');
 
         TestValue := format(PredictableDate, 0, 9);
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDate(TestValue, TestValue, true), 'expected value matches expected date.');
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, TestValue, true), 'expected value matches expected date.');
 
         TestValue := format(PredictableDate, 0, 9);
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDate(TestValue, '<>' + TestValue, true), 'expected value matches anything but the expected date.');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, '<>' + TestValue, true), 'expected value matches anything but the expected date.');
 
         TestValue := '';
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDate(TestValue, format(PredictableDate, 0, 9), true), 'blank input date with valid acceptable date');
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDate(TestValue, format(PredictableDate, 0, 9), true), 'blank input date with valid acceptable date');
     end;
 
     [Test]
@@ -295,47 +295,47 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         TestValue := format(Date, 0, 9);
         OriginalTestValue := TestValue;
         // [THEN] Datetime passes validation and value remains unchanged
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDateTime(TestValue, '', false), 'Datetime basic do not adjust' + DateFailureSuffixDetails);
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, '', false), 'Datetime basic do not adjust' + DateFailureSuffixDetails);
         LibraryAssert.AreEqual(OriginalTestValue, TestValue, 'test value should not have changed for datetime ' + DateFailureSuffixDetails);
 
         // [WHEN] Testing datetime with timezone adjustment
         TestValue := OriginalTestValue;
         // [THEN] Datetime passes validation and converts correctly
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDateTime(TestValue, '', true), 'Date basic with adjustment of datetime' + DateFailureSuffixDetails);
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, '', true), 'Date basic with adjustment of datetime' + DateFailureSuffixDetails);
         LibraryAssert.AreEqual(TestValue, format(Date, 0, 9), 'back and forth datetime.' + DateFailureSuffixDetails);
 
         // [WHEN] Testing datetime within valid date range without adjustment
         // [THEN] Datetime within range passes validation
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDateTime(TestValue, StrSubstNo('%1..%2', CreateDateTime(DMY2Date(28, 1, 2004), 000000T),
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, StrSubstNo('%1..%2', CreateDateTime(DMY2Date(28, 1, 2004), 000000T),
                 CreateDateTime(DMY2Date(28, 1, 2004), 235900T)), false),
                 'Datetime basic date range jan to feb no adjustment ' + DateFailureSuffixDetails);
 
         // [WHEN] Testing datetime outside valid date range
         // [THEN] Datetime outside range fails validation
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDateTime(TestValue, StrSubstNo('%1..%2', CreateDateTime(DMY2Date(28, 2, 2004), 000000T),
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, StrSubstNo('%1..%2', CreateDateTime(DMY2Date(28, 2, 2004), 000000T),
                 CreateDateTime(DMY2Date(28, 3, 2004), 235900T)), false),
                 'Datetime outside of date range basic date range jan to feb' + DateFailureSuffixDetails);
 
         // [WHEN] Testing datetime within valid date range with adjustment
         // [THEN] Datetime passes validation with timezone adjustment
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDateTime(TestValue, StrSubstNo('%1..%2', CreateDateTime(DMY2Date(28, 1, 2004), 000000T),
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, StrSubstNo('%1..%2', CreateDateTime(DMY2Date(28, 1, 2004), 000000T),
                 CreateDateTime(DMY2Date(28, 1, 2004), 235900T)), true),
                 'Datetime basic date range jan to feb with adjustment ' + DateFailureSuffixDetails);
 
         // [WHEN] Testing exact datetime match
         TestValue := format(Date, 0, 9);
         // [THEN] Exact match passes validation
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueDateTime(TestValue, TestValue, true), 'expected value matches expected date.' + DateFailureSuffixDetails);
+        LibraryAssert.IsTrue(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, TestValue, true), 'expected value matches expected date.' + DateFailureSuffixDetails);
 
         // [WHEN] Testing datetime with not-equal condition
         TestValue := format(Date, 0, 9);
         // [THEN] Not-equal condition fails when values match
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDateTime(TestValue, '<>' + TestValue, true), 'expected value matches anything but the expected date.' + DateFailureSuffixDetails);
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, '<>' + TestValue, true), 'expected value matches anything but the expected date.' + DateFailureSuffixDetails);
 
         // [WHEN] Testing blank datetime against valid acceptable date
         TestValue := '';
         // [THEN] Blank datetime fails validation
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueDateTime(TestValue, format(Date, 0, 9), true), 'blank input date with valid acceptable date' + DateFailureSuffixDetails);
+        LibraryAssert.IsFalse(QltyGradeEvaluation.CheckIfValueIsDateTime(TestValue, format(Date, 0, 9), true), 'blank input date with valid acceptable date' + DateFailureSuffixDetails);
     end;
 
     [Test]
@@ -350,7 +350,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -415,46 +415,46 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         QltyInspectionLine.FindFirst();
 
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] Grade is evaluated with blank value
         // [THEN] Grade is INPROGRESS for blank value
         LibraryAssert.AreEqual(
             'INPROGRESS',
-            QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"),
+            QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"),
             'blank value');
 
         // [THEN] Value at minimum of range (6) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"),
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"),
             'min value inspection line grade');
         // [THEN] Value slightly exceeding maximum (7.0001) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '7.0001', NumericalMeasureQltyField."Case Sensitive"),
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '7.0001', NumericalMeasureQltyField."Case Sensitive"),
             'slightly exceeding max inspection line grade');
         // [THEN] Value slightly below minimum (5.999999) evaluates to FAIL
         LibraryAssert.AreEqual(
             'FAIL',
-            QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '5.999999', NumericalMeasureQltyField."Case Sensitive"),
+            QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '5.999999', NumericalMeasureQltyField."Case Sensitive"),
             'slightly before min inspection line grade');
 
         // [THEN] Value slightly below maximum (6.999999) evaluates to PASS
         LibraryAssert.AreEqual(
            'PASS',
-           QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6.999999', NumericalMeasureQltyField."Case Sensitive"),
+           QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6.999999', NumericalMeasureQltyField."Case Sensitive"),
            'slightly before min inspection line grade');
 
         // [THEN] Blank value is not treated as zero and evaluates to INPROGRESS
         LibraryAssert.AreEqual(
             'INPROGRESS',
-            QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"),
+            QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"),
             'ensure that blank is not treated as a zero - decimal.');
 
         // [THEN] Zero value is not treated as blank and evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '0.0', NumericalMeasureQltyField."Case Sensitive"),
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '0.0', NumericalMeasureQltyField."Case Sensitive"),
             'ensure that zero is not treated as a blank - decimal');
     end;
 
@@ -470,7 +470,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -531,23 +531,23 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", DateTimeQltyField.Code);
         QltyInspectionLine.FindFirst();
 
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] Grade is evaluated with blank value
         // [THEN] Grade is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateTimeQltyField."Field Type", '', DateTimeQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateTimeQltyField."Field Type", '', DateTimeQltyField."Case Sensitive"), 'blank value');
 
         // [THEN] Exact datetime match evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateTimeQltyField."Field Type", '2004-05-06 01:02:03', DateTimeQltyField."Case Sensitive"), 'exact value pass');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateTimeQltyField."Field Type", '2004-05-06 01:02:03', DateTimeQltyField."Case Sensitive"), 'exact value pass');
         // [THEN] Datetime one second past expected evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateTimeQltyField."Field Type", '2004-05-06 01:02:04', DateTimeQltyField."Case Sensitive"), 'slightly exceeding max inspection line grade');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateTimeQltyField."Field Type", '2004-05-06 01:02:04', DateTimeQltyField."Case Sensitive"), 'slightly exceeding max inspection line grade');
         // [THEN] Field-level condition datetime is ignored (FAIL not PASS)
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateTimeQltyField."Field Type", '2001-02-03 01:02:03', DateTimeQltyField."Case Sensitive"), 'should have ignored the default field pass condition.');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateTimeQltyField."Field Type", '2001-02-03 01:02:03', DateTimeQltyField."Case Sensitive"), 'should have ignored the default field pass condition.');
     end;
 
     [Test]
@@ -562,7 +562,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -622,23 +622,23 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", DateQltyField.Code);
         QltyInspectionLine.FindFirst();
 
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] Grade is evaluated with blank value
         // [THEN] Grade is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateQltyField."Field Type", '', DateQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateQltyField."Field Type", '', DateQltyField."Case Sensitive"), 'blank value');
 
         // [THEN] Exact date match evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateQltyField."Field Type", '2004-05-06', DateQltyField."Case Sensitive"), 'exact value pass');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateQltyField."Field Type", '2004-05-06', DateQltyField."Case Sensitive"), 'exact value pass');
         // [THEN] Date one day past expected evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateQltyField."Field Type", '2004-05-07', DateQltyField."Case Sensitive"), 'slightly exceeding max inspection line grade');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateQltyField."Field Type", '2004-05-07', DateQltyField."Case Sensitive"), 'slightly exceeding max inspection line grade');
         // [THEN] Field-level condition date is ignored (FAIL not PASS)
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, DateQltyField."Field Type", '2001-02-03', DateQltyField."Case Sensitive"), 'should have ignored the default field pass condition.');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, DateQltyField."Field Type", '2001-02-03', DateQltyField."Case Sensitive"), 'should have ignored the default field pass condition.');
     end;
 
     [Test]
@@ -653,7 +653,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -709,26 +709,26 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", BooleanQltyField.Code);
         QltyInspectionLine.FindFirst();
 
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] Grade is evaluated with blank value
         // [THEN] Grade is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, BooleanQltyField."Field Type", '', BooleanQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, BooleanQltyField."Field Type", '', BooleanQltyField."Case Sensitive"), 'blank value');
         // [THEN] Value 'Yes' evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, BooleanQltyField."Field Type", 'Yes', BooleanQltyField."Case Sensitive"), 'exact value pass');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, BooleanQltyField."Field Type", 'Yes', BooleanQltyField."Case Sensitive"), 'exact value pass');
         // [THEN] Value 'On' (alternative true value) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, BooleanQltyField."Field Type", 'On', BooleanQltyField."Case Sensitive"), 'different kind of yes');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, BooleanQltyField."Field Type", 'On', BooleanQltyField."Case Sensitive"), 'different kind of yes');
         // [THEN] Value 'No' evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, BooleanQltyField."Field Type", 'No', BooleanQltyField."Case Sensitive"), 'Direct No.');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, BooleanQltyField."Field Type", 'No', BooleanQltyField."Case Sensitive"), 'Direct No.');
         // [THEN] Value 'False' (alternative false value) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, BooleanQltyField."Field Type", 'False', BooleanQltyField."Case Sensitive"), 'different kind of no.');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, BooleanQltyField."Field Type", 'False', BooleanQltyField."Case Sensitive"), 'different kind of no.');
         // [THEN] Invalid boolean value evaluates to INPROGRESS
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, BooleanQltyField."Field Type", 'this is not a boolean', BooleanQltyField."Case Sensitive"), 'not a boolean');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, BooleanQltyField."Field Type", 'this is not a boolean', BooleanQltyField."Case Sensitive"), 'not a boolean');
     end;
 
     [Test]
@@ -743,7 +743,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -791,19 +791,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", LabelQltyField.Code);
         QltyInspectionLine.FindFirst();
 
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] Grade is evaluated with blank value
         // [THEN] Blank value returns blank grade (labels are not graded)
-        LibraryAssert.AreEqual('', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, LabelQltyField."Field Type", '', LabelQltyField."Case Sensitive"), 'blank value should result in a blank grade for labels.');
+        LibraryAssert.AreEqual('', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, LabelQltyField."Field Type", '', LabelQltyField."Case Sensitive"), 'blank value should result in a blank grade for labels.');
 
         // [THEN] Any value returns blank grade (labels are not graded)
-        LibraryAssert.AreEqual('', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, LabelQltyField."Field Type", 'anything at all is ignored.', LabelQltyField."Case Sensitive"), 'with a label, it is always a blank grade.');
+        LibraryAssert.AreEqual('', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, LabelQltyField."Field Type", 'anything at all is ignored.', LabelQltyField."Case Sensitive"), 'with a label, it is always a blank grade.');
     end;
 
     [Test]
@@ -818,7 +818,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -885,34 +885,34 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         QltyInspectionLine.FindFirst();
 
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] Grade is evaluated with blank value
         // [THEN] Grade is INPROGRESS for blank value
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"), 'blank value');
         // [THEN] Value 6 (minimum of range) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"), 'min value inspection line grade');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"), 'min value inspection line grade');
         // [THEN] Value 7 (maximum of range) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '7', NumericalMeasureQltyField."Case Sensitive"), 'max value inspection line grade');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '7', NumericalMeasureQltyField."Case Sensitive"), 'max value inspection line grade');
         // [THEN] Value 8 (exceeding maximum) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '8', NumericalMeasureQltyField."Case Sensitive"), 'slightly exceeding max inspection line grade');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '8', NumericalMeasureQltyField."Case Sensitive"), 'slightly exceeding max inspection line grade');
         // [THEN] Value 5 (below minimum) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '5', NumericalMeasureQltyField."Case Sensitive"), 'slightly before min inspection line grade');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '5', NumericalMeasureQltyField."Case Sensitive"), 'slightly before min inspection line grade');
         // [THEN] Value 6 (reinspection pass value) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"), 'pass value.');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '6', NumericalMeasureQltyField."Case Sensitive"), 'pass value.');
         // [THEN] Blank value is not treated as zero and evaluates to INPROGRESS
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '', NumericalMeasureQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
         // [THEN] Zero value is not treated as blank and evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '0', NumericalMeasureQltyField."Case Sensitive"), 'ensure that zero is not treated as a blank - Integer');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '0', NumericalMeasureQltyField."Case Sensitive"), 'ensure that zero is not treated as a blank - Integer');
 
         // [THEN] Non-integer value (7.0001) causes an error
         ClearLastError();
-        asserterror LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '7.0001', NumericalMeasureQltyField."Case Sensitive"), 'should error, value is not an integer.');
+        asserterror LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, NumericalMeasureQltyField."Field Type", '7.0001', NumericalMeasureQltyField."Case Sensitive"), 'should error, value is not an integer.');
         LibraryAssert.ExpectedError(Expected1Err);
     end;
 
@@ -929,7 +929,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -997,41 +997,41 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", TextQltyField.Code);
         QltyInspectionLine.FindFirst();
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - f');
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] Grade is evaluated with blank value
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - g');
         // [THEN] Grade is INPROGRESS for blank value and no blank grades created
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", '', TextQltyField."Case Sensitive"), 'blank value');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", '', TextQltyField."Case Sensitive"), 'blank value');
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - gb');
 
         // [THEN] Value 'D' (in template condition) evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'D', TextQltyField."Case Sensitive"), 'first text-method1');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'D', TextQltyField."Case Sensitive"), 'first text-method1');
         // [THEN] Value 'D' evaluates to PASS using alternative evaluation method (no line parameter)
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'D', TextQltyField."Case Sensitive"), 'first text method2 test with no line.');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyIGradeConditionConf, TextQltyField."Field Type", 'D', TextQltyField."Case Sensitive"), 'first text method2 test with no line.');
         // [THEN] Value 'e' (lowercase) with insensitive comparison evaluates to PASS
-        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Insensitive), 'second text lowercase insensitive ');
+        LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Insensitive), 'second text lowercase insensitive ');
         if DatabaseIsCaseSensitive then
             // [THEN] Value 'e' (lowercase) with sensitive comparison evaluates to FAIL
-            LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive')
+            LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive')
         else
             // [THEN] Value 'e' (lowercase) with sensitive comparison evaluates to PASS
-            LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive');
+            LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive');
         // [THEN] Value 'A' (in field-level condition) evaluates to FAIL (template override works)
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'A', TextQltyField."Case Sensitive"), 'original field pass, which should be overwritten by the template.');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'A', TextQltyField."Case Sensitive"), 'original field pass, which should be overwritten by the template.');
         // [THEN] Value 'c' (lowercase field-level condition) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'c', TextQltyField."Case Sensitive"), 'original field lowercase');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'c', TextQltyField."Case Sensitive"), 'original field lowercase');
         // [THEN] Value 'C' (field-level condition) evaluates to FAIL (template override works)
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'C', TextQltyField."Case Sensitive"), 'original field');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'C', TextQltyField."Case Sensitive"), 'original field');
         // [THEN] Value 'Monkey' (not in any condition) evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'Monkey', TextQltyField."Case Sensitive"), 'A value not in any condition.');
+        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", 'Monkey', TextQltyField."Case Sensitive"), 'A value not in any condition.');
         // [THEN] Blank value reinspectioned evaluates to INPROGRESS
-        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", '', TextQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
+        LibraryAssert.AreEqual('INPROGRESS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionHeader, QltyInspectionLine, QltyIGradeConditionConf, TextQltyField."Field Type", '', TextQltyField."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
     end;
 
     [Test]
@@ -1048,7 +1048,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         UsesReferenceQltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -1084,7 +1084,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.Modify();
 
         // [GIVEN] Second field has dynamic condition '1..[FieldCode]' that references first field's value
-        Clear(TestQltyIGradeConditionConf);
+        Clear(QltyIGradeConditionConf);
         UsesReferenceQltyInspectionTemplateLine.EnsureGrades(false);
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionTemplateLine."Template Code");
@@ -1120,12 +1120,12 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         UsesReferenceQltyInspectionLine.FindFirst();
 
         // [GIVEN] Test-level grade conditions are retrieved
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", UsesReferenceQltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", UsesReferenceQltyInspectionLine."Field Code");
 
         // [GIVEN] Reference field value is set to 6
         QltyInspectionHeader.SetTestValue(NumericalMeasureReferenceQltyField."Code", '6');
@@ -1137,7 +1137,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
             QltyGradeEvaluation.EvaluateGrade(
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
-            TestQltyIGradeConditionConf,
+            QltyIGradeConditionConf,
              UsesReferenceInPassConditionQltyField."Field Type",
              '6',
              UsesReferenceInPassConditionQltyField."Case Sensitive"
@@ -1149,7 +1149,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
             QltyGradeEvaluation.EvaluateGrade(
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
-            TestQltyIGradeConditionConf,
+            QltyIGradeConditionConf,
              UsesReferenceInPassConditionQltyField."Field Type",
              '1',
              UsesReferenceInPassConditionQltyField."Case Sensitive"
@@ -1161,7 +1161,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
             QltyGradeEvaluation.EvaluateGrade(
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
-            TestQltyIGradeConditionConf,
+            QltyIGradeConditionConf,
             UsesReferenceInPassConditionQltyField."Field Type",
             '7',
             UsesReferenceInPassConditionQltyField."Case Sensitive"
@@ -1173,7 +1173,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
             QltyGradeEvaluation.EvaluateGrade(
             QltyInspectionHeader,
             UsesReferenceQltyInspectionLine,
-            TestQltyIGradeConditionConf,
+            QltyIGradeConditionConf,
             UsesReferenceInPassConditionQltyField."Field Type",
             '0.9',
             UsesReferenceInPassConditionQltyField."Case Sensitive"
@@ -1838,7 +1838,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -1905,12 +1905,12 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         QltyInspectionLine.FindFirst();
 
-        TestQltyIGradeConditionConf.Reset();
-        TestQltyIGradeConditionConf.SetRange("Condition Type", TestQltyIGradeConditionConf."Condition Type"::Inspection);
-        TestQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
-        TestQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
-        TestQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
+        QltyIGradeConditionConf.Reset();
+        QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
+        QltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
+        QltyIGradeConditionConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
+        QltyIGradeConditionConf.SetRange("Field Code", QltyInspectionLine."Field Code");
 
         // [WHEN] OnRun is called with blank test value
         QltyInspectionLine."Test Value" := '';

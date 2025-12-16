@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Configuration.Grade;
+namespace Microsoft.QualityManagement.Configuration.Result;
 
 using Microsoft.QualityManagement.Document;
 
@@ -235,7 +235,7 @@ table 20411 "Qlty. Inspection Grade"
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleOptionsTok: Label 'None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate', Locked = true;
         CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
-        PromptFirstExistingTestQst: Label 'This grade, although not set on an inspection, is available to previous tests. Are you sure you want to remove this grade? This cannot be undone.';
+        PromptFirstExistingTestQst: Label 'This grade, although not set on an inspection, is available to previous inspections. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This grade is currently defined on some Quality Inspection Templates. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingFieldQst: Label 'This grade is currently defined on some fields. Are you sure you want to remove this grade? This cannot be undone.';
         DefaultGradeInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
