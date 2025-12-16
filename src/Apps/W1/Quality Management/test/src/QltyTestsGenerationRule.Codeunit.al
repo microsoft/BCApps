@@ -28,7 +28,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         ItemFilterTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1=item no.', Locked = true;
         ItemAttributeFilterTok: Label '"%1"=Filter(1))', Comment = '%1=attribute', Locked = true;
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
-        CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control tests. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
+        CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_ManualRuleSearch()
