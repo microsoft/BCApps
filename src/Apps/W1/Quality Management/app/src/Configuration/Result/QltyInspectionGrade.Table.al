@@ -70,13 +70,12 @@ table 20411 "Qlty. Inspection Grade"
 
             trigger OnValidate()
             begin
-                if (Rec."Default Number Condition" <> xRec."Default Number Condition") or
+                if ((Rec."Default Number Condition" <> xRec."Default Number Condition") or
                    (Rec."Default Text Condition" <> xRec."Default Text Condition") or
-                   (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")
-                then begin
-                    Rec.Modify();
+                   (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
+                   (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the grade"])
+                then
                     QltyGradeConditionMgmt.PromptUpdateFieldsFromGradeIfApplicable(Rec.Code);
-                end;
             end;
         }
         field(11; "Default Text Condition"; Text[500])
@@ -88,13 +87,12 @@ table 20411 "Qlty. Inspection Grade"
 
             trigger OnValidate()
             begin
-                if (Rec."Default Number Condition" <> xRec."Default Number Condition") or
+                if ((Rec."Default Number Condition" <> xRec."Default Number Condition") or
                    (Rec."Default Text Condition" <> xRec."Default Text Condition") or
-                   (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")
-                then begin
-                    Rec.Modify();
+                   (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
+                   (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the grade"])
+                then
                     QltyGradeConditionMgmt.PromptUpdateFieldsFromGradeIfApplicable(Rec.Code);
-                end;
             end;
         }
         field(12; "Default Boolean Condition"; Text[500])
@@ -106,13 +104,12 @@ table 20411 "Qlty. Inspection Grade"
 
             trigger OnValidate()
             begin
-                if (Rec."Default Number Condition" <> xRec."Default Number Condition") or
+                if ((Rec."Default Number Condition" <> xRec."Default Number Condition") or
                    (Rec."Default Text Condition" <> xRec."Default Text Condition") or
-                   (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")
-                then begin
-                    Rec.Modify();
+                   (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
+                   (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the grade"])
+                then
                     QltyGradeConditionMgmt.PromptUpdateFieldsFromGradeIfApplicable(Rec.Code);
-                end;
             end;
         }
         field(13; "Grade Category"; Enum "Qlty. Grade Category")
