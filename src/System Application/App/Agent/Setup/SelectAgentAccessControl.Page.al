@@ -44,6 +44,12 @@ page 4321 "Select Agent Access Control"
                     ToolTip = 'Specifies the Full Name of the User that can access the agent.';
                     Editable = false;
                 }
+                field(Company; Rec."Company Name")
+                {
+                    Caption = 'Company';
+                    ToolTip = 'Specifies the company in which the user has access to the agent.';
+                    Visible = ShowCompanyField;
+                }
                 field(CanConfigureAgent; Rec."Can Configure Agent")
                 {
                     Caption = 'Can configure';
@@ -55,6 +61,33 @@ page 4321 "Select Agent Access Control"
                             VerifyOwnerExists();
                     end;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(AgentShowHideCompany)
+            {
+                ApplicationArea = All;
+                Caption = 'Show/hide company';
+                Image = CompanyInformation;
+                ToolTip = 'Show or hide the company name.';
+
+                trigger OnAction()
+                begin
+                    if (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
+                        // A confirmation dialog is raised when the user shows the company field
+                        // for an agent that operates in a single company.
+                        if not Confirm(ShowSingleCompanyQst, false) then
+                            exit;
+
+                    ShowCompanyFieldOverride := true;
+                    ShowCompanyField := not ShowCompanyField;
+                    CurrPage.Update(false);
+                end;
             }
         }
     }
@@ -74,15 +107,33 @@ page 4321 "Select Agent Access Control"
         VerifyOwnerExists();
     end;
 
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        if (GlobalSingleCompanyName <> '') then begin
+            if (Rec."Company Name" = '') and not ShowCompanyField then
+                // Default the company name for the inserted record when all these conditions are met:
+                // 1. The agent operates in a single company,
+                // 2. The company name is not explicit specified,
+                // 3. The user didn't toggle to view the company name field on permissions.
+                Rec."Company Name" := GlobalSingleCompanyName;
+
+            if (Rec."Company Name" <> GlobalSingleCompanyName) then
+                // The agent used to operation in a single company, but operates in multiple ones now.
+                // Ideally, other scenarios should also trigger an update (delete, modify), but insert
+                // was identified as the main one.
+                GlobalSingleCompanyName := '';
+        end;
+    end;
+
     trigger OnOpenPage()
-    var
-        AgentImpl: Codeunit "Agent Impl.";
     begin
         if Rec.GetFilter("Agent User Security ID") <> '' then
             Evaluate(AgentUserSecurityID, Rec.GetFilter("Agent User Security ID"));
 
         if Rec.Count() = 0 then
             AgentImpl.InsertCurrentOwner(Rec."Agent User Security ID", Rec);
+
+        UpdateGlobalVariables();
     end;
 
     local procedure ValidateUserName(NewUserName: Text)
@@ -141,6 +192,11 @@ page 4321 "Select Agent Access Control"
 
         UserName := User."User Name";
         UserFullName := User."Full Name";
+
+        if not ShowCompanyFieldOverride then begin
+            ShowCompanyField := not AgentImpl.AccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
+            CurrPage.Update(false);
+        end;
     end;
 
     [Scope('OnPrem')]
@@ -172,8 +228,12 @@ page 4321 "Select Agent Access Control"
     end;
 
     var
+        AgentImpl: Codeunit "Agent Impl.";
         UserFullName: Text[80];
         UserName: Code[50];
         AgentUserSecurityID: Guid;
+        ShowCompanyField, ShowCompanyFieldOverride : Boolean;
+        GlobalSingleCompanyName: Text[30];
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
+        ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign access controls in other companies where the agent is not available.\\Do you want to continue?';
 }

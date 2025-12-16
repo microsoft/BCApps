@@ -5,8 +5,6 @@
 
 namespace System.Agents;
 
-using System.Environment;
-using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 
@@ -89,28 +87,16 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
             IsAgent := false;
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
+            if IsAgent then
+                ShowCompanyField := not AgentImpl.AccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName)
+            else
+                ShowCompanyField := false;
             CurrPage.Update(false);
         end;
     end;
 
-    local procedure AccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
     var
-        TempCompany: Record Company temporary;
-        UserSettings: Codeunit "User Settings";
-    begin
-        if not IsAgent then
-            exit(false);
-
-        UserSettings.GetAllowedCompaniesForUser(Rec."User Security ID", TempCompany);
-        if TempCompany.Count() <> 1 then
-            exit(false);
-
-        SingleCompanyName := TempCompany.Name;
-        exit(true);
-    end;
-
-    var
+        AgentImpl: Codeunit "Agent Impl.";
         IsAgent: Boolean;
         ShowCompanyField: Boolean;
         ShowCompanyFieldOverride: Boolean;

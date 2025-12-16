@@ -542,6 +542,19 @@ codeunit 4301 "Agent Impl."
         Page.RunModal(SetupPageId, SourceRecordVariant);
     end;
 
+    procedure AccessControlForSingleCompany(AgentUserSecurityID: Guid; var SingleCompanyName: Text[30]): Boolean
+    var
+        TempCompany: Record Company temporary;
+        UserSettings: Codeunit "User Settings";
+    begin
+        UserSettings.GetAllowedCompaniesForUser(AgentUserSecurityID, TempCompany);
+        if TempCompany.Count() <> 1 then
+            exit(false);
+
+        SingleCompanyName := TempCompany.Name;
+        exit(true);
+    end;
+
     var
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         AgentDoesNotExistErr: Label 'Agent does not exist.';
