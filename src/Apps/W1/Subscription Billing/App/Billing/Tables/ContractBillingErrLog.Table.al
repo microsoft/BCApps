@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Security.User;
 using Microsoft.CRM.Team;
+using System.Security.User;
 
 table 8022 "Contract Billing Err. Log"
 {
