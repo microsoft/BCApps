@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
+using System.AI;
 
 #pragma warning disable AS0002
 table 149030 "AIT Test Suite"
@@ -45,8 +46,8 @@ table 149030 "AIT Test Suite"
         field(7; "Input Dataset"; Code[100])
         {
             Caption = 'Input Dataset';
-            TableRelation = "Test Input Group".Code;
-            ValidateTableRelation = true;
+            TableRelation = "Test Input Group".Code where("Parent Group Code" = const(''));
+            ValidateTableRelation = false;
             ToolTip = 'Specifies the dataset to be used by the test suite.';
         }
         field(8; "Ended at"; DateTime)
@@ -112,6 +113,16 @@ table 149030 "AIT Test Suite"
             Caption = 'Version';
             Editable = false;
             ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run. The version will be stored in the Log entries.';
+        }
+        field(14; "Copilot Capability"; Enum "Copilot Capability")
+        {
+            Caption = 'Capability';
+            ToolTip = 'Specifies the capability that the test suite tests.';
+        }
+        field(15; "Run Frequency"; Enum "AIT Run Frequency")
+        {
+            Caption = 'Run Frequency';
+            ToolTip = 'Specifies how frequently the test suite should be run.';
         }
         field(16; "Base Version"; Integer)
         {
@@ -186,6 +197,27 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = count("AIT Column Mapping" where("Test Suite Code" = field("Code")));
         }
+        field(40; "Run Language ID"; Integer)
+        {
+            Caption = 'Language ID';
+            TableRelation = "AIT Test Suite Language"."Language ID";
+            ValidateTableRelation = true;
+            ToolTip = 'Specifies the language in which the test suite should be run.';
+        }
+        field(41; "Run Language Tag"; Text[80])
+        {
+            Caption = 'Language Tag';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("AIT Test Suite Language"."Language Tag" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
+        }
+        field(42; "Run Language Name"; Text[80])
+        {
+            Caption = 'Language Name';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("AIT Test Suite Language"."Language Name" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
+        }
         field(50; "Test Runner Id"; Integer)
         {
             Caption = 'Test Runner Id';
@@ -211,6 +243,16 @@ table 149030 "AIT Test Suite"
             Caption = 'Imported XML''s MD5';
             ToolTip = 'Specifies the MD5 hash of the XML file from which the test suite was imported.';
         }
+        field(80; Validation; Boolean)
+        {
+            Caption = 'Validation';
+            ToolTip = 'Specifies whether this test suite is used for validation purposes.';
+        }
+        field(81; "Test Type"; Enum "AIT Test Type")
+        {
+            Caption = 'Test Type';
+            ToolTip = 'Specifies the type of AI test (Copilot, Agent, or MCP).';
+        }
     }
     keys
     {
@@ -234,6 +276,13 @@ table 149030 "AIT Test Suite"
         TestRunnerMgt: Codeunit "Test Runner - Mgt";
     begin
         Rec."Test Runner Id" := TestRunnerMgt.GetDefaultTestRunner();
+    end;
+
+    internal procedure GetTestInputCode(): Code[100]
+    var
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+    begin
+        exit(AITTestSuiteLanguage.GetLanguageDataset(Rec."Input Dataset", Rec."Run Language ID"));
     end;
 
     var
