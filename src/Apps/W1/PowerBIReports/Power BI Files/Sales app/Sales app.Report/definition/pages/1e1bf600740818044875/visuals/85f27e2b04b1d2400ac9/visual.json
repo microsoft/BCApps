@@ -253,62 +253,6 @@
         "type": "Advanced",
         "howCreated": "User",
         "isLockedInViewMode": true
-      },
-      {
-        "name": "88f372552d9636f9d6a4",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "No. of Lost Customers"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "531457f97cb554902305",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "No. of New Customers"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "bdcae99b28eba3e816fd",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "No. of Recovered Customers"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "6e6b52d96ed36001dad7",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "No. of Returning Customers"
-          }
-        },
-        "type": "Advanced"
       }
     ]
   }

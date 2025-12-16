@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
-  "name": "d9a4b9e020833a4e6e23",
+  "name": "92b429e640daca810ba5",
   "position": {
-    "x": 25.555555555555554,
-    "y": 61.111111111111107,
-    "z": 5000,
-    "height": 66.666666666666671,
-    "width": 970,
-    "tabOrder": 5000
+    "x": 25.802047781569964,
+    "y": 60.81911262798635,
+    "z": 4000,
+    "height": 66.962457337883961,
+    "width": 602.04778156996588,
+    "tabOrder": 4000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -23,11 +23,11 @@
                       "Entity": "Customer"
                     }
                   },
-                  "Property": "Sales New Customers"
+                  "Property": "No. of Customers"
                 }
               },
-              "queryRef": "Customer.Sales New Customers",
-              "nativeQueryRef": "Sales New Customers"
+              "queryRef": "Customer.No. of Customers",
+              "nativeQueryRef": "No. of Customers"
             },
             {
               "field": {
@@ -37,11 +37,11 @@
                       "Entity": "Customer"
                     }
                   },
-                  "Property": "Sales Recovered Customers"
+                  "Property": "No. of New Customers"
                 }
               },
-              "queryRef": "Customer.Sales Recovered Customers",
-              "nativeQueryRef": "Sales Recovered Customers"
+              "queryRef": "Customer.No. of New Customers",
+              "nativeQueryRef": "No. of New Customers"
             },
             {
               "field": {
@@ -51,11 +51,11 @@
                       "Entity": "Customer"
                     }
                   },
-                  "Property": "Sales Returning Customers"
+                  "Property": "No. of Returning Customers"
                 }
               },
-              "queryRef": "Customer.Sales Returning Customers",
-              "nativeQueryRef": "Sales Returning Customers"
+              "queryRef": "Customer.No. of Returning Customers",
+              "nativeQueryRef": "No. of Returning Customers"
             },
             {
               "field": {
@@ -65,11 +65,11 @@
                       "Entity": "Customer"
                     }
                   },
-                  "Property": "Sales Lost Customers"
+                  "Property": "No. of Lost Customers"
                 }
               },
-              "queryRef": "Customer.Sales Lost Customers",
-              "nativeQueryRef": "Sales Lost Customers"
+              "queryRef": "Customer.No. of Lost Customers",
+              "nativeQueryRef": "No. of Lost Customers"
             }
           ]
         }
@@ -84,7 +84,7 @@
                     "Entity": "Customer"
                   }
                 },
-                "Property": "Sales New Customers"
+                "Property": "No. of Customers"
               }
             },
             "direction": "Descending"
