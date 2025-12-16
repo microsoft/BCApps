@@ -5,12 +5,12 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.EServices.EDocument;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
-using Microsoft.eServices.EDocument.Service.Participant;
 using System.Utilities;
 using System.Xml;
+using Microsoft.eServices.EDocument.Integration.Receive;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Service.Participant;
 
 codeunit 6414 "ForNAV API Requests"
 {

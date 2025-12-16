@@ -5,10 +5,10 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.EServices.EDocument;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Integration.Send;
-using System.Environment;
 using System.Utilities;
+using System.Environment;
+using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Integration.Receive;
 codeunit 6416 "ForNAV Connection"
 {
     Access = Internal;

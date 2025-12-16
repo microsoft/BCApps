@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.Dimension;
@@ -15,6 +14,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using System.Telemetry;
+using Microsoft.eServices.EDocument.Processing;
 
 /// <summary>
 /// Dealing with the creation of the purchase invoice after the draft has been populated.

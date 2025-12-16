@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
+using System.EMail;
+using System.Utilities;
 using Microsoft.eServices.EDocument;
+using System.Environment;
+using System.Azure.Identity;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using System.Azure.Identity;
-using System.EMail;
-using System.Environment;
-using System.Utilities;
 
 page 6413 "ForNAV Peppol Setup"
 {

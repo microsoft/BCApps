@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using Microsoft.EServices.EDocument;
-using Microsoft.eServices.EDocument.Integration.Interfaces;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Integration.Send;
 using System.Utilities;
+using Microsoft.EServices.EDocument;
+using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Integration.Receive;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
 
 codeunit 6372 "Integration Impl." implements IDocumentSender, IDocumentResponseHandler, IDocumentReceiver
 {

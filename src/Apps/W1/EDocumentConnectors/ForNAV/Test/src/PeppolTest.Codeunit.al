@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Item.Catalog;
 using System.Utilities;
+using Microsoft.eServices.EDocument;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Item;
+using Microsoft.eServices.EDocument.Integration;
 
 codeunit 148220 "ForNAV Peppol Test"
 {

@@ -1,8 +1,8 @@
 namespace Partner.Test.AI;
 
 using System.AI;
-using System.TestLibraries.AI;
 using System.TestLibraries.Utilities;
+using System.TestLibraries.AI;
 
 codeunit 139022 "Copilot Test Partner"
 {

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using System.Environment;
 using System.Utilities;
+using System.Environment;
 page 6414 "ForNAV Peppol Setup Wizard"
 {
     PageType = NavigatePage;

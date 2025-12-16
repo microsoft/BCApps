@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
+using Microsoft.Purchases.History;
 
 codeunit 8071 "Sub. Billing Activities Cue"
 {

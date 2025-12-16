@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using Microsoft.EServices.EDocument;
 using System.Threading;
+using Microsoft.EServices.EDocument;
 
 page 6417 "ForNAV Incoming E-Docs Api"
 {

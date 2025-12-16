@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
+using Microsoft.Foundation.Company;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Foundation.Address;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Send;
-using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
-using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Vendor;
 
 codeunit 6415 "ForNAV Application Response"
 {

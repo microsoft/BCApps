@@ -5,11 +5,11 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.EServices.EDocument;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 using System.Utilities;
+using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Receive;
 
 codeunit 6379 Processing
 {

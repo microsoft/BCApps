@@ -5,8 +5,8 @@
 
 namespace System.Test.Tooling;
 
-using System.TestLibraries.Utilities;
 using System.Tooling;
+using System.TestLibraries.Utilities;
 
 codeunit 144741 "BCPT Setup Card Test"
 {

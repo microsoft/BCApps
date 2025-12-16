@@ -6,8 +6,8 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
+using Microsoft.Inventory.Item;
 
 codeunit 139556 "Shpfy Product Collection Test"
 {

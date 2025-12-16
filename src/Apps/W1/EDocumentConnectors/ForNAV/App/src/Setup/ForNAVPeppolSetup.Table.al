@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.Foundation.Address;
+using System.Environment;
 using Microsoft.Foundation.Company;
+using System.Globalization;
+using Microsoft.Foundation.Address;
+using System.EMail;
+using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Reporting;
 using System.Automation;
-using System.EMail;
-using System.Environment;
-using System.Globalization;
 table 6414 "ForNAV Peppol Setup"
 {
     DataClassification = CustomerContent;

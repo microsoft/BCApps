@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using Microsoft.eServices.EDocument.Integration;
-using System.Azure.Identity;
 using System.Environment;
+using System.Azure.Identity;
+using Microsoft.eServices.EDocument.Integration;
 codeunit 6424 "ForNAV Peppol Setup"
 {
     SingleInstance = true;

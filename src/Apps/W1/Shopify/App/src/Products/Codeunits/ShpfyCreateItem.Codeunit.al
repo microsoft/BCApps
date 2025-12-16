@@ -9,8 +9,8 @@ using Microsoft.Finance.Currency;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Purchases.Vendor;
 using System.Text;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// Codeunit Shpfy Create Item (ID 30171).

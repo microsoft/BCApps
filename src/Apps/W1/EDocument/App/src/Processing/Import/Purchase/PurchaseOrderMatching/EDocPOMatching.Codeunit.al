@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-using Microsoft.eServices.EDocument;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.eServices.EDocument;
 using Microsoft.Purchases.Vendor;
 
 codeunit 6196 "E-Doc. PO Matching"
