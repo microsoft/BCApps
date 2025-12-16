@@ -39,7 +39,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetTestRejectEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
+        WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetInspectionRejectEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnDelegateApprovalRequest', '', true, true)]
@@ -48,7 +48,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetTestDelegateEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
+        WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetInspectionDelegateEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnApproveApprovalRequest', '', true, true)]
@@ -57,7 +57,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetTestApproveEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
+        WorkflowManagement.HandleEventOnKnownWorkflowInstance(QltyWorkflowSetup.GetInspectionApproveEventTok(), ApprovalEntry, ApprovalEntry."Workflow Step Instance ID");
     end;
 
     /// <summary>
@@ -152,7 +152,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
     /// Overrides the default notification message to provide clearer, more accurate terminology for Inspection approval status.
     /// 
     /// Without this customization, the default message would incorrectly state that the entire
-    /// Inspection has been approved, when actually it's only the approval request that has been approved and the test will proceed to the next workflow step.
+    /// Inspection has been approved, when actually it's only the approval request that has been approved and the inspection will proceed to the next workflow step.
     /// 
     /// Only applies when notification type is Approval and document type is Quality Inspection with status Approved.
     /// </summary>
@@ -183,7 +183,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
     /// 
     /// When a workflow reaches the "Release Document" response step, this handler:
     /// 1. Validates the record is a Quality Inspection Header
-    /// 2. Changes the test status to Finished
+    /// 2. Changes the inspection status to Finished
     /// 3. Persists the change
     /// 
     /// This represents the final approval action, marking the Inspection as complete and approved.
@@ -218,7 +218,7 @@ codeunit 20425 "Qlty. Workflow Approvals"
     /// When a workflow reaches the "Open Document" response step (typically after rejection or
     /// when needing to restart), this handler:
     /// 1. Validates the record is a Quality Inspection Header
-    /// 2. Changes the test status to Open
+    /// 2. Changes the inspection status to Open
     /// 3. Persists the change
     /// 
     /// This allows the Inspection to be modified and resubmitted for approval.

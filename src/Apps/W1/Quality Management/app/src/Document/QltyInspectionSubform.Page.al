@@ -79,7 +79,7 @@ page 20407 "Qlty. Inspection Subform"
                     Visible = ShowUnitOfMeasure;
                     Editable = false;
                 }
-                field("NCR Test No."; Rec."NCR Test No.")
+                field("Non-Conformance Inspection No."; Rec."Non-Conformance Inspection No.")
                 {
                     Visible = false;
                 }
@@ -294,7 +294,7 @@ page 20407 "Qlty. Inspection Subform"
         MeasurementNote: Text;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleText: Text;
-        CurrentSelectedTestLineTok: Label 'CurrentSelectedTestLine', Locked = true;
+        CurrentSelectedInspectionLineTok: Label 'CurrentSelectedInspectionLine', Locked = true;
 
     trigger OnOpenPage()
     begin
@@ -331,7 +331,7 @@ page 20407 "Qlty. Inspection Subform"
     var
         QltySessionHelper: Codeunit "Qlty. Session Helper";
     begin
-        QltySessionHelper.SetSessionValue(CurrentSelectedTestLineTok, Format(Rec.RecordId()));
+        QltySessionHelper.SetSessionValue(CurrentSelectedInspectionLineTok, Format(Rec.RecordId()));
         UpdateRowData();
     end;
 
@@ -347,7 +347,7 @@ page 20407 "Qlty. Inspection Subform"
         Rec.CalcFields("Field Type");
         CanEditTestValue := GetCanEditTestValue();
 
-        QltyGradeConditionMgmt.GetPromotedGradesForTestLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+        QltyGradeConditionMgmt.GetPromotedGradesForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];

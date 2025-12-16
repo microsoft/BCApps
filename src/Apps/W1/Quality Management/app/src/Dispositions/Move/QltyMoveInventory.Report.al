@@ -90,7 +90,7 @@ report 20404 "Qlty. Move Inventory"
                 group(SettingsForQuantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the test itself.';
+                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
 
                     field(ChooseMoveAllInventory; IsMoveTracked)
                     {

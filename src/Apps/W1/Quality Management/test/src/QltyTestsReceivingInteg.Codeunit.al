@@ -90,8 +90,8 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match purchase.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity (base) should match.');
     end;
 
     [Test]
@@ -148,7 +148,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -204,9 +204,9 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match purchase.');
 
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -262,7 +262,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match purchase.');
     end;
 
     [Test]
@@ -319,7 +319,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -375,9 +375,9 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionHeader."Source Document No.", 'Test source document should be for purchase order.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match purchase.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionHeader."Source Document No.", 'Inspection source document should be for purchase order.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Inspection source document line no. should match purchase order line.');
     end;
 
     [Test]
@@ -432,9 +432,9 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionHeader."Source Document No.", 'Test source document should be for purchase order.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match purchase.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionHeader."Source Document No.", 'Inspection source document should be for purchase order.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionHeader."Source Document Line No.", 'Inspection source document line no. should match purchase order line.');
     end;
 
     [Test]
@@ -577,7 +577,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match purchase.');
     end;
 
     [Test]
@@ -738,7 +738,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
         LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Lot no. should match source');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -815,7 +815,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -888,8 +888,8 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Lot no. should match source');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match source');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -961,7 +961,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -1064,8 +1064,8 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match.');
     end;
 
     [Test]
@@ -1126,8 +1126,8 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match full received quantity.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match full received quantity.');
     end;
 
     [Test]
@@ -1224,8 +1224,8 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match picked quantity.');
     end;
 
     [Test]
@@ -1321,8 +1321,8 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Test lot no. should match.');
-        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Inspection lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match picked quantity.');
     end;
 
     [Test]
@@ -1380,12 +1380,12 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] Two quality inspections are created, each with matching template code and quantity of 50
-        LibraryAssert.AreEqual((BeforeCount + 2), QltyInspectionHeader.Count(), 'Should be two tests created.');
+        LibraryAssert.AreEqual((BeforeCount + 2), QltyInspectionHeader.Count(), 'Should be two inspections created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindSet();
         repeat
             LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-            LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should match reservation entry quantity, not qty. to receive.');
+            LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity(base) should match reservation entry quantity, not qty. to receive.');
         until QltyInspectionHeader.Next() = 0;
     end;
 
@@ -1445,7 +1445,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity (base) should match qty. to receive.');
     end;
 
     [Test]
@@ -1503,7 +1503,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
+        LibraryAssert.AreEqual(50, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity (base) should match qty. to receive.');
     end;
 
     [Test]
@@ -1543,12 +1543,12 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionHeader.Count(), 'Should be two tests created.');
+        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionHeader.Count(), 'Should be two inspections created.');
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindSet();
         repeat
             LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Template code should match provided template');
-            LibraryAssert.AreEqual(1, QltyInspectionHeader."Source Quantity (Base)", 'Test quantity(base) should be 1 for serial-tracked items.');
+            LibraryAssert.AreEqual(1, QltyInspectionHeader."Source Quantity (Base)", 'Inspection quantity (base) should be 1 for serial-tracked items.');
         until QltyInspectionHeader.Next() = 0;
     end;
 

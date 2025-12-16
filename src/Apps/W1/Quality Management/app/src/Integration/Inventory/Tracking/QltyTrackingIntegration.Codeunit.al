@@ -404,7 +404,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempBufferItemTrackingSetup: Record "Item Tracking Setup" temporary;
         QltySessionHelper: Codeunit "Qlty. Session Helper";
-        ReferenceToTest: RecordRef;
+        ReferenceToInspection: RecordRef;
     begin
         if not QltyInspectionHeader.ReadPermission() then
             exit;
@@ -422,19 +422,19 @@ codeunit 20415 "Qlty. Tracking Integration"
                 TempBufferItemTrackingSetup."Lot No." := QltyInspectionHeader."Source Lot No.";
                 TempBufferItemTrackingSetup."Serial No." := QltyInspectionHeader."Source Serial No.";
                 TempBufferItemTrackingSetup."Package No." := QltyInspectionHeader."Source Package No.";
-                ReferenceToTest.GetTable(QltyInspectionHeader);
-                sender.InsertBufferRec(ReferenceToTest, TempBufferItemTrackingSetup, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Source Variant Code");
+                ReferenceToInspection.GetTable(QltyInspectionHeader);
+                sender.InsertBufferRec(ReferenceToInspection, TempBufferItemTrackingSetup, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Source Variant Code");
             until QltyInspectionHeader.Next() = 0;
     end;
 
     /// <summary>
     /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
-    /// This occurs *before* the test find occurs, and gives an opportunity to adjust test filters.
+    /// This occurs *before* the inspection find occurs, and gives an opportunity to adjust inspection filters.
     /// Used for assembly consumption, assembly output, consumption, output, purchase, sale, transfer
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="TrackingSpecification"></param>
-    /// <param name="QltyInspectionHeader">Adjust filters to find the relevant test here as needed</param>
+    /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
     /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleCheckItemTrackingAfterFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
@@ -458,11 +458,11 @@ codeunit 20415 "Qlty. Tracking Integration"
 
     /// <summary>
     /// This occurs when checking item tracking to determine if the lot/serial is allowed for the given type of activity.
-    /// This occurs *before* the test find occurs, and gives an opportunity to adjust test filters.
+    /// This occurs *before* the inspection find occurs, and gives an opportunity to adjust inspection filters.
     /// Used for inventory movements, inventory picks, inventory put aways, movements, picks, putaways.
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>
-    /// <param name="QltyInspectionHeader">Adjust filters to find the relevant test here as needed</param>
+    /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
     /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
     local procedure OnHandleCheckWhseItemTrackingAfterFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)

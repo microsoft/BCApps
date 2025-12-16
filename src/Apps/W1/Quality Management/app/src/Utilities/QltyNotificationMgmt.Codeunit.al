@@ -25,7 +25,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         HandleOpenDocumentTok: Label 'HandleOpenDocument', Locked = true;
         IgnoreLbl: Label 'Ignore';
         HandleNotificationActionIgnoreTok: Label 'HandleNotificationActionIgnore', Locked = true;
-        NotificationDataTestRecordIdTok: Label 'TestRecordId', Locked = true;
+        NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
         YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
         DocumentCreatedAMsg: Label 'A %1 %2 has been created for inspection %3. Do you want to open it?', Comment = '%1=the document type, %2=the document no %3=the inspection';
@@ -46,9 +46,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
         TypeJournalEntryBatchLbl: Label 'batch';
         LocationLbl: Label 'Location: %1', Comment = '%1= the location';
         BinLbl: Label ' Bin: %1', Comment = '%1= the bin';
-        NegativeEntriesCreatedMsg: Label 'The Quality Inspection %1,%2 created negative adjustment entries in batch %5 to reduce %3 in %6 by %4 %7.', Comment = '%1=test no., %2=reinspection no., %3=source item and tracking details, %4=quantity, %5=the batch name, %6=location and bin details., %7 = uom';
-        MoveEntriesPostedMsg: Label 'The Quality Inspection %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=test no., %2=reinspection no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
-        BlockedStateChangedLbl: Label 'Test %1 changed %2 %3 on item %4 to %5.', Comment = '%1=the test number, %2=the type, %3, %3= the type,%4 = the item,%5=the blocked state';
+        NegativeEntriesCreatedMsg: Label 'The Quality Inspection %1,%2 created negative adjustment entries in batch %5 to reduce %3 in %6 by %4 %7.', Comment = '%1=inspection no., %2=reinspection no., %3=source item and tracking details, %4=quantity, %5=the batch name, %6=location and bin details., %7 = uom';
+        MoveEntriesPostedMsg: Label 'The Quality Inspection %1,%2 reduced inventory of %3 in %5 by %4 %6.', Comment = '%1=inspection no., %2=reinspection no., %3=source item and tracking details, %4=quantity, %5=location and bin details., %6=uom';
+        BlockedStateChangedLbl: Label 'Inspection %1 changed %2 %3 on item %4 to %5.', Comment = '%1=the inspection number, %2=the type, %3, %3= the type,%4 = the item,%5=the blocked state';
         BlockedLbl: Label 'blocked';
         UnBlockedLbl: Label 'un-blocked';
         OpenTheInfoCardLbl: Label 'Open the %1 No. Information.', Comment = '%1 =the info type.';
@@ -73,7 +73,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         AvailableOptions.Add(AssignToSelfLbl, HandleNotificationActionAssignToSelfTok);
         AvailableOptions.Add(IgnoreLbl, HandleNotificationActionIgnoreTok);
         AssignToSelfNotification.Id := QltyInspectionHeader.SystemId;
-        AssignToSelfNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionHeader.RecordId()));
+        AssignToSelfNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
         CreateActionNotification(AssignToSelfNotification, StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."), AvailableOptions);
     end;
 
@@ -120,7 +120,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
 
         AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);
 
-        DocumentCreatedNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionHeader.RecordId()));
+        DocumentCreatedNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
 
         DocumentCreatedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
 
@@ -398,12 +398,12 @@ codeunit 20437 "Qlty. Notification Mgmt."
     internal procedure HandleNotificationActionAssignToSelf(NotificationToShow: Notification)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        TestRecordId: RecordId;
+        InspectionRecordId: RecordId;
         RecordIdData: Text;
     begin
-        RecordIdData := NotificationToShow.GetData(NotificationDataTestRecordIdTok);
-        if Evaluate(TestRecordId, RecordIdData) then
-            if QltyInspectionHeader.Get(TestRecordId) then begin
+        RecordIdData := NotificationToShow.GetData(NotificationDataInspectionRecordIdTok);
+        if Evaluate(InspectionRecordId, RecordIdData) then
+            if QltyInspectionHeader.Get(InspectionRecordId) then begin
                 QltyInspectionHeader.AssignToSelf();
 #pragma warning disable AA0214
                 if QltyInspectionHeader.Modify() then;
@@ -418,12 +418,12 @@ codeunit 20437 "Qlty. Notification Mgmt."
     internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        TestRecordId: RecordId;
+        InspectionRecordId: RecordId;
         RecordIdData: Text;
     begin
-        RecordIdData := NotificationToShow.GetData(NotificationDataTestRecordIdTok);
-        if Evaluate(TestRecordId, RecordIdData) then
-            if QltyInspectionHeader.Get(TestRecordId) then
+        RecordIdData := NotificationToShow.GetData(NotificationDataInspectionRecordIdTok);
+        if Evaluate(InspectionRecordId, RecordIdData) then
+            if QltyInspectionHeader.Get(InspectionRecordId) then
                 QltyInspectionHeader.SetPreventAutoAssignment(true);
     end;
 
@@ -461,7 +461,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
 
         AvailableOptions.Add(StrSubstNo(OpenTheInfoCardLbl, Type), HandleOpenDocumentTok);
 
-        ItemTrackingBlockedStateChangedNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionHeader.RecordId()));
+        ItemTrackingBlockedStateChangedNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
 
         ItemTrackingBlockedStateChangedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(InformationType));
 

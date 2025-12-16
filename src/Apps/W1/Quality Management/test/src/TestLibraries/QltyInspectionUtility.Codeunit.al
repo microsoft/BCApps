@@ -59,7 +59,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
-        ClaimedATestWasCreated: Boolean;
+        ClaimedInspectionWasCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
@@ -73,7 +73,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         QltyProdOrderGenerator.ToggleAllSources(false);
         QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
         QltyProdOrderGenerator.Generate(2, OrdersList);
-        LibraryAssert.AreEqual(2, OrdersList.Count(), 'Common test generation. Test generator did not make the expected amount of production orders.');
+        LibraryAssert.AreEqual(2, OrdersList.Count(), 'Common inspection generation. Inspection generator did not make the expected amount of production orders.');
         OrdersList.Get(1, ProductionOrder);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder);
         ProdOrderRoutingLine.FindLast();
@@ -82,17 +82,17 @@ codeunit 139950 "Qlty. Inspection Utility"
         BeforeCount := OutCreatedQltyInspectionHeader.Count();
 
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedATestWasCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedInspectionWasCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
 
         OutCreatedQltyInspectionHeader.Reset();
         AfterCount := OutCreatedQltyInspectionHeader.Count();
 
-        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall tests');
+        LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall inspections');
         OutCreatedQltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
         LibraryAssert.AreEqual((1), OutCreatedQltyInspectionHeader.Count(), 'There should be exactly one inspection for this operation.');
-        LibraryAssert.IsTrue(ClaimedATestWasCreated, 'A test flag should have been created');
+        LibraryAssert.IsTrue(ClaimedInspectionWasCreated, 'An inspection flag should have been created');
 
-        QltyInspectionCreate.GetCreatedTest(OutCreatedQltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(OutCreatedQltyInspectionHeader);
     end;
 
     procedure CreateTemplate(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; HowManyFields: Integer)
@@ -458,14 +458,14 @@ codeunit 139950 "Qlty. Inspection Utility"
         PurchaseLineRecordRef: RecordRef;
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
-        TestCreated: Boolean;
+        InspectionCreated: Boolean;
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        TestCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
-        QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
         LibraryAssert.RecordCount(OutQltyInspectionHeader, 1);
     end;
 
@@ -482,14 +482,14 @@ codeunit 139950 "Qlty. Inspection Utility"
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
-        TestCreated: Boolean;
+        InspectionCreated: Boolean;
     begin
         RecordRef.GetTable(WarehouseEntry);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        TestCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
-        QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
         LibraryAssert.RecordCount(OutQltyInspectionHeader, 1);
     end;
 
@@ -503,13 +503,13 @@ codeunit 139950 "Qlty. Inspection Utility"
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         PurchaseLineRecordRef: RecordRef;
-        TestCreated: Boolean;
+        InspectionCreated: Boolean;
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
-        TestCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(PurchaseLineRecordRef, true, SpecificTemplate);
-        LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(PurchaseLineRecordRef, true, SpecificTemplate);
+        LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
-        QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
         LibraryAssert.RecordCount(OutQltyInspectionHeader, 1);
     end;
 
@@ -522,13 +522,13 @@ codeunit 139950 "Qlty. Inspection Utility"
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
-        TestCreated: Boolean;
+        InspectionCreated: Boolean;
     begin
         RecordRef.GetTable(WarehouseEntry);
-        TestCreated := QltyInspectionCreate.CreateInspection(RecordRef, true);
-        LibraryAssert.IsTrue(TestCreated, 'Quality Inspection not created.');
+        InspectionCreated := QltyInspectionCreate.CreateInspection(RecordRef, true);
+        LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
-        QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
         LibraryAssert.RecordCount(OutQltyInspectionHeader, 1);
     end;
 

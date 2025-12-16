@@ -37,7 +37,7 @@ pageextension 20410 "Qlty. Item Avail. by Lot No." extends "Item Avail. by Lot N
                     Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
                 end;
             }
-            field("Qlty. Insp. Test for Lot Count"; Rec."Qlty. Insp. Test for Lot Count")
+            field("Qlty. Inspection for Lot Count"; Rec."Qlty. Inspection for Lot Count")
             {
                 AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;

@@ -16,7 +16,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     var
         InspectionGenerationRuleDataItemTok: Label '/ReportParameters/DataItems/DataItem[@name=''CurrentInspectionGenerationRule'']', Locked = true;
         DataItemOfInspectionGenerationRuleTok: Label 'CurrentInspectionGenerationRule', Locked = true;
-        FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of tests. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
+        FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of inspections. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
         DoYouWantToDeleteJobQueueEntryQst: Label 'There are no rules that are configured to use the job queue entry of %1. Do you want to delete the related job queue entry?', Comment = '%1=the schedule group';
         ThereAreMultipleJobQueueEntriesPleaseReviewMsg: Label 'There are multiple job queue entries that appear related to the group of %1. Please review and adjust the job queue entry configuration if necessary.', Comment = '%1=the schedule group';
@@ -169,7 +169,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// - Object ID: Report "Qlty. Schedule Inspection" (20412)
     /// - Report Parameters: XML filter containing schedule group criteria
     /// - Initial Status: On Hold (user must manually activate)
-    /// - Description: "Schedule Test for : [ScheduleGroup]"
+    /// - Description: "Schedule Inspection for : [ScheduleGroup]"
     /// - Report Request Page Options: Enabled
     /// 
     /// The entry is created in "On Hold" status so users can configure scheduling before activation.
@@ -204,7 +204,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// Generated XML structure:
     /// <![CDATA[ 
     /// <?xml version="1.0" standalone="yes"?>
-    /// <ReportParameters name="Qlty. Schedule Test" id="20412">
+    /// <ReportParameters name="Qlty. Schedule Inspection" id="20412">
     ///   <DataItems>
     ///     <DataItem name="CurrentInspectionGenerationRule">VERSION(1) SORTING(Field1) WHERE(Field4=1(C))</DataItem>
     ///   </DataItems>

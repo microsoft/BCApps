@@ -54,7 +54,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal is posted with AnyOutput configuration
+        // [SCENARIO] Inspection is created when output journal is posted with AnyOutput configuration
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -101,10 +101,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses the correct template, item, and source quantity of 5
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses the correct template, item, and source quantity of 5
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
@@ -123,7 +123,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when scrap journal is posted with AnyOutput configuration using prod line quantity
+        // [SCENARIO] Inspection is created when scrap journal is posted with AnyOutput configuration using prod line quantity
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -166,10 +166,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the production line.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches prod line quantity (10)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the production line.');
     end;
 
     [Test]
@@ -225,7 +225,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
@@ -244,7 +244,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created with output quantity when both output and scrap are posted with AnyOutput configuration
+        // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with AnyOutput configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -288,10 +288,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches output quantity (5, not scrap 3)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches output quantity (5, not scrap 3)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
@@ -310,7 +310,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal is posted with AnyQuantity configuration
+        // [SCENARIO] Inspection is created when output journal is posted with AnyQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -352,10 +352,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity of 5
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity of 5
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
@@ -374,7 +374,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when scrap journal is posted with AnyQuantity configuration using prod line quantity
+        // [SCENARIO] Inspection is created when scrap journal is posted with AnyQuantity configuration using prod line quantity
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -417,10 +417,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the production line.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches prod line quantity (10)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the production line.');
     end;
 
     [Test]
@@ -439,7 +439,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created with total quantity (output + scrap) when both are posted with AnyQuantity configuration
+        // [SCENARIO] Inspection is created with total quantity (output + scrap) when both are posted with AnyQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -483,13 +483,13 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template and source quantity matches output quantity (5)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template and source quantity matches output quantity (5)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
-    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_NoOutputOrScrap_NoTest()
+    procedure CreateInspectionOnAfterPostOutput_AnyQuantity_NoOutputOrScrap_NoInspection()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -541,7 +541,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
@@ -598,7 +598,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
@@ -617,7 +617,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal is posted with OnlyWithQuantity configuration
+        // [SCENARIO] Inspection is created when output journal is posted with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -660,10 +660,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity of 5
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity of 5
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the output.');
     end;
 
     [Test]
@@ -682,7 +682,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created with output quantity when both output and scrap are posted with OnlyWithQuantity configuration
+        // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -726,10 +726,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches output (5, not scrap)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches output (5, not scrap)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the output.');
     end;
 
     [Test]
@@ -785,7 +785,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
@@ -841,7 +841,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         AfterCount := QltyInspectionHeader.Count();
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
@@ -860,7 +860,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when scrap journal is posted with OnlyWithScrap configuration using prod line quantity
+        // [SCENARIO] Inspection is created when scrap journal is posted with OnlyWithScrap configuration using prod line quantity
 
         // [GIVEN] Setup exists and a template with 3 fields is created
         QltyInspectionUtility.EnsureSetup();
@@ -903,10 +903,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches prod line quantity (10)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the production line.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches prod line quantity (10)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(10, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the production line.');
     end;
 
     [Test]
@@ -925,7 +925,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Test is created when output journal with both output and scrap is posted with OnlyWithScrap configuration using output quantity
+        // [SCENARIO] Inspection is created when output journal with both output and scrap is posted with OnlyWithScrap configuration using output quantity
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -972,10 +972,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionHeader.FindLast();
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'One inspection should have been created.');
 
-        // [THEN] Test uses correct template, item, and source quantity matches output quantity (5)
-        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Test should use provided template.');
-        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Test should be for the correct item.');
-        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The test source quantity (base) should match the quantity of the output.');
+        // [THEN] Inspection uses correct template, item, and source quantity matches output quantity (5)
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Inspection should use provided template.');
+        LibraryAssert.AreEqual(Item."No.", QltyInspectionHeader."Source Item No.", 'Inspection should be for the correct item.');
+        LibraryAssert.AreEqual(5, QltyInspectionHeader."Source Quantity (Base)", 'The inspection source quantity (base) should match the quantity of the output.');
     end;
 
     [Test]
@@ -1033,7 +1033,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionTemplateHdr.Delete();
 
         // [THEN] No inspection is created
-        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No test should be created.');
+        LibraryAssert.AreEqual(BeforeCount, AfterCount, 'No inspection should be created.');
     end;
 
     [Test]
@@ -1053,7 +1053,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryUtility: Codeunit "Library - Utility";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order is released with routing lines available
+        // [SCENARIO] Inspection is created when production order is released with routing lines available
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1113,7 +1113,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryUtility: Codeunit "Library - Utility";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order is released without routing lines
+        // [SCENARIO] Inspection is created when production order is released without routing lines
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1157,7 +1157,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [THEN] One inspection is created for the item
         CreatedQltyInspectionHeader.SetRange("Source Item No.", Item."No.");
-        LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'Test should match item.');
+        LibraryAssert.AreEqual(1, CreatedQltyInspectionHeader.Count(), 'Inspection should match item.');
     end;
 
     [Test]
@@ -1179,7 +1179,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order with lot-tracked item is released with routing lines available
+        // [SCENARIO] Inspection is created when production order with lot-tracked item is released with routing lines available
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1238,7 +1238,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         ProdOrderStatus: Enum "Production Order Status";
     begin
-        // [SCENARIO] Test is created when production order with lot-tracked item is released without routing lines
+        // [SCENARIO] Inspection is created when production order with lot-tracked item is released without routing lines
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1302,7 +1302,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1322,7 +1322,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1339,7 +1339,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1371,7 +1371,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with source order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1391,7 +1391,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1408,7 +1408,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1440,7 +1440,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1460,7 +1460,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] All source record IDs have "Released" status (note: third ID is not checked due to variant ordering)
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1477,7 +1477,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1508,7 +1508,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with routing line-based test and source order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with routing line-based inspection and source order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1528,7 +1528,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1545,7 +1545,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1577,7 +1577,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdSecond: Text;
         RecordIdThird: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with routing line-based test and source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with routing line-based inspection and source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1597,7 +1597,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1614,7 +1614,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
@@ -1647,7 +1647,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdThird: Text;
         RecordIdFourth: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with journal line-based test and source order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1677,7 +1677,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1694,7 +1694,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1727,7 +1727,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdThird: Text;
         RecordIdFourth: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with journal line-based test and source order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1757,7 +1757,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1774,7 +1774,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1807,7 +1807,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordIdThird: Text;
         RecordIdFourth: Text;
     begin
-        // [SCENARIO] Test source record IDs are updated when production order status changes from Released to Finished with journal line-based test and source order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
+        // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -1837,7 +1837,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1854,7 +1854,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] Test source record IDs are updated to have "Finished" status
+        // [THEN] Inspection source record IDs are updated to have "Finished" status
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1893,7 +1893,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LotNo2: Code[50];
         BeforeCount: Integer;
     begin
-        // [SCENARIO] Two tests are created when assembly order with lot-tracked item is posted with two lot numbers
+        // [SCENARIO] Two inspections are created when assembly order with lot-tracked item is posted with two lot numbers
 
         // [GIVEN] A no. series is created for test setup
         LibraryUtility.CreateNoSeries(ToUseNoSeries, true, true, false);
@@ -1950,10 +1950,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
-        // [THEN] Two tests are created (one for each lot number)
+        // [THEN] Two inspections are created (one for each lot number)
         LibraryAssert.AreEqual((BeforeCount + 2), QltyInspectionHeader.Count(), 'Should be two new inspections.');
 
-        // [THEN] Each test uses correct template, location, quantity (5), and lot number
+        // [THEN] Each inspection uses correct template, location, quantity (5), and lot number
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         if QltyInspectionHeader.FindSet() then
             repeat
@@ -2030,7 +2030,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [THEN] One inspection is created
         LibraryAssert.AreEqual((BeforeCount + 1), QltyInspectionHeader.Count(), 'Should be one new inspection.');
 
-        // [THEN] Test uses correct template, location, and quantity matches assembly order quantity
+        // [THEN] Inspection uses correct template, location, and quantity matches assembly order quantity
         QltyInspectionHeader.SetRange("Source Item No.", AssemblyHeader."Item No.");
         QltyInspectionHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionHeader."Template Code", 'Should be same template.');
@@ -2071,7 +2071,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdProductionOrder."No.");
         CountOfRoutingLines := ProdOrderRoutingLine.Count();
 
-        // [GIVEN] The current count of inspection inspection headers is recorded
+        // [GIVEN] The current count of inspection headers is recorded
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The production order is refreshed
@@ -2081,8 +2081,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
-        // [THEN] Tests are created for each routing line
-        LibraryAssert.AreEqual(BeforeCount + CountOfRoutingLines, QltyInspectionHeader.Count(), 'Test(s) was not created.');
+        // [THEN] Inspections are created for each routing line
+        LibraryAssert.AreEqual(BeforeCount + CountOfRoutingLines, QltyInspectionHeader.Count(), 'Inspection(s) was not created.');
     end;
 
     [Test]
@@ -2090,7 +2090,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences_ProdOrder_NoSourceConfig()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        TestQualityOrder: Record "Qlty. Inspection Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
@@ -2101,7 +2101,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordRef: RecordRef;
         RecordId: Text;
     begin
-        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting
+        // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -2119,8 +2119,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created for the production order with Released status
         RecordRef.GetTable(ProdProductionOrder);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
 
@@ -2135,9 +2135,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Reinspection No.");
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        // [THEN] The inspection source record ID is updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
 
@@ -2150,7 +2150,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences_ProdOrderLine_NoSourceConfig()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        TestQualityOrder: Record "Qlty. Inspection Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
@@ -2161,7 +2161,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordRef: RecordRef;
         RecordId: Text;
     begin
-        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting for Prod. Order Line
+        // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting for Prod. Order Line
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -2179,8 +2179,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created for the production order line with Released status
         RecordRef.GetTable(ProdOrderLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
 
@@ -2195,9 +2195,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Reinspection No.");
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        // [THEN] The inspection source record ID is updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
 
@@ -2210,7 +2210,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     procedure UpdateReferences_ProdOrderRoutingLine_NoSourceConfig()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        TestQualityOrder: Record "Qlty. Inspection Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Item: Record Item;
@@ -2221,7 +2221,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         RecordRef: RecordRef;
         RecordId: Text;
     begin
-        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "UpdateOnChange" setting for Prod. Order Routing Line
+        // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "UpdateOnChange" setting for Prod. Order Routing Line
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetup();
@@ -2239,8 +2239,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created for the production order routing line with Released status
         RecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedTest(TestQualityOrder);
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
 
@@ -2255,9 +2255,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [WHEN] The production order status is changed to Finished
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
-        // [THEN] The test source record ID is updated to have "Finished" status
-        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Reinspection No.");
-        RecordId := Format(TestQualityOrder."Source RecordId");
+        // [THEN] The inspection source record ID is updated to have "Finished" status
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
 

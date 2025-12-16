@@ -36,7 +36,7 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                         QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItemAndDocument)
+                action(Qlty_InspectionShowInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
@@ -54,7 +54,7 @@ pageextension 20402 "Qlty. Purchase Order Subform" extends "Purchase Order Subfo
                         QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
-                action(Qlty_ShowTests)
+                action(Qlty_ShowInspections)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;

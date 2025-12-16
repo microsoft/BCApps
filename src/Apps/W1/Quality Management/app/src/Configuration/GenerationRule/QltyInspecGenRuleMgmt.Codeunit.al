@@ -183,7 +183,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         SearchItem: Record Item;
         FoundLinkRecordRef: RecordRef;
-        TemporaryTestMatchRecordRef: RecordRef;
+        TemporaryInspectionMatchRecordRef: RecordRef;
     begin
         CurrentRecursionDepth -= 1;
         if CurrentRecursionDepth <= 0 then
@@ -204,13 +204,13 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         QltyInspectionGenRule.Ascending(true);
         if QltyInspectionGenRule.FindSet() then
             repeat
-                Clear(TemporaryTestMatchRecordRef);
-                TemporaryTestMatchRecordRef.Open(TargetRecordRef.Number(), true);
-                TemporaryTestMatchRecordRef.Copy(TargetRecordRef);
-                if TemporaryTestMatchRecordRef.Insert(false) then;
-                TemporaryTestMatchRecordRef.Reset();
-                TemporaryTestMatchRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
-                if TemporaryTestMatchRecordRef.FindFirst() then
+                Clear(TemporaryInspectionMatchRecordRef);
+                TemporaryInspectionMatchRecordRef.Open(TargetRecordRef.Number(), true);
+                TemporaryInspectionMatchRecordRef.Copy(TargetRecordRef);
+                if TemporaryInspectionMatchRecordRef.Insert(false) then;
+                TemporaryInspectionMatchRecordRef.Reset();
+                TemporaryInspectionMatchRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
+                if TemporaryInspectionMatchRecordRef.FindFirst() then
                     if (QltyInspectionGenRule."Item Filter" <> '') and (OptionalItem."No." <> '') then begin
                         Clear(SearchItem);
                         SearchItem := OptionalItem;

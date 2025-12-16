@@ -36,7 +36,7 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
                         QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItemAndDocument)
+                action(Qlty_InspectionShowInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
@@ -54,7 +54,7 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
                         QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItem)
+                action(Qlty_InspectionShowInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;

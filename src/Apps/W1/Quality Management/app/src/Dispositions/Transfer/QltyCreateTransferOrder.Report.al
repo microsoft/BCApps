@@ -173,7 +173,7 @@ report 20410 "Qlty. Create Transfer Order"
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is transferred from if the test covers more than one bin.';
+                    InstructionalText = 'Optional filters that limit where the inventory is transferred from if the inspection covers more than one bin.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocation)
                     {

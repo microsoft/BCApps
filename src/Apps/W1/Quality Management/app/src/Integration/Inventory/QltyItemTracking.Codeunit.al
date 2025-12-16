@@ -17,9 +17,9 @@ codeunit 20428 "Qlty. Item Tracking"
     InherentPermissions = X;
 
     var
-        ThereIsNoSourceLotErr: Label 'There is no lot or item defined on the test %1. Please set the item and lot first before blocking or unblocking the lot.', Locked = true;
-        ThereIsNoSourceSerialErr: Label 'There is no serial or item defined on the test %1. Please set the item and serial first before blocking or unblocking the serial.', Locked = true;
-        ThereIsNoSourcePackageErr: Label 'There is no package or item defined on the test %1. Please set the item and package first before blocking or unblocking the serial.', Locked = true;
+        ThereIsNoSourceLotErr: Label 'There is no lot or item defined on the inspection %1. Please set the item and lot first before blocking or unblocking the lot.', Locked = true;
+        ThereIsNoSourceSerialErr: Label 'There is no serial or item defined on the inspection %1. Please set the item and serial first before blocking or unblocking the serial.', Locked = true;
+        ThereIsNoSourcePackageErr: Label 'There is no package or item defined on the inspection %1. Please set the item and package first before blocking or unblocking the package.', Locked = true;
         LotTypeLbl: Label 'Lot';
         SerialTypeLbl: Label 'Serial';
         PackageTypeLbl: Label 'Package';

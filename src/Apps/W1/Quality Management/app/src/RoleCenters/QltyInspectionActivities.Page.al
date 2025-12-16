@@ -20,7 +20,7 @@ page 20425 "Qlty. Inspection Activities"
         {
             cuegroup("Current Inspections")
             {
-                Caption = 'Current Tests';
+                Caption = 'Current Inspections';
 
                 field("Unassigned Inspections"; Rec."Unassigned Inspections")
                 {
@@ -45,7 +45,7 @@ page 20425 "Qlty. Inspection Activities"
             }
             cuegroup("Finished Inspections")
             {
-                Caption = 'Finished Tests';
+                Caption = 'Finished Inspections';
 
                 field("My Finished Inspections"; Rec."My Finished Inspections")
                 {

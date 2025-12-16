@@ -8,7 +8,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// Used to help map the transfer test document was created as a result of a quality inspection.
+/// Used to help map the transfer inspection document was created as a result of a quality inspection.
 /// </summary>
 tableextension 20410 "Qlty. Direct Trans. Header" extends "Direct Trans. Header"
 {

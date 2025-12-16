@@ -18,16 +18,16 @@ codeunit 20423 "Qlty. Workflow Setup"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyPrefixTok: Label 'QLTY-', Locked = true;
-        TestFinishesEventTok: Label 'QLTY-E-FINISH-1', Locked = true;
-        TestReopensEventTok: Label 'QLTY-E-REOPEN-1', Locked = true;
-        TestCreatedEventTok: Label 'QLTY-E-CREATE-1', Locked = true;
-        TestHasChangedEventTok: Label 'QLTY-E-CHANGE-1', Locked = true;
+        InspectionFinishesEventTok: Label 'QLTY-E-FINISH-1', Locked = true;
+        InspectionReopenedEventTok: Label 'QLTY-E-REOPEN-1', Locked = true;
+        InspectionCreatedEventTok: Label 'QLTY-E-CREATE-1', Locked = true;
+        InspectionHasChangedEventTok: Label 'QLTY-E-CHANGE-1', Locked = true;
         QltyInspectionRejectWorkflowEventTok: Label 'QLTY-A-RJCT-1', locked = true;
         QltyInspectionDelegateWorkflowEventTok: Label 'QLTY-A-DLGT-1', locked = true;
         QltyInspectionApproveWorkflowEventTok: Label 'QLTY-A-APPR-1', locked = true;
         QMWorkflowResponseCreateInspectionTok: Label 'QLTY-R-CREATE-1', Locked = true;
-        QMWorkflowResponseFinishTestTok: Label 'QLTY-R-FINISH-1', Locked = true;
-        QMWorkflowResponseReopenTestTok: Label 'QLTY-R-REOPEN-1', Locked = true;
+        QMWorkflowResponseFinishInspectionTok: Label 'QLTY-R-FINISH-1', Locked = true;
+        QMWorkflowResponseReopenInspectionTok: Label 'QLTY-R-REOPEN-1', Locked = true;
         QMWorkflowResponseCreateReinspectionTok: Label 'QLTY-R-REINSPECT-1', Locked = true;
         QMWorkflowResponseBlockLotTok: Label 'QLTY-R-BLCKLOT-1', Locked = true;
         QMWorkflowResponseUnBlockLotTok: Label 'QLTY-R-UBLCKLOT-1', Locked = true;
@@ -52,13 +52,13 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowResponseDescriptionFinishTheQltyInspectionLbl: Label 'Finish the Quality Inspection', Locked = true;
         QMWorkflowResponseDescriptionReopenTheQltyInspectionLbl: Label 'Reopen the Quality Inspection', Locked = true;
         QMWorkflowResponseDescriptionCreateReinspectionLbl: Label 'Create Reinspection', Locked = true;
-        QMWorkflowResponseDescriptionBlockLotLbl: Label 'Block Lot in the Test', Locked = true;
-        QMWorkflowResponseDescriptionBlockSerialLbl: Label 'Block Serial in the Test', Locked = true;
-        QMWorkflowResponseDescriptionBlockPackageLbl: Label 'Block Package in the Test', Locked = true;
-        QMWorkflowResponseDescriptionUnBlockLotLbl: Label 'Un-Block Lot in the Test', Locked = true;
-        QMWorkflowResponseDescriptionUnBlockSerialLbl: Label 'Un-Block Serial in the Test', Locked = true;
-        QMWorkflowResponseDescriptionUnBlockPackageLbl: Label 'Un-Block Package in the Test', Locked = true;
-        QMWorkflowResponseDescriptionMoveInventoryLbl: Label 'Move Inventory from Test', Locked = true;
+        QMWorkflowResponseDescriptionBlockLotLbl: Label 'Block Lot in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionBlockSerialLbl: Label 'Block Serial in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionBlockPackageLbl: Label 'Block Package in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionUnBlockLotLbl: Label 'Un-Block Lot in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionUnBlockSerialLbl: Label 'Un-Block Serial in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionUnBlockPackageLbl: Label 'Un-Block Package in the Inspection', Locked = true;
+        QMWorkflowResponseDescriptionMoveInventoryLbl: Label 'Move Inventory from Inspection', Locked = true;
         QMWorkflowResponseDescriptionCreateInternalPutAwayLbl: Label 'Create an Internal Put-away', Locked = true;
         QMWorkflowResponseDescriptionSetDatabaseValueLbl: Label 'Set Database Value', Locked = true;
         QMWorkflowResponseDescriptionCreateNegativeAdjustmentLbl: Label 'Create a Negative Adjustment', Locked = true;
@@ -92,18 +92,18 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to finish an inspection
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseFinishTest(): Text
+    procedure GetWorkflowResponseFinishInspection(): Text
     begin
-        exit(QMWorkflowResponseFinishTestTok);
+        exit(QMWorkflowResponseFinishInspectionTok);
     end;
 
     /// <summary>
     /// Returns the token for a workflow response to re-open an inspection
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseReopenTest(): Text
+    procedure GetWorkflowResponseReopenInspection(): Text
     begin
-        exit(QMWorkflowResponseReopenTestTok);
+        exit(QMWorkflowResponseReopenInspectionTok);
     end;
 
     procedure GetWorkflowResponseCreateReinspection(): Text
@@ -259,43 +259,43 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been created.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetTestCreatedEvent(): Code[128]
+    procedure GetInspectionCreatedEvent(): Code[128]
     begin
-        exit(TestCreatedEventTok);
+        exit(InspectionCreatedEventTok);
     end;
 
     /// <summary>
     /// The token for the event when an inspection has been changed.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetTestHasChangedEvent(): Code[128]
+    procedure GetInspectionHasChangedEvent(): Code[128]
     begin
-        exit(TestHasChangedEventTok);
+        exit(InspectionHasChangedEventTok);
     end;
 
     /// <summary>
     /// The token for the event when an inspection has been finished.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetTestFinishedEvent(): Code[128]
+    procedure GetInspectionFinishedEvent(): Code[128]
     begin
-        exit(TestFinishesEventTok);
+        exit(InspectionFinishesEventTok);
     end;
 
     /// <summary>
     /// The token for the event when an inspection has been re-opened.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetTestReopensEvent(): Code[128]
+    procedure GetInspectionReopenedEvent(): Code[128]
     begin
-        exit(TestReopensEventTok);
+        exit(InspectionReopenedEventTok);
     end;
 
     /// <summary>
     /// The token for the event when an inspection has been rejected in an approval.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetTestRejectEventTok(): Code[128]
+    procedure GetInspectionRejectEventTok(): Code[128]
     begin
         exit(QltyInspectionRejectWorkflowEventTok);
     end;
@@ -304,7 +304,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been approved in an approval system.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetTestApproveEventTok(): Code[128]
+    procedure GetInspectionApproveEventTok(): Code[128]
     begin
         exit(QltyInspectionApproveWorkflowEventTok);
     end;
@@ -313,7 +313,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been delegated in an approval.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetTestDelegateEventTok(): Code[128]
+    procedure GetInspectionDelegateEventTok(): Code[128]
     begin
         exit(QltyInspectionDelegateWorkflowEventTok);
     end;
@@ -358,10 +358,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         if not WorkflowEvent.IsEmpty() then
             OptionalSuffix := QMWorkflowDescriptionOptionalSuffixLbl;
 
-        WorkflowEventHandling.AddEventToLibrary(GetTestHasChangedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasChangedLbl + OptionalSuffix, 0, true);
-        WorkflowEventHandling.AddEventToLibrary(GetTestCreatedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenCreatedLbl + OptionalSuffix, 0, false);
-        WorkflowEventHandling.AddEventToLibrary(GetTestFinishedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenFinishedLbl + OptionalSuffix, 0, false);
-        WorkflowEventHandling.AddEventToLibrary(GetTestReopensEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenReopenedLbl + OptionalSuffix, 0, false);
+        WorkflowEventHandling.AddEventToLibrary(GetInspectionHasChangedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasChangedLbl + OptionalSuffix, 0, true);
+        WorkflowEventHandling.AddEventToLibrary(GetInspectionCreatedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenCreatedLbl + OptionalSuffix, 0, false);
+        WorkflowEventHandling.AddEventToLibrary(GetInspectionFinishedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenFinishedLbl + OptionalSuffix, 0, false);
+        WorkflowEventHandling.AddEventToLibrary(GetInspectionReopenedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenReopenedLbl + OptionalSuffix, 0, false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowEventPredecessorsToLibrary', '', true, true)]
@@ -380,10 +380,10 @@ codeunit 20423 "Qlty. Workflow Setup"
             QltyInspectionDelegateWorkflowEventTok,
             QltyInspectionApproveWorkflowEventTok:
                 begin
-                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetTestFinishedEvent());
-                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetTestReopensEvent());
-                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetTestCreatedEvent());
-                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetTestHasChangedEvent());
+                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetInspectionFinishedEvent());
+                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetInspectionReopenedEvent());
+                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetInspectionCreatedEvent());
+                    WorkflowEventHandling.AddEventPredecessor(EventFunctionName, GetInspectionHasChangedEvent());
                 end;
         end;
     end;
@@ -401,10 +401,10 @@ codeunit 20423 "Qlty. Workflow Setup"
 
         FunctionName := ResponseFunctionName;
 
-        QualityEventIds.Add(GetTestCreatedEvent());
-        QualityEventIds.Add(GetTestFinishedEvent());
-        QualityEventIds.Add(GetTestHasChangedEvent());
-        QualityEventIds.Add(GetTestReopensEvent());
+        QualityEventIds.Add(GetInspectionCreatedEvent());
+        QualityEventIds.Add(GetInspectionFinishedEvent());
+        QualityEventIds.Add(GetInspectionHasChangedEvent());
+        QualityEventIds.Add(GetInspectionReopenedEvent());
 
         if FunctionName.StartsWith(GetQualityInspectionPrefix()) then
             foreach QualityEvent in QualityEventIds do
@@ -437,18 +437,18 @@ codeunit 20423 "Qlty. Workflow Setup"
         if not WorkflowResponse.IsEmpty() then
             OptionalSuffix := QMWorkflowDescriptionOptionalSuffixLbl;
 
-        QualityEventIds.Add(GetTestCreatedEvent());
-        QualityEventIds.Add(GetTestFinishedEvent());
-        QualityEventIds.Add(GetTestHasChangedEvent());
-        QualityEventIds.Add(GetTestReopensEvent());
+        QualityEventIds.Add(GetInspectionCreatedEvent());
+        QualityEventIds.Add(GetInspectionFinishedEvent());
+        QualityEventIds.Add(GetInspectionHasChangedEvent());
+        QualityEventIds.Add(GetInspectionReopenedEvent());
 
         WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateInspection(), 1, 128), 0, QMWorkflowResponseDescriptionCreateAQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseCreateInspection(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseCreateInspection(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseFinishTest(), 1, 128), 0, QMWorkflowResponseDescriptionFinishTheQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseFinishTest(), 1, 20));
-        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseFinishTest(), 1, 128));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseFinishInspection(), 1, 128), 0, QMWorkflowResponseDescriptionFinishTheQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseFinishInspection(), 1, 20));
+        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseFinishInspection(), 1, 128));
 
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseReopenTest(), 1, 128), 0, QMWorkflowResponseDescriptionReopenTheQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseReopenTest(), 1, 20));
-        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseReopenTest(), 1, 128));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseReopenInspection(), 1, 128), 0, QMWorkflowResponseDescriptionReopenTheQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseReopenInspection(), 1, 20));
+        QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseReopenInspection(), 1, 128));
         WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateReinspection(), 1, 128), 0, QMWorkflowResponseDescriptionCreateReinspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseCreateReinspection(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseCreateReinspection(), 1, 128));
         WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockLot(), 1, 128), 0, QMWorkflowResponseDescriptionBlockLotLbl + OptionalSuffix, CopyStr(GetWorkflowResponseBlockLot(), 1, 20));

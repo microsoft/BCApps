@@ -170,7 +170,7 @@ report 20400 "Qlty. Create Inspection"
                     {
                         ApplicationArea = All;
                         Caption = 'Source Quantity (base)';
-                        ToolTip = 'Specifies the lot size used to create the test with.';
+                        ToolTip = 'Specifies the lot size used to create the inspection with.';
                         AutoFormatType = 0;
                         DecimalPlaces = 0 : 5;
                         Editable = EditSourceQuantity;

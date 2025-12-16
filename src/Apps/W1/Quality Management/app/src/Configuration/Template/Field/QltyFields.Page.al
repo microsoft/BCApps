@@ -264,7 +264,7 @@ page 20401 "Qlty. Fields"
                 Caption = 'Delete';
                 Image = Delete;
                 Scope = Repeater;
-                ToolTip = 'Deletes this field. A field can only be deleted if it is not being used on an existing test.';
+                ToolTip = 'Deletes this field. A field can only be deleted if it is not being used on an existing inspection.';
 
                 trigger OnAction()
                 begin

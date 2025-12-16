@@ -48,7 +48,7 @@ report 20412 "Qlty. Schedule Inspection"
                 {
                     Caption = 'Warning';
                     Visible = ShowWarningIfCreateInspection;
-                    InstructionalText = 'On your Quality Management Setup page you have the Create Inspection Behavior set to a setting that will cause tests to be created whenever this report is run even if there are already tests for that item and lot. Make sure this is compatible with the scenario you are solving.';
+                    InstructionalText = 'On your Quality Management Setup page you have the Create Inspection Behavior set to a setting that will cause inspections to be created whenever this report is run even if there are already inspections for that item and lot. Make sure this is compatible with the scenario you are solving.';
 
                     field(ChooseOpenQualityManagementSetup; 'Click here to open the Quality Management Setup page.')
                     {
@@ -71,9 +71,9 @@ report 20412 "Qlty. Schedule Inspection"
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ShowWarningIfCreateInspection: Boolean;
         CreatedQltyInspectionIds: List of [Code[20]];
-        ZeroInspectionsCreatedMsg: Label 'No tests were created.';
-        SomeInspectionsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
-        ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the inspection generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive test generation. ';
+        ZeroInspectionsCreatedMsg: Label 'No inspections were created.';
+        SomeInspectionsWereCreatedQst: Label '%1 inspections were created. Do you want to see them?', Comment = '%1=the count of inspections that were created.';
+        ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the inspection generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive inspection generation. ';
 
     trigger OnInitReport()
     begin
@@ -95,7 +95,7 @@ report 20412 "Qlty. Schedule Inspection"
                 Message(ZeroInspectionsCreatedMsg)
             else
                 if Confirm(StrSubstNo(SomeInspectionsWereCreatedQst, CreatedQltyInspectionIds.Count())) then
-                    QltyInspectionCreate.DisplayTestsIfConfigured(true, CreatedQltyInspectionIds);
+                    QltyInspectionCreate.DisplayInspectionsIfConfigured(true, CreatedQltyInspectionIds);
     end;
 
     /// <summary>
@@ -123,6 +123,6 @@ report 20412 "Qlty. Schedule Inspection"
         QltyInspectionGenRule.SetRange("Schedule Group", QltyInspectionGenRule."Schedule Group");
         QltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
         if SourceRecordRef.FindSet() then
-            QltyInspectionCreate.CreateMultipleTestsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectionGenRule, CreatedQltyInspectionIds);
+            QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectionGenRule, CreatedQltyInspectionIds);
     end;
 }

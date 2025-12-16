@@ -16,12 +16,12 @@ using System.Reflection;
 /// When the to type is a chaintable, that allows chaining multiple tables together.
 /// How you can use chained tables:
 ///     - grab additional fields for related records:
-///         - example 1 : grab the item no. from the prod order line even though the test might be against a prod order routing line.)
+///         - example 1 : grab the item no. from the prod order line even though the inspection might be against a prod order routing line.)
 ///             (use case being: visibility into seeing the item no., without having to add a flowfield to fetch the item no.)
 ///         - example 2 : grab the item category or item attribute from the item card or item attribute card.
 ///             (use case being: we only want to create an inspection when the item attributes or item category is xyz.)
 ///         - example 3 : grab the customer card, for customer specific filters.
-///             (Use case being: we only want this test for items made or shipped to a specific customer)
+///             (Use case being: we only want this inspection for items made or shipped to a specific customer)
 /// </summary>
 table 20407 "Qlty. Inspect. Source Config."
 {
@@ -68,7 +68,7 @@ table 20407 "Qlty. Inspect. Source Config."
             Caption = 'From Table';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the from table name. As an example for production related tests this would typically be the Prod. Order Routing Line.';
+            ToolTip = 'Specifies the from table name. As an example for production related inspections this would typically be the Prod. Order Routing Line.';
         }
         field(4; "From Table Filter"; Text[250])
         {

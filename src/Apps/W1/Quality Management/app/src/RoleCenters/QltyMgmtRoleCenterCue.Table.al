@@ -21,7 +21,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(2; "All Open Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open)));
-            Caption = 'Open Tests (all)';
+            Caption = 'Open Inspections (all)';
             ToolTip = 'Specifies the count of quality inspections that are open.';
             Editable = false;
             FieldClass = FlowField;
@@ -30,7 +30,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Assigned User ID" = filter('%me')));
-            Caption = 'Open Tests (mine)';
+            Caption = 'Open Inspections (mine)';
             ToolTip = 'Specifies the count of quality inspections that are open and assigned to you.';
             Editable = false;
             FieldClass = FlowField;
@@ -38,7 +38,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(4; "All Finished Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Finished)));
-            Caption = 'Finished Tests (all)';
+            Caption = 'Finished Inspections (all)';
             ToolTip = 'Specifies the count of quality inspections that are finished.';
             Editable = false;
             FieldClass = FlowField;
@@ -47,7 +47,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Finished),
                                                                      "Assigned User ID" = filter('%me')));
-            Caption = 'Finished Tests (mine)';
+            Caption = 'Finished Inspections (mine)';
             ToolTip = 'Specifies the count of quality inspections that are finished and assigned to you.';
             Editable = false;
             FieldClass = FlowField;
@@ -55,7 +55,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(6; "Unassigned Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where("Assigned User ID" = filter('''''')));
-            Caption = 'Unassigned Tests';
+            Caption = 'Unassigned Inspections';
             ToolTip = 'Specifies the count of quality inspections that are not assigned to any user.';
             Editable = false;
             FieldClass = FlowField;
@@ -64,7 +64,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Planned Start Date" = filter('<=T')));
-            Caption = 'Open and Due Tests (all)';
+            Caption = 'Open and Due Inspections (all)';
             ToolTip = 'Specifies the count of quality inspections that are open and due.';
             Editable = false;
             FieldClass = FlowField;
@@ -74,7 +74,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
                                                                      "Assigned User ID" = filter('%me'),
                                                                      "Planned Start Date" = filter('<=T')));
-            Caption = 'Open and Due Tests (mine)';
+            Caption = 'Open and Due Inspections (mine)';
             ToolTip = 'Specifies the count of quality inspections that are open, due, and assigned to you.';
             Editable = false;
             FieldClass = FlowField;

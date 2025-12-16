@@ -28,7 +28,7 @@ codeunit 20424 "Qlty. Workflow Response"
     var
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         DocumentTypeLbl: Label 'Move';
-        UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from inspection %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the test, %2=from location, %3=to location';
+        UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from inspection %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the inspection, %2=from location, %3=to location';
 
     /// <summary>
     /// Note: The method signature for OnExecuteWorkflowResponse has changed at some point between BC 16 and BC 18.
@@ -45,7 +45,7 @@ codeunit 20424 "Qlty. Workflow Response"
         ForOriginalWorkflowStepArgument: Record "Workflow Step Argument";
         ApprovalEntry: Record "Approval Entry";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        Test2QualityOrder: Record "Qlty. Inspection Header";
+        QltyInspectionHeader2: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         OriginalWorkflowStep: Record "Workflow Step";
         Location: Record Location;
@@ -91,13 +91,13 @@ codeunit 20424 "Qlty. Workflow Response"
         case PrimaryRecordRefInWorkflow.Number() of
             Database::"Qlty. Inspection Header":
                 begin
-                    PrimaryRecordRefInWorkflow.SetTable(Test2QualityOrder);
-                    Test2QualityOrder.SetRecFilter();
-                    if Test2QualityOrder.Count() <> 1 then begin
-                        QltyInspectionHeader.SetFilter("No.", Test2QualityOrder.GetFilter("No."));
-                        QltyInspectionHeader.SetFilter("Reinspection No.", Test2QualityOrder.GetFilter("Reinspection No."));
+                    PrimaryRecordRefInWorkflow.SetTable(QltyInspectionHeader2);
+                    QltyInspectionHeader2.SetRecFilter();
+                    if QltyInspectionHeader2.Count() <> 1 then begin
+                        QltyInspectionHeader.SetFilter("No.", QltyInspectionHeader2.GetFilter("No."));
+                        QltyInspectionHeader.SetFilter("Reinspection No.", QltyInspectionHeader2.GetFilter("Reinspection No."));
                     end else
-                        QltyInspectionHeader.Copy(Test2QualityOrder);
+                        QltyInspectionHeader.Copy(QltyInspectionHeader2);
 
                     QltyInspectionHeader.FindFirst();
                     QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -127,18 +127,18 @@ codeunit 20424 "Qlty. Workflow Response"
             exit;
 
         if PrimaryRecordRefInWorkflow.Number() = Database::"Qlty. Inspection Header" then
-            ClearTestStatusFilterIfRequired(ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow);
+            ClearInspectionStatusFilterIfRequired(ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow);
 
         if WorkflowResponse.Get(ResponseWorkflowStepInstance."Function Name") then
             case WorkflowResponse."Function Name" of
                 QltyWorkflowSetup.GetWorkflowResponseCreateInspection():
                     begin
                         if QltyInspectionCreate.CreateInspection(PrimaryRecordRefInWorkflow, GuiAllowed()) then
-                            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
                         ResponseExecuted := true;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseFinishTest():
+                QltyWorkflowSetup.GetWorkflowResponseFinishInspection():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -147,7 +147,7 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseReopenTest():
+                QltyWorkflowSetup.GetWorkflowResponseReopenInspection():
                     begin
                         EnsureInspectionHeaderIsLoaded(QltyInspectionHeader, PrimaryRecordRefInWorkflow);
 
@@ -339,7 +339,7 @@ codeunit 20424 "Qlty. Workflow Response"
     local procedure EnsureInspectionHeaderIsLoaded(var QltyInspectionHeader: Record "Qlty. Inspection Header"; PrimaryRecordRefInWorkflow: RecordRef)
     begin
         if QltyInspectionHeader."No." = '' then
-            QltyInspectionHeader.GetMostRecentTestFor(PrimaryRecordRefInWorkflow);
+            QltyInspectionHeader.GetMostRecentInspectionFor(PrimaryRecordRefInWorkflow);
     end;
 
     /// <summary>
@@ -818,7 +818,7 @@ codeunit 20424 "Qlty. Workflow Response"
         TempQltyDispositionBuffer."External Document No." := CopyStr(Temp, 1, MaxStrLen(TempQltyDispositionBuffer."External Document No."));
     end;
 
-    local procedure ClearTestStatusFilterIfRequired(ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var RecordRef: RecordRef)
+    local procedure ClearInspectionStatusFilterIfRequired(ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var RecordRef: RecordRef)
     var
         WorkflowStep: Record "Workflow Step";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -838,7 +838,7 @@ codeunit 20424 "Qlty. Workflow Response"
             repeat
                 WorkflowStep.Get(ResponseWorkflowStepInstance."Workflow Code", WorkflowStep."Previous Workflow Step ID");
             until WorkflowStep."Previous Workflow Step ID" = 0;
-        if not ((WorkflowStep."Function Name" = QltyWorkflowSetup2.GetTestFinishedEvent()) or (WorkflowStep."Function Name" = QltyWorkflowSetup2.GetTestReopensEvent())) then
+        if not ((WorkflowStep."Function Name" = QltyWorkflowSetup2.GetInspectionFinishedEvent()) or (WorkflowStep."Function Name" = QltyWorkflowSetup2.GetInspectionReopenedEvent())) then
             exit;
 
         FilterGroupIterator := 4;

@@ -72,11 +72,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(7; "To Field No."; Integer)
         {
             Caption = 'To Field No.';
-            Description = 'Specifies the To Field No. When the target is an inspection this would be a field on the test itself.';
+            Description = 'Specifies the To Field No. When the target is an inspection this would be a field on the inspection itself.';
             NotBlank = true;
             BlankZero = true;
             TableRelation = Field."No." where(TableNo = field("To Table No."));
-            ToolTip = 'Specifies the To Field No. When the target is an inspection this would be a field on the test itself.';
+            ToolTip = 'Specifies the To Field No. When the target is an inspection this would be a field on the inspection itself.';
 
             trigger OnLookup()
             begin
@@ -113,7 +113,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
             Caption = 'To Field Name';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the To Field Name. When the target is an inspection this would be a field on the test itself.';
+            ToolTip = 'Specifies the To Field Name. When the target is an inspection this would be a field on the inspection itself.';
         }
         field(9; "To Type"; Enum "Qlty. Target Type")
         {
@@ -142,7 +142,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
             trigger OnValidate()
             begin
                 if (Rec."Display As" <> '') and (Rec."To Type" <> Rec."To Type"::Inspection) then
-                    Error(CanOnlyBeSetWhenToTypeIsTestErr);
+                    Error(CanOnlyBeSetWhenToTypeIsInspectionErr);
             end;
         }
         field(11; "Priority Field"; Enum "Qlty. Config. Field Priority")
@@ -168,9 +168,9 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         SourceTok: Label 'Source*', Locked = true;
         TargetConfigErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
-        CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is an inspection';
+        CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         ChooseAFromFieldFirstErr: Label 'Please choose a "from" field first before choosing a "to" field.';
-        TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4.  Are you sure you want to also map the same field here? ', Comment = '%1=the config, %2=the field being mapped in the test, %3=the field it is coming from, %4=the table it is coming from. ';
+        TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4. Are you sure you want to also map the same field here? ', Comment = '%1=the config, %2=the field being mapped in the inspection, %3=the field it is coming from, %4=the table it is coming from. ';
         CustomTok: Label 'Custom', Locked = true;
 
     trigger OnInsert()

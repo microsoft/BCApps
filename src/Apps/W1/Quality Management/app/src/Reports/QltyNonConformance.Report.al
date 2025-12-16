@@ -102,11 +102,11 @@ report 20403 "Qlty. Non-Conformance"
                 column(Field_IfPersonEmail; OptionalEmailIfPerson) { }
                 column(Field_IfPersonPhone; OptionalPhoneIfPerson) { }
                 column(Field_ModifiedDateTime; CurrentInspectionLine.SystemModifiedAt) { }
-                column(Field_ModifiedByUserID; TestLineModifiedByUserId) { }
-                column(Field_ModifiedByUserName; TestLineModifiedByUserName) { }
-                column(Field_ModifiedByUserJobTitle; TestLineModifiedByJobTitle) { }
-                column(Field_ModifiedByUserEmail; TestLineModifiedByEmail) { }
-                column(Field_ModifiedByUserPhone; TestLineModifiedByPhone) { }
+                column(Field_ModifiedByUserID; InspectionLineModifiedByUserId) { }
+                column(Field_ModifiedByUserName; InspectionLineModifiedByUserName) { }
+                column(Field_ModifiedByUserJobTitle; InspectionLineModifiedByJobTitle) { }
+                column(Field_ModifiedByUserEmail; InspectionLineModifiedByEmail) { }
+                column(Field_ModifiedByUserPhone; InspectionLineModifiedByPhone) { }
                 column(Field_EnteredByNameAndTimestamp; EnteredByNameAndTimestamp) { }
 
                 column(Test_Value; CurrentInspectionLine.GetLargeText()) { }
@@ -223,12 +223,12 @@ report 20403 "Qlty. Non-Conformance"
                     Clear(MatrixVisibleState);
                     GradeDescription := '';
 
-                    TestLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
-                    if TestLinePreviousModifiedByUserId <> TestLineModifiedByUserId then
-                        QltyMiscHelpers.GetBasicPersonDetails(TestLineModifiedByUserId, TestLineModifiedByUserName, TestLineModifiedByJobTitle, TestLineModifiedByEmail, TestLineModifiedByPhone, DummyRecordId);
-                    TestLinePreviousModifiedByUserId := TestLineModifiedByUserId;
+                    InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
+                    if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
+                        QltyMiscHelpers.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
+                    InspectionLinePreviousModifiedByUserId := InspectionLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
                     FieldIsLabel := CurrentInspectionLine."Field Type" in [CurrentInspectionLine."Field Type"::"Field Type Label"];
                     FieldIsText := CurrentInspectionLine."Field Type" in [CurrentInspectionLine."Field Type"::"Field Type Text"];
@@ -237,14 +237,14 @@ report 20403 "Qlty. Non-Conformance"
                         ((CurrentInspectionLine."Test Value" <> '') and (CurrentInspectionLine.SystemCreatedAt <> CurrentInspectionLine.SystemModifiedAt));
 
                     if HasEnteredValue then
-                        EnteredByNameAndTimestamp := StrSubstNo(EnteredByNameAndTimestampLbl, TestLinePreviousModifiedByUserId, CurrentInspectionLine.SystemModifiedAt)
+                        EnteredByNameAndTimestamp := StrSubstNo(EnteredByNameAndTimestampLbl, InspectionLinePreviousModifiedByUserId, CurrentInspectionLine.SystemModifiedAt)
                     else
                         Clear(EnteredByNameAndTimestamp);
 
                     GradeDescription := CurrentInspectionLine."Grade Description";
                     if GradeDescription = '' then
                         GradeDescription := CurrentInspectionLine."Grade Code";
-                    QltyGradeConditionMgmt.GetPromotedGradesForTestLine(CurrentInspectionLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+                    QltyGradeConditionMgmt.GetPromotedGradesForInspectionLine(CurrentInspectionLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
 
                     if FieldIsLabel then
                         LabelFieldDescription := CurrentInspectionLine.Description
@@ -359,13 +359,13 @@ report 20403 "Qlty. Non-Conformance"
         FieldIsText: Boolean;
         HasEnteredValue: Boolean;
         IsPersonField: Boolean;
-        TestLineModifiedByUserId: Code[50];
-        TestLinePreviousModifiedByUserId: Text;
-        TestLineModifiedByUserName: Text;
+        InspectionLineModifiedByUserId: Code[50];
+        InspectionLinePreviousModifiedByUserId: Text;
+        InspectionLineModifiedByUserName: Text;
         EnteredByNameAndTimestamp: Text;
-        TestLineModifiedByJobTitle: Text;
-        TestLineModifiedByPhone: Text;
-        TestLineModifiedByEmail: Text;
+        InspectionLineModifiedByJobTitle: Text;
+        InspectionLineModifiedByPhone: Text;
+        InspectionLineModifiedByEmail: Text;
         OptionalNameIfPerson: Text;
         OptionalTitleIfPerson: Text;
         OptionalEmailIfPerson: Text;

@@ -24,7 +24,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                 Caption = 'Quality Management';
                 ToolTip = 'Create Quality Inspections.';
 
-                action(Qlty_ShowTests)
+                action(Qlty_ShowInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -46,7 +46,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
 
                     action(Qlty_InspectionValues)
                     {
-                        Caption = 'Quality Test Values';
+                        Caption = 'Quality Inspection Values';
                         Image = AnalysisView;
                         ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
                         ApplicationArea = QualityManagement;
@@ -60,7 +60,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                     action(Qlty_ConfigureInspectionTemplates)
                     {
                         ApplicationArea = QualityManagement;
-                        Caption = 'Test Inspections';
+                        Caption = 'Inspection Templates';
                         Image = Database;
                         RunObject = Page "Qlty. Inspection Template List";
                         RunPageMode = Edit;
@@ -109,7 +109,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
             {
                 Caption = 'Quality Inspection';
 
-                action(Qlty_Sections_ShowTests)
+                action(Qlty_Sections_ShowInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -119,7 +119,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                 }
                 action(Qlty_Sections_InspectionValues)
                 {
-                    Caption = 'Quality Test Values';
+                    Caption = 'Quality Inspection Values';
                     Image = AnalysisView;
                     ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
                     ApplicationArea = QualityManagement;

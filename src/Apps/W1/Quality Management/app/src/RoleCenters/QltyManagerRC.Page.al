@@ -26,7 +26,7 @@ page 20421 "Qlty. Manager RC"
             {
                 Caption = 'Quality Inspection';
 
-                action(Qlty_ShowTests)
+                action(Qlty_ShowInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;

@@ -86,16 +86,16 @@ table 20400 "Qlty. Management Setup"
         }
         field(11; "Production Update Control"; Enum "Qlty. Update Source Behavior")
         {
-            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
+            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
             InitValue = "Do not update";
             Caption = 'Production Update Control';
-            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
+            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
         }
         field(21; "Receive Update Control"; Enum "Qlty. Update Source Behavior")
         {
-            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
+            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
             Caption = 'Receive Update Control';
-            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the test.';
+            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
         }
         field(24; "Item Tracking Before Finishing"; Enum "Qlty. Item Tracking Behavior")
         {
@@ -122,7 +122,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(28; "Conditional Lot Find Behavior"; Enum "Qlty. Inspection Find Behavior")
         {
-            Description = 'When evaluating if a document specific transactions are blocked, this determines which test(s) are considered.';
+            Description = 'When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.';
             Caption = 'Conditional Lot Find Behavior';
             ToolTip = 'Specifies which test(s) are considered when evaluating if a document-specific transaction is blocked.';
         }
@@ -529,7 +529,7 @@ table 20400 "Qlty. Management Setup"
         DefaultMiddleRightExpressionTxt: Label '[Description] [Source Item No.] [Source Lot No.]  [Source Serial No.]', Locked = true;
         DefaultBottomLeftExpressionTxt: Label '[Source Document No.]', Locked = true;
         DefaultBottomRightExpressionTxt: Label '[Status] [Finished Date]', Locked = true;
-        DefaultTopLeftLbl: Label 'Test', Locked = true;
+        DefaultTopLeftLbl: Label 'Inspection', Locked = true;
         DefaultMiddleLeftLbl: Label 'Grade', Locked = true;
         DefaultMiddleRightLbl: Label 'Details', Locked = true;
         DefaultBottomLeftLbl: Label 'Document', Locked = true;
@@ -622,24 +622,24 @@ table 20400 "Qlty. Management Setup"
     internal procedure AssistEditBrickField(FieldNo: Integer)
     var
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
-        TestRecordRef: RecordRef;
-        TestFieldRef: FieldRef;
+        RecordRefToInspection: RecordRef;
+        FieldRefToInspection: FieldRef;
         Template: Text;
     begin
-        TestRecordRef := Rec.RecordId().GetRecord();
-        TestRecordRef.SetRecFilter();
-        TestRecordRef.FindFirst();
-        TestFieldRef := TestRecordRef.Field(FieldNo);
-        Template := TestFieldRef.Value();
+        RecordRefToInspection := Rec.RecordId().GetRecord();
+        RecordRefToInspection.SetRecFilter();
+        RecordRefToInspection.FindFirst();
+        FieldRefToInspection := RecordRefToInspection.Field(FieldNo);
+        Template := FieldRefToInspection.Value();
         if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", ExcludeBrickFieldTok, Template) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-            TestFieldRef.Validate(CopyStr(Template, 1, TestFieldRef.Length));
-            TestRecordRef.Modify();
+            FieldRefToInspection.Validate(CopyStr(Template, 1, FieldRefToInspection.Length));
+            RecordRefToInspection.Modify();
         end;
     end;
 
     /// <summary>
     /// UpdateBrickFieldsOnAllExistingInspection will update the brick fields on all existing inspections.
-    /// Use this if you need to adjust the brick summary on all tests.
+    /// Use this if you need to adjust the brick summary on all inspections.
     /// </summary>
     procedure UpdateBrickFieldsOnAllExistingInspection()
     var

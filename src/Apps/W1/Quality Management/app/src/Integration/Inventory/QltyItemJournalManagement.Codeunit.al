@@ -156,7 +156,7 @@ codeunit 20454 "Qlty. Item Journal Management"
     end;
 
     /// <summary>
-    /// Posts the supplied warehouse journal line based on the supplied test and instruction.
+    /// Posts the supplied warehouse journal line based on the supplied inspection and instruction.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>

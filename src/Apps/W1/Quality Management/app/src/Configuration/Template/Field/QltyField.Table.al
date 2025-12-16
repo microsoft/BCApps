@@ -153,7 +153,7 @@ table 20401 "Qlty. Field"
         field(16; "Default Value"; Text[250])
         {
             Caption = 'Default Value';
-            ToolTip = 'Specifies a default value to set on the test.';
+            ToolTip = 'Specifies a default value to set on the inspection.';
 
             trigger OnValidate()
             begin
@@ -211,7 +211,7 @@ table 20401 "Qlty. Field"
         ReviewGradesErr: Label 'Advanced configuration required. Please review the grade configurations for field "%1", for grade "%2".', Comment = '%1=the field, %2=the grade';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
-        ExistingTestErr: Label 'The field %1 exists on %2 inspections (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of tests, %3=one example test, %4=example template.';
+        ExistingInspectionErr: Label 'The field %1 exists on %2 inspections (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of inspections, %3=one example inspection, %4=example template.';
         DeleteQst: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
         DeleteErr: Label 'The field %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the field';
         FieldTypeErrTitleMsg: Label 'Field Type cannot be changed for a field that has been used in inspections. ';
@@ -388,7 +388,7 @@ table 20401 "Qlty. Field"
         LineCount := QltyInspectionLine.Count();
         if LineCount > 0 then begin
             QltyInspectionLine.FindFirst();
-            Error(ExistingTestErr,
+            Error(ExistingInspectionErr,
                 QltyInspectionLine."Field Code",
                 LineCount,
                 QltyInspectionLine."Inspection No.",

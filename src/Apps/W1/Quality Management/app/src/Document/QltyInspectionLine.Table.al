@@ -30,7 +30,7 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             OptimizeForTextSearch = true;
             Caption = 'Inspection No.';
-            ToolTip = 'Specifies which test this is.';
+            ToolTip = 'Specifies which inspection this is.';
         }
         field(2; "Reinspection No."; Integer)
         {
@@ -42,14 +42,14 @@ table 20406 "Qlty. Inspection Line"
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
-            ToolTip = 'Specifies the line no. of the test in this template.';
+            ToolTip = 'Specifies the line no. of the inspection in this template.';
         }
         field(4; "Template Code"; Code[20])
         {
             Caption = 'Template Code';
             Editable = false;
             TableRelation = "Qlty. Inspection Header"."Template Code";
-            ToolTip = 'Specifies which template this test was created from.';
+            ToolTip = 'Specifies which template this inspection was created from.';
         }
         field(5; "Template Line No."; Integer)
         {
@@ -124,7 +124,7 @@ table 20406 "Qlty. Inspection Line"
 
                 SetLargeText(Rec."Test Value", false, true);
 
-                UpdateExpressionsInOtherTestLinesInSameTest();
+                UpdateExpressionsInOtherInspectionLinesInSameInspection();
             end;
         }
         field(19; "Test Value Blob"; Blob)
@@ -180,10 +180,10 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Failure State';
             Editable = false;
         }
-        field(34; "NCR Test No."; Code[20])
+        field(34; "Non-Conformance Inspection No."; Code[20])
         {
-            Caption = 'Non-Conformance Test No.';
-            ToolTip = 'Specifies a free text editable reference to an NCR Test No.';
+            Caption = 'Non-Conformance Inspection No.';
+            ToolTip = 'Specifies a free text editable reference to a Non-Conformance Inspection No.';
         }
         field(35; "Unit of Measure Code"; Code[10])
         {
@@ -239,11 +239,11 @@ table 20406 "Qlty. Inspection Line"
     var
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
     begin
-        GetTest();
+        GetInspection();
         QltyGradeEvaluation.ValidateQltyInspectionLine(Rec, QltyInspectionHeader, true);
     end;
 
-    local procedure GetTest(): Boolean
+    local procedure GetInspection(): Boolean
     begin
         if Rec.IsTemporary() then
             exit(false);
@@ -253,7 +253,7 @@ table 20406 "Qlty. Inspection Line"
 
     local procedure TestStatusOpen()
     begin
-        if GetTest() then
+        if GetInspection() then
             QltyInspectionHeader.TestField(Status, QltyInspectionHeader.Status::Open);
     end;
 
@@ -363,7 +363,7 @@ table 20406 "Qlty. Inspection Line"
         if not QltyField.Get(Rec."Field Code") then
             exit;
 
-        if not GetTest() then;
+        if not GetInspection() then;
         QltyField.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
     end;
 
@@ -395,7 +395,7 @@ table 20406 "Qlty. Inspection Line"
             exit(QltyInspectionGrade.GetGradeStyle());
     end;
 
-    procedure UpdateExpressionsInOtherTestLinesInSameTest()
+    procedure UpdateExpressionsInOtherInspectionLinesInSameInspection()
     var
         OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -403,7 +403,7 @@ table 20406 "Qlty. Inspection Line"
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         OfConsideredFieldCodes: List of [Text];
     begin
-        if not GetTest() then
+        if not GetInspection() then
             exit;
 
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
@@ -430,7 +430,7 @@ table 20406 "Qlty. Inspection Line"
                     until OthersInSameQltyInspectionLine.Next() = 0;
             until QltyInspectionTemplateLine.Next() = 0;
 
-        QltyGradeEvaluation.GetTestLineConfigFilters(Rec, QltyIGradeConditionConf);
+        QltyGradeEvaluation.GetInspectionLineConfigFilters(Rec, QltyIGradeConditionConf);
         QltyIGradeConditionConf.SetFilter("Target Line No.", '<>%1', Rec."Line No.");
         QltyIGradeConditionConf.SetFilter("Field Code", '<>%1', Rec."Field Code");
         QltyIGradeConditionConf.SetFilter("Condition", StrSubstNo('@*[%1]*', Rec."Field Code"));
@@ -499,7 +499,7 @@ table 20406 "Qlty. Inspection Line"
     begin
         QltyPermissionMgmt.VerifyCanEditLineComments();
 
-        GetTest();
+        GetInspection();
         QltyInspectionHeader.TestField(Status, QltyInspectionHeader.Status::Open);
 
         RecordLink.SetRange(Type, RecordLink.Type::Note);
@@ -531,7 +531,7 @@ table 20406 "Qlty. Inspection Line"
         QltyEditLargeText: Page "Qlty. Edit Large Text";
         Note: Text;
     begin
-        GetTest();
+        GetInspection();
         QltyInspectionHeader.TestField(Status, QltyInspectionHeader.Status::Open);
 
         Note := GetMeasurementNote();
@@ -554,7 +554,7 @@ table 20406 "Qlty. Inspection Line"
     /// <summary>
     /// Provides an opportunity to modify the evaluation of the Numeric Test Value from the Test Value.
     /// </summary>
-    /// <param name="QltyInspectionLine">Qlty. Test Line</param>
+    /// <param name="QltyInspectionLine">Qlty. Inspection Line</param>
     /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEvaluateNumericTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)

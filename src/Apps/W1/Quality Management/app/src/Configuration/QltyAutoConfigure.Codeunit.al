@@ -53,9 +53,9 @@ codeunit 20402 "Qlty. Auto Configure"
         DefaultGrade2PassConditionBooleanTok: Label 'Yes', Locked = true;
         BasicDefaultRecordsConfiguredMsg: Label 'Basic default configuration records have been configured. If you have previously adjusted those defaults then they have not been replaced.';
         WarehouseEntryToInspectTok: Label 'WHSEENTRYTOINSPECT', Locked = true;
-        WarehouseEntryToTestDescriptionTok: Label 'Warehouse Entry to Test', Locked = true;
+        WarehouseEntryToInspectDescriptionTok: Label 'Warehouse Entry to Inspect', Locked = true;
         WarehouseJournalToInspectTok: Label 'WHSEJNLTOINSPECT', Locked = true;
-        WarehouseJournalToTestDescriptionTok: Label 'Warehouse Journal to Test', Locked = true;
+        WarehouseJournalToInspectDescriptionTok: Label 'Warehouse Journal to Inspect', Locked = true;
         SalesLineToTrackingTok: Label 'TRACKINGTOSALES', Locked = true;
         SalesLineToTrackingDescriptionTok: Label 'Tracking Specification to Sales Line', Locked = true;
         WhseReceiptToPurchLineTok: Label 'WRTOPURCH', Locked = true;
@@ -71,19 +71,19 @@ codeunit 20402 "Qlty. Auto Configure"
         WhseJournalToSalesLineTok: Label 'WJNLTOSALES', Locked = true;
         WhseJournalToSalesLineDescriptionTok: Label 'Whse. Journal to Sales Line', Locked = true;
         TrackingSpecToInspectTok: Label 'TRACKINGSPEC', Locked = true;
-        TrackingSpecToTestDescriptionTok: Label 'Tracking Specification to Test', Locked = true;
+        TrackingSpecToInspectDescriptionTok: Label 'Tracking Specification to Inspect', Locked = true;
         PurchLineToInspectTok: Label 'PURCHTOINSPECT', Locked = true;
-        PurchLineToTestDescriptionTok: Label 'Purchase Line to Test', Locked = true;
+        PurchLineToInspectDescriptionTok: Label 'Purchase Line to Inspect', Locked = true;
         SalesLineToInspectTok: Label 'SALESTOINSPECT', Locked = true;
-        SalesLineToTestDescriptionTok: Label 'Sales Order to Test', Locked = true;
-        SalesLineToTestFilterTok: Label 'WHERE(Document Type=FILTER(Order),Type=FILTER(Item))', Locked = true;
+        SalesLineToInspectDescriptionTok: Label 'Sales Order to Inspect', Locked = true;
+        SalesLineToInspectFilterTok: Label 'WHERE(Document Type=FILTER(Order),Type=FILTER(Item))', Locked = true;
         SalesReturnLineToInspectTok: Label 'SALESRETURNTOINSPECT', Locked = true;
-        SalesReturnLineToTestDescriptionTok: Label 'Sales Return to Test', Locked = true;
-        SalesReturnLineToTestFilterTok: Label 'WHERE(Document Type=FILTER(Return Order),Type=FILTER(Item))', Locked = true;
+        SalesReturnLineToInspectDescriptionTok: Label 'Sales Return to Inspect', Locked = true;
+        SalesReturnLineToInspectFilterTok: Label 'WHERE(Document Type=FILTER(Return Order),Type=FILTER(Item))', Locked = true;
         ProdJnlToInspectTok: Label 'PRODJNLTOINSPECT', Locked = true;
-        ProdJnlToTestDescriptionTok: Label 'Production Output Journal to Test', Locked = true;
+        ProdJnlToInspectDescriptionTok: Label 'Production Output Journal to Inspect', Locked = true;
         LedgerToInspectTok: Label 'ITEMLDGEROUTTOINSPECT', Locked = true;
-        LedgerToTestDescriptionTok: Label 'Output Item Ledger to Test', Locked = true;
+        LedgerToInspectDescriptionTok: Label 'Output Item Ledger to Inspect', Locked = true;
         RtngToItemJnlTok: Label 'ROUTINGLINETOITEMJNL', Locked = true;
         RtngToItemJnlDescriptionTok: Label 'Prod. Routing Line to Item Journal Line', Locked = true;
         ProdLineToJnlTok: Label 'PRODLINETOITEMJNL', Locked = true;
@@ -91,13 +91,13 @@ codeunit 20402 "Qlty. Auto Configure"
         ProdLineToRoutingTok: Label 'PRODLINETOROUTING', Locked = true;
         ProdLineToRoutingDescriptionTok: Label 'Prod. Order Line to Prod. Rtng.', Locked = true;
         InTransLineToInspectTok: Label 'TRANSFERRECEIPTTOINSPECT', Locked = true;
-        InTransLineToTestDescriptionTok: Label 'Inbound Transfer Line to Test', Locked = true;
+        InTransLineToInspectDescriptionTok: Label 'Inbound Transfer Line to Inspect', Locked = true;
         ProdLineToLedgerTok: Label 'PRODLINETOITEMLEDGER', Locked = true;
         ProdLineToLedgerDescriptionTok: Label 'Prod. Order Line to Item Ledger Entry.', Locked = true;
         ProdRoutingToInspectTok: Label 'ROUTINGTOINSPECT', Locked = true;
-        ProdRoutingToTestDescriptionTok: Label 'Prod. Order Routing Line to Test', Locked = true;
+        ProdRoutingToInspectDescriptionTok: Label 'Prod. Order Routing Line to Inspect', Locked = true;
         AssemblyOutputToInspectTok: Label 'ASSEMBLYOUTPUTTOINSPECT', Locked = true;
-        AssemblyOutputToTestDescriptionTok: Label 'Posted Assembly Header to Test', Locked = true;
+        AssemblyOutputToInspectDescriptionTok: Label 'Posted Assembly Header to Inspect', Locked = true;
         ResourceBasedInstallFileTok: Label 'InstallFiles/PackageQM-EXPRESSDEMO.rapidstart', Locked = true;
 
     internal procedure GetDefaultPassGrade(): Text
@@ -197,7 +197,7 @@ codeunit 20402 "Qlty. Auto Configure"
             if not QltyInspectSourceConfig.IsEmpty() then
                 exit;
 
-        CreateDefaultTrackingSpecificationToTestConfiguration();
+        CreateDefaultTrackingSpecificationToInspectConfiguration();
         CreateDefaultProductionConfiguration();
         CreateDefaultReceivingConfiguration();
         CreateDefaultWarehousingConfiguration();
@@ -247,26 +247,26 @@ codeunit 20402 "Qlty. Auto Configure"
 
     internal procedure CreateDefaultProductionConfiguration()
     begin
-        CreateDefaultProdOrderRoutingLineToTestConfiguration();
+        CreateDefaultProdOrderRoutingLineToInspectConfiguration();
         CreateDefaultProdOrderLineToProdOrderRoutingConfiguration();
 
-        CreateDefaultItemLedgerOutputToTestConfiguration();
+        CreateDefaultItemLedgerOutputToInspectConfiguration();
         CreateDefaultProdOrderLineToItemLedgerConfiguration();
 
-        CreateDefaultItemProdJournalToTestConfiguration();
+        CreateDefaultItemProdJournalToInspectConfiguration();
         CreateDefaultProdOrderLineToItemJournalLineConfiguration();
         CreateDefaultProdOrderRoutingLineToItemJournalLineConfiguration();
         CreateDefaultTrackingSpecificationToProdConfiguration();
-        CreateDefaultAssemblyOutputToTestConfiguration();
+        CreateDefaultAssemblyOutputToInspectConfiguration();
     end;
 
     internal procedure CreateDefaultWarehousingConfiguration()
     begin
-        CreateDefaultWarehouseEntryToTestConfiguration();
-        CreateDefaultWarehouseJournalLineToTestConfiguration();
+        CreateDefaultWarehouseEntryToInspectConfiguration();
+        CreateDefaultWarehouseJournalLineToInspectConfiguration();
     end;
 
-    local procedure CreateDefaultWarehouseEntryToTestConfiguration()
+    local procedure CreateDefaultWarehouseEntryToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempWarehouseEntry: Record "Warehouse Entry" temporary;
@@ -274,7 +274,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             WarehouseEntryToInspectTok,
-            WarehouseEntryToTestDescriptionTok,
+            WarehouseEntryToInspectDescriptionTok,
             Database::"Warehouse Entry",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
@@ -341,7 +341,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultWarehouseJournalLineToTestConfiguration()
+    local procedure CreateDefaultWarehouseJournalLineToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
@@ -349,7 +349,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             WarehouseJournalToInspectTok,
-            WarehouseJournalToTestDescriptionTok,
+            WarehouseJournalToInspectDescriptionTok,
             Database::"Warehouse Journal Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
@@ -418,17 +418,17 @@ codeunit 20402 "Qlty. Auto Configure"
 
     internal procedure CreateDefaultReceivingConfiguration()
     begin
-        CreateDefaultPurchaseLineToTestConfiguration();
-        CreateDefaultSalesLineToTestConfiguration();
-        CreateDefaultSalesReturnLineToTestConfiguration();
-        CreateDefaultTrackingSpecificationToTestConfiguration();
+        CreateDefaultPurchaseLineToInspectConfiguration();
+        CreateDefaultSalesLineToInspectConfiguration();
+        CreateDefaultSalesReturnLineToInspectConfiguration();
+        CreateDefaultTrackingSpecificationToInspectConfiguration();
         CreateDefaultTrackingSpecificationToPurchaseConfiguration();
         CreateDefaultTrackingSpecificationToSalesConfiguration();
         CreateDefaultWarehouseReceiptLineToPurchConfiguration();
         CreateDefaultWarehouseReceiptLineToSalesConfiguration();
         CreateDefaultWarehouseJournalLineToPurchConfiguration();
         CreateDefaultWarehouseJournalLineToSalesConfiguration();
-        CreateDefaultTransferLineReceiptToTestConfiguration();
+        CreateDefaultTransferLineReceiptToInspectConfiguration();
     end;
 
     local procedure CreateDefaultTrackingSpecificationToSalesConfiguration()
@@ -907,7 +907,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultTrackingSpecificationToTestConfiguration()
+    local procedure CreateDefaultTrackingSpecificationToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
@@ -916,7 +916,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             TrackingSpecToInspectTok,
-            TrackingSpecToTestDescriptionTok,
+            TrackingSpecToInspectDescriptionTok,
             Database::"Tracking Specification",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
@@ -967,7 +967,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultPurchaseLineToTestConfiguration()
+    local procedure CreateDefaultPurchaseLineToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempPurchaseLine: Record "Purchase Line" temporary;
@@ -975,7 +975,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             PurchLineToInspectTok,
-            PurchLineToTestDescriptionTok,
+            PurchLineToInspectDescriptionTok,
             Database::"Purchase Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
@@ -1024,7 +1024,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultSalesLineToTestConfiguration()
+    local procedure CreateDefaultSalesLineToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempSalesLine: Record "Sales Line" temporary;
@@ -1032,11 +1032,11 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             SalesLineToInspectTok,
-            SalesLineToTestDescriptionTok,
+            SalesLineToInspectDescriptionTok,
             Database::"Sales Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
-            SalesLineToTestFilterTok);
+            SalesLineToInspectFilterTok);
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Document No."),
@@ -1081,7 +1081,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultSalesReturnLineToTestConfiguration()
+    local procedure CreateDefaultSalesReturnLineToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempReturnSalesLine: Record "Sales Line" temporary;
@@ -1089,11 +1089,11 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             SalesReturnLineToInspectTok,
-            SalesReturnLineToTestDescriptionTok,
+            SalesReturnLineToInspectDescriptionTok,
             Database::"Sales Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
-            SalesReturnLineToTestFilterTok);
+            SalesReturnLineToInspectFilterTok);
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Document No."),
@@ -1138,7 +1138,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultItemProdJournalToTestConfiguration()
+    local procedure CreateDefaultItemProdJournalToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempItemJournalLine: Record "Item Journal Line" temporary;
@@ -1147,7 +1147,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             ProdJnlToInspectTok,
-            ProdJnlToTestDescriptionTok,
+            ProdJnlToInspectDescriptionTok,
             Database::"Item Journal Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
@@ -1222,7 +1222,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultItemLedgerOutputToTestConfiguration()
+    local procedure CreateDefaultItemLedgerOutputToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
@@ -1230,7 +1230,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             LedgerToInspectTok,
-            LedgerToTestDescriptionTok,
+            LedgerToInspectDescriptionTok,
             Database::"Item Ledger Entry",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
@@ -1453,7 +1453,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultProdOrderRoutingLineToTestConfiguration()
+    local procedure CreateDefaultProdOrderRoutingLineToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
@@ -1461,7 +1461,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfig(
             ProdRoutingToInspectTok,
-            ProdRoutingToTestDescriptionTok,
+            ProdRoutingToInspectDescriptionTok,
             Database::"Prod. Order Routing Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig);
@@ -1572,7 +1572,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultTransferLineReceiptToTestConfiguration()
+    local procedure CreateDefaultTransferLineReceiptToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempTransferline: Record "Transfer Line" temporary;
@@ -1580,7 +1580,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfigWithFilter(
             InTransLineToInspectTok,
-            InTransLineToTestDescriptionTok,
+            InTransLineToInspectDescriptionTok,
             Database::"Transfer Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
@@ -1629,7 +1629,7 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultAssemblyOutputToTestConfiguration()
+    local procedure CreateDefaultAssemblyOutputToInspectConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         TempPostedAssemblyHeader: Record "Posted Assembly Header" temporary;
@@ -1637,7 +1637,7 @@ codeunit 20402 "Qlty. Auto Configure"
     begin
         EnsureSourceConfig(
             AssemblyOutputToInspectTok,
-            AssemblyOutputToTestDescriptionTok,
+            AssemblyOutputToInspectDescriptionTok,
             Database::"Posted Assembly Header",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig);

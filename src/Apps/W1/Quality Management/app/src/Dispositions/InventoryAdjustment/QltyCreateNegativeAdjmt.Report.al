@@ -62,7 +62,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                 group(SettingsForQuantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'In destructive testing scenarios, the number of samples that were destroyed. For other scenarios, the quantity of the tested item that will be written off.';
+                    InstructionalText = 'In destructive testing scenarios, the number of samples that were destroyed. For other scenarios, the quantity of the inspected item that will be written off.';
 
                     field(ChooseRemoveTracked; RemoveTracked)
                     {
@@ -202,7 +202,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the test covers more than one bin.';
+                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the inspection covers more than one bin.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocation)
                     {

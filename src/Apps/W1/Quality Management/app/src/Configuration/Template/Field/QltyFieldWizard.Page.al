@@ -21,7 +21,7 @@ page 20432 "Qlty. Field Wizard"
     {
         area(Content)
         {
-            group(SettingsForiStepNewOrExisting)
+            group(SettingsForStepNewOrExisting)
             {
                 Visible = (CurrentStepCounter = Step1NewOrExisting) and (not EditingExistingField);
 

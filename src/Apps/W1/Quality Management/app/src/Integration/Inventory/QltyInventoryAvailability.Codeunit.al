@@ -19,11 +19,11 @@ using System.Reflection;
 codeunit 20445 "Qlty. Inventory Availability"
 {
     var
-        ThereIsNoSourceItemErr: Label 'There is no item or insufficient tracking defined on the test %1. Unable to perform the inventory related transaction. Please update the test with the item details and then try again.', Locked = true;
-        SampleSizeZeroErr: Label 'Using the sample size for test %1 was requested, however the sample size for the test is zero. You can change this by using a different quantity instruction, or by navigating to the test and setting the sample size.', Comment = '%1=the test', Locked = true;
+        ThereIsNoSourceItemErr: Label 'There is no item or insufficient tracking defined on the inspection %1. Unable to perform the inventory related transaction. Please update the inspection with the item details and then try again.', Locked = true;
+        SampleSizeZeroErr: Label 'Using the sample size for inspection %1 was requested, however the sample size for the inspection is zero. You can change this by using a different quantity instruction, or by navigating to the inspection and setting the sample size.', Comment = '%1=the inspection', Locked = true;
         NoSamplesToMoveErr: Label 'No samples meet the condition specified.', Locked = true;
         SerialQuantityGreaterThanOneErr: Label '%1 (%2) cannot be greater than 1 when New Serial No. is requested.', Comment = '%1=quantity behavior, %2=quantity';
-        ZeroQuantityErr: Label 'Unable to use the disposition %1 on the test %2 for the item %3 because the quantity is zero.', Comment = '%1=the test, %2=the test, %3=the item';
+        ZeroQuantityErr: Label 'Unable to use the disposition %1 on the inspection %2 for the item %3 because the quantity is zero.', Comment = '%1=the inspection, %2=the inspection, %3=the item';
         SupplyFromLocationCodeNameLbl: Label 'Supply-from Location Code', Locked = true;
         FromLocationCodeNameLbl: Label 'From Location Code', Locked = true;
         LocationCodeNameLbl: Label 'Location Code', Locked = true;
@@ -39,7 +39,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         QuantityToHandleNameLbl: Label 'Quantity to Handle', Locked = true;
 
     /// <summary>
-    /// GetCurrentLocationOfTrackedInventory gets the current location of the item+lot defined on the test.
+    /// GetCurrentLocationOfTrackedInventory gets the current location of the item+lot defined on the inspection.
     /// If multiple locations/bins are determined then those multiple locations/bins are supplied in TempBinContent
     /// </summary>
     /// <param name="QltyInspectionHeader">Record "Qlty. Inspection Header".</param>
@@ -50,7 +50,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         if (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Package No." = '') then
             exit(false);
 
-        if not TestHasSufficientItemDetails(QltyInspectionHeader, false, false, false, false) then
+        if not InspectionHasSufficientItemDetails(QltyInspectionHeader, false, false, false, false) then
             exit(false);
 
         Clear(TempBinContent);
@@ -126,7 +126,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
-    procedure GetFromDetailsFromTestSource(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempToMoveBinContent: Record "Bin Content" temporary)
+    procedure GetFromDetailsFromInspectionSource(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempToMoveBinContent: Record "Bin Content" temporary)
     var
         RecordRefToSearch: RecordRef;
         NullForComparison: RecordId;
@@ -311,7 +311,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
-    local procedure TestHasSufficientItemDetails(QltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentError: Boolean; CheckLot: Boolean; CheckSerial: Boolean; CheckPackage: Boolean): Boolean
+    local procedure InspectionHasSufficientItemDetails(QltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentError: Boolean; CheckLot: Boolean; CheckSerial: Boolean; CheckPackage: Boolean): Boolean
     begin
         if (QltyInspectionHeader."Source Item No." = '') or
            (CheckLot and (QltyInspectionHeader."Source Lot No." = '')) or
@@ -326,7 +326,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         exit(true);
     end;
 
-    local procedure GetQuantityToHandleFromTest(QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; TempExistingInventoryBinContent: Record "Bin Content" temporary) ResultQuantity: Decimal
+    local procedure GetQuantityToHandleFromInspection(QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; TempExistingInventoryBinContent: Record "Bin Content" temporary) ResultQuantity: Decimal
     begin
         if OptionalSpecificQuantity = 0 then
             OptionalSpecificQuantity := QltyInspectionHeader."Source Quantity (Base)";
@@ -396,7 +396,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
             GetCurrentLocationOfTrackedInventory(QltyInspectionHeader, TempExistingInventoryBinContent)
         else
-            GetFromDetailsFromTestSource(QltyInspectionHeader, TempExistingInventoryBinContent);
+            GetFromDetailsFromInspectionSource(QltyInspectionHeader, TempExistingInventoryBinContent);
 
         TempExistingInventoryBinContent.Reset();
         if TempInstructionQltyDispositionBuffer."Location Filter" <> '' then
@@ -435,7 +435,7 @@ codeunit 20445 "Qlty. Inventory Availability"
                     TempQuantityQltyDispositionBuffer."Buffer Entry No." := BufferEntryCounter;
                     TempQuantityQltyDispositionBuffer."Location Filter" := TempExistingInventoryBinContent."Location Code";
                     TempQuantityQltyDispositionBuffer."Bin Filter" := TempExistingInventoryBinContent."Bin Code";
-                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := GetQuantityToHandleFromTest(
+                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := GetQuantityToHandleFromInspection(
                         QltyInspectionHeader,
                         TempInstructionQltyDispositionBuffer."Quantity Behavior",
                         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",

@@ -55,7 +55,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         StatusTok: Label 'Status';
         UserTok: Label 'OrigUser';
         TestValueTxt: Label 'test value.';
-        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the test. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
+        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
         LotTok: Label 'lot', Locked = true;
         SerialTok: Label 'serial', Locked = true;
         PackageTok: Label 'package', Locked = true;
@@ -66,7 +66,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         OptionsTok: Label 'Option1,Option2,Option3';
         Option1Tok: Label 'Option1';
         NoTok: Label 'No';
-        ExistingTestErr: Label 'The field %1 exists on %2 tests (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of tests, %3=one example test, %4=example template.';
+        ExistingInspectiontErr: Label 'The field %1 exists on %2 inspections (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the field, %2=count of inspections, %3=one example inspection, %4=example template.';
         DescriptionTxt: Label 'Specific Gravity';
         SuggestedCodeTxtTestValueTxt: Label 'SPECIFICGRAVITY';
         Description2Txt: Label '><{}.@!`~''"|\/?&*()-_$#-=,%%:ELECTRICAL CONDUCTIVITY';
@@ -76,7 +76,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PassConditionDescExpressionTok: Label '1 to 5';
         WarehouseFromTableFilterTok: Label '= %1|= %2', Comment = '%1=warehouse entry,%2=warehouse journal line';
         DefaultExpressionTok: Label '[No.][Source Item No.]', Locked = true;
-        CalculatedExpressionTok: Label '%1%2%3', Comment = '%1=Test No.,%2=Item No.,%3=Table Name', Locked = true;
+        CalculatedExpressionTok: Label '%1%2%3', Comment = '%1= No.,%2=Item No.,%3=Table Name', Locked = true;
         ConditionFilterOutputTok: Label 'WHERE(Entry Type=FILTER(Output))';
         ConditionFilterProductionTok: Label 'WHERE(Order Type=FILTER(Production))';
         ConditionFilterPurchaseReceiptTok: Label 'WHERE(Document Type=FILTER(Purchase Receipt))';
@@ -93,7 +93,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConditionFilterMovementTok: Label 'WHERE(Entry Type=FILTER(Movement))';
         GradeCode1Tok: Label '><{}.@!`~''';
         GradeCode2Tok: Label '"|\/?&*()';
-        CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
+        CannotBeRemovedExistingInspectionErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
         IsInitialized: Boolean;
 
     [Test]
@@ -277,7 +277,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_ValidateAssignedUserID_CannotChangeTests()
+    procedure Table_ValidateAssignedUserID_CannotChangeInspections()
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -324,7 +324,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_ValidateAssignedUserID_CannotChangeTests_ShouldErr()
+    procedure Table_ValidateAssignedUserID_CannotChangeInspections_ShouldErr()
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -534,7 +534,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_OnDelete_CanDeleteOpenTest()
+    procedure Table_OnDelete_CanDeleteOpenInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -676,7 +676,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -745,7 +745,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -820,7 +820,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -892,7 +892,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -961,7 +961,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -1034,7 +1034,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -1106,7 +1106,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -1179,7 +1179,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -1252,7 +1252,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] The inspection page is opened
         QltyInspection.OpenEdit();
@@ -1418,7 +1418,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
         QltyManagementSetup.Get();
@@ -1482,7 +1482,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
         QltyManagementSetup.Get();
@@ -1546,7 +1546,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
         QltyManagementSetup.Get();
@@ -1663,7 +1663,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_TestAssignSelfOnModify()
+    procedure Table_InspectionAssignSelfOnModify()
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1674,7 +1674,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] Test is automatically assigned to current user on modification
+        // [SCENARIO] Inspection is automatically assigned to current user on modification
 
         Initialize();
 
@@ -1690,14 +1690,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with no assigned user
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test has no assigned user initially
+        // [GIVEN] Inspection has no assigned user initially
         LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
 
-        // [WHEN] Test is modified by changing source quantity
+        // [WHEN] Inspection is modified by changing source quantity
         QltyInspectionHeader."Source Quantity (Base)" := 99;
         QltyInspectionHeader.Modify(true);
 
-        // [THEN] Test is automatically assigned to current user
+        // [THEN] Inspection is automatically assigned to current user
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
     end;
@@ -1928,7 +1928,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Camera test library is subscribed
         BindSubscription(CameraTestLibrary);
 
-        // [GIVEN] Test page is opened and positioned on the test
+        // [GIVEN] Inspection page is opened and positioned on the inspection
         QltyInspection.OpenView();
         QltyInspection.GoToRecord(QltyInspectionHeader);
 
@@ -1945,10 +1945,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] A new document attachment is created
         LibraryAssert.AreEqual(BeforeCount + 1, DocumentAttachment.Count(), 'Should have added document attachment.');
 
-        // [THEN] Document attachment file name contains test number
+        // [THEN] Document attachment file name contains inspection number
         DocumentAttachment.SetRange("Table ID", Database::"Qlty. Inspection Header");
         DocumentAttachment.FindLast();
-        LibraryAssert.IsTrue(DocumentAttachment."File Name".Contains(QltyInspectionHeader."No."), 'File name should have test no.');
+        LibraryAssert.IsTrue(DocumentAttachment."File Name".Contains(QltyInspectionHeader."No."), 'File name should have inspection no.');
     end;
 
     [Test]
@@ -2090,7 +2090,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure sPage_FinishTest()
+    procedure InspectionPage_FinishInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -2119,16 +2119,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with Open status
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test list page is opened and positioned on the inspection
+        // [GIVEN] Inspection list page is opened and positioned on the inspection
         QltyInspectionList.OpenView();
         QltyInspectionList.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] ChangeStatusFinish action is invoked (ConfirmHandler confirms)
         QltyInspectionList.ChangeStatusFinish.Invoke();
 
-        // [THEN] Test status is changed to Finished
+        // [THEN] Inspection status is changed to Finished
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
-        LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Test should be finished.');
+        LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Inspection should be finished.');
 
         // [GIVEN] Cleanup generation rule
         QltyInspectionGenRule.Delete();
@@ -2136,7 +2136,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure sPage_ReopenTest()
+    procedure InspectionPage_ReopenInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -2165,7 +2165,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test status is set to Finished
+        // [GIVEN] Inspection status is set to Finished
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
@@ -2176,16 +2176,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [WHEN] ChangeStatusReopen action is invoked (ConfirmHandler confirms)
         QltyInspectionList.ChangeStatusReopen.Invoke();
 
-        // [THEN] Test status is changed to Open
+        // [THEN] Inspection status is changed to Open
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
-        LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Test should be open.');
+        LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Inspection should be open.');
 
         // [GIVEN] Cleanup generation rule
         QltyInspectionGenRule.Delete();
     end;
 
     [Test]
-    procedure sPage_PickupTest()
+    procedure InspectionPage_PickupInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -2214,23 +2214,23 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with no assigned user
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test list page is opened and positioned on the inspection
+        // [GIVEN] Inspection list page is opened and positioned on the inspection
         QltyInspectionList.OpenView();
         QltyInspectionList.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssignToSelf action is invoked
         QltyInspectionList.AssignToSelf.Invoke();
 
-        // [THEN] Test is assigned to current user
+        // [THEN] Inspection is assigned to current user
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
-        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'Test should be assigned to user.');
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'Inspection should be assigned to user.');
 
         // [GIVEN] Cleanup generation rule
         QltyInspectionGenRule.Delete();
     end;
 
     [Test]
-    procedure sPage_UnassignTest()
+    procedure InspectionPage_UnassignInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -2259,7 +2259,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test is assigned to current user
+        // [GIVEN] Inspection is assigned to current user
         QltyInspectionHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(QltyInspectionHeader."Assigned User ID"));
         QltyInspectionHeader.Modify();
 
@@ -2270,9 +2270,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [WHEN] Unassign action is invoked
         QltyInspectionList.Unassign.Invoke();
 
-        // [THEN] Test assigned user is cleared
+        // [THEN] Inspection assigned user is cleared
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
-        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Test should not be assigned to a user.');
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Inspection should not be assigned to a user.');
 
         // [GIVEN] Cleanup generation rule
         QltyInspectionGenRule.Delete();
@@ -2520,9 +2520,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [WHEN] Delete is attempted on field
         asserterror ToLoadQltyField.Delete(true);
 
-        // [THEN] Specific error message is shown with test details
+        // [THEN] Specific error message is shown with inspection details
         LibraryAssert.ExpectedError(StrSubstNo(
-            ExistingTestErr,
+            ExistingInspectiontErr,
             QltyInspectionLine."Field Code",
             1,
             QltyInspectionHeader."No.",
@@ -3486,7 +3486,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [THEN] Test brick field is calculated using expression
+        // [THEN] Inspection brick field is calculated using expression
         LibraryAssert.AreEqual(QltyInspectionHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Table Name"), 'Expressions should match.');
 
         // [GIVEN] Generation rule is cleaned up
@@ -4403,7 +4403,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         asserterror ToLoadQltyInspectionGrade.Delete(true);
 
         // [THEN] An error is thrown preventing deletion
-        LibraryAssert.ExpectedError(CannotBeRemovedExistingTestErr);
+        LibraryAssert.ExpectedError(CannotBeRemovedExistingInspectionErr);
     end;
 
     [Test]
@@ -4438,12 +4438,12 @@ codeunit 139967 "Qlty. Tests - Test Table"
         asserterror ToLoadQltyInspectionGrade.Delete(true);
 
         // [THEN] An error is thrown preventing deletion
-        LibraryAssert.ExpectedError(CannotBeRemovedExistingTestErr);
+        LibraryAssert.ExpectedError(CannotBeRemovedExistingInspectionErr);
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure GradeTable_TestOnDelete_ExistingTestGradeConditions()
+    procedure GradeTable_TestOnDelete_ExistingInspectionGradeConditions()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -4482,7 +4482,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionLine."Grade Code" := ToLoadQltyInspectionGrade.Code;
         QltyInspectionLine.Insert();
 
-        // [GIVEN] A grade condition is created for the test
+        // [GIVEN] A grade condition is created for the inspection
         ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Inspection;
         ToLoadQltyIGradeConditionConf."Target Code" := QltyInspectionHeader."No.";
         ToLoadQltyIGradeConditionConf."Target Reinspection No." := QltyInspectionHeader."Reinspection No.";

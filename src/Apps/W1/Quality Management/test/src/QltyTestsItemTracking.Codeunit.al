@@ -134,7 +134,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Lot No.", LotNo);
 
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
         // [GIVEN] Disposition buffer is configured to move 6 units to a different pick bin
@@ -2466,7 +2466,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        TestQltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         LotNo: Code[50];
@@ -2492,15 +2492,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
-        // [GIVEN] Quality inspection template and test are created for purchase line
-        TestQltyInspectionUtility.EnsureSetup();
-        TestQltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        TestQltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
+        // [GIVEN] Quality inspection template and inspection are created for purchase line
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         LotNo := ReservationEntry."Lot No.";
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2551,7 +2551,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        TestQltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2576,14 +2576,14 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
-        // [GIVEN] Quality inspection template and test are created for purchase line
-        TestQltyInspectionUtility.EnsureSetup();
-        TestQltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        TestQltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
+        // [GIVEN] Quality inspection template and inspection are created for purchase line
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2625,7 +2625,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        TestQltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2651,15 +2651,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
-        // [GIVEN] Quality inspection template and test are created for purchase line with serial number tracking
-        TestQltyInspectionUtility.EnsureSetup();
-        TestQltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        TestQltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
+        // [GIVEN] Quality inspection template and inspection are created for purchase line with serial number tracking
+        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         Serial := ReservationEntry."Serial No.";
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2738,7 +2738,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Initialize();
         QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection inspection header with lot number is prepared
+        // [GIVEN] Inspection header with lot number is prepared
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
         TempQltyInspectionHeader."Source Lot No." := LotNo;
@@ -2767,7 +2767,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Initialize();
         QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection inspection header with lot number is prepared
+        // [GIVEN] Inspection header with lot number is prepared
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
         TempQltyInspectionHeader."Source Lot No." := LotNo;
@@ -2804,7 +2804,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Initialize();
         QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection inspection header with serial number is prepared
+        // [GIVEN] Inspection header with serial number is prepared
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         SerialNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
         TempQltyInspectionHeader."Source Serial No." := SerialNo;
@@ -2833,7 +2833,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Initialize();
         QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection inspection header with serial number is prepared
+        // [GIVEN] Inspection header with serial number is prepared
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         SerialNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
         TempQltyInspectionHeader."Source Serial No." := SerialNo;
@@ -2870,7 +2870,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Initialize();
         QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection inspection header with package number is prepared
+        // [GIVEN] Inspection header with package number is prepared
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         PackageNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
         TempQltyInspectionHeader."Source Package No." := PackageNo;
@@ -2899,7 +2899,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Initialize();
         QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection inspection header with package number is prepared
+        // [GIVEN] Inspection header with package number is prepared
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         PackageNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
         TempQltyInspectionHeader."Source Package No." := PackageNo;

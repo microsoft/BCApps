@@ -24,14 +24,14 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     Description = 'Negative Adjust inventory.';
 
     var
-        WarehouseJournalLineDescriptionTemplateLbl: Label 'Test [%1] negative adjusted quantity', Comment = '%1 = Quality Inspection';
+        WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%1] negative adjusted quantity', Comment = '%1 = Quality Inspection';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
-        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for test %1 was requested, however the item associated with this test does not require tracking.', Comment = '%1=the test';
+        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         CannotGetJournalBatchErr: Label 'Could not get journal batch %1,%2%3. Check the adjustment batch on the Quality Management Setup page.', Comment = '%1=template,%2=batch name,%3=location';
         LocationLbl: Label ' Location: %1', Comment = '%1=location';
         DocumentTypeLbl: Label 'Negative Adjustment';
         NoAdjTemplateErr: Label 'No Adjustment Journal Template found. Ensure a valid adjustment template exists.';
-        DescriptionTxt: Label 'Test [%1] reduce inventory', Comment = '%1 = Quality Inspection';
+        DescriptionTxt: Label 'Inspection [%1] reduce inventory', Comment = '%1 = Quality Inspection';
 
     /// <summary>
     /// Creates a negative adjustment using the information from a given Quality Inspection.

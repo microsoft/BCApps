@@ -38,7 +38,7 @@ page 20408 "Qlty. Inspection List"
     {
         area(Content)
         {
-            repeater(GroupTests)
+            repeater(GroupInspections)
             {
                 ShowCaption = false;
                 field("No."; Rec."No.")
@@ -239,13 +239,13 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    TestsToFinishQualityOrder: Record "Qlty. Inspection Header";
+                    QltyInspectionHeaderToFinish: Record "Qlty. Inspection Header";
                 begin
-                    CurrPage.SetSelectionFilter(TestsToFinishQualityOrder);
-                    if TestsToFinishQualityOrder.FindSet(true) then
+                    CurrPage.SetSelectionFilter(QltyInspectionHeaderToFinish);
+                    if QltyInspectionHeaderToFinish.FindSet(true) then
                         repeat
-                            TestsToFinishQualityOrder.FinishInspection();
-                        until TestsToFinishQualityOrder.Next() = 0;
+                            QltyInspectionHeaderToFinish.FinishInspection();
+                        until QltyInspectionHeaderToFinish.Next() = 0;
                     CurrPage.Update(false);
                 end;
             }
@@ -262,13 +262,13 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    TestsToReopenQualityOrder: Record "Qlty. Inspection Header";
+                    QltyInspectionHeaderToReopen: Record "Qlty. Inspection Header";
                 begin
-                    CurrPage.SetSelectionFilter(TestsToReopenQualityOrder);
-                    if TestsToReopenQualityOrder.FindSet(true) then
+                    CurrPage.SetSelectionFilter(QltyInspectionHeaderToReopen);
+                    if QltyInspectionHeaderToReopen.FindSet(true) then
                         repeat
-                            TestsToReopenQualityOrder.ReopenInspection();
-                        until TestsToReopenQualityOrder.Next() = 0;
+                            QltyInspectionHeaderToReopen.ReopenInspection();
+                        until QltyInspectionHeaderToReopen.Next() = 0;
                     CurrPage.Update(false);
                 end;
             }
@@ -285,14 +285,14 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    TestsToPickUpQualityOrder: Record "Qlty. Inspection Header";
+                    QltyInspectionHeaderToAssignToSelf: Record "Qlty. Inspection Header";
                 begin
-                    CurrPage.SetSelectionFilter(TestsToPickUpQualityOrder);
-                    if TestsToPickUpQualityOrder.FindSet(true) then
+                    CurrPage.SetSelectionFilter(QltyInspectionHeaderToAssignToSelf);
+                    if QltyInspectionHeaderToAssignToSelf.FindSet(true) then
                         repeat
-                            TestsToPickUpQualityOrder.AssignToSelf();
-                            TestsToPickUpQualityOrder.Modify();
-                        until TestsToPickUpQualityOrder.Next() = 0;
+                            QltyInspectionHeaderToAssignToSelf.AssignToSelf();
+                            QltyInspectionHeaderToAssignToSelf.Modify();
+                        until QltyInspectionHeaderToAssignToSelf.Next() = 0;
                     CurrPage.Update(false);
                 end;
             }
@@ -309,14 +309,14 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    TestsToUnassignQualityOrder: Record "Qlty. Inspection Header";
+                    QltyInspectionHeaderToUnassign: Record "Qlty. Inspection Header";
                 begin
-                    CurrPage.SetSelectionFilter(TestsToUnassignQualityOrder);
-                    if TestsToUnassignQualityOrder.FindSet(true) then
+                    CurrPage.SetSelectionFilter(QltyInspectionHeaderToUnassign);
+                    if QltyInspectionHeaderToUnassign.FindSet(true) then
                         repeat
-                            TestsToUnassignQualityOrder.Validate("Assigned User ID", '');
-                            TestsToUnassignQualityOrder.Modify(false);
-                        until TestsToUnassignQualityOrder.Next() = 0;
+                            QltyInspectionHeaderToUnassign.Validate("Assigned User ID", '');
+                            QltyInspectionHeaderToUnassign.Modify(false);
+                        until QltyInspectionHeaderToUnassign.Next() = 0;
                     CurrPage.Update(false);
                 end;
             }

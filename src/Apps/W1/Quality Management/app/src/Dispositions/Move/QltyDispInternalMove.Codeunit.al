@@ -20,7 +20,7 @@ using Microsoft.Warehouse.Request;
 codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
 {
     var
-        InternalMovementLineDescriptionTemplateLbl: Label 'Test [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin Code; %2 = To Bin Code; %3 = the inspection';
+        InternalMovementLineDescriptionTemplateLbl: Label 'Inspection [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin Code; %2 = To Bin Code; %3 = the inspection';
         DocumentTypeInternalMovementLbl: Label 'Internal Movement';
         DocumentTypeWarehouseInventoryMovementLbl: Label 'Inventory Movement';
 

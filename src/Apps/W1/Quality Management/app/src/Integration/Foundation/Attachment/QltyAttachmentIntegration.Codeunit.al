@@ -99,7 +99,7 @@ codeunit 20414 "Qlty. Attachment Integration"
         TempQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr." temporary;
         TempQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line" temporary;
         TemplateCode: Code[20];
-        TestNo: Code[20];
+        InspectionNo: Code[20];
         QltyFieldCode: Code[20];
         LineNo: Integer;
         ReinspectionNo: Integer;
@@ -107,9 +107,9 @@ codeunit 20414 "Qlty. Attachment Integration"
         case RecRef.Number() of
             Database::"Qlty. Inspection Header":
                 begin
-                    TestNo := CopyStr(Format(RecRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(TestNo));
+                    InspectionNo := CopyStr(Format(RecRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(InspectionNo));
                     ReinspectionNo := RecRef.Field(TempQltyInspectionHeader.FieldNo("Reinspection No.")).Value();
-                    DocumentAttachment."No." := TestNo;
+                    DocumentAttachment."No." := InspectionNo;
                     DocumentAttachment."Line No." := ReinspectionNo;
                 end;
             Database::"Qlty. Inspection Template Hdr.":
@@ -124,9 +124,9 @@ codeunit 20414 "Qlty. Attachment Integration"
                 end;
             Database::"Qlty. Inspection Line":
                 begin
-                    TestNo := CopyStr(Format(RecRef.Field(TempQltyInspectionLine.FieldNo("Inspection No.")).Value()), 1, MaxStrLen(TestNo));
+                    InspectionNo := CopyStr(Format(RecRef.Field(TempQltyInspectionLine.FieldNo("Inspection No.")).Value()), 1, MaxStrLen(InspectionNo));
                     LineNo := RecRef.Field(TempQltyInspectionLine.FieldNo("Line No.")).Value();
-                    DocumentAttachment."No." := TestNo;
+                    DocumentAttachment."No." := InspectionNo;
                     DocumentAttachment."Line No." := LineNo;
                 end;
             Database::"Qlty. Inspection Template Line":
@@ -160,7 +160,7 @@ codeunit 20414 "Qlty. Attachment Integration"
         TempQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line" temporary;
         CurrentField: Code[20];
         Template: Code[20];
-        TestNo: Code[20];
+        InspectionNo: Code[20];
         ReinspectionNo: Integer;
         LineNo: Integer;
     begin
@@ -172,16 +172,16 @@ codeunit 20414 "Qlty. Attachment Integration"
                 end;
             Database::"Qlty. Inspection Header":
                 begin
-                    TestNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(TestNo));
+                    InspectionNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(InspectionNo));
                     ReinspectionNo := RecordRef.Field(TempQltyInspectionHeader.FieldNo("Reinspection No.")).Value();
-                    DocumentAttachment.SetRange("No.", TestNo);
+                    DocumentAttachment.SetRange("No.", InspectionNo);
                     DocumentAttachment.SetRange("Line No.", ReinspectionNo);
                 end;
             Database::"Qlty. Inspection Line":
                 begin
-                    TestNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionLine.FieldNo("Inspection No.")).Value()), 1, MaxStrLen(TestNo));
+                    InspectionNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionLine.FieldNo("Inspection No.")).Value()), 1, MaxStrLen(InspectionNo));
                     LineNo := RecordRef.Field(TempQltyInspectionLine.FieldNo("Line No.")).Value();
-                    DocumentAttachment.SetRange("No.", TestNo);
+                    DocumentAttachment.SetRange("No.", InspectionNo);
                     DocumentAttachment.SetRange("Line No.", LineNo);
                 end;
             Database::"Qlty. Inspection Template Hdr.":

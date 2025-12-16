@@ -71,7 +71,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpQuantity;
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to use the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the test itself.';
+                    InstructionalText = 'In most scenarios you will want to use the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
 
                     field(Qlty_QuantityMoveAll; QltyMoveAll)
                     {
@@ -213,7 +213,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpItemTrackingChange;
                     Caption = 'New Item Tracking';
-                    InstructionalText = 'Use this to change the tested item''s tracking information, such as updating the lot no. or expiry date.';
+                    InstructionalText = 'Use this to change the inspected item''s tracking information, such as updating the lot no. or expiry date.';
 
                     field(Qlty_NewLotNo; NewLotNoExpression)
                     {

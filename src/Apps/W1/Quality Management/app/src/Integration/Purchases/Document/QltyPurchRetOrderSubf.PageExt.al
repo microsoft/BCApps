@@ -36,7 +36,7 @@ pageextension 20407 "Qlty. Purch. Ret. Order Subf." extends "Purchase Return Ord
                         QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItemAndDocument)
+                action(Qlty_InspectionShowInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;
@@ -54,7 +54,7 @@ pageextension 20407 "Qlty. Purch. Ret. Order Subf." extends "Purchase Return Ord
                         QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
-                action(Qlty_InspectionShowTestsForItem)
+                action(Qlty_InspectionShowInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
                     Image = TaskQualityMeasure;

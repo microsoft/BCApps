@@ -575,7 +575,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
     begin
         // [SCENARIO] Find a related BOM from an item using source configuration mapping
 
-        // [GIVEN] A source configuration mapping from Item to Test with BOM field mapping
+        // [GIVEN] A source configuration mapping from Item to Inspection with BOM field mapping
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
@@ -793,7 +793,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Item No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
-        // [GIVEN] A second source configuration from Assembly Line to Test
+        // [GIVEN] A second source configuration from Assembly Line to Inspection
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
@@ -916,7 +916,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Custom 1");
         SpecificQltyInspectSrcFldConf.Insert();
 
-        // [GIVEN] A second source configuration from Purchase Line to Test with field mappings
+        // [GIVEN] A second source configuration from Purchase Line to Inspection with field mappings
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
@@ -1026,7 +1026,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Custom 1");
         SpecificQltyInspectSrcFldConf.Insert();
 
-        // [GIVEN] Source configuration from Sales Line to Test with field mappings
+        // [GIVEN] Source configuration from Sales Line to Inspection with field mappings
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);

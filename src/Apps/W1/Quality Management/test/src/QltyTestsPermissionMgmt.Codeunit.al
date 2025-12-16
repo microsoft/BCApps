@@ -22,13 +22,13 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         ExpectedSupervisorRoleIDTok: Label 'QltyGeneral', Locked = true;
 
     [Test]
-    procedure CanReadTestResults()
+    procedure CanReadInspectionResults()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        // [SCENARIO] Verify that the CanReadTestResults function correctly checks read permissions for test results
+        // [SCENARIO] Verify that the CanReadInspectionResults function correctly checks read permissions for inspection results
         // [GIVEN] The Quality Inspection Header table exists
-        // [WHEN] The CanReadTestResults function is called
+        // [WHEN] The CanReadInspectionResults function is called
         // [THEN] It returns true if read permission exists, false otherwise
 
         if QltyInspectionHeader.ReadPermission() then
@@ -38,12 +38,12 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanCreateManualInspection_ShouldError()
+    procedure Express_VerifyCanCreateManualInspection_ShouldError()
     begin
-        // [SCENARIO] Verify that creating a manual test without proper permissions raises an error
+        // [SCENARIO] Verify that creating a manual inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanCreateManualInspection is called
-        // [THEN] An error is raised indicating the user lacks permission to create a manual test
+        // [WHEN] VerifyCanCreateManualInspection is called
+        // [THEN] An error is raised indicating the user lacks permission to create a manual inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyPermissionMgmt.VerifyCanCreateManualInspection();
@@ -52,14 +52,14 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanCreateManualInspection()
+    procedure Express_VerifyCanCreateManualInspection()
     begin
-        // [SCENARIO] Verify that creating a manual test succeeds with proper supervisor permissions
+        // [SCENARIO] Verify that creating a manual inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanCreateManualInspection is called
+        // [WHEN] VerifyCanCreateManualInspection is called
         QltyPermissionMgmt.VerifyCanCreateManualInspection();
 
         // [THEN] The operation succeeds and CanCreateManualInspection returns true
@@ -67,12 +67,12 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanCreateAutoInspection()
+    procedure Express_VerifyCanCreateAutoInspection()
     begin
-        // [SCENARIO] Verify that creating an auto test is allowed for all users
+        // [SCENARIO] Verify that creating an auto inspection is allowed for all users
         // [GIVEN] No specific permission set is required
 
-        // [WHEN] TestCanCreateAutoInspection is called
+        // [WHEN] VerifyCanCreateAutoInspection is called
         QltyPermissionMgmt.VerifyCanCreateAutoInspection();
 
         // [THEN] The operation succeeds and CanCreateAutoInspection returns true
@@ -80,11 +80,11 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanCreateReinspection_ShouldError()
+    procedure Express_VerifyCanCreateReinspection_ShouldError()
     begin
         // [SCENARIO] Verify that creating a reinspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanCreateReinspection is called
+        // [WHEN] VerifyCanCreateReinspection is called
         // [THEN] An error is raised indicating the user lacks permission to create a reinspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
@@ -94,14 +94,14 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanCreateReinspection()
+    procedure Express_VerifyCanCreateReinspection()
     begin
         // [SCENARIO] Verify that creating a reinspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanCreateReinspection is called
+        // [WHEN] VerifyCanCreateReinspection is called
         QltyPermissionMgmt.VerifyCanCreateReinspection();
 
         // [THEN] The operation succeeds and CanCreateReinspection returns true
@@ -109,11 +109,11 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanDeleteOpenTest_ShouldError()
+    procedure Express_VerifyCanDeleteOpenInspection_ShouldError()
     begin
         // [SCENARIO] Verify that deleting an open inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanDeleteOpenTest is called
+        // [WHEN] VerifyCanDeleteOpenInspection is called
         // [THEN] An error is raised indicating the user lacks permission to delete an open inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
@@ -123,27 +123,27 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanDeleteOpenTest()
+    procedure Express_VerifyCanDeleteOpenInspection()
     begin
         // [SCENARIO] Verify that deleting an open inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanDeleteOpenTest is called
+        // [WHEN] VerifyCanDeleteOpenInspection is called
         QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
 
-        // [THEN] The operation succeeds and CanDeleteOpenTest returns true
+        // [THEN] The operation succeeds and CanDeleteOpenInspection returns true
         LibraryAssert.IsTrue(QltyPermissionMgmt.CanDeleteOpenInspection(), 'allowed with supervisor role');
     end;
 
     [Test]
-    procedure Express_TestCanDeleteFinishedInspection_ShouldError()
+    procedure Express_VerifyCanDeleteFinishedInspection_ShouldError()
     begin
-        // [SCENARIO] Verify that deleting a finished test without proper permissions raises an error
+        // [SCENARIO] Verify that deleting a finished inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanDeleteFinishedInspection is called
-        // [THEN] An error is raised indicating the user lacks permission to delete a finished test
+        // [WHEN] VerifyCanDeleteFinishedInspection is called
+        // [THEN] An error is raised indicating the user lacks permission to delete a finished inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
@@ -152,41 +152,41 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanDeleteFinishedInspection()
+    procedure Express_VerifyCanDeleteFinishedInspection()
     begin
-        // [SCENARIO] Verify that deleting a finished test succeeds with proper supervisor permissions
+        // [SCENARIO] Verify that deleting a finished inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanDeleteFinishedInspection is called        
+        // [WHEN] VerifyCanDeleteFinishedInspection is called        
         QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
 
-        // [THEN] The operation succeeds and CanDeleteFinishedTest returns true
+        // [THEN] The operation succeeds and CanDeleteFinishedInspection returns true
         LibraryAssert.IsTrue(QltyPermissionMgmt.CanDeleteFinishedInspection(), 'allowed with supervisor role');
     end;
 
     [Test]
-    procedure Express_TestCanChangeOthersTests()
+    procedure Express_VerifyCanChangeOtherInspections()
     begin
-        // [SCENARIO] Verify that changing other users' tests succeeds with proper supervisor permissions
+        // [SCENARIO] Verify that changing other users' inspections succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanChangeOthersTests is called
+        // [WHEN] VerifyCanChangeOtherInspections is called
         QltyPermissionMgmt.VerifyCanChangeOtherInspections();
 
-        // [THEN] The operation succeeds and CanChangeOthersTests returns true
+        // [THEN] The operation succeeds and CanChangeOtherInspections returns true
         LibraryAssert.IsTrue(QltyPermissionMgmt.CanChangeOtherInspections(), 'allowed with supervisor role');
     end;
 
     [Test]
-    procedure Express_TestCanReopenTest_ShouldError()
+    procedure Express_VerifyCanReopenInspection_ShouldError()
     begin
         // [SCENARIO] Verify that reopening an inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanReopenTest is called
+        // [WHEN] VerifyCanReopenInspection is called
         // [THEN] An error is raised indicating the user lacks permission to reopen an inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
@@ -196,55 +196,55 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanReopenTest()
+    procedure Express_VerifyCanReopenInspection()
     begin
         // [SCENARIO] Verify that reopening an inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanReopenTest is called
+        // [WHEN] VerifyCanReopenInspection is called
         QltyPermissionMgmt.VerifyCanReopenInspection();
 
-        // [THEN] The operation succeeds and CanReopenTest returns true
+        // [THEN] The operation succeeds and CanReopenInspection returns true
         LibraryAssert.IsTrue(QltyPermissionMgmt.CanReopenInspection(), 'should be allowed with modify permission on order table data');
     end;
 
     [Test]
-    procedure Express_TestCanFinishTest_ShouldError()
+    procedure Express_VerifyCanFinishInspection_ShouldError()
     begin
         // [SCENARIO] Verify that finishing an inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanFinishTest is called
+        // [WHEN] VerifyCanFinishInspection is called
         // [THEN] An error is raised indicating the user lacks permission to finish an inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyPermissionMgmt.VerifyCanFinishInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Finish Test'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Finish Inspection'));
         end;
     end;
 
     [Test]
-    procedure Express_TestCanFinishTest()
+    procedure Express_VerifyCanFinishInspection()
     begin
         // [SCENARIO] Verify that finishing an inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanFinishTest is called
+        // [WHEN] VerifyCanFinishInspection is called
         QltyPermissionMgmt.VerifyCanFinishInspection();
 
-        // [THEN] The operation succeeds and CanFinishTest returns true
+        // [THEN] The operation succeeds and CanFinishInspection returns true
         LibraryAssert.IsTrue(QltyPermissionMgmt.CanFinishInspection(), 'should be allowed with modify permission on order table data');
     end;
 
     [Test]
-    procedure Express_TestCanChangeTrackingNo_ShouldError()
+    procedure Express_VerifyCanChangeTrackingNo_ShouldError()
     begin
         // [SCENARIO] Verify that changing tracking number without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanChangeTrackingNo is called
+        // [WHEN] VerifyCanChangeTrackingNo is called
         // [THEN] An error is raised indicating the user lacks permission to change tracking number
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
@@ -254,14 +254,14 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanChangeTrackingNo()
+    procedure Express_VerifyCanChangeTrackingNo()
     begin
         // [SCENARIO] Verify that changing tracking number succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanChangeTrackingNo is called
+        // [WHEN] VerifyCanChangeTrackingNo is called
         QltyPermissionMgmt.VerifyCanChangeTrackingNo();
 
         // [THEN] The operation succeeds and CanChangeTrackingNo returns true
@@ -269,11 +269,11 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanChangeSourceQuantity_ShouldError()
+    procedure Express_VerifyCanChangeSourceQuantity_ShouldError()
     begin
         // [SCENARIO] Verify that changing source quantity without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] TestCanChangeSourceQuantity is called
+        // [WHEN] VerifyCanChangeSourceQuantity is called
         // [THEN] An error is raised indicating the user lacks permission to change source quantity
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
@@ -283,14 +283,14 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanChangeSourceQuantity()
+    procedure Express_VerifyCanChangeSourceQuantity()
     begin
         // [SCENARIO] Verify that changing source quantity succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);
 
-        // [WHEN] TestCanChangeSourceQuantity is called
+        // [WHEN] VerifyCanChangeSourceQuantity is called
         QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
 
         // [THEN] The operation succeeds and CanChangeSourceQuantity returns true
@@ -298,7 +298,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure Express_TestCanEditLineComments()
+    procedure Express_VerifyCanEditLineComments()
     begin
         // [SCENARIO] Verify that editing line comments is allowed for users with record link modification permissions
         // [GIVEN] The user has permission to modify record links

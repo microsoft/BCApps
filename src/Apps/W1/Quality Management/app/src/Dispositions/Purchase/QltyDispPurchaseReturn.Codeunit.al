@@ -23,7 +23,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
 {
     var
         TempCreatedBufferPurchaseHeader: Record "Purchase Header" temporary;
-        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the test source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=test,%3=reinspection';
+        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=reinspection';
         DocumentTypeLbl: Label 'Purchase Return';
 
     /// <summary>
@@ -73,7 +73,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
             exit;
         end;
 
-        if not FindPurchaseReceiptLineForTest(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, PurchRcptLine) then
+        if not FindPurchaseReceiptLineForInspection(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, PurchRcptLine) then
             Error(NoPurchRcptLineErr, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
         TempQuantityToActQltyDispositionBuffer.FindSet();
         repeat
@@ -91,7 +91,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
             QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
-    local procedure FindPurchaseReceiptLineForTest(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    local procedure FindPurchaseReceiptLineForInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
     var
         PurchRcptLine2: Record "Purch. Rcpt. Line";
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;

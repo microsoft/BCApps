@@ -66,7 +66,7 @@ page 20479 "Qlty. Field Card"
                 field("Default Value"; Rec."Default Value")
                 {
                     AboutTitle = 'Default Value';
-                    AboutText = 'A default value to set on the test.';
+                    AboutText = 'A default value to set on the inspection.';
 
                     trigger OnAssistEdit()
                     begin
@@ -531,7 +531,7 @@ page 20479 "Qlty. Field Card"
             {
                 Caption = 'Delete';
                 Image = Delete;
-                ToolTip = 'Deletes this field. A field can only be deleted if it is not being used on an existing test.';
+                ToolTip = 'Deletes this field. A field can only be deleted if it is not being used on an existing inspection.';
 
                 trigger OnAction()
                 begin

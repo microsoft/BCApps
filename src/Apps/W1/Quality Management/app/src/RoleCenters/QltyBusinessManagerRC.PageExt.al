@@ -24,7 +24,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                 Caption = 'Quality Management';
                 ToolTip = 'Create Quality Inspections.';
 
-                action(Qlty_ShowTests)
+                action(Qlty_ShowInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -47,7 +47,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
 
                     action(Qlty_InspectionValues)
                     {
-                        Caption = 'Quality Test Values';
+                        Caption = 'Quality Inspection Values';
                         Image = AnalysisView;
                         ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
                         ApplicationArea = QualityManagement;
@@ -111,7 +111,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_Sections_ShowTests)
+                action(Qlty_Sections_ShowInspections)
                 {
                     Caption = 'Quality Inspections';
                     Image = TaskQualityMeasure;
@@ -121,7 +121,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                 }
                 action(Qlty_Sections_InspectionValues)
                 {
-                    Caption = 'Quality Test Values';
+                    Caption = 'Quality Inspection Values';
                     Image = AnalysisView;
                     ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
                     ApplicationArea = QualityManagement;

@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// Used to help lists and filters quickly identify which test is the most recent reinspection.
+/// Used to help lists and filters quickly identify which inspection is the most recent reinspection.
 /// </summary>
 enum 20412 "Qlty. Iteration State"
 {

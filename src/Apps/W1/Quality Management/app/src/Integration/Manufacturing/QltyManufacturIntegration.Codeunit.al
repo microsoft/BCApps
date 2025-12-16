@@ -23,7 +23,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
         QltySessionHelper: Codeunit "Qlty. Session Helper";
-        PermissionErr: Label 'User %1 not have permission to modify Quality Inspection Results tables, this will prevent test being updated.', Comment = '%1:User ID';
+        PermissionErr: Label 'User %1 not have permission to modify Quality Inspection Results tables, this will prevent inspection being updated.', Comment = '%1:User ID';
         ProductionRegisteredLogEventIDTok: Label 'QMERR0002', Locked = true;
         TargetDetailRecordTok: Label 'Target', Locked = true;
         UnknownRecordTok: Label 'Unknown record', Locked = true;
@@ -199,7 +199,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if QltyInspectionHeader.FindSet(true) then
             repeat
                 QltyInspectionHeader."Source RecordId" := NewProductionOrder.RecordId();
-                UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+                UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
             until QltyInspectionHeader.Next() = 0
         else begin
             QltyInspectionHeader.Reset();
@@ -207,7 +207,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if QltyInspectionHeader.FindSet(true) then
                 repeat
                     QltyInspectionHeader."Source RecordId 2" := NewProductionOrder.RecordId();
-                    UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+                    UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
                 until QltyInspectionHeader.Next() = 0
             else begin
                 QltyInspectionHeader.Reset();
@@ -215,7 +215,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                 if QltyInspectionHeader.FindSet(true) then
                     repeat
                         QltyInspectionHeader."Source RecordId 3" := NewProductionOrder.RecordId();
-                        UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+                        UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
                     until QltyInspectionHeader.Next() = 0
                 else begin
                     QltyInspectionHeader.Reset();
@@ -223,7 +223,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                     if QltyInspectionHeader.FindSet(true) then
                         repeat
                             QltyInspectionHeader."Source RecordId 4" := NewProductionOrder.RecordId();
-                            UpdateSourceDocumentForSpecificTestOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
+                            UpdateSourceDocumentForSpecificInspectionOnOrder(QltyInspectionHeader, TargetRecordRef, OldProductionOrder, NewProductionOrder);
                         until QltyInspectionHeader.Next() = 0;
                 end;
             end;
@@ -250,7 +250,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if QltyInspectionHeader.FindSet(true) then
             repeat
                 QltyInspectionHeader."Source RecordId" := NewProdOrderLine.RecordId();
-                UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+                UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
             until QltyInspectionHeader.Next() = 0
         else begin
             QltyInspectionHeader.Reset();
@@ -258,7 +258,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if QltyInspectionHeader.FindSet(true) then
                 repeat
                     QltyInspectionHeader."Source RecordId 2" := NewProdOrderLine.RecordId();
-                    UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+                    UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
                 until QltyInspectionHeader.Next() = 0
             else begin
                 QltyInspectionHeader.Reset();
@@ -266,7 +266,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                 if QltyInspectionHeader.FindSet(true) then
                     repeat
                         QltyInspectionHeader."Source RecordId 3" := NewProdOrderLine.RecordId();
-                        UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+                        UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
                     until QltyInspectionHeader.Next() = 0
                 else begin
                     QltyInspectionHeader.Reset();
@@ -274,7 +274,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                     if QltyInspectionHeader.FindSet(true) then
                         repeat
                             QltyInspectionHeader."Source RecordId 4" := NewProdOrderLine.RecordId();
-                            UpdateSourceDocumentForSpecificTestOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
+                            UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
                         until QltyInspectionHeader.Next() = 0
                 end;
             end;
@@ -301,7 +301,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if QltyInspectionHeader.FindSet(true) then
             repeat
                 QltyInspectionHeader."Source RecordId" := NewProdOrderRoutingLine.RecordId();
-                UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+                UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
             until QltyInspectionHeader.Next() = 0
         else begin
             QltyInspectionHeader.Reset();
@@ -309,7 +309,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if QltyInspectionHeader.FindSet(true) then
                 repeat
                     QltyInspectionHeader."Source RecordId 2" := NewProdOrderRoutingLine.RecordId();
-                    UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+                    UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
                 until QltyInspectionHeader.Next() = 0
             else begin
                 QltyInspectionHeader.Reset();
@@ -317,7 +317,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                 if QltyInspectionHeader.FindSet(true) then
                     repeat
                         QltyInspectionHeader."Source RecordId 3" := NewProdOrderRoutingLine.RecordId();
-                        UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+                        UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
                     until QltyInspectionHeader.Next() = 0
                 else begin
                     QltyInspectionHeader.Reset();
@@ -325,14 +325,14 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                     if QltyInspectionHeader.FindSet(true) then
                         repeat
                             QltyInspectionHeader."Source RecordId 4" := NewProdOrderRoutingLine.RecordId();
-                            UpdateSourceDocumentForSpecificTestOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
+                            UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
                         until QltyInspectionHeader.Next() = 0
                 end;
             end;
         end;
     end;
 
-    local procedure UpdateSourceDocumentForSpecificTestOnOrder(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
+    local procedure UpdateSourceDocumentForSpecificInspectionOnOrder(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
     var
         OldStatusValue: Integer;
         NewStatusValue: Integer;
@@ -350,7 +350,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if QltyInspectionHeader.Modify(false) then;
     end;
 
-    local procedure UpdateSourceDocumentForSpecificTestOnLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
+    local procedure UpdateSourceDocumentForSpecificInspectionOnLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
     var
         OldStatusValue: Integer;
         NewStatusValue: Integer;
@@ -370,7 +370,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if QltyInspectionHeader.Modify(false) then;
     end;
 
-    local procedure UpdateSourceDocumentForSpecificTestOnOperation(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    local procedure UpdateSourceDocumentForSpecificInspectionOnOperation(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         OldStatusValue: Integer;
         NewStatusValue: Integer;
@@ -406,16 +406,16 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
-        OfTestIds: List of [RecordId];
+        ListOfInspectionIds: List of [RecordId];
         HasReservationEntries: Boolean;
         Handled: Boolean;
-        CreatedAtLeastOneTestForRoutingLine: Boolean;
-        CreatedAtLeastOneTestForOrderLine: Boolean;
-        CreatedTestForProdOrder: Boolean;
-        MadeTest: Boolean;
+        CreatedAtLeastOneInspectionForRoutingLine: Boolean;
+        CreatedAtLeastOneInspectionForOrderLine: Boolean;
+        CreatedInspectionForProdOrder: Boolean;
+        MadeInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforeProductionAttemptCreateReleaseAutomaticTest(ProductionOrder, Handled);
+        OnBeforeProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, Handled);
         if Handled then
             exit;
 
@@ -440,26 +440,26 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                                 TempTrackingSpecification.Insert();
 
-                                MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInspectionGenRule);
+                                MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInspectionGenRule);
 
-                                if MadeTest then begin
-                                    QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
-                                    OfTestIds.Add(QltyInspectionHeader.RecordId());
-                                    CreatedAtLeastOneTestForRoutingLine := true;
+                                if MadeInspection then begin
+                                    QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                                    ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                    CreatedAtLeastOneInspectionForRoutingLine := true;
                                 end;
                             until ReservationEntry.Next() = 0;
                         end else begin
-                            MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
-                            if MadeTest then begin
-                                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
-                                OfTestIds.Add(QltyInspectionHeader.RecordId());
-                                CreatedAtLeastOneTestForRoutingLine := true;
+                            if MadeInspection then begin
+                                QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                                ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                CreatedAtLeastOneInspectionForRoutingLine := true;
                             end;
                         end;
                     until ProdOrderRoutingLine.Next() = 0;
 
-                if not CreatedAtLeastOneTestForRoutingLine then
+                if not CreatedAtLeastOneInspectionForRoutingLine then
                     if HasReservationEntries then begin
                         ReservationEntry.FindSet();
                         repeat
@@ -469,35 +469,35 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                             TempTrackingSpecification.Insert();
 
-                            MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
-                            if MadeTest then begin
-                                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
-                                OfTestIds.Add(QltyInspectionHeader.RecordId());
-                                CreatedAtLeastOneTestForOrderLine := true;
+                            if MadeInspection then begin
+                                QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                                ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                CreatedAtLeastOneInspectionForOrderLine := true;
                             end;
 
                         until ReservationEntry.Next() = 0;
                     end else begin
-                        MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
-                        if MadeTest then begin
-                            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
-                            OfTestIds.Add(QltyInspectionHeader.RecordId());
-                            CreatedAtLeastOneTestForOrderLine := true;
+                        MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                        if MadeInspection then begin
+                            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                            ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                            CreatedAtLeastOneInspectionForOrderLine := true;
                         end;
                     end;
             until ProdOrderLine.Next() = 0;
         end;
-        if (not CreatedAtLeastOneTestForOrderLine) and (not CreatedAtLeastOneTestForRoutingLine) then begin
-            MadeTest := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
-            if MadeTest then begin
-                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
-                OfTestIds.Add(QltyInspectionHeader.RecordId());
-                CreatedTestForProdOrder := MadeTest;
+        if (not CreatedAtLeastOneInspectionForOrderLine) and (not CreatedAtLeastOneInspectionForRoutingLine) then begin
+            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+            if MadeInspection then begin
+                QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                CreatedInspectionForProdOrder := MadeInspection;
             end;
         end;
 
-        OnAfterProductionAttemptCreateReleaseAutomaticTest(ProductionOrder, CreatedAtLeastOneTestForRoutingLine, CreatedAtLeastOneTestForOrderLine, CreatedTestForProdOrder, OfTestIds);
+        OnAfterProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, CreatedAtLeastOneInspectionForRoutingLine, CreatedAtLeastOneInspectionForOrderLine, CreatedInspectionForProdOrder, ListOfInspectionIds);
     end;
 
     /// <summary>
@@ -516,7 +516,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         HasInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforeProductionAttemptCreatePostAutomaticTest(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine, Handled);
+        OnBeforeProductionAttemptCreatePostAutomaticInspection(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine, Handled);
         if Handled then
             exit;
 
@@ -530,9 +530,9 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                 HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
         if HasInspection then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        OnAfterProductionAttemptCreateAutomaticTest(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
+        OnAfterProductionAttemptCreateAutomaticInspection(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
     end;
 
     /// <summary>
@@ -560,7 +560,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// OnBeforeProductionAttemptCreatePostAutomaticTest is called before attempting to automatically create an inspection for production related events prior to posting to posting.
+    /// OnBeforeProductionAttemptCreatePostAutomaticInspection is called before attempting to automatically create an inspection for production related events prior to posting to posting.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
@@ -568,49 +568,49 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProductionAttemptCreatePostAutomaticTest(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeProductionAttemptCreatePostAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// OnAfterProductionAttemptCreateAutomaticTest is called after attempting to automatically create an inspection for production.
+    /// OnAfterProductionAttemptCreateAutomaticInspection is called after attempting to automatically create an inspection for production.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
     /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProductionAttemptCreateAutomaticTest(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
+    local procedure OnAfterProductionAttemptCreateAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 
     /// <summary>
-    /// OnBeforeProductionAttemptCreateReleaseAutomaticTest is called before attempting to automatically create an inspection for production related releasing.
+    /// OnBeforeProductionAttemptCreateReleaseAutomaticInspection is called before attempting to automatically create an inspection for production related releasing.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProductionAttemptCreateReleaseAutomaticTest(var ProductionOrder: Record "Production Order"; var Handled: Boolean)
+    local procedure OnBeforeProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// OnAfterProductionAttemptCreateReleaseAutomaticTest is called before attempting to automatically create an inspection for production related releasing.
+    /// OnAfterProductionAttemptCreateReleaseAutomaticInspection is called before attempting to automatically create an inspection for production related releasing.
     /// Use this if you need to collect multiple inspections that could be created as part of a posting sequence.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
-    /// <param name="CreatedAtLeastOneTestForRoutingLine">A flag indicating if at least one inspection for the production order routing line was created</param>
-    /// <param name="CreatedAtLeastOneTestForOrderLine">A flag indicating if at least one inspection for the production order line was created</param>
-    /// <param name="CreatedTestForProdOrder">A flag indicating if at least one inspection for the production order was created</param>
-    /// <param name="OfTests">A list of record ids of the inspections that were created</param>
+    /// <param name="CreatedAtLeastOneInspectionForRoutingLine">A flag indicating if at least one inspection for the production order routing line was created</param>
+    /// <param name="CreatedAtLeastOneInspectionForOrderLine">A flag indicating if at least one inspection for the production order line was created</param>
+    /// <param name="CreatedInspectionForProdOrder">A flag indicating if at least one inspection for the production order was created</param>
+    /// <param name="ListOfInspectionIds">A list of record ids of the inspections that were created</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProductionAttemptCreateReleaseAutomaticTest(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneTestForRoutingLine: Boolean; CreatedAtLeastOneTestForOrderLine: Boolean; CreatedTestForProdOrder: Boolean; OfTestIds: List of [RecordId])
+    local procedure OnAfterProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneInspectionForRoutingLine: Boolean; CreatedAtLeastOneInspectionForOrderLine: Boolean; CreatedInspectionForProdOrder: Boolean; ListOfInspectionIds: List of [RecordId])
     begin
     end;
 
     /// <summary>
     /// Gives an opportunity to override any handle of onafterpostoutput.
-    /// Use this to completely replace any automatic test creation on output and/or any automatic test validation on output
+    /// Use this to completely replace any automatic inspection creation on output and/or any automatic inspection validation on output
     /// </summary>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
@@ -622,7 +622,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// Gives an opportunity to supplement or replace automatic test creation on finish, and validation of tests on finish.
+    /// Gives an opportunity to supplement or replace automatic inspection creation on finish, and validation of inspections on finish.
     /// </summary>
     /// <param name="FromProductionOrder"></param>
     /// <param name="ToProductionOrder"></param>

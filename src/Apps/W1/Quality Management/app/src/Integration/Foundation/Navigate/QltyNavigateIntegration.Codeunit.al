@@ -44,7 +44,7 @@ codeunit 20417 "Qlty. Navigate Integration"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltySessionHelper: Codeunit "Qlty. Session Helper";
-        TestHasAnyFilter: Text;
+        InspectionHasAnyFilter: Text;
     begin
         if TableID <> Database::"Qlty. Inspection Header" then
             exit;
@@ -60,11 +60,11 @@ codeunit 20417 "Qlty. Navigate Integration"
         QltyInspectionHeader.SetFilter("Source Lot No.", TempDocumentEntry.GetFilter("Lot No. Filter"));
         QltyInspectionHeader.SetFilter("Source Serial No.", TempDocumentEntry.GetFilter("Serial No. Filter"));
         QltyInspectionHeader.SetFilter("Source Package No.", TempDocumentEntry.GetFilter("Package No. Filter"));
-        TestHasAnyFilter := DocumentNoFilter + QltyInspectionHeader.GetFilter("Source Lot No.") + QltyInspectionHeader.GetFilter("Source Serial No.") + QltyInspectionHeader.GetFilter("Source Package No.");
-        if TestHasAnyFilter = '' then begin
-            TestHasAnyFilter := QltySessionHelper.GetSessionValue(NavigatePageSearchFiltersTok);
-            if TestHasAnyFilter <> '' then
-                QltyInspectionHeader.SetView(TestHasAnyFilter);
+        InspectionHasAnyFilter := DocumentNoFilter + QltyInspectionHeader.GetFilter("Source Lot No.") + QltyInspectionHeader.GetFilter("Source Serial No.") + QltyInspectionHeader.GetFilter("Source Package No.");
+        if InspectionHasAnyFilter = '' then begin
+            InspectionHasAnyFilter := QltySessionHelper.GetSessionValue(NavigatePageSearchFiltersTok);
+            if InspectionHasAnyFilter <> '' then
+                QltyInspectionHeader.SetView(InspectionHasAnyFilter);
         end;
 
         if QltyInspectionHeader.Count() = 1 then

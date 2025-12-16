@@ -23,7 +23,7 @@ tableextension 20404 "Qlty. Avail. Info. Buffer" extends "Availability Info. Buf
                                                                      "Source Serial No." = field("Serial No."),
                                                                      "Source Package No." = field("Package No.")));
         }
-        field(20401; "Qlty. Insp. Test for Lot Count"; Integer)
+        field(20401; "Qlty. Inspection for Lot Count"; Integer)
         {
             Caption = 'Quality Inspection Count';
             ToolTip = 'Specifies the count of available quality inspections for the lot number.';

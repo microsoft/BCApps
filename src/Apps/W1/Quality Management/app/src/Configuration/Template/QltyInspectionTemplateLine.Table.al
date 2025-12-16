@@ -85,7 +85,7 @@ table 20403 "Qlty. Inspection Template Line"
             Caption = 'Default Value';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies a default value to set on the test.';
+            ToolTip = 'Specifies a default value to set on the inspection.';
         }
         field(12; "Expression Formula"; Text[500])
         {

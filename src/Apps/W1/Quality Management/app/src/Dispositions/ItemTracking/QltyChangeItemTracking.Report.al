@@ -54,7 +54,7 @@ report 20409 "Qlty. Change Item Tracking"
     requestpage
     {
         AboutTitle = 'About Changing Item Tracking';
-        AboutText = 'Use this to change the tested item''s tracking information, such as updating the lot no. or expiry date.';
+        AboutText = 'Use this to change the inspected item''s tracking information, such as updating the lot no. or expiry date.';
 
         layout
         {
@@ -218,7 +218,7 @@ report 20409 "Qlty. Change Item Tracking"
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit which inventory is updated if the tested item is in more than one location or bin.';
+                    InstructionalText = 'Optional filters that limit which inventory is updated if the inspected item is in more than one location or bin.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocationCode)
                     {

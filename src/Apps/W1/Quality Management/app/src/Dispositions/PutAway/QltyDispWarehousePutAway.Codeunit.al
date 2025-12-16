@@ -24,13 +24,13 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
         DocumentTypeLbl: Label 'Warehouse Put-Away';
 
     ///<summary>
-    /// Create a warehouse put-away(s) from the supplied test.
+    /// Create a warehouse put-away(s) from the supplied inspection.
     /// It's possible that multiple put-away's could be created if the lot is in multiple bins, but the typical scenario would be
     /// one internal put-away.
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The test to create the internal put-away from</param>
-    /// <param name="OptionalSpecificQuantity">Optional quantity.  Leave blank to use the entire lot or the quantity from the test.</param>
+    /// <param name="QltyInspectionHeader">The inspection to create the internal put-away from</param>
+    /// <param name="OptionalSpecificQuantity">Optional quantity.  Leave blank to use the entire lot or the quantity from the inspection.</param>
     /// <param name="OptionalSourceLocationFilter">Optional limitations on the source location.</param>
     /// <param name="OptionalSourceBinFilter">Optional limitations on the source bin.</param>
     /// <param name="QltyQuantityBehavior">The quantity behavior</param>
@@ -48,7 +48,7 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
     end;
 
     ///<summary>
-    /// Create a warehouse put-away(s) from the supplied test.
+    /// Create a warehouse put-away(s) from the supplied inspection.
     /// It's possible that multiple put-away's could be created if the lot is in multiple bins, but the typical scenario would be
     /// one internal put-away.
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.

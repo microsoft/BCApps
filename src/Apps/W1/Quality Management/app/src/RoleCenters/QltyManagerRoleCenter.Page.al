@@ -95,7 +95,7 @@ page 20426 "Qlty. Manager Role Center"
 
                 action(Qlty_Processing_InspectionValues)
                 {
-                    Caption = 'Quality Test Values';
+                    Caption = 'Quality Inspection Values';
                     Image = AnalysisView;
                     ToolTip = 'Historical Quality Inspection values. Use this with analysis mode.';
                     RunObject = Page "Qlty. Inspection Lines";
@@ -107,7 +107,7 @@ page 20426 "Qlty. Manager Role Center"
 
                 action(Qlty_Processing_ConfigureInspectionTemplates)
                 {
-                    Caption = 'Test Inspections';
+                    Caption = 'Inspection Templates';
                     Image = Database;
                     RunObject = Page "Qlty. Inspection Template List";
                     RunPageMode = Edit;
@@ -148,7 +148,7 @@ page 20426 "Qlty. Manager Role Center"
         }
         area(Embedding)
         {
-            action(Qlty_Embedding_ShowTests)
+            action(Qlty_Embedding_ShowInspections)
             {
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;

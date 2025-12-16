@@ -25,19 +25,19 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     {
         area(Content)
         {
-            group(SettingsFor_iStepWhichTemplate)
+            group(SettingsFor_StepWhichTemplate)
             {
                 Caption = ' ';
                 ShowCaption = false;
                 Visible = (StepWhichTemplateCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepWhichTemplate_Instruction1)
+                group(SettingsFor_StepWhichTemplate_Instruction1)
                 {
-                    InstructionalText = 'Use this feature with lot warehouse tracked items or serial warehouse tracked items, allowing you to define a rule for lot or serial related tests when products move into or out of specific bins. This will work with movements, reclass, and put-away documents. A Quality Inspection Generation Rule will be made or updated.';
+                    InstructionalText = 'Use this feature with lot warehouse tracked items or serial warehouse tracked items, allowing you to define a rule for lot or serial related inspections when products move into or out of specific bins. This will work with movements, reclass, and put-away documents. A Quality Inspection Generation Rule will be made or updated.';
                     Caption = ' ';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepWhichTemplate_Instruction2)
+                group(SettingsFor_StepWhichTemplate_Instruction2)
                 {
                     InstructionalText = 'Which Quality Inspection template do you want to use?';
                     Caption = ' ';
@@ -55,11 +55,11 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichToBin)
+            group(SettingsFor_StepWhichToBin)
             {
                 Caption = ' ';
                 ShowCaption = false;
-                InstructionalText = 'A test should be created when items are moved into which bin?';
+                InstructionalText = 'An inspection should be created when items are moved into which bin?';
                 Visible = (StepWhichToBinCounter = CurrentStepCounter);
 
                 field(ChoosechooseLocation; LocationCodeFilter)
@@ -133,7 +133,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepWhichItem)
+            group(SettingsFor_StepWhichItem)
             {
                 Caption = ' ';
                 ShowCaption = false;
@@ -221,20 +221,20 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_iStepDone)
+            group(SettingsFor_StepDone)
             {
                 Caption = ' ';
                 InstructionalText = '';
                 ShowCaption = false;
                 Visible = (StepDoneCounter = CurrentStepCounter);
 
-                group(SettingsFor_iStepDone_Instruction1)
+                group(SettingsFor_StepDone_Instruction1)
                 {
                     Caption = ' ';
                     InstructionalText = 'We have an Inspection Generation Rule ready. Click ''Finish'' to save this to the system.';
                     ShowCaption = false;
                 }
-                group(SettingsFor_iStepDone_Instruction2)
+                group(SettingsFor_StepDone_Instruction2)
                 {
                     Caption = ' ';
                     InstructionalText = 'Please review and set any additional filters you may need, for example if you want to limit this to specific items.';

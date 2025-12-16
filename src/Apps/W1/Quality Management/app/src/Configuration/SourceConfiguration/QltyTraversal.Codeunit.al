@@ -191,7 +191,7 @@ codeunit 20408 "Qlty. Traversal"
     /// This procedure is essential for automatically filling in inspection header fields (like Source Item No.,
     /// Source Document No., etc.) from the originating document or record.
     /// </summary>
-    /// <param name="TargetRecordRef">The main target record that the test will be created against (e.g., Purchase Line, Sales Line)</param>
+    /// <param name="TargetRecordRef">The main target record that the inspection will be created against (e.g., Purchase Line, Sales Line)</param>
     /// <param name="QltyInspectionHeader">The Quality Inspection Header to populate with source field values</param>
     /// <param name="RaiseErrorIfNoConfigIsFound">If true, raises an error when no source configuration exists; if false, returns silently</param>
     /// <param name="ForceSetValues">If true, overwrites existing field values; if false, only sets empty fields</param>
@@ -199,7 +199,7 @@ codeunit 20408 "Qlty. Traversal"
     internal procedure ApplySourceFields(var TargetRecordRef: RecordRef; var QltyInspectionHeader: Record "Qlty. Inspection Header"; RaiseErrorIfNoConfigIsFound: Boolean; ForceSetValues: Boolean) CouldApply: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
-        TemporaryTestMatchRecordRef: RecordRef;
+        TemporaryInspectionMatchRecordRef: RecordRef;
     begin
         CouldApply := FindPossibleTargetsBasedOnConfigRecursive(TargetRecordRef.Number(), TempAvailableQltyInspectSourceConfig);
 
@@ -209,14 +209,14 @@ codeunit 20408 "Qlty. Traversal"
             else
                 exit(false);
 
-        Clear(TemporaryTestMatchRecordRef);
-        TemporaryTestMatchRecordRef.open(TargetRecordRef.Number(), true);
-        TemporaryTestMatchRecordRef.Copy(TargetRecordRef, false);
-        if TemporaryTestMatchRecordRef.Insert(false) then;
+        Clear(TemporaryInspectionMatchRecordRef);
+        TemporaryInspectionMatchRecordRef.open(TargetRecordRef.Number(), true);
+        TemporaryInspectionMatchRecordRef.Copy(TargetRecordRef, false);
+        if TemporaryInspectionMatchRecordRef.Insert(false) then;
         QltyInspectionHeader.SetIsCreating(true);
         CouldApply := ApplySourceRecursive(
             QltyMiscHelpers.GetArbitraryMaximumRecursion(),
-            TemporaryTestMatchRecordRef,
+            TemporaryInspectionMatchRecordRef,
             TempAvailableQltyInspectSourceConfig,
             QltyInspectionHeader,
             ForceSetValues);

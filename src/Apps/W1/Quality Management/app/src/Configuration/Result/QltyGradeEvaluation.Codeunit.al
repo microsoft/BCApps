@@ -176,7 +176,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
     procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; Modify: Boolean)
     var
         QltyField: Record "Qlty. Field";
-        TestLineQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        QltyInspectionGrade: Record "Qlty. Inspection Grade";
         QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         Grade: Code[20];
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";
@@ -196,8 +196,8 @@ codeunit 20410 "Qlty. Grade Evaluation"
 
         QltyInspectionLine."Failure State" := QltyInspectionLine."Failure State"::" ";
         if Grade <> '' then begin
-            TestLineQltyInspectionGrade.Get(Grade);
-            if TestLineQltyInspectionGrade."Grade Category" = TestLineQltyInspectionGrade."Grade Category"::"Not acceptable" then
+            QltyInspectionGrade.Get(Grade);
+            if QltyInspectionGrade."Grade Category" = QltyInspectionGrade."Grade Category"::"Not acceptable" then
                 QltyInspectionLine."Failure State" := QltyInspectionLine."Failure State"::"Failed from Acceptance Criteria";
         end;
 
@@ -214,7 +214,7 @@ codeunit 20410 "Qlty. Grade Evaluation"
         end;
     end;
 
-    procedure GetTestLineConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TemplateLineQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.")
+    procedure GetInspectionLineConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TemplateLineQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.")
     begin
         TemplateLineQltyIGradeConditionConf.SetRange("Condition Type", TemplateLineQltyIGradeConditionConf."Condition Type"::Inspection);
         TemplateLineQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");

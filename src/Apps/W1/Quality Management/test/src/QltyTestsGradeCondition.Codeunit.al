@@ -515,7 +515,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
     end;
 
     [Test]
-    procedure CopyGradeConditionsFromTemplateLineToTest_NoExistingConfigLine()
+    procedure CopyGradeConditionsFromTemplateLineToInspection_NoExistingConfigLine()
     var
         Location: Record Location;
         Item: Record Item;
@@ -568,14 +568,14 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
         UnusedVariant := '';
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.SetPreventDisplayingTestEvenIfConfigured(true);
+        QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [WHEN] Grade conditions are copied from the template line to the inspection
         CondManagementQltyGradeConditionMgmt.CopyGradeConditionsFromTemplateToInspection(ConfigurationToLoadQltyInspectionTemplateLine, QltyInspectionLine);
 
-        // [THEN] The test receives the grade condition configuration with the default value
+        // [THEN] The inspection receives the grade condition configuration with the default value
         ToLoadQltyIGradeConditionConf.Get(ToLoadQltyIGradeConditionConf."Condition Type"::Inspection, QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000, ToLoadQltyField.Code, DefaultGrade2PassCodeTok);
 
         LibraryAssert.AreEqual(DefaultGrade2PassConditionNumberTok, ToLoadQltyIGradeConditionConf.Condition, 'The condition should match the default value.');
@@ -808,7 +808,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
     end;
 
     [Test]
-    procedure GetPromotedGradesForTestLine()
+    procedure GetPromotedGradesForInspectionLine()
     var
         Location: Record Location;
         ToLoadQltyField: Record "Qlty. Field";
@@ -834,7 +834,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
         UnusedVariant: Code[10];
         FieldCode: Text;
     begin
-        // [SCENARIO] Get promoted grades for an inspection line and verify the grade information from the test is returned correctly
+        // [SCENARIO] Get promoted grades for an inspection line and verify the grade information from the inspection is returned correctly
 
         Initialize();
 
@@ -873,15 +873,15 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
 
         // [WHEN] Promoted grades for the inspection line are retrieved
-        CondManagementQltyGradeConditionMgmt.GetPromotedGradesForTestLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        CondManagementQltyGradeConditionMgmt.GetPromotedGradesForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         ToLoadQltyIGradeConditionConf.Get(ToLoadQltyIGradeConditionConf."Condition Type"::Inspection, QltyInspectionHeader."No.", 0, 10000, ToLoadQltyField.Code, DefaultGrade2PassCodeTok);
 
-        // [THEN] The returned grade information matches the test grade condition
+        // [THEN] The returned grade information matches the inspection grade condition
         LibraryAssert.AreEqual(ToLoadQltyIGradeConditionConf.Condition, MatrixConditionCellData[1], 'Returned condition should match grade condition.');
         LibraryAssert.AreEqual(ToLoadQltyIGradeConditionConf."Condition Description", MatrixConditionDescriptionCellData[1], 'Returned condition should match grade condition description.');
         ToLoadQltyInspectionGrade.Get(ToLoadQltyIGradeConditionConf."Grade Code");
@@ -890,7 +890,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
     end;
 
     [Test]
-    procedure GetPromotedGradesForTestLine_Default()
+    procedure GetPromotedGradesForInspectionLine_Default()
     var
         Location: Record Location;
         ToLoadQltyField: Record "Qlty. Field";
@@ -915,7 +915,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
         UnusedVariant: Code[10];
         FieldCode: Text;
     begin
-        // [SCENARIO] Get default promoted grades for an inspection line when no custom conditions exist at test level
+        // [SCENARIO] Get default promoted grades for an inspection line when no custom conditions exist at inspection level
 
         Initialize();
 
@@ -948,11 +948,11 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
 
         // [WHEN] Promoted grades for the inspection line are retrieved
-        CondManagementQltyGradeConditionMgmt.GetPromotedGradesForTestLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        CondManagementQltyGradeConditionMgmt.GetPromotedGradesForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned grade information uses default grade conditions
         LibraryAssert.AreEqual(DefaultGrade2PassConditionNumberTok, MatrixConditionCellData[1], 'Returned condition should match grade condition.');
@@ -963,7 +963,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
     end;
 
     [Test]
-    procedure GetPromotedGradesForTestLine_NoTemplateLine()
+    procedure GetPromotedGradesForInspectionLine_NoTemplateLine()
     var
         Location: Record Location;
         ToLoadQltyField: Record "Qlty. Field";
@@ -1014,7 +1014,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         QltyInspectionLine.Init();
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
         QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
@@ -1023,7 +1023,7 @@ codeunit 139956 "Qlty. Tests - Grade Condition"
         QltyInspectionLine.Insert();
 
         // [WHEN] Promoted grades for the inspection line are retrieved
-        CondManagementQltyGradeConditionMgmt.GetPromotedGradesForTestLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
+        CondManagementQltyGradeConditionMgmt.GetPromotedGradesForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
 
         // [THEN] The returned arrays are empty and visibility is false
         LibraryAssert.IsTrue(MatrixSourceRecordId[1] = RecID, 'Should be no array elements.');

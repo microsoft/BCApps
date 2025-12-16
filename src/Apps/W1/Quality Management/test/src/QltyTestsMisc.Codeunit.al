@@ -57,8 +57,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         NotificationOptions: Dictionary of [Text, Text];
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
-        NotificationDataTestRecordIdTok: Label 'TestRecordId', Locked = true;
-        AssignToSelfExpectedMessageLbl: Label 'You have altered test %1, would you like to assign it to yourself?', Comment = '%1=the test number';
+        NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
+        AssignToSelfExpectedMessageLbl: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
         AssignToSelfLbl: Label 'Assign to myself';
         IgnoreLbl: Label 'Ignore';
         Bin1Tok: Label 'Bin1';
@@ -430,7 +430,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure GetBasicPersonDetailsFromTestLine()
+    procedure GetBasicPersonDetailsFromInspectionLine()
     var
         User: Record User;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -507,7 +507,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with a Salesperson/Purchaser code value
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -519,9 +519,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionLine.Validate("Test Value", SalespersonPurchaser.Code);
         QltyInspectionLine.Modify();
 
-        // [WHEN] GetBasicPersonDetailsFromTestLine is called with the inspection line
+        // [WHEN] GetBasicPersonDetailsFromInspectionLine is called with the inspection line
         // [THEN] The function returns true and populates person details from the linked Salesperson/Purchaser
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(QltyInspectionLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
+        LibraryAssert.AreEqual(true, QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'there should be a match');
 
         LibraryAssert.AreEqual(SalespersonPurchaser.Name, FullName, 'FullName should have been supplied');
         LibraryAssert.AreEqual(SalespersonPurchaser."Job Title", JobTitle, 'OutJobTitle should have been set');
@@ -532,7 +532,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure GetBasicPersonDetailsFromTestLine_EmptyRecord()
+    procedure GetBasicPersonDetailsFromInspectionLine_EmptyRecord()
     var
         TempEmptyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -548,10 +548,10 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An empty inspection line record
 
-        // [WHEN] GetBasicPersonDetailsFromTestLine is called with the empty record
+        // [WHEN] GetBasicPersonDetailsFromInspectionLine is called with the empty record
         // [THEN] The function returns false and all output parameters remain empty
         Clear(TempEmptyQltyInspectionLine);
-        LibraryAssert.AreEqual(false, QltyMiscHelpers.GetBasicPersonDetailsFromTestLine(TempEmptyQltyInspectionLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'should be nothing.');
+        LibraryAssert.AreEqual(false, QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(TempEmptyQltyInspectionLine, FullName, JobTitle, Email, OutPhone, OutSourceRecord), 'should be nothing.');
 
         LibraryAssert.AreEqual('', FullName, 'FullName should have been empty');
         LibraryAssert.AreEqual('', JobTitle, 'OutJobTitle should have been empty');
@@ -887,7 +887,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1004,7 +1004,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1104,7 +1104,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1238,7 +1238,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1611,7 +1611,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure BlockTrackingTransaction_NoTests_ShouldNotPreventPosting()
+    procedure BlockTrackingTransaction_NoInspections_ShouldNotPreventPosting()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -1630,7 +1630,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LotNo: Code[20];
     begin
-        // [SCENARIO] Block tracking transaction with no tests should not prevent posting
+        // [SCENARIO] Block tracking transaction with no inspections should not prevent posting
 
         Initialize();
 
@@ -1669,7 +1669,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'Any' behavior and no tests
+        // [WHEN] Posting with 'Any' behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1695,7 +1695,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'AnyFinished' behavior and no tests
+        // [WHEN] Posting with 'AnyFinished' behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1721,7 +1721,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'HighestFinishedReinspectionNumber' behavior and no tests
+        // [WHEN] Posting with 'HighestFinishedReinspectionNumber' behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1747,7 +1747,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'HighestReinspectionNumber' behavior and no tests
+        // [WHEN] Posting with 'HighestReinspectionNumber' behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1773,7 +1773,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'MostRecentFinishedModified' behavior and no tests
+        // [WHEN] Posting with 'MostRecentFinishedModified' behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1799,10 +1799,10 @@ codeunit 139964 "Qlty. Tests - Misc."
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'MostRecentModified' behavior and no tests
+        // [WHEN] Posting with 'MostRecentModified' behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
-        // [THEN] Posting succeeds without error - all 6 behaviors allow posting when no tests exist
+        // [THEN] Posting succeeds without error - all 6 behaviors allow posting when no inspections exist
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
         ItemLedgerEntry.SetRange("Location Code", Location.Code);
         ItemLedgerEntry.SetRange("Lot No.", LotNo);
@@ -2061,7 +2061,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Prioritized inspection generation rule for Assembly Header created
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Assembly Header", QltyInspectionGenRule);
 
-        // [GIVEN] Custom inspection source configuration for Assembly Header to Test created
+        // [GIVEN] Custom inspection source configuration for Assembly Header to Inspection created
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
@@ -2137,7 +2137,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         RecordRef.GetTable(AssemblyHeader);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Reinspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
@@ -2172,7 +2172,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Modify();
 
         // [WHEN] Posting the assembly header
-        // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified test grade
+        // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified inspection grade
         EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
@@ -2244,7 +2244,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         ToLoadQltyInspectionGrade."Lot Allow Put-Away" := ToLoadQltyInspectionGrade."Lot Allow Put-Away"::Block;
         ToLoadQltyInspectionGrade.Modify();
 
-        // [GIVEN] Original test marked as finished with blocking grade
+        // [GIVEN] Original inspection marked as finished with blocking grade
         QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
@@ -2441,7 +2441,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating inventory put-away is blocked by the most recent finished modified test grade
+        // [THEN] An error is raised indicating inventory put-away is blocked by the most recent finished modified inspection grade
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
@@ -2699,7 +2699,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Original test assigned the blocking grade (most recent modified)
+        // [GIVEN] Original inspection assigned the blocking grade (most recent modified)
         QltyInspectionHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
         QltyInspectionHeader.Modify();
 
@@ -2726,7 +2726,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         WhseMovementWarehouseActivityHeader.FindFirst();
 
         // [WHEN] Registering the warehouse movement
-        // [THEN] An error is raised indicating movement is blocked by the most recent modified test grade
+        // [THEN] An error is raised indicating movement is blocked by the most recent modified inspection grade
         asserterror LibraryWarehouse.RegisterWhseActivity(WhseMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
@@ -2888,19 +2888,19 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         BindSubscription(this);
 
-        // [WHEN] The notification to assign test to yourself is triggered
+        // [WHEN] The notification to assign inspection to yourself is triggered
         QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(QltyInspectionHeader);
         UnbindSubscription(this);
 
-        // [THEN] The notification contains the correct message with test number, action options, and test record ID data
-        LibraryAssert.AreEqual(StrSubstNo(AssignToSelfExpectedMessageLbl, QltyInspectionHeader."No."), NotificationMsg, 'Notification message should match expected pattern with test number');
+        // [THEN] The notification contains the correct message with inspection number, action options, and inspection record ID data
+        LibraryAssert.AreEqual(StrSubstNo(AssignToSelfExpectedMessageLbl, QltyInspectionHeader."No."), NotificationMsg, 'Notification message should match expected pattern with inspection number');
 
         LibraryAssert.IsTrue(NotificationOptions.ContainsKey(AssignToSelfLbl), 'Notification should contain "Assign to myself" action');
         LibraryAssert.IsTrue(NotificationOptions.ContainsKey(IgnoreLbl), 'Notification should contain "Ignore" action');
 
-        LibraryAssert.AreEqual(Format(QltyInspectionHeader.RecordId), TestNotification.GetData(NotificationDataTestRecordIdTok), 'Notification should contain the correct test record ID in data');
+        LibraryAssert.AreEqual(Format(QltyInspectionHeader.RecordId()), TestNotification.GetData(NotificationDataInspectionRecordIdTok), 'Notification should contain the correct inspection record ID in data');
 
-        LibraryAssert.IsTrue(StrPos(NotificationMsg, QltyInspectionHeader."No.") > 0, 'Notification message should contain the test number');
+        LibraryAssert.IsTrue(StrPos(NotificationMsg, QltyInspectionHeader."No.") > 0, 'Notification message should contain the inspection number');
     end;
 
     [Test]
@@ -2935,15 +2935,15 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A mock notification with the test record ID is prepared
-        MockNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionHeader.RecordId));
+        // [GIVEN] A mock notification with the inspection record ID is prepared
+        MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId));
 
         // [WHEN] The assign to self notification action is handled
         IWXQltyNotificationMgmt.HandleNotificationActionAssignToSelf(MockNotification);
 
         // [THEN] The quality inspection is assigned to the current user
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
-        LibraryAssert.AreEqual(QltyInspectionHeader."Assigned User Id", UserId(), 'Test should be assigned to the current user');
+        LibraryAssert.AreEqual(QltyInspectionHeader."Assigned User Id", UserId(), 'Inspection should be assigned to the current user');
     end;
 
     [Test]
@@ -2978,14 +2978,14 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A mock notification with the test record ID is prepared
-        MockNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionHeader.RecordId()));
+        // [GIVEN] A mock notification with the inspection record ID is prepared
+        MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
 
         // [WHEN] The ignore notification action is handled
         QltyNotificationMgmt.HandleNotificationActionIgnore(MockNotification);
 
         // [THEN] The quality inspection is marked to prevent auto assignment
-        LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Test should be ignored');
+        LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Inspection should be ignored');
     end;
 
     local procedure Initialize()

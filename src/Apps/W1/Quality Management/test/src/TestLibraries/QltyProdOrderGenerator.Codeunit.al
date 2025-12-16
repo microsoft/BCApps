@@ -223,7 +223,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
 
     /// <summary>
     /// Creates a text that can be used to filter records to only those with a value in the given 
-    /// list. Useful for applying tests to only generated test data.
+    /// list. Useful for applying inspections to only generated test data.
     /// </summary>
     /// <param name="pliCodes">A list of Record No's to filter by.</param>
     /// <returns>A text of every element of the input delimited by '|'.</returns>

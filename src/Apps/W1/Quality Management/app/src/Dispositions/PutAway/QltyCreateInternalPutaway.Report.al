@@ -55,7 +55,7 @@ report 20406 "Qlty. Create Internal Put-away"
                 group(SettingsForQuantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the test itself.';
+                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
 
                     field(ChooseMoveAllInventory; MoveTracked)
                     {
@@ -108,7 +108,7 @@ report 20406 "Qlty. Create Internal Put-away"
                         {
                             ApplicationArea = All;
                             Caption = 'Quantity to Handle';
-                            ToolTip = 'Specifies the specific quantity to move. If zero the quantity defined on the test will be used.';
+                            ToolTip = 'Specifies the specific quantity to move. If zero, the quantity defined on the inspection will be used.';
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowMandatory = true;

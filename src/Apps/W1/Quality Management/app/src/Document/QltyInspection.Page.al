@@ -793,7 +793,7 @@ page 20406 "Qlty. Inspection"
                 Caption = 'Show Related Transfer Documents';
                 Image = View;
                 ApplicationArea = All;
-                ToolTip = 'Show all related transfer documents for this test.';
+                ToolTip = 'Show all related transfer documents for this inspection.';
 
                 trigger OnAction()
                 begin

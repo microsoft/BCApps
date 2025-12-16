@@ -9,7 +9,7 @@ using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// For either a field, template line, or test instance this contains a description of the criteria to meet that grade.  There should be one row per entity per grade.
+/// For either a field, template line, or inspection instance this contains a description of the criteria to meet that grade. There should be one row per entity per grade.
 /// </summary>
 table 20412 "Qlty. I. Grade Condition Conf."
 {

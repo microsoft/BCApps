@@ -77,7 +77,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
             Error(RecreateInspectionErr, QltyInspectionLine.RecordId(), QltyInspectionLine."Field Code", QltyInspectionTemplateLine.GetFilters());
 
         Value := EvaluateTextExpression(QltyInspectionTemplateLine."Expression Formula", CurrentQltyInspectionHeader, QltyInspectionLine);
-        OnEvaluateTextExpressionOnTestLine(QltyInspectionLine, CurrentQltyInspectionHeader, QltyInspectionTemplateLine, QltyInspectionTemplateLine."Expression Formula", Value);
+        OnEvaluateTextExpressionOnInspectionLine(QltyInspectionLine, CurrentQltyInspectionHeader, QltyInspectionTemplateLine, QltyInspectionTemplateLine."Expression Formula", Value);
 
         if (Value <> QltyInspectionLine."Test Value") or (QltyInspectionLine."Test Value" = '') then begin
             QltyInspectionLine.Validate("Test Value", Value);
@@ -596,7 +596,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="ExpressionInput"></param>
     /// <param name="ExpressionResultOutput"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnEvaluateTextExpressionOnTestLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; ExpressionInput: Text; var ExpressionResultOutput: Text)
+    local procedure OnEvaluateTextExpressionOnInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; ExpressionInput: Text; var ExpressionResultOutput: Text)
     begin
     end;
 

@@ -47,7 +47,7 @@ report 20411 "Qlty. Create Purchase Return"
                 group(SettingsForQuantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'The quantity of the tested item that will be returned.';
+                    InstructionalText = 'The quantity of the inspected item that will be returned.';
 
                     field(ChooseReturnTracked; ReturnTracked)
                     {
@@ -187,7 +187,7 @@ report 20411 "Qlty. Create Purchase Return"
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the test covers more than one bin.';
+                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the inspection covers more than one bin.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocation)
                     {

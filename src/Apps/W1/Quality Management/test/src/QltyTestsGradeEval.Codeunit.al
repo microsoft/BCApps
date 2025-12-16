@@ -339,7 +339,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_Decimal()
+    procedure EvaluateGrade_WithOptionalInspectionLine_Decimal()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -407,7 +407,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -459,7 +459,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_DateTime()
+    procedure EvaluateGrade_WithOptionalInspectionLine_DateTime()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -523,7 +523,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -551,7 +551,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_Date()
+    procedure EvaluateGrade_WithOptionalInspectionLine_Date()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -614,7 +614,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -642,7 +642,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_Boolean()
+    procedure EvaluateGrade_WithOptionalInspectionLine_Boolean()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -701,7 +701,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -732,7 +732,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_Label()
+    procedure EvaluateGrade_WithOptionalInspectionLine_Label()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -783,7 +783,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -807,7 +807,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_Integer()
+    procedure EvaluateGrade_WithOptionalInspectionLine_Integer()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -877,7 +877,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -917,7 +917,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_Text()
+    procedure EvaluateGrade_WithOptionalInspectionLine_Text()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         SanityCheckQltyInspectionGrade: Record "Qlty. Inspection Grade";
@@ -989,7 +989,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level grade conditions are retrieved with no blank grades
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1111,7 +1111,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field (uses reference) is retrieved
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1119,7 +1119,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         UsesReferenceQltyInspectionLine.SetRange("Field Code", UsesReferenceInPassConditionQltyField.Code);
         UsesReferenceQltyInspectionLine.FindFirst();
 
-        // [GIVEN] Test-level grade conditions are retrieved
+        // [GIVEN] Inspection-level grade conditions are retrieved
         QltyIGradeConditionConf.Reset();
         QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
         QltyIGradeConditionConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
@@ -1205,7 +1205,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
     begin
-        // [SCENARIO] Verify GetTestLineConfigFilters returns correct filters for inspection line-specific grade conditions with expression replacement
+        // [SCENARIO] Verify GetInspectionLineConfigFilters returns correct filters for inspection line-specific grade conditions with expression replacement
 
         // [GIVEN] Quality management setup is initialized with basic configuration
         QltyInspectionUtility.EnsureSetup();
@@ -1253,7 +1253,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field is retrieved with expression '1..{2+[FieldCode]}'
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1269,8 +1269,8 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         ExpectedQltyIGradeConditionConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
         ExpectedQltyIGradeConditionConf.SetRange("Field Code", UsesReferenceQltyInspectionLine."Field Code");
 
-        // [WHEN] GetTestLineConfigFilters is called to retrieve actual filters
-        QltyGradeEvaluation.GetTestLineConfigFilters(UsesReferenceQltyInspectionLine, ActualQltyIGradeConditionConf);
+        // [WHEN] GetInspectionLineConfigFilters is called to retrieve actual filters
+        QltyGradeEvaluation.GetInspectionLineConfigFilters(UsesReferenceQltyInspectionLine, ActualQltyIGradeConditionConf);
         // [THEN] Actual filters match expected filters for inspection line grade conditions
         LibraryAssert.AreEqual(ExpectedQltyIGradeConditionConf.GetView(), ActualQltyIGradeConditionConf.GetView(), 'grade condition filters should match.');
     end;
@@ -1750,7 +1750,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure ValidateAllowableValuesOnField_WithTestContext()
+    procedure ValidateAllowableValuesOnField_WithInspectionContext()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1768,7 +1768,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
     begin
-        // [SCENARIO] Validate that field default values are validated with test context, accepting valid values and rejecting invalid ones
+        // [SCENARIO] Validate that field default values are validated with Inspection context, accepting valid values and rejecting invalid ones
 
         // [GIVEN] Quality management setup is initialized with basic configuration
         QltyInspectionUtility.EnsureSetup();
@@ -1802,7 +1802,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for test context validation
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1827,7 +1827,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure EvaluateGrade_WithOptionalTestLine_OnRun()
+    procedure EvaluateGrade_WithOptionalInspectionLine_OnRun()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -1897,7 +1897,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved and grade conditions are set up
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -1942,7 +1942,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure ValidateTestLine()
+    procedure ValidateInspectionLine()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -2005,7 +2005,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for validation
         NumericMeasureQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -2013,14 +2013,14 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         NumericMeasureQltyInspectionLine.SetRange("Field Code", NumericalMeasureQltyField.Code);
         NumericMeasureQltyInspectionLine.FindFirst();
 
-        // [WHEN] ValidateTestLine is called with blank value
+        // [WHEN] ValidateQltyInspectionLine is called with blank value
         NumericMeasureQltyInspectionLine."Test Value" := '';
         NumericMeasureQltyInspectionLine.Modify();
         QltyGradeEvaluation.ValidateQltyInspectionLine(NumericMeasureQltyInspectionLine);
         // [THEN] Grade is INPROGRESS for blank value
         LibraryAssert.AreEqual('INPROGRESS', NumericMeasureQltyInspectionLine."Grade Code", 'blank value');
 
-        // [THEN] ValidateTestLineWithAllowableValues also returns INPROGRESS for blank value
+        // [THEN] ValidateInspectionLineWithAllowableValues also returns INPROGRESS for blank value
         NumericMeasureQltyInspectionLine."Test Value" := '';
         NumericMeasureQltyInspectionLine.Modify();
         QltyGradeEvaluation.ValidateInspectionLineWithAllowableValues(NumericMeasureQltyInspectionLine, QltyInspectionHeader, true, true);
@@ -2064,7 +2064,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
     end;
 
     [Test]
-    procedure ValidateTestLine_OptionList()
+    procedure ValidateInspectionLine_OptionList()
     var
         ToLoadToLoadToUseAsATemplateQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -2132,7 +2132,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyInspectionHeader.Reset();
         ClearLastError();
         QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLine, true, QltyInspectionTemplateHdr.Code);
-        QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for option field is retrieved
         OptionListQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
@@ -2140,14 +2140,14 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OptionListQltyInspectionLine.SetRange("Field Code", OptionListMeasureQltyField.Code);
         OptionListQltyInspectionLine.FindFirst();
 
-        // [WHEN] ValidateTestLine is called with blank value
+        // [WHEN] ValidateQltyInspectionLine is called with blank value
         OptionListQltyInspectionLine."Test Value" := '';
         OptionListQltyInspectionLine.Modify();
         QltyGradeEvaluation.ValidateQltyInspectionLine(OptionListQltyInspectionLine);
         // [THEN] Grade is INPROGRESS for blank value
         LibraryAssert.AreEqual('INPROGRESS', OptionListQltyInspectionLine."Grade Code", 'blank value');
 
-        // [THEN] ValidateTestLineWithAllowableValues also returns INPROGRESS for blank value
+        // [THEN] ValidateInspectionLineWithAllowableValues also returns INPROGRESS for blank value
         OptionListQltyInspectionLine."Test Value" := '';
         OptionListQltyInspectionLine.Modify();
         QltyGradeEvaluation.ValidateInspectionLineWithAllowableValues(OptionListQltyInspectionLine, QltyInspectionHeader, true, true);

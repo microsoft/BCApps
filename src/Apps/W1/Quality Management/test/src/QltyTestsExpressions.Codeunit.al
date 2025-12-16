@@ -264,7 +264,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
         // [GIVEN] Quality management setup is initialized
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A basic template and test instance are created
+        // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
         // [WHEN] Expression is evaluated with lowercase field name

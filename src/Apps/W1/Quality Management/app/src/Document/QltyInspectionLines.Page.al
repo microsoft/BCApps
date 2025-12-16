@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.AccessControl;
 
 /// <summary>
-/// Introduced to make it easier to analyze test values changes over time.
+/// Introduced to make it easier to analyze inspection values changes over time.
 /// </summary>
 page 20413 "Qlty. Inspection Lines"
 {
@@ -59,7 +59,7 @@ page 20413 "Qlty. Inspection Lines"
                 {
                     Editable = false;
                 }
-                field("NCR Test No."; Rec."NCR Test No.")
+                field("Non-Conformance Inspection No."; Rec."Non-Conformance Inspection No.")
                 {
                     Visible = false;
                 }

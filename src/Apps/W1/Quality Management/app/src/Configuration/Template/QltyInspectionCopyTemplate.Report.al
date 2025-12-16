@@ -95,7 +95,7 @@ report 20402 "Qlty. Inspection Copy Template"
                         ApplicationArea = All;
                         Enabled = not CreateFromItems;
                         Caption = 'Target Description';
-                        ToolTip = 'Specifies the description of the target template test';
+                        ToolTip = 'Specifies the description of the target template inspection';
                     }
                 }
             }

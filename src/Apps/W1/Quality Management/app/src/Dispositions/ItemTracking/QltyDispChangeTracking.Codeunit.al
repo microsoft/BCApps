@@ -21,8 +21,8 @@ using Microsoft.Warehouse.Tracking;
 codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
 {
     var
-        WarehouseJournalLineDescriptionTemplateLbl: Label 'Test [%1] changed item tracking', Comment = '%1 = Quality Inspection';
-        DescriptionTxt: Label 'Test [%1] changed item tracking', Comment = '%1 = Quality Inspection';
+        WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%1] changed item tracking', Comment = '%1 = Quality Inspection';
+        DescriptionTxt: Label 'Inspection [%1] changed item tracking', Comment = '%1 = Quality Inspection';
         NoJournalBatchErr: Label 'Cannot open the Reclassification Journal Batch. Check the Move/Reclassify batches on the Quality Management Setup page.';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclassification Journal Batch or Warehouse Reclassification Batch';
         NoTrackingChangesErr: Label 'No changes to item tracking information were provided.';

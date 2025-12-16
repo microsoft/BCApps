@@ -52,7 +52,7 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
                 ApplicationArea = QualityManagement;
                 Image = AllLines;
                 Caption = 'Show all Tracking for Item';
-                ToolTip = 'Click this to see item tracking regardless of the source document. Use this if you need to choose a lot, serial or package number that is not related to the source document you are creating the test for.';
+                ToolTip = 'Click this to see item tracking regardless of the source document. Use this if you need to choose a lot, serial or package number that is not related to the source document you are creating the inspection for.';
                 Visible = ShowQltyManagementActions;
 
                 trigger OnAction()

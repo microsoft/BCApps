@@ -59,8 +59,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ReUsedLibraryItemTracking: Codeunit "Library - Item Tracking";
-        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the test source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=test,%3=reinspection';
-        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for test %1 was requested, however the item associated with this test does not require tracking.', Comment = '%1=the test';
+        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=reinspection';
+        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         MissingAdjBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
         MissingBinReclassBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclass batch.';
         MissingReclassBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclassification Journal Batch or Warehouse Reclassification Batch';
@@ -68,10 +68,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LocationTok: Label ' Location: %1', Comment = '%1=location';
         NoTrackingChangesErr: Label 'No changes to item tracking information were provided.';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
-        RequestedInventoryMoveButUnableToFindSufficientDetailsErr: Label 'A worksheet movement for the inventory related to test %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the test has sufficient details for the item,variant,lot,and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the test';
-        RequestedBinMoveButUnableToFindSufficientDetailsErr: Label 'A bin movement for the inventory related to test %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the test has sufficient details for the location, item, variant, lot, and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the test';
-        ThereIsNothingToMoveToErr: Label 'There is no location or bin to move to. Unable to perform the inventory related transaction on the test %1. Please define the target location and bin and try again.', Locked = true, Comment = '%1=the test';
-        UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from test %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the test, %2=from location, %3=to location';
+        RequestedInventoryMoveButUnableToFindSufficientDetailsErr: Label 'A worksheet movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the item,variant,lot,and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the inspection';
+        RequestedBinMoveButUnableToFindSufficientDetailsErr: Label 'A bin movement for the inventory related to inspection %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the inspection has sufficient details for the location, item, variant, lot, and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the inspection';
+        ThereIsNothingToMoveToErr: Label 'There is no location or bin to move to. Unable to perform the inventory related transaction on the inspection %1. Please define the target location and bin and try again.', Locked = true, Comment = '%1=the inspection';
+        UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from inspection %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the inspection, %2=from location, %3=to location';
         IsInitialized: Boolean;
 
     [Test]
@@ -131,8 +131,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempTrackedPurRtnBufferPurchaseHeader);
         QltyInspectionGenRule.Delete();
 
-        // [THEN] The test assertions verify the purchase return order was created correctly
-        VerifyTestAssertions(100, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        // [THEN] The inspection assertions verify the purchase return order was created correctly
+        VerifyInspectionAssertions(100, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
     end;
 
     [Test]
@@ -200,25 +200,25 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempSamplePurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for sample quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Sample Size", QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Sample Size", QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with passed quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Passed Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempPassPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for passed quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Pass Quantity", QltyInspectionHeader, TempPassPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Pass Quantity", QltyInspectionHeader, TempPassPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with failed quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Failed Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempFailPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for failed quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Fail Quantity", QltyInspectionHeader, TempFailPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Fail Quantity", QltyInspectionHeader, TempFailPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with specific quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempSpecificPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for specific quantity is verified
-        VerifyTestAssertions(SpecificQty, QltyInspectionHeader, TempSpecificPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(SpecificQty, QltyInspectionHeader, TempSpecificPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
     end;
 
     [Test]
@@ -337,8 +337,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
 
-        // [THEN] The test assertions verify the purchase return order was created correctly for items across multiple bins
-        VerifyTestAssertions(100, QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        // [THEN] The inspection assertions verify the purchase return order was created correctly for items across multiple bins
+        VerifyInspectionAssertions(100, QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
     end;
 
     [Test]
@@ -399,7 +399,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempTrackedPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order is created correctly for serial-tracked items
-        VerifyTestAssertions(1, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(1, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition with specific quantity behavior is attempted on serial-tracked items
         asserterror QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
@@ -471,7 +471,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempTrackedPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order is created correctly for full package-tracked quantity
-        VerifyTestAssertions(100, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(100, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
     end;
 
     [Test]
@@ -545,25 +545,25 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempSamplePurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for sample quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Sample Size", QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Sample Size", QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with passed quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Passed Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempPassPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for passed quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Pass Quantity", QltyInspectionHeader, TempPassPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Pass Quantity", QltyInspectionHeader, TempPassPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with failed quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Failed Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempFailPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for failed quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Fail Quantity", QltyInspectionHeader, TempFailPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Fail Quantity", QltyInspectionHeader, TempFailPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with specific quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempSpecificPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for specific quantity is verified
-        VerifyTestAssertions(SpecificQty, QltyInspectionHeader, TempSpecificPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+        VerifyInspectionAssertions(SpecificQty, QltyInspectionHeader, TempSpecificPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
     end;
 
     [Test]
@@ -633,25 +633,25 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempSamplePurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for sample quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Sample Size", QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Sample Size", QltyInspectionHeader, TempSamplePurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with passed quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Passed Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempPassPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for passed quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Pass Quantity", QltyInspectionHeader, TempPassPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Pass Quantity", QltyInspectionHeader, TempPassPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with failed quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Failed Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempFailPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for failed quantity is verified
-        VerifyTestAssertions(QltyInspectionHeader."Fail Quantity", QltyInspectionHeader, TempFailPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
+        VerifyInspectionAssertions(QltyInspectionHeader."Fail Quantity", QltyInspectionHeader, TempFailPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition is performed with specific quantity behavior
         QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
         QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempSpecificPurRtnBufferPurchaseHeader);
         // [THEN] The purchase return order for specific quantity is verified
-        VerifyTestAssertions(SpecificQty, QltyInspectionHeader, TempSpecificPurRtnBufferPurchaseHeader, TempSpecificPurRtnBufferPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
+        VerifyInspectionAssertions(SpecificQty, QltyInspectionHeader, TempSpecificPurRtnBufferPurchaseHeader, TempSpecificPurRtnBufferPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", BasicLocation.Code, Reason);
     end;
 
     [Test]
@@ -880,7 +880,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InitialInspectionInventoryJnlItemJournalLine.SetRange(Quantity);
         InitialInspectionInventoryJnlItemJournalLine.DeleteAll();
 
-        // [GIVEN] Temporary inspection inspection header is populated with item ledger entry and location information
+        // [GIVEN] Temporary inspection header is populated with item ledger entry and location information
         TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
         TempQltyInspectionHeader."Location Code" := Location.Code;
@@ -994,7 +994,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         PickBin.SetRange("Zone Code", 'PICK');
         PickBin.FindFirst();
 
-        // [GIVEN] Lot number is generated and inspection inspection header is prepared
+        // [GIVEN] Lot number is generated and inspection header is prepared
         OriginalLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
         TempQltyInspectionHeader."No." := 'initialinventory';
         TempQltyInspectionHeader."Source Item No." := Item."No.";
@@ -1016,7 +1016,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Lot No.", OriginalLotNo);
 
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
         // [GIVEN] Warehouse journal is verified to be empty after posting initial inventory
@@ -1025,7 +1025,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseItemWarehouseJournalLine.SetFilter("Item No.", '<>''''');
         LibraryAssert.AreEqual(0, WhseItemWarehouseJournalLine.Count(), 'The warehouse journal should be empty after posting the initial inventory.');
 
-        // [GIVEN] Inspection inspection header is configured with warehouse entry source
+        // [GIVEN] Inspection header is configured with warehouse entry source
         TempQltyInspectionHeader."Source RecordId" := WarehouseEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Warehouse Entry";
         TempQltyInspectionHeader."Location Code" := AdvWhseLocation.Code;
@@ -1985,7 +1985,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InitialInspectionInventoryJnlItemJournalLine.SetRange(Quantity);
         InitialInspectionInventoryJnlItemJournalLine.DeleteAll();
 
-        // [GIVEN] Temporary inspection inspection header is populated with item ledger entry, location, and original lot number
+        // [GIVEN] Temporary inspection header is populated with item ledger entry, location, and original lot number
         TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
         TempQltyInspectionHeader."Location Code" := Location.Code;
@@ -2133,10 +2133,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Lot No.", OriginalLotNo);
 
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
-        // [GIVEN] Temporary inspection inspection header is populated with warehouse entry and tracking information
+        // [GIVEN] Temporary inspection header is populated with warehouse entry and tracking information
         TempQltyInspectionHeader."Source RecordId" := WarehouseEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Warehouse Entry";
         TempQltyInspectionHeader."Location Code" := Location.Code;
@@ -2303,7 +2303,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InitialInspectionInventoryJnlItemJournalLine.SetRange(Quantity);
         InitialInspectionInventoryJnlItemJournalLine.DeleteAll();
 
-        // [GIVEN] Temporary inspection inspection header is populated with item ledger entry and serial tracking information
+        // [GIVEN] Temporary inspection header is populated with item ledger entry and serial tracking information
         TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
         TempQltyInspectionHeader."Location Code" := Location.Code;
@@ -2448,7 +2448,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] New serial number is generated for disposition change
         NewSerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
 
-        // [GIVEN] Temporary inspection inspection header is prepared for initial inventory setup
+        // [GIVEN] Temporary inspection header is prepared for initial inventory setup
         TempQltyInspectionHeader."No." := 'initialinventory';
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         TempQltyInspectionHeader."Source Serial No." := OriginalSerialNo;
@@ -2472,18 +2472,18 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Serial No.", OriginalSerialNo);
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
-        // [GIVEN] Temporary inspection inspection header is populated with warehouse entry source record
+        // [GIVEN] Temporary inspection header is populated with warehouse entry source record
         TempQltyInspectionHeader."Source RecordId" := WarehouseEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Warehouse Entry";
 
-        // [GIVEN] Inspection inspection header is configured with location and item information
+        // [GIVEN] Inspection header is configured with location and item information
         TempQltyInspectionHeader."Location Code" := Location.Code;
         TempQltyInspectionHeader."Source Item No." := Item."No.";
 
-        // [GIVEN] Inspection inspection header is configured with original serial number
+        // [GIVEN] Inspection header is configured with original serial number
         TempQltyInspectionHeader."Source Serial No." := OriginalSerialNo;
 
         // [GIVEN] Disposition buffer is configured with location and bin filters
@@ -2660,7 +2660,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InitialInspectionInventoryJnlItemJournalLine.SetRange(Quantity);
         InitialInspectionInventoryJnlItemJournalLine.DeleteAll();
 
-        // [GIVEN] Temporary inspection inspection header is populated with item ledger entry and package tracking information
+        // [GIVEN] Temporary inspection header is populated with item ledger entry and package tracking information
         TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
         TempQltyInspectionHeader."Location Code" := Location.Code;
@@ -2807,10 +2807,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Package No.", OriginalPackageNo);
 
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
-        // [GIVEN] Temporary inspection inspection header is populated with warehouse entry and package tracking information
+        // [GIVEN] Temporary inspection header is populated with warehouse entry and package tracking information
         TempQltyInspectionHeader."Source RecordId" := WarehouseEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Warehouse Entry";
         TempQltyInspectionHeader."Location Code" := Location.Code;
@@ -3015,14 +3015,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InitialInspectionInventoryJnlItemJournalLine.SetRange(Quantity);
         InitialInspectionInventoryJnlItemJournalLine.DeleteAll();
 
-        // [GIVEN] Temporary inspection inspection header is populated with item ledger entry source record
+        // [GIVEN] Temporary inspection header is populated with item ledger entry source record
         TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
 
-        // [GIVEN] Inspection inspection header is configured with location code
+        // [GIVEN] Inspection header is configured with location code
         TempQltyInspectionHeader."Location Code" := Location.Code;
 
-        // [GIVEN] Inspection inspection header is configured with item number and original lot number
+        // [GIVEN] Inspection header is configured with item number and original lot number
         TempQltyInspectionHeader."Source Item No." := Item."No.";
         TempQltyInspectionHeader."Source Lot No." := OriginalLotNo;
 
@@ -3187,7 +3187,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Lot No.", OriginalLotNo);
 
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
         TempQltyInspectionHeader."Source RecordId" := WarehouseEntry.RecordId();
@@ -3353,10 +3353,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Lot No.", OriginalLotNo);
 
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
-        // [GIVEN] Temporary inspection inspection header is populated with warehouse entry and destination bin information
+        // [GIVEN] Temporary inspection header is populated with warehouse entry and destination bin information
         TempQltyInspectionHeader."Source RecordId" := WarehouseEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Warehouse Entry";
         TempQltyInspectionHeader."Location Code" := Location.Code;
@@ -3676,7 +3676,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InitialInspectionInventoryJnlItemJournalLine.SetRange(Quantity);
         InitialInspectionInventoryJnlItemJournalLine.DeleteAll();
 
-        // [GIVEN] Temporary inspection inspection header is populated with item ledger entry and package tracking information
+        // [GIVEN] Temporary inspection header is populated with item ledger entry and package tracking information
         TempQltyInspectionHeader."No." := 'test';
         TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
         TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
@@ -5858,7 +5858,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
-        // [SCENARIO] When performing warehouse reclassification disposition with a location filter that doesn't match the test's location, no journal entries should be created and the operation should exit gracefully
+        // [SCENARIO] When performing warehouse reclassification disposition with a location filter that doesn't match the inspection's location, no journal entries should be created and the operation should exit gracefully
 
         // [GIVEN] A directed warehouse location is configured with warehouse reclassification batch
         QltyInspectionUtility.EnsureSetup();
@@ -5895,7 +5895,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin.SetFilter(Code, '<>%1', WarehouseEntry."Bin Code");
         Bin.FindFirst();
 
-        // [GIVEN] Disposition buffer is configured with a location filter that doesn't match the test's location
+        // [GIVEN] Disposition buffer is configured with a location filter that doesn't match the inspection's location
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Warehouse Reclassification";
         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := 50;
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
@@ -5938,7 +5938,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
-        // [SCENARIO] When performing item reclassification disposition with a location filter that doesn't match the test's location, no journal entries should be created and the operation should exit gracefully
+        // [SCENARIO] When performing item reclassification disposition with a location filter that doesn't match the inspection's location, no journal entries should be created and the operation should exit gracefully
 
         // [GIVEN] A non-directed location is configured with item reclassification batch
         QltyInspectionUtility.EnsureSetup();
@@ -5976,7 +5976,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin.SetFilter(Code, '<>%1', PurchaseLine."Bin Code");
         Bin.FindFirst();
 
-        // [GIVEN] Disposition buffer is configured with a location filter that doesn't match the test's location
+        // [GIVEN] Disposition buffer is configured with a location filter that doesn't match the inspection's location
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Item Reclassification";
         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := 50;
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
@@ -7166,7 +7166,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        // [GIVEN] An internal putaway document is created for the test
+        // [GIVEN] An internal putaway document is created for the inspection
         LibraryAssert.IsTrue(QltyDispInternalPutAway.PerformDisposition(QltyInspectionHeader, 50, '', '', true, Enum::"Qlty. Quantity Behavior"::"Specific Quantity"), 'Should claim internal putaway entry created');
 
         // [WHEN] Perform disposition with warehouse putaway is called for 50 units
@@ -7221,7 +7221,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality order is created from the purchase line and cleared for testing
         RecordRef.GetTable(PurchaseLine);
         if QltyInspectionCreate.CreateInspection(RecordRef, false) then
-            QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] A disposition buffer is configured for automatic choice with specific quantity of 5 units
         TempInstructionQltyDispositionBuffer.Init();
@@ -7231,7 +7231,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := 5;
         TempInstructionQltyDispositionBuffer.Insert();
 
-        // [GIVEN] The test quality order location and quantity are cleared to test naming convention detection
+        // [GIVEN] The inspection quality order location and quantity are cleared to test naming convention detection
         QltyInspectionHeader."Location Code" := '';
         QltyInspectionHeader."Source Quantity (Base)" := 0;
         QltyInspectionHeader.Modify();
@@ -7272,14 +7272,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         exit(ReturnReason.Code);
     end;
 
-    local procedure EnsureInspectionTemplateAndRuleForPurchaseLine(var OutTestQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
+    local procedure EnsureInspectionTemplateAndRuleForPurchaseLine(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     var
         PrioritizedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        EnsureInspectionTemplateAndRuleForPurchaseLine(OutTestQltyInspectionTemplateHdr, PrioritizedQltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLine(OutQltyInspectionTemplateHdr, PrioritizedQltyInspectionGenRule);
     end;
 
-    local procedure EnsureInspectionTemplateAndRuleForPurchaseLine(var OutTestQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var PrioritizedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    local procedure EnsureInspectionTemplateAndRuleForPurchaseLine(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var PrioritizedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         QltyInspectionUtility2: Codeunit "Qlty. Inspection Utility";
@@ -7289,13 +7289,13 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         SpecificQltyInspectSourceConfig.SetRange("From Table No.", Database::"Purchase Line");
         if SpecificQltyInspectSourceConfig.IsEmpty() then
             QltyAutoConfigure.EnsureAtLeastOneSourceConfiguration(false);
-        if OutTestQltyInspectionTemplateHdr.Code = '' then
-            QltyInspectionUtility2.CreateTemplate(OutTestQltyInspectionTemplateHdr, 3);
+        if OutQltyInspectionTemplateHdr.Code = '' then
+            QltyInspectionUtility2.CreateTemplate(OutQltyInspectionTemplateHdr, 3);
 
-        QltyInspectionUtility2.CreatePrioritizedRule(OutTestQltyInspectionTemplateHdr, Database::"Purchase Line", PrioritizedQltyInspectionGenRule);
+        QltyInspectionUtility2.CreatePrioritizedRule(OutQltyInspectionTemplateHdr, Database::"Purchase Line", PrioritizedQltyInspectionGenRule);
     end;
 
-    local procedure VerifyTestAssertions(BaseQty: Decimal; QltyInspectionHeader: Record "Qlty. Inspection Header"; PurReturnPurchaseHeader: Record "Purchase Header"; PurOrderPurchaseHeader: Record "Purchase Header"; PurPurchaseLine: Record "Purchase Line"; CreditMemo: Code[35]; ItemNo: Code[20]; Location: Code[10]; Reason: Code[35])
+    local procedure VerifyInspectionAssertions(BaseQty: Decimal; QltyInspectionHeader: Record "Qlty. Inspection Header"; PurReturnPurchaseHeader: Record "Purchase Header"; PurOrderPurchaseHeader: Record "Purchase Header"; PurPurchaseLine: Record "Purchase Line"; CreditMemo: Code[35]; ItemNo: Code[20]; Location: Code[10]; Reason: Code[35])
     var
         RtnPurchaseLine: Record "Purchase Line";
         RtnReservationEntry: Record "Reservation Entry";
@@ -7322,9 +7322,9 @@ codeunit 139960 "Qlty. Tests - Dispositions"
             RtnReservationEntry.SetRange("Source Ref. No.", RtnPurchaseLine."Line No.");
             if RtnReservationEntry.FindLast() then;
             LibraryAssert.RecordCount(RtnReservationEntry, 1);
-            LibraryAssert.AreEqual(QltyInspectionHeader."Source Lot No.", RtnReservationEntry."Lot No.", 'Purchase Return lot no. does not match test lot no.');
-            LibraryAssert.AreEqual(QltyInspectionHeader."Source Serial No.", RtnReservationEntry."Serial No.", 'Purchase Return serial no. does not match test serial no.');
-            LibraryAssert.AreEqual(QltyInspectionHeader."Source Package No.", RtnReservationEntry."Package No.", 'Purchase Return package no. does not match test package no.');
+            LibraryAssert.AreEqual(QltyInspectionHeader."Source Lot No.", RtnReservationEntry."Lot No.", 'Purchase Return lot no. does not match inspection lot no.');
+            LibraryAssert.AreEqual(QltyInspectionHeader."Source Serial No.", RtnReservationEntry."Serial No.", 'Purchase Return serial no. does not match inspection serial no.');
+            LibraryAssert.AreEqual(QltyInspectionHeader."Source Package No.", RtnReservationEntry."Package No.", 'Purchase Return package no. does not match inspection package no.');
             LibraryAssert.AreEqual(RtnPurchaseLine."Quantity (Base)", (RtnReservationEntry."Quantity (Base)" * -1), 'Purchase Return tracking line quantity(base) does not match provided quantity.');
         end;
     end;

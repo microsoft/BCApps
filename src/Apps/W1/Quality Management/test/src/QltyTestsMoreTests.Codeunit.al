@@ -71,7 +71,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ThereIsNoGradeErr: Label 'There is no grade called "%1". Please add the grade, or change the existing grade conditions.', Comment = '%1=the grade';
         ReviewGradesErr: Label 'Advanced configuration required. Please review the grade configurations for field "%1", for grade "%2".', Comment = '%1=the field, %2=the grade';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.', Locked = true;
-        FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of tests. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
+        FilterMandatoryErr: Label 'It is mandatory that an inspection generation rule have at least one filter defined to help prevent inadvertent over-generation of inspections. Navigate to the Quality Inspection Generation Rules and make sure at least one filter is set for each rule that matches the %1 schedule group.', Comment = '%1=the schedule group';
         ConditionFilterItemNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
         ConditionFilterAttributeTok: Label '"%1"=Filter(%2)', Comment = '%1 = Attribute Name, %2 = Attribute Value', Locked = true;
         UnableToFindRecordErr: Label 'Unable to show inspections with the supplied record. [%1]', Comment = '%1=the record being supplied.';
@@ -80,8 +80,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
         ExpressionFormulaFieldCodeTok: Label '[%1]', Comment = '%1=The first field code', Locked = true;
-        TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the test. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
-        CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is an inspection';
+        TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
+        CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
@@ -1477,7 +1477,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure Table_GetRelatedItem_NoSourceItemNoOnTest()
+    procedure Table_GetRelatedItem_NoSourceItemNoOnInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -1885,7 +1885,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure LineTable_UpdateExpressionsInOtherTestLines_TextExpression()
+    procedure LineTable_UpdateExpressionsInOtherInspectionLines_TextExpression()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
@@ -1974,7 +1974,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
         SpecificQltyInspectSourceConfig.Validate(Code, CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code)));
 
-        // [WHEN] To Type is validated and set to Test
+        // [WHEN] To Type is validated and set to Inspection
         SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Inspection);
 
         // [THEN] To Table No. is automatically set to the Qlty. Inspection Header table
@@ -2191,14 +2191,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetup();
 
-        // [GIVEN] A new source configuration with To Type = Test is created
+        // [GIVEN] A new source configuration with To Type = Inspection is created
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Validate("To Type", SpecificQltyInspectSourceConfig."To Type"::Inspection);
         SpecificQltyInspectSourceConfig.Insert(true);
 
-        // [GIVEN] A source field configuration line is initialized with To Type = Test
+        // [GIVEN] A source field configuration line is initialized with To Type = Inspection
         SpecificQltyInspectSrcFldConf.Init();
         SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
         SpecificQltyInspectSrcFldConf."Line No." := 10000;
@@ -2221,7 +2221,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     begin
         // [SCENARIO] Validating To Type throws error when mismatched with parent configuration
 
-        // [GIVEN] A new source configuration with To Type = Test is created
+        // [GIVEN] A new source configuration with To Type = Inspection is created
         SpecificQltyInspectSourceConfig.Init();
         QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
@@ -2241,13 +2241,13 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure SourceConfigLineTable_ValidateDisplayAs_NotToTest_ShouldError()
+    procedure SourceConfigLineTable_ValidateDisplayAs_NotToInspection_ShouldError()
     var
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         SourceConfigCode: Text;
     begin
-        // [SCENARIO] Validating Display As throws error when To Type is not Test
+        // [SCENARIO] Validating Display As throws error when To Type is not Inspection
 
         // [GIVEN] A new source configuration with To Type = "Chained table" is created
         SpecificQltyInspectSourceConfig.Init();
@@ -2265,8 +2265,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [WHEN] Attempting to validate Display As field
         asserterror SpecificQltyInspectSrcFldConf.Validate("Display As", 'test');
 
-        // [THEN] An error is thrown indicating Display As can only be set when To Type is Test
-        LibraryAssert.ExpectedError(CanOnlyBeSetWhenToTypeIsTestErr);
+        // [THEN] An error is thrown indicating Display As can only be set when To Type is Inspection
+        LibraryAssert.ExpectedError(CanOnlyBeSetWhenToTypeIsInspectionErr);
     end;
 
     // Test disabled due to inconsistent behavior across environments

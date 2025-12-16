@@ -64,13 +64,13 @@ codeunit 20438 "Qlty. - Warehouse Integration"
             repeat
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasInspection := true;
-                    QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                    QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 end;
             until TempTrackingSpecification.Next() = 0
         else
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                 HasInspection := true;
-                QltyInspectionCreate.GetCreatedTest(QltyInspectionHeader);
+                QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
             end;
 
         OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);

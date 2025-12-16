@@ -57,7 +57,7 @@ table 20405 "Qlty. Inspection Header"
             Caption = 'Template Code';
             NotBlank = true;
             TableRelation = "Qlty. Inspection Template Hdr.";
-            ToolTip = 'Specifies which template this test was created from.';
+            ToolTip = 'Specifies which template this inspection was created from.';
 
             trigger OnValidate()
             begin
@@ -319,7 +319,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Status';
             Editable = false;
-            ToolTip = 'Specifies the status of the test. No additional changes can be made to a finished Quality Inspection.';
+            ToolTip = 'Specifies the status of the inspection. No additional changes can be made to a finished Quality Inspection.';
 
             trigger OnValidate()
             var
@@ -329,19 +329,19 @@ table 20405 "Qlty. Inspection Header"
                 if Rec.Status = Rec.Status::Finished then begin
                     if QltyInspectionGrade.Get(Rec."Grade Code") then
                         if QltyInspectionGrade."Finish Allowed" <> QltyInspectionGrade."Finish Allowed"::"Allow Finish" then
-                            Error(CannotFinishTestBecauseTheTestIsInGradeErr, Rec."No.", QltyInspectionGrade.Code);
+                            Error(CannotFinishInspectionBecauseTheInspectionIsInGradeErr, Rec."No.", QltyInspectionGrade.Code);
 
                     Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
                     Rec."Finished Date" := CurrentDateTime();
                     if Rec.Modify(false) then;
                     OnInspectionFinished(Rec);
 
-                    QltyStartWorkflow.StartWorkflowTestFinished(Rec);
+                    QltyStartWorkflow.StartWorkflowInspectionFinished(Rec);
                 end else
                     if (xRec.Status = xRec.Status::Finished) and (Rec.Status = Rec.Status::Open) then begin
                         if Rec.Modify(false) then;
                         OnInspectionReopen(Rec);
-                        QltyStartWorkflow.StartWorkflowTestReopens(Rec);
+                        QltyStartWorkflow.StartWorkflowInspectionReopens(Rec);
                     end
             end;
         }
@@ -414,7 +414,7 @@ table 20405 "Qlty. Inspection Header"
                     CanChangeAssignmentWithoutPermission := QltyPermissionMgmt.CanChangeOtherInspections();
 
                 if not CanChangeAssignmentWithoutPermission then
-                    Error(YouCannotChangeTheAssignmentOfTheTestErr, UserId(), Rec."No.", Rec."Reinspection No.");
+                    Error(YouCannotChangeTheAssignmentOfTheInspectionErr, UserId(), Rec."No.", Rec."Reinspection No.");
             end;
         }
         field(52; "Grade Code"; Code[20])
@@ -614,39 +614,39 @@ table 20405 "Qlty. Inspection Header"
         IsChangingStatus: Boolean;
 
     var
-        TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished test. %1-%2 is finished. Reopen this test to change the tracking.', Comment = '%1=Quality Inspection No., %2=Reinspection no.';
-        SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the test %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this test to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the test, %3=the source quantity';
-        YouCannotChangeTheAssignmentOfTheTestErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the test no, %3=the reinspection';
-        UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the test [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the test, %3=the count.';
+        TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Reinspection no.';
+        SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
+        YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the reinspection';
+        UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
         PleaseConfigureNumberSeriesErr: Label 'Please configure a number series for the Quality Inspection Nos. field on the Quality Management Setup page, or set up a number series on the Quality Inspection Template.';
-        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the test. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
+        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
         ItemInsufficientPostedErr: Label 'The item [%1] is %2 tracked and requires posted inventory before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
         ItemInsufficientPostedOrUnpostedErr: Label 'The item [%1] is %2 tracked and requires either posted inventory or a reservation entry for it before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
         SerialLbl: Label 'serial', Locked = true;
         LotLbl: Label 'lot', Locked = true;
         PackageLbl: Label 'package', Locked = true;
-        ReopenTestQst: Label 'Are you sure you want to Reopen the test %1 on %2?', Comment = '%1=the test details, %2=the source details.';
-        MoreRecentReinspectionErr: Label 'This test cannot be Reopened because there is a more recent Reinspection. Please work with the most recent Reinspection instead.';
+        ReopenInspectionQst: Label 'Are you sure you want to Reopen the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
+        MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Reinspection. Please work with the most recent Reinspection instead.';
         CreateReinspectionQst: Label 'Are you sure you want to create a Reinspection?';
-        FinishBeforeReinspectionErr: Label 'A test must be finished before a Reinspection can be made. This is done automatically, but you do not have permission to finish an inspection. Ask your administrator to add the ability to finish an inspection in the Quality Inspection Permissions page.';
+        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Reinspection can be made. This is done automatically, but you do not have permission to finish an inspection. Ask your administrator to add the ability to finish an inspection in the Quality Inspection Permissions page.';
         PictureNameTok: Label '%1_%2_%3', Locked = true;
         FileExtensionTok: Label 'jpeg', Locked = true;
         CameraNotAvailableErr: Label 'The camera is not available. Make sure to use this with a device that has a camera supported by Business Central.';
         UnableToSavePictureErr: Label 'Unable to take or save a picture. Make sure to use this with a device that has a camera supported by Business Central.';
-        UnableToFindRecordErr: Label 'Unable to show tests with the supplied record. [%1]', Comment = '%1=the record being supplied.';
+        UnableToFindRecordErr: Label 'Unable to show inspections with the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheItemErr: Label 'Unable to identify the item for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheTrackingErr: Label 'Unable to identify the tracking for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         UnableToIdentifyTheDocumentErr: Label 'Unable to identify the document for the supplied record. [%1]', Comment = '%1=the record being supplied.';
         ThereIsNoAttributeByTheNameOfNoItemErr: Label 'There is no item attribute by the name of [%1]', Comment = '%1=the name of the item attribute';
         KeyIsCreatingTok: Label 'IsCreating-%1', Locked = true, Comment = '%1=the record';
-        AreYouSureFinishTestQst: Label 'Are you sure you want to Finish the test %1 on %2?', Comment = '%1=the test details, %2=the source details.';
+        AreYouSureFinishInspectionQst: Label 'Are you sure you want to Finish the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
         AutoAssignmentDecisionTok: Label 'PreventAutoAssign-%1', Locked = true, Comment = '%1=the record id to prevent auto assignment on';
-        TestLbl: Label '%1,%2', Comment = '%1=the test no., %2=the reinspection no.';
-        NoItemErr: Label 'There is no source item specified for test %1-%2', Comment = '%1=the item, %2=the reinspection.';
+        InspectionLbl: Label '%1,%2', Comment = '%1=the inspection no., %2=the reinspection no.';
+        NoItemErr: Label 'There is no source item specified for inspection %1-%2', Comment = '%1=the item, %2=the reinspection.';
         NotSerialTrackedErr: Label 'The item %1 does not appear to be serial tracked.', Comment = '%1=the item';
         NotLotTrackedErr: Label 'The item %1 does not appear to be lot tracked.', Comment = '%1=the item';
         NotPackageTrackedErr: Label 'The item %1 does not appear to be package tracked.', Comment = '%1=the item';
-        CannotFinishTestBecauseTheTestIsInGradeErr: Label 'Cannot finish the test %1 because the test currently has the grade %2, which is configured to disallow finishing.', Comment = '%1=the test, %2=the grade code.';
+        CannotFinishInspectionBecauseTheInspectionIsInGradeErr: Label 'Cannot finish the inspection %1 because the inspection currently has the grade %2, which is configured to disallow finishing.', Comment = '%1=the inspection, %2=the grade code.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
@@ -703,8 +703,8 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Use this to invoke the assist-edit for the given measurement field on the test.
-    /// This presumes that the given measurement field is only used once on the test.
+    /// Use this to invoke the assist-edit for the given measurement field on the inspection.
+    /// This presumes that the given measurement field is only used once on the inspection.
     /// </summary>
     /// <param name="NumberOrNameOfFieldCode"></param>
     procedure AssistEditTestField(NumberOrNameOfFieldCode: Text)
@@ -832,7 +832,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Simple flag to let us know whether we are in-progress of creating this test.
+    /// Simple flag to let us know whether we are in-progress of creating this inspection.
     /// Decision decision: because we're passing this around as a recordref everywhere and we need that flag, we're storing in the session state instead.
     /// </summary>
     /// <param name="IsCreating"></param>
@@ -884,7 +884,7 @@ table 20405 "Qlty. Inspection Header"
 
         if Rec.Status = Rec.Status::Finished then begin
             if GuiAllowed() then
-                Proceed := Confirm(StrSubstNo(ReopenTestQst, Rec.GetFriendlyIdentifier(), QltyNotificationMgmt.GetSourceSummaryText(Rec)))
+                Proceed := Confirm(StrSubstNo(ReopenInspectionQst, Rec.GetFriendlyIdentifier(), QltyNotificationMgmt.GetSourceSummaryText(Rec)))
             else
                 Proceed := true;
 
@@ -927,7 +927,7 @@ table 20405 "Qlty. Inspection Header"
 
         if Rec.Status = Rec.Status::Open then begin
             if GuiAllowed() and ShowConfirmationIfInteractive then
-                Proceed := Confirm(StrSubstNo(AreYouSureFinishTestQst, Rec.GetFriendlyIdentifier(), QltyNotificationMgmt.GetSourceSummaryText(Rec)))
+                Proceed := Confirm(StrSubstNo(AreYouSureFinishInspectionQst, Rec.GetFriendlyIdentifier(), QltyNotificationMgmt.GetSourceSummaryText(Rec)))
             else
                 Proceed := true;
 
@@ -1079,7 +1079,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Returns true if there is a more recent Reinspection than the current test.
+    /// Returns true if there is a more recent Reinspection than the current inspection.
     /// </summary>
     /// <returns></returns>
     procedure HasMoreRecentReinspection(): Boolean
@@ -1099,7 +1099,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// If this test is associated with an item that requires item tracking of any type.
+    /// If this inspection is associated with an item that requires item tracking of any type.
     /// </summary>
     /// <returns></returns>
     internal procedure IsItemTrackingUsed(var TempItemTrackingSetup: Record "Item Tracking Setup" temporary): Boolean
@@ -1394,7 +1394,7 @@ table 20405 "Qlty. Inspection Header"
         DocumentAttachment: Record "Document Attachment";
 
         DocumentServiceManagement: Codeunit "Document Service Management";
-        RecordRefToTest: RecordRef;
+        RecordRefToInspection: RecordRef;
         FullFileNameWithExtension: Text;
         Handled: Boolean;
     begin
@@ -1414,9 +1414,9 @@ table 20405 "Qlty. Inspection Header"
 
         QltyManagementSetup.Get();
         if QltyManagementSetup."Picture Upload Behavior" in [QltyManagementSetup."Picture Upload Behavior"::"Attach document", QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive"] then begin
-            RecordRefToTest.GetTable(Rec);
-            DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToTest, FullFileNameWithExtension);
-            RecordRefToTest.Modify(true);
+            RecordRefToInspection.GetTable(Rec);
+            DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToInspection, FullFileNameWithExtension);
+            RecordRefToInspection.Modify(true);
         end;
 
         if QltyManagementSetup."Picture Upload Behavior" = QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive" then
@@ -1427,7 +1427,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Sets record filters based on the supplied variant and flags on whether it should be finding related tests for the item, document, or something else.
+    /// Sets record filters based on the supplied variant and flags on whether it should be finding related inspections for the item, document, or something else.
     /// </summary>
     /// <param name="ErrorIfMissingFilter"></param>
     /// <param name="RecordVariant"></param>
@@ -1482,7 +1482,7 @@ table 20405 "Qlty. Inspection Header"
         OnAfterSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
     end;
 
-    procedure GetMostRecentTestFor(RecordVariant: Variant) Success: Boolean
+    procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
     begin
         Rec.SetRecordFiltersToFindInspectionFor(false, RecordVariant, true, true, true);
         Rec.SetCurrentKey("No.", "Reinspection No.");
@@ -1574,7 +1574,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Use SetPreventAutoAssignment to set whether or not we should prevent auto-assignment for this test
+    /// Use SetPreventAutoAssignment to set whether or not we should prevent auto-assignment for this inspection
     /// </summary>
     /// <param name="ShouldPrevent"></param>
     procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
@@ -1688,17 +1688,17 @@ table 20405 "Qlty. Inspection Header"
     var
         QltyRelatedTransferOrders: Page "Qlty. Related Transfer Orders";
     begin
-        QltyRelatedTransferOrders.InitializeWithTest(Rec);
+        QltyRelatedTransferOrders.InitializeWithInspection(Rec);
         QltyRelatedTransferOrders.RunModal();
     end;
 
     /// <summary>
-    /// Returns the Test No. and Reinspection No. (if not 0) in the format No.,Reinspection No.
+    /// Returns the Inspection No. and Reinspection No. (if not 0) in the format No.,Reinspection No.
     /// </summary>
     /// <returns>Text of No.,Reinspection No.</returns>
     procedure GetFriendlyIdentifier(): Text
     begin
-        exit((Rec."Reinspection No." = 0) ? Rec."No." : StrSubstNo(TestLbl, Rec."No.", Rec."Reinspection No."));
+        exit((Rec."Reinspection No." = 0) ? Rec."No." : StrSubstNo(InspectionLbl, Rec."No.", Rec."Reinspection No."));
     end;
 
     local procedure VerifyPassAndFailQuantities()
@@ -1727,7 +1727,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Use to supplement existing behavior of finding related tests.
+    /// Use to supplement existing behavior of finding related inspections.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="ErrorIfMissingFilter"></param>
@@ -1741,7 +1741,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Triggers when the test has finished.
+    /// Triggers when the inspection has finished.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     [IntegrationEvent(false, false)]
@@ -1759,7 +1759,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// OnBeforeReopenTest is called before an inspection is Reopened.
+    /// OnBeforeReopenInspection is called before an inspection is Reopened.
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
@@ -1769,7 +1769,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// OnBeforeFinishTest is called before an inspection is finished.
+    /// OnBeforeFinishInspection is called before an inspection is finished.
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
@@ -1851,7 +1851,7 @@ table 20405 "Qlty. Inspection Header"
 
     /// <summary>
     /// This is called when the Quality Inspection header is being updated automatically based on the inspection lines.
-    /// Use this to optionally alter the filters on the inspection line before the test has been found.
+    /// Use this to optionally alter the filters on the inspection line before the inspection has been found.
     /// This can be used to influence how the inspection header automatically changes.
     /// You can also avoid the inspection header changing by implementing this and just setting Handled to 'true'
     /// causing it to exit immediately.

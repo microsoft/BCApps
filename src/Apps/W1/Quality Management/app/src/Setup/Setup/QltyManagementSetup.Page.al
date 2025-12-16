@@ -23,7 +23,7 @@ page 20400 "Qlty. Management Setup"
     UsageCategory = Administration;
     ApplicationArea = All;
     AboutTitle = 'Setup';
-    AboutText = 'This setup page will let you define the behavior of how and when tests are created.';
+    AboutText = 'This setup page will let you define the behavior of how and when inspections are created.';
 
     layout
     {
@@ -59,15 +59,15 @@ page 20400 "Qlty. Management Setup"
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Find Existing Test Behavior';
+                        AboutTitle = 'Find Existing Inspection Behavior';
                         AboutText = 'When looking for existing inspections, this defines what it looks for.';
                     }
                     field("Conditional Lot Find Behavior"; Rec."Conditional Lot Find Behavior")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Which tests to inspect when analyzing document specific lot blocking.';
-                        AboutText = 'When evaluating if a document specific transactions are blocked, this determines which test(s) are considered.';
+                        AboutTitle = 'Which inspections to inspect when analyzing document specific lot blocking.';
+                        AboutText = 'When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.';
                     }
                 }
                 group(SettingsForMiscellaneous)
@@ -90,17 +90,17 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance. A larger number will reduce performance and reduce usability.';
 
                     }
-                    group(SettingsForExplainShowTest)
+                    group(SettingsForExplainShowInspection)
                     {
-                        Caption = 'Show Test';
-                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created tests immediately to the user, however for production scenarios in most circumstances automatically created tests will end up in a queue or dispatch for quality inspectors. Value "Only manually created inspections" will let you see tests created manually with a button, and will just let automatically created tests be created without showing it.';
+                        Caption = 'Show Inspection';
+                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created inspections immediately to the user, however for production scenarios in most circumstances automatically created inspections will end up in a queue or dispatch for quality inspectors. Value "Only manually created inspections" will let you see inspections created manually with a button, and will just let automatically created inspections be created without showing it.';
                         field("Show Inspection Behavior"; Rec."Show Inspection Behavior")
                         {
                             ApplicationArea = All;
-                            Caption = 'Show Test';
+                            Caption = 'Show Inspection';
                             ShowCaption = true;
                             Importance = Promoted;
-                            AboutTitle = 'When To Show Tests';
+                            AboutTitle = 'When To Show Inspections';
                             AboutText = 'Whether to show the Quality Inspection page after an inspection has been made.';
                         }
                     }
@@ -180,7 +180,7 @@ page 20400 "Qlty. Management Setup"
                         Importance = Additional;
                         Visible = false;
                         AboutTitle = 'When to update on receiving related changes.';
-                        AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the test.';
+                        AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
                     }
                 }
             }
@@ -242,7 +242,7 @@ page 20400 "Qlty. Management Setup"
                         Importance = Additional;
                         Visible = false;
                         AboutTitle = 'When to update on production related changes.';
-                        AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
+                        AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
                     }
                 }
             }
@@ -347,12 +347,12 @@ page 20400 "Qlty. Management Setup"
                 group(SettingsForTrackingInstruction1)
                 {
                     Caption = 'Allow Missing Item Tracking';
-                    InstructionalText = 'Use this if you do not use lot or serial numbers, or if you use them but have processes that will have tests that will not have known lot or serial numbers. For example if you have tests created in production that prevents the product from being produced then there may not be a lot/serial. Tests with no lot/serial will be permitted.';
+                    InstructionalText = 'Use this if you do not use lot or serial numbers, or if you use them but have processes that will have inspections that will not have known lot or serial numbers. For example if you have inspections created in production that prevents the product from being produced then there may not be a lot/serial. Inspections with no lot/serial will be permitted.';
                 }
                 group(SettingsForTrackingInstruction2)
                 {
                     Caption = 'Posted Item Tracking Only';
-                    InstructionalText = 'Use this if all lot/serial numbers must be posted in the system before an inspection can be finished. For example if you are doing tests on finished goods then the lot/serial should exist, or if you are doing tests when lots are moved to a bin then the lot/serial must exist.';
+                    InstructionalText = 'Use this if all lot/serial numbers must be posted in the system before an inspection can be finished. For example if you are doing inspections on finished goods then the lot/serial should exist, or if you are doing inspections when lots are moved to a bin then the lot/serial must exist.';
                 }
                 group(SettingsForTrackingInstruction3)
                 {
@@ -362,13 +362,13 @@ page 20400 "Qlty. Management Setup"
                 group(SettingsForTrackingInstruction4)
                 {
                     Caption = 'Any Non Empty Value';
-                    InstructionalText = 'Use this if you want to track lot/serial numbers that do not enter the system but need tests to document why they did not enter the system. For example if you reject a lot during the receiving process and a failed lot is never put-away. Alternatively if you are producing and know the intended lot/serial but the in-progress item is discarded before it is posted to inventory. Tests with lot/serials that are not in your inventory will be permitted.';
+                    InstructionalText = 'Use this if you want to track lot/serial numbers that do not enter the system but need inspections to document why they did not enter the system. For example if you reject a lot during the receiving process and a failed lot is never put-away. Alternatively if you are producing and know the intended lot/serial but the in-progress item is discarded before it is posted to inventory. Inspections with lot/serials that are not in your inventory will be permitted.';
                 }
             }
             group(SettingsForMobileAndBricks)
             {
                 Caption = 'Personal Device Interface';
-                InstructionalText = 'Use this section to configure the available fields when looking at tests on a mobile interface. Additional information about layout can be found here: https://learn.microsoft.com/en-us/dynamics-nav/how-to--display-data-as-bricks';
+                InstructionalText = 'Use this section to configure the available fields when looking at inspections on a mobile interface. Additional information about layout can be found here: https://learn.microsoft.com/en-us/dynamics-nav/how-to--display-data-as-bricks';
 
                 field("Brick Top Left Header"; Rec."Brick Top Left Header")
                 {
@@ -480,7 +480,7 @@ page 20400 "Qlty. Management Setup"
             action(Templates)
             {
                 ApplicationArea = All;
-                Caption = 'Test Inspections';
+                Caption = 'Inspection Templates';
                 ToolTip = 'View a list of Quality Inspection Templates. A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
                 Image = TaskQualityMeasure;
                 AboutTitle = 'Quality Inspection Template';

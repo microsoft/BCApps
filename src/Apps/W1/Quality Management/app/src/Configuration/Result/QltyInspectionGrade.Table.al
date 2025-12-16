@@ -234,8 +234,8 @@ table 20411 "Qlty. Inspection Grade"
         QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         RowStyleOptionsTok: Label 'None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate', Locked = true;
-        CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
-        PromptFirstExistingTestQst: Label 'This grade, although not set on an inspection, is available to previous inspections. Are you sure you want to remove this grade? This cannot be undone.';
+        CannotBeRemovedExistingInspectionErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
+        PromptFirstExistingInspectionQst: Label 'This grade, although not set on an inspection, is available to previous inspections. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This grade is currently defined on some Quality Inspection Templates. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingFieldQst: Label 'This grade is currently defined on some fields. Are you sure you want to remove this grade? This cannot be undone.';
         DefaultGradeInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
@@ -278,16 +278,16 @@ table 20411 "Qlty. Inspection Grade"
 
         QltyInspectionLine.SetRange("Grade Code", Rec.Code);
         if not QltyInspectionLine.IsEmpty() then
-            Error(CannotBeRemovedExistingTestErr);
+            Error(CannotBeRemovedExistingInspectionErr);
 
         QltyInspectionHeader.SetRange("Grade Code", Rec.Code);
         if not QltyInspectionHeader.IsEmpty() then
-            Error(CannotBeRemovedExistingTestErr);
+            Error(CannotBeRemovedExistingInspectionErr);
 
         QltyIGradeConditionConf.SetRange("Condition Type", QltyIGradeConditionConf."Condition Type"::Inspection);
         QltyIGradeConditionConf.SetRange("Grade Code", Rec.Code);
         if not QltyIGradeConditionConf.IsEmpty() then
-            if not Confirm(PromptFirstExistingTestQst) then
+            if not Confirm(PromptFirstExistingInspectionQst) then
                 Error('');
 
         QltyIGradeConditionConf.Reset();

@@ -204,7 +204,7 @@ codeunit 139951 "Qlty. Pur. Order Generator"
         CreatePurchaseOrder(PurchaseQuantity, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseLine);
         if QltyInspectionCreate.CreateInspection(RecordRef, false) then
-            QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
     end;
 
     /// <summary>
@@ -240,6 +240,6 @@ codeunit 139951 "Qlty. Pur. Order Generator"
         RecordRef.GetTable(PurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(OutReservationEntry);
         if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionCreate.GetCreatedTest(OutQltyInspectionHeader);
+            QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
     end;
 }

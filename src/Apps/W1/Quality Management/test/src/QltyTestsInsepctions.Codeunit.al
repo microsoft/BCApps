@@ -41,7 +41,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         IsInitialized: Boolean;
 
     [Test]
-    procedure HandleOnBeforeInsertAttachment_Test()
+    procedure HandleOnBeforeInsertAttachment_Inspection()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         DocumentAttachment: Record "Document Attachment";
@@ -142,7 +142,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
     end;
 
     [Test]
-    procedure HandleOnBeforeInsertAttachment_TestLine()
+    procedure HandleOnBeforeInsertAttachment_InspectionLine()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
@@ -223,7 +223,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
 
     [Test]
     [HandlerFunctions('DocumentAttachmentDetailsModalPageHandler')]
-    procedure HandleOnAfterOpenForRecRef_Test()
+    procedure HandleOnAfterOpenForRecRef_Inspection()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         SecondQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -412,7 +412,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
     end;
 
     [Test]
-    procedure FilterDocumentAttachment_TestLine()
+    procedure FilterDocumentAttachment_InspectionLine()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
@@ -540,7 +540,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure HandleOnAfterShowRecords_MultipleTests()
+    procedure HandleOnAfterShowRecords_MultipleInspections()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -667,7 +667,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
     end;
 
     [Test]
-    procedure GetConditionalListPageID_Test()
+    procedure GetConditionalListPageID_Inspection()
     var
         PageManagement: Codeunit "Page Management";
         RecordRef: RecordRef;

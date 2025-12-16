@@ -212,7 +212,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// - For other tables: uses only the specified lookup field
     /// - Applies maximum row limit from setup to prevent excessive data retrieval
     /// 
-    /// Common usage: Populating dropdown lists in inspection inspection lines with context-aware options.
+    /// Common usage: Populating dropdown lists in inspection lines with context-aware options.
     /// </summary>
     /// <param name="QltyField">The quality field configuration defining lookup table and filters</param>
     /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation</param>
@@ -494,7 +494,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     end;
 
     /// <summary>
-    /// Extracts person contact details from an inspection inspection line if it references a person-related record.
+    /// Extracts person contact details from an inspection line if it references a person-related record.
     /// Validates that the inspection line is a table lookup type referencing a supported person table before retrieval.
     /// 
     /// Supported person tables (validated via Field configuration):
@@ -508,14 +508,14 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// 
     /// Common usage: Displaying inspector/approver details in test forms and reports.
     /// </summary>
-    /// <param name="QltyInspectionLine">The inspection inspection line containing the person reference</param>
+    /// <param name="QltyInspectionLine">The inspection line containing the person reference</param>
     /// <param name="FullName">Output: The person's full name</param>
     /// <param name="JobTitle">Output: The person's job title</param>
     /// <param name="EmailAddress">Output: The person's email address</param>
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source person record</param>
     /// <returns>True if inspection line references a person and details were retrieved; False otherwise</returns>
-    procedure GetBasicPersonDetailsFromTestLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
+    procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
         QltyField: Record "Qlty. Field";
     begin
