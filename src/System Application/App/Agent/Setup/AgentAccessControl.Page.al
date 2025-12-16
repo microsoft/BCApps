@@ -41,19 +41,50 @@ page 4320 "Agent Access Control"
                     ToolTip = 'Specifies the Full Name of the User that can access the agent.';
                     Editable = false;
                 }
+                field(Company; Rec."Company Name")
+                {
+                    Caption = 'Company';
+                    ToolTip = 'Specifies the company in which the user has access to the agent.';
+                    Visible = ShowCompanyField;
+                }
                 field(CanConfigureAgent; Rec."Can Configure Agent")
                 {
                     Caption = 'Can Configure';
                     Tooltip = 'Specifies whether the user can configure the agent.';
 
                     trigger OnValidate()
-                    var
-                        AgentImpl: Codeunit "Agent Impl.";
                     begin
                         if not Rec."Can Configure Agent" then
                             AgentImpl.VerifyOwnerExists(Rec);
                     end;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(AgentShowHideCompany)
+            {
+                ApplicationArea = All;
+                Caption = 'Show/hide company';
+                Image = CompanyInformation;
+                ToolTip = 'Show or hide the company name.';
+
+                trigger OnAction()
+                begin
+                    if (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
+                        // A confirmation dialog is raised when the user shows the company field
+                        // for an agent that operates in a single company.
+                        if not Confirm(ShowSingleCompanyQst, false) then
+                            exit;
+
+                    ShowCompanyFieldOverride := true;
+                    ShowCompanyField := not ShowCompanyField;
+                    CurrPage.Update(false);
+                end;
             }
         }
     }
@@ -65,24 +96,36 @@ page 4320 "Agent Access Control"
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
     end;
 
-    trigger OnAfterGetRecord()
+    trigger OnAfterGetRecord() // Same
     begin
         UpdateGlobalVariables();
     end;
 
-    trigger OnAfterGetCurrRecord()
+    trigger OnAfterGetCurrRecord() // Same
     begin
         UpdateGlobalVariables();
     end;
 
-    trigger OnDeleteRecord(): Boolean
-    var
-        AgentImpl: Codeunit "Agent Impl.";
+    trigger OnDeleteRecord(): Boolean // Similar, because this is not temp table
     begin
         AgentImpl.VerifyOwnerExists(Rec);
     end;
 
-    local procedure ValidateUserName(NewUserName: Text)
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean // Same
+    begin
+        if (Rec."Company Name" = '') and not ShowCompanyField then
+            // If the company field is not displayed, default to the current company.
+            // If the user is displaying the company field, respect what they entered.
+            Rec."Company Name" := CompanyName();
+
+        if (GlobalSingleCompanyName <> '') and (Rec."Company Name" <> GlobalSingleCompanyName) then
+            // The agent used to operate in a single company, but operates in multiple ones now.
+            // Ideally, other scenarios should also trigger an update (delete, modify), but insert
+            // was identified as the main one.
+            GlobalSingleCompanyName := '';
+    end;
+
+    local procedure ValidateUserName(NewUserName: Text) // Same
     var
         User: Record "User";
         UserGuid: Guid;
@@ -104,7 +147,7 @@ page 4320 "Agent Access Control"
         UpdateGlobalVariables();
     end;
 
-    local procedure UpdateUser(NewUserID: Guid)
+    local procedure UpdateUser(NewUserID: Guid)// Similar, because this is not temp table
     var
         RecordExists: Boolean;
     begin
@@ -117,7 +160,7 @@ page 4320 "Agent Access Control"
         Rec.Insert(true);
     end;
 
-    local procedure UpdateGlobalVariables()
+    local procedure UpdateGlobalVariables() // Same 
     var
         User: Record "User";
     begin
@@ -132,10 +175,19 @@ page 4320 "Agent Access Control"
 
         UserName := User."User Name";
         UserFullName := User."Full Name";
+
+        if not ShowCompanyFieldOverride then begin
+            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."Agent User Security ID", GlobalSingleCompanyName);
+            CurrPage.Update(false);
+        end;
     end;
 
     var
+        AgentImpl: Codeunit "Agent Impl.";
         UserFullName: Text[80];
         UserName: Code[50];
+        ShowCompanyField, ShowCompanyFieldOverride : Boolean;
+        GlobalSingleCompanyName: Text[30];
         CannotUpdateUserErr: Label 'You cannot change the User. Delete and create the entry again.';
+        ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign access controls in other companies where the agent is not available.\\Do you want to continue?';
 }

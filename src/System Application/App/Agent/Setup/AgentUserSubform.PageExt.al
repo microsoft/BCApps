@@ -70,7 +70,7 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
                 Rec."Company Name" := GlobalSingleCompanyName;
 
             if (Rec."Company Name" <> GlobalSingleCompanyName) then
-                // The agent used to operation in a single company, but operates in multiple ones now.
+                // The agent used to operate in a single company, but operates in multiple ones now.
                 // Ideally, other scenarios should also trigger an update (delete, modify), but insert
                 // was identified as the main one.
                 GlobalSingleCompanyName := '';
@@ -87,10 +87,7 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
             IsAgent := false;
 
         if not ShowCompanyFieldOverride then begin
-            if IsAgent then
-                ShowCompanyField := not AgentImpl.AccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName)
-            else
-                ShowCompanyField := false;
+            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
     end;

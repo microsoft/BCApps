@@ -92,33 +92,33 @@ page 4321 "Select Agent Access Control"
         }
     }
 
-    trigger OnAfterGetRecord()
+    trigger OnAfterGetRecord() // Same
     begin
         UpdateGlobalVariables();
     end;
 
-    trigger OnAfterGetCurrRecord()
+    trigger OnAfterGetCurrRecord() // Same
     begin
         UpdateGlobalVariables();
     end;
 
-    trigger OnDeleteRecord(): Boolean
+    trigger OnDeleteRecord(): Boolean // Similar, because this is temp table
     begin
         VerifyOwnerExists();
     end;
 
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean// Same
     begin
         if (GlobalSingleCompanyName <> '') then begin
             if (Rec."Company Name" = '') and not ShowCompanyField then
                 // Default the company name for the inserted record when all these conditions are met:
                 // 1. The agent operates in a single company,
                 // 2. The company name is not explicit specified,
-                // 3. The user didn't toggle to view the company name field on permissions.
+                // 3. The user didn't toggle to view the company name field on access controls.
                 Rec."Company Name" := GlobalSingleCompanyName;
 
             if (Rec."Company Name" <> GlobalSingleCompanyName) then
-                // The agent used to operation in a single company, but operates in multiple ones now.
+                // The agent used to operate in a single company, but operates in multiple ones now.
                 // Ideally, other scenarios should also trigger an update (delete, modify), but insert
                 // was identified as the main one.
                 GlobalSingleCompanyName := '';
@@ -158,7 +158,7 @@ page 4321 "Select Agent Access Control"
         UpdateGlobalVariables();
     end;
 
-    local procedure UpdateUser(NewUserID: Guid)
+    local procedure UpdateUser(NewUserID: Guid) // Similar, because this is temp table
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
         RecordExists: Boolean;
@@ -177,7 +177,7 @@ page 4321 "Select Agent Access Control"
         VerifyOwnerExists();
     end;
 
-    local procedure UpdateGlobalVariables()
+    local procedure UpdateGlobalVariables() // Same 
     var
         User: Record "User";
     begin
@@ -194,22 +194,9 @@ page 4321 "Select Agent Access Control"
         UserFullName := User."Full Name";
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AgentImpl.AccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
+            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
-    end;
-
-    [Scope('OnPrem')]
-    procedure GetAgentUserAccess(var TempAgentAccessControl: Record "Agent Access Control" temporary)
-    begin
-        TempAgentAccessControl.Reset();
-        TempAgentAccessControl.DeleteAll();
-
-        if Rec.FindSet() then
-            repeat
-                TempAgentAccessControl.Copy(Rec);
-                TempAgentAccessControl.Insert();
-            until Rec.Next() = 0;
     end;
 
     local procedure VerifyOwnerExists()
