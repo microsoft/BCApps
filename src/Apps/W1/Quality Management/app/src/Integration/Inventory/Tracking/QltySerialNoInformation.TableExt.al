@@ -18,8 +18,8 @@ tableextension 20406 "Qlty. Serial No. Information" extends "Serial No. Informat
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
-                                                                     "Source Variant Code" = field("Variant Code"),
-                                                                     "Source Serial No." = field("Serial No.")));
+                                                                "Source Variant Code" = field("Variant Code"),
+                                                                "Source Serial No." = field("Serial No.")));
         }
     }
 }

@@ -18,8 +18,8 @@ tableextension 20407 "Qlty. Package No. Information" extends "Package No. Inform
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
-                                                                     "Source Variant Code" = field("Variant Code"),
-                                                                     "Source Package No." = field("Package No.")));
+                                                                "Source Variant Code" = field("Variant Code"),
+                                                                "Source Package No." = field("Package No.")));
         }
     }
 }

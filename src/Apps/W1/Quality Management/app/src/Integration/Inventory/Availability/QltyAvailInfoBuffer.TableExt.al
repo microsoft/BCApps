@@ -18,10 +18,10 @@ tableextension 20404 "Qlty. Avail. Info. Buffer" extends "Availability Info. Buf
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
-                                                                     "Source Variant Code" = field("Variant Code Filter"),
-                                                                     "Source Lot No." = field("Lot No."),
-                                                                     "Source Serial No." = field("Serial No."),
-                                                                     "Source Package No." = field("Package No.")));
+                                                                "Source Variant Code" = field("Variant Code Filter"),
+                                                                "Source Lot No." = field("Lot No."),
+                                                                "Source Serial No." = field("Serial No."),
+                                                                "Source Package No." = field("Package No.")));
         }
         field(20401; "Qlty. Inspection for Lot Count"; Integer)
         {
@@ -30,8 +30,8 @@ tableextension 20404 "Qlty. Avail. Info. Buffer" extends "Availability Info. Buf
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
-                                                                     "Source Variant Code" = field("Variant Code Filter"),
-                                                                     "Source Lot No." = field("Lot No.")));
+                                                                "Source Variant Code" = field("Variant Code Filter"),
+                                                                "Source Lot No." = field("Lot No.")));
         }
     }
 }

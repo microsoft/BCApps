@@ -112,7 +112,7 @@ table 20405 "Qlty. Inspection Header"
         field(11; "Table Name"; Text[249])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
-                                                                           "Object ID" = field("Source Table No.")));
+                                                                          "Object ID" = field("Source Table No.")));
             Caption = 'Source Name';
             Editable = false;
             FieldClass = FlowField;
@@ -363,10 +363,10 @@ table 20405 "Qlty. Inspection Header"
         field(43; "Existing Inspections This Item"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Source Item No."),
-                                                                     "Source Variant Code" = field("Source Variant Code"),
-                                                                     "Source Serial No." = field("Source Serial No."),
-                                                                     "Source Lot No." = field("Source Lot No."),
-                                                                     "Source Package No." = field("Source Package No.")));
+                                                                "Source Variant Code" = field("Source Variant Code"),
+                                                                "Source Serial No." = field("Source Serial No."),
+                                                                "Source Lot No." = field("Source Lot No."),
+                                                                "Source Package No." = field("Source Package No.")));
             Caption = 'Existing Inspections (this item)';
             Editable = false;
             FieldClass = FlowField;

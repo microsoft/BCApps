@@ -64,7 +64,7 @@ table 20407 "Qlty. Inspect. Source Config."
         field(3; "From Table Caption"; Text[249])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
-                                                                           "Object ID" = field("From Table No.")));
+                                                                          "Object ID" = field("From Table No.")));
             Caption = 'From Table';
             Editable = false;
             FieldClass = FlowField;
@@ -93,7 +93,7 @@ table 20407 "Qlty. Inspect. Source Config."
         field(6; "To Table Caption"; Text[249])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
-                                                                           "Object ID" = field("To Table No.")));
+                                                                          "Object ID" = field("To Table No.")));
             Caption = 'To Table';
             Editable = false;
             FieldClass = FlowField;

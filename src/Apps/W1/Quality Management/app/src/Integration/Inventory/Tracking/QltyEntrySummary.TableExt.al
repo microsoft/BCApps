@@ -18,8 +18,8 @@ tableextension 20403 "Qlty. Entry Summary" extends "Entry Summary"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("Qlty. Inspection Header" where("Source Lot No." = field("Lot No."),
-                                                                     "Source Serial No." = field("Serial No."),
-                                                                     "Source Package No." = field("Package No.")));
+                                                                "Source Serial No." = field("Serial No."),
+                                                                "Source Package No." = field("Package No.")));
         }
     }
 }

@@ -62,7 +62,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(6; "From Field Name"; Text[250])
         {
             CalcFormula = lookup(Field."Field Caption" where(TableNo = field("From Table No."),
-                                                              "No." = field("From Field No.")));
+                                                             "No." = field("From Field No.")));
             Caption = 'From Field Name';
             Description = 'Specifies the from field.';
             Editable = false;

@@ -29,7 +29,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(3; "My Open Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
-                                                                     "Assigned User ID" = filter('%me')));
+                                                                "Assigned User ID" = filter('%me')));
             Caption = 'Open Inspections (mine)';
             ToolTip = 'Specifies the count of quality inspections that are open and assigned to you.';
             Editable = false;
@@ -46,7 +46,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(5; "My Finished Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Finished),
-                                                                     "Assigned User ID" = filter('%me')));
+                                                                "Assigned User ID" = filter('%me')));
             Caption = 'Finished Inspections (mine)';
             ToolTip = 'Specifies the count of quality inspections that are finished and assigned to you.';
             Editable = false;
@@ -63,7 +63,7 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(7; "All Open and Due Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
-                                                                     "Planned Start Date" = filter('<=T')));
+                                                                "Planned Start Date" = filter('<=T')));
             Caption = 'Open and Due Inspections (all)';
             ToolTip = 'Specifies the count of quality inspections that are open and due.';
             Editable = false;
@@ -72,8 +72,8 @@ table 20414 "Qlty. Mgmt. Role Center Cue"
         field(8; "My Open and Due Inspections"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Header" where(Status = const(Open),
-                                                                     "Assigned User ID" = filter('%me'),
-                                                                     "Planned Start Date" = filter('<=T')));
+                                                                "Assigned User ID" = filter('%me'),
+                                                                "Planned Start Date" = filter('<=T')));
             Caption = 'Open and Due Inspections (mine)';
             ToolTip = 'Specifies the count of quality inspections that are open, due, and assigned to you.';
             Editable = false;

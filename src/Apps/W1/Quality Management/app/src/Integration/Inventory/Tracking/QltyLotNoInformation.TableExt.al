@@ -18,8 +18,8 @@ tableextension 20405 "Qlty. Lot No. Information" extends "Lot No. Information"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
-                                                                     "Source Variant Code" = field("Variant Code"),
-                                                                     "Source Lot No." = field("Lot No.")));
+                                                                "Source Variant Code" = field("Variant Code"),
+                                                                "Source Lot No." = field("Lot No.")));
         }
     }
 }
