@@ -18,6 +18,7 @@ page 6132 "E-Doc Sample Purch. Inv. Files"
     DeleteAllowed = true;
     ModifyAllowed = true;
     Editable = false;
+    Extensible = false;
 
     layout
     {

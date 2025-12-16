@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 table 6120 "E-Doc Sample Purch. Inv File"
 {
+    Access = Internal;
     Caption = 'E-Doc Sample Purchase Invoice File';
     DataClassification = CustomerContent;
     LookupPageId = "E-Doc Sample Purch. Inv. Files";

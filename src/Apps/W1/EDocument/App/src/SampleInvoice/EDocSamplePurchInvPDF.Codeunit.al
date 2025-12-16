@@ -64,13 +64,13 @@ codeunit 6208 "E-Doc Sample Purch.Inv. PDF"
     /// <param name="TempPassedEDocPurchHeader"></param>
     /// <param name="TempPassedEDocPurchLine"></param>
     /// <returns></returns>
-    procedure GeneratePDF(var TempPassedEDocPurchHeader: Record "E-Document Purchase Header" temporary; var TempPassedEDocPurchLine: Record "E-Document Purchase Line" temporary) TempBlob: Codeunit "Temp Blob"
+    procedure GeneratePDF(var TempEDocPurchHeaderToSet: Record "E-Document Purchase Header" temporary; var TempEDocPurchLineToSet: Record "E-Document Purchase Line" temporary) TempBlob: Codeunit "Temp Blob"
     var
         SamplePurchaseInvoice: Report "E-Doc Sample Purchase Invoice";
         FileManagement: Codeunit "File Management";
         FilePath: Text[250];
     begin
-        SamplePurchaseInvoice.SetData(TempPassedEDocPurchHeader, TempPassedEDocPurchLine);
+        SamplePurchaseInvoice.SetData(TempEDocPurchHeaderToSet, TempEDocPurchLineToSet);
         FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, MaxStrLen(FilePath));
         SamplePurchaseInvoice.SaveAsPdf(FilePath);
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);

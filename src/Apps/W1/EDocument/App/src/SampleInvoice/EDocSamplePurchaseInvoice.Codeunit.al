@@ -44,15 +44,15 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice.
     /// </summary>
-    procedure AddSamplePurchaseInvoice(VendorNo: Code[20]; ExternalDocNo: Text[35]; Scenario: Text[2048])
+    procedure AddInvoice(VendorNo: Code[20]; ExternalDocNo: Text[35]; Scenario: Text[2048])
     begin
-        AddSamplePurchaseInvoice(VendorNo, ExternalDocNo, Scenario, 0);
+        AddInvoice(VendorNo, ExternalDocNo, Scenario, 0);
     end;
 
     /// <summary>
     /// Adds a sample purchase invoice.
     /// </summary>
-    procedure AddSamplePurchaseInvoice(VendorNo: Code[20]; ExternalDocNo: Text[35]; Scenario: Text[2048]; TotalTaxAmount: Decimal)
+    procedure AddInvoice(VendorNo: Code[20]; ExternalDocNo: Text[35]; Scenario: Text[2048]; TotalTaxAmount: Decimal)
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
@@ -110,15 +110,15 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice line.
     /// </summary>
-    procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
+    procedure AddLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
     begin
-        AddSamplePurchaseLine(LineType, No, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
+        AddLine(LineType, No, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
     end;
 
     /// <summary>
     /// Adds a sample purchase invoice line to the current temporary header.
     /// </summary>
-    procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    procedure AddLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -136,20 +136,20 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
                         Description := GLAccount.Name;
                     end;
             end;
-        AddSamplePurchaseLine(TempEDocPurchLine, TempEDocPurchHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
+        AddLine(TempEDocPurchLine, TempEDocPurchHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
     /// <summary>
     /// Adds a sample purchase invoice line to the specified header.
     /// </summary>
-    internal procedure AddSamplePurchaseLine(EDocPurchaseHeader: Record "E-Document Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    internal procedure AddLine(EDocPurchaseHeader: Record "E-Document Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         EDocPurchaseLine: Record "E-Document Purchase Line";
     begin
-        AddSamplePurchaseLine(EDocPurchaseLine, EDocPurchaseHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
+        AddLine(EDocPurchaseLine, EDocPurchaseHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
-    local procedure AddSamplePurchaseLine(var EDocPurchaseLine: Record "E-Document Purchase Line"; EDocPurchaseHeader: Record "E-Document Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    local procedure AddLine(var EDocPurchaseLine: Record "E-Document Purchase Line"; EDocPurchaseHeader: Record "E-Document Purchase Header"; LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         UnitOfMeasure: Record "Unit of Measure";
         LineNo: Integer;

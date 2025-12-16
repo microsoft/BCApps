@@ -55,7 +55,7 @@ codeunit 5429 "Contoso Inbound E-Document"
     procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     begin
         EDocPurchaseHeader.TestField("[BC] Vendor No.");
-        EDocSamplePurchaseInvoice.AddSamplePurchaseLine(
+        EDocSamplePurchaseInvoice.AddLine(
           EDocPurchaseHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
