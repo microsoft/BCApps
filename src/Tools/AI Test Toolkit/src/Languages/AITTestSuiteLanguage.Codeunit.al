@@ -5,8 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.TestTools.TestRunner;
 using System.Globalization;
+using System.TestTools.TestRunner;
 
 codeunit 149046 "AIT Test Suite Language"
 {
