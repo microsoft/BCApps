@@ -607,7 +607,9 @@ codeunit 30189 "Shpfy Variant API"
             if UpdatedAt > 0DT then begin
                 ShopifyVariant.Get(Id);
                 TempShopifyVariant.Get(Id);
+                ProductEvents.OnBeforeAssignTempVariantToDbRecord(ShopifyVariant, TempShopifyVariant);
                 ShopifyVariant := TempShopifyVariant;
+                ProductEvents.OnAfterUpdateVariantsAssignment(ShopifyVariant, TempShopifyVariant, UpdatedAt);
                 ShopifyVariant."Updated At" := UpdatedAt;
                 if ShopifyVariant."Updated At" > 0DT then
                     ShopifyVariant.Modify();

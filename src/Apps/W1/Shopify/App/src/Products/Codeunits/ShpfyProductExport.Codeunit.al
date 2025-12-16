@@ -340,6 +340,9 @@ codeunit 30178 "Shpfy Product Export"
     /// <param name="Item">Parameter of type Record Item.</param>
     /// <param name="ItemUnitofMeasure">Parameter of type Record "Item Unit of Measure".</param>
     internal procedure FillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemUnitofMeasure: Record "Item Unit of Measure")
+    var
+        ItemVariant: Record "Item Variant";
+        IsHandled: Boolean;
     begin
         if Shop."Sync Prices" or OnlyUpdatePrice then
             if (not Item.Blocked) and (not Item."Sales Blocked") then
@@ -362,11 +365,15 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
-            ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
-            ShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
+            ProductEvents.OnBeforeSetVariantOptionValues(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop, false, IsHandled);
+            if not IsHandled then begin
+                ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
+                ShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
+            end;
             ShopifyVariant."Shop Code" := Shop.Code;
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."UoM Option Id" := 1;
+            ProductEvents.OnAfterFillInProductVariantData(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop);
         end;
     end;
 
@@ -379,7 +386,9 @@ codeunit 30178 "Shpfy Product Export"
     internal procedure FillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant")
     var
         Product: Record "Shpfy Product";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
         ItemAsVariant: Boolean;
+        IsHandled: Boolean;
     begin
         if Shop."Sync Prices" or OnlyUpdatePrice then
             if Item.Blocked or Item."Sales Blocked" then
@@ -419,16 +428,20 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
-            if ShopifyVariant."Option 1 Name" = '' then
-                ShopifyVariant."Option 1 Name" := 'Variant';
-            if ItemAsVariant then
-                ShopifyVariant."Option 1 Value" := Item."No."
-            else
-                ShopifyVariant."Option 1 Value" := ItemVariant.Code;
+            ProductEvents.OnBeforeSetVariantOptionValues(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop, ItemAsVariant, IsHandled);
+            if not IsHandled then begin
+                if ShopifyVariant."Option 1 Name" = '' then
+                    ShopifyVariant."Option 1 Name" := 'Variant';
+                if ItemAsVariant then
+                    ShopifyVariant."Option 1 Value" := Item."No."
+                else
+                    ShopifyVariant."Option 1 Value" := ItemVariant.Code;
+            end;
             ShopifyVariant."Shop Code" := Shop.Code;
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantData(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop);
         end;
     end;
 
@@ -440,6 +453,8 @@ codeunit 30178 "Shpfy Product Export"
     /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
     /// <param name="ItemUnitofMeasure">Parameter of type Record "Item Unit of Measure".</param>
     internal procedure FillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; ItemUnitofMeasure: Record "Item Unit of Measure")
+    var
+        IsHandled: Boolean;
     begin
         if Shop."Sync Prices" or OnlyUpdatePrice then
             if Item.Blocked or Item."Sales Blocked" then
@@ -473,14 +488,18 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
-            ShopifyVariant."Option 1 Name" := 'Variant';
-            ShopifyVariant."Option 1 Value" := ItemVariant.Code;
-            ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";
-            ShopifyVariant."Option 2 Value" := ItemUnitofMeasure.Code;
+            ProductEvents.OnBeforeSetVariantOptionValues(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop, false, IsHandled);
+            if not IsHandled then begin
+                ShopifyVariant."Option 1 Name" := 'Variant';
+                ShopifyVariant."Option 1 Value" := ItemVariant.Code;
+                ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";
+                ShopifyVariant."Option 2 Value" := ItemUnitofMeasure.Code;
+            end;
             ShopifyVariant."Shop Code" := Shop.Code;
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantData(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop);
         end;
     end;
 

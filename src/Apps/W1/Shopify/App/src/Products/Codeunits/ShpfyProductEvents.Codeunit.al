@@ -405,4 +405,57 @@ codeunit 30177 "Shpfy Product Events"
     internal procedure OnAfterProductsToSynchronizeFiltersSet(var ShopifyProduct: Record "Shpfy Product"; Shop: Record "Shpfy Shop"; OnlyUpdatePrice: Boolean)
     begin
     end;
+
+    /// <summary>
+    /// Raised after the product variant data has been filled from Business Central Item, Item Variant, and Item Unit of Measure.
+    /// This event fires after all standard fields are set but before the temp record is used, allowing customization of variant fields.
+    /// </summary>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shpfy Variant".</param>
+    /// <param name="Item">Parameter of type Record Item.</param>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="ItemUnitofMeasure">Parameter of type Record "Item Unit of Measure".</param>
+    /// <param name="Shop">Parameter of type Record "Shpfy Shop".</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterFillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; ItemUnitofMeasure: Record "Item Unit of Measure"; Shop: Record "Shpfy Shop")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before setting the variant option values (Option 1 Name, Option 1 Value, etc.).
+    /// This event allows for granular control over option value formatting.
+    /// </summary>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shpfy Variant".</param>
+    /// <param name="Item">Parameter of type Record Item.</param>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="ItemUnitofMeasure">Parameter of type Record "Item Unit of Measure".</param>
+    /// <param name="Shop">Parameter of type Record "Shpfy Shop".</param>
+    /// <param name="ItemAsVariant">Parameter of type Boolean.</param>
+    /// <param name="IsHandled">Parameter of type Boolean.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeSetVariantOptionValues(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; ItemUnitofMeasure: Record "Item Unit of Measure"; Shop: Record "Shpfy Shop"; ItemAsVariant: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised just before assigning the temporary variant to the database record during variant update.
+    /// This is the last chance to modify either record before the assignment that overwrites existing data.
+    /// </summary>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shpfy Variant". The current database record.</param>
+    /// <param name="TempShopifyVariant">Parameter of type Record "Shpfy Variant". The temporary record to be assigned.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeAssignTempVariantToDbRecord(var ShopifyVariant: Record "Shpfy Variant"; var TempShopifyVariant: Record "Shpfy Variant")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the temporary variant has been assigned to the database record during variant update.
+    /// This event provides access to the updated record before it is modified in the database.
+    /// </summary>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shpfy Variant". The database record after assignment.</param>
+    /// <param name="TempShopifyVariant">Parameter of type Record "Shpfy Variant". The temporary record that was assigned.</param>
+    /// <param name="UpdatedAt">Parameter of type DateTime. The updated timestamp from Shopify.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterUpdateVariantsAssignment(var ShopifyVariant: Record "Shpfy Variant"; TempShopifyVariant: Record "Shpfy Variant"; UpdatedAt: DateTime)
+    begin
+    end;
 }
