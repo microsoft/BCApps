@@ -11,6 +11,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
     InherentPermissions = X;
 
     var
+        AOAIPolicyParams: Codeunit "AOAI Policy Params";
         Initialized: Boolean;
         Temperature: Decimal;
         MaxTokens: Integer;
@@ -69,6 +70,22 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
             InitializeDefaults();
 
         exit(FrequencyPenalty);
+    end;
+
+    procedure GetAOAIPolicyParams(): Codeunit "AOAI Policy Params"
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        exit(AOAIPolicyParams);
+    end;
+
+    procedure SetAOAIPolicyParams(NewAOAIPolicyParams: Codeunit "AOAI Policy Params")
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        AOAIPolicyParams := NewAOAIPolicyParams;
     end;
 
     procedure SetTemperature(NewTemperature: Decimal)
@@ -149,6 +166,8 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
     end;
 
     local procedure InitializeDefaults()
+    var
+        DefaultPolicyParams: Codeunit "AOAI Policy Params";
     begin
         Initialized := true;
 
@@ -158,5 +177,8 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         SetMaxTokens(0);
         SetMaxHistory(10);
         SetJsonMode(false);
+
+        DefaultPolicyParams.InitializeDefaults();
+        SetAOAIPolicyParams(DefaultPolicyParams);
     end;
 }
