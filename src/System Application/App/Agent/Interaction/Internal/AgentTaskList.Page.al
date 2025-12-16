@@ -25,7 +25,6 @@ page 4300 "Agent Task List"
     InherentEntitlements = X;
     InherentPermissions = X;
     Editable = false;
-    Extensible = false;
 
     layout
     {

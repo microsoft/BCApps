@@ -73,7 +73,7 @@ table 8002 "Planned Subscription Line"
             Caption = 'Calculation Base Amount';
             MinValue = 0;
             BlankZero = true;
-            AutoFormatType = 1;
+            AutoFormatType = 2;
             AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()

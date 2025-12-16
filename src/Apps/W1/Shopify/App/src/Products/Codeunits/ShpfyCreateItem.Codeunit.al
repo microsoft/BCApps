@@ -10,6 +10,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Vendor;
+using System.Text;
 
 /// <summary>
 /// Codeunit Shpfy Create Item (ID 30171).
@@ -283,6 +284,9 @@ codeunit 30171 "Shpfy Create Item"
                 Item."Vendor No." := Vendor."No.";
         end;
 
+        if Shop."Sync Item Marketing Text" then
+            CreateEntityText(ShopifyProduct, Item);
+
         Item.Modify();
         if ForVariant then begin
             ShopifyVariant."Item SystemId" := Item.SystemId;
@@ -294,6 +298,24 @@ codeunit 30171 "Shpfy Create Item"
 
         Clear(ItemVariant);
         CreateReferences(ShopifyProduct, ShopifyVariant, Item, ItemVariant);
+    end;
+
+    local procedure CreateEntityText(ShopifyProduct: Record "Shpfy Product"; Item: Record Item)
+    var
+        EntityTextRec: Record "Entity Text";
+        EntityText: Codeunit "Entity Text";
+    begin
+        if not ShopifyProduct."Description as HTML".HasValue() then
+            exit;
+
+        EntityTextRec.Company := CopyStr(CompanyName(), 1, MaxStrLen(EntityTextRec.Company));
+        EntityTextRec."Source Table Id" := Database::Item;
+        EntityTextRec."Source System Id" := Item.SystemId;
+        EntityTextRec.Scenario := "Entity Text Scenario"::"Marketing Text";
+        EntityTextRec.Insert();
+
+        EntityText.UpdateText(EntityTextRec, ShopifyProduct.GetDescriptionHtml());
+        EntityTextRec.Modify();
     end;
 
     local procedure CreateItemUnitOfMeasure(ShopifyVariant: Record "Shpfy Variant"; Item: Record Item)

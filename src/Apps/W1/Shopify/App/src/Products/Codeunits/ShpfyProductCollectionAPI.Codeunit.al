@@ -82,11 +82,12 @@ codeunit 30417 "Shpfy Product Collection API"
             if not ProductCollection.Get(CollectionId) then begin
                 ProductCollection.Init();
                 ProductCollection.Validate(Id, CollectionId);
-                ProductCollection.Validate(Name, JsonHelper.GetValueAsText(JPublication, '$.node.title'));
-                ProductCollection.Validate("Shop Code", ShopCode);
                 ProductCollection.Insert(true);
             end else
                 CurrentCollections.Remove(CollectionId);
+            ProductCollection.Validate(Name, JsonHelper.GetValueAsText(JPublication, '$.node.title'));
+            ProductCollection.Validate("Shop Code", ShopCode);
+            ProductCollection.Modify(true)
         end;
     end;
 }
