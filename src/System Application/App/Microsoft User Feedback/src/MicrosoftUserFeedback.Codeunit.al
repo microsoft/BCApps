@@ -132,7 +132,7 @@ codeunit 1590 "Microsoft User Feedback"
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextProperties, EmptyContextFiles, CallerModuleInfo);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -141,14 +141,14 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID of the sub-area on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
-    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
+    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles, CallerModuleInfo);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
