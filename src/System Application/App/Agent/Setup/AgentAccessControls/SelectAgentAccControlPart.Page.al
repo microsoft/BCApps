@@ -56,7 +56,7 @@ page 4325 "Select Agent Acc. Control Part"
                     trigger OnValidate()
                     begin
                         if not Rec."Can Configure Agent" then
-                            AgentImpl.VerifyOwnerExists(Rec);
+                            VerifyOwnerExistsInTempTable();
                     end;
                 }
             }
@@ -115,7 +115,8 @@ page 4325 "Select Agent Acc. Control Part"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        AgentImpl.VerifyOwnerExists(Rec);
+        VerifyOwnerExistsInTempTable();
+        exit(true);
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
@@ -161,6 +162,23 @@ page 4325 "Select Agent Acc. Control Part"
 
         UserName := User."User Name";
         UserFullName := User."Full Name";
+    end;
+
+    local procedure VerifyOwnerExistsInTempTable()
+    var
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+    begin
+        if Rec."Can Configure Agent" then
+            exit;
+
+        // Check if there's at least one other owner in the temp table
+        TempAgentAccessControl.Copy(Rec, true);
+        TempAgentAccessControl.SetRange("Can Configure Agent", true);
+        TempAgentAccessControl.SetFilter("User Security ID", '<>%1', Rec."User Security ID");
+        TempAgentAccessControl.SetRange("Agent User Security ID", AgentUserSecurityID);
+
+        if TempAgentAccessControl.IsEmpty() then
+            Error('One owner must be defined for the agent.');
     end;
 
     internal procedure SetAgentUserSecurityID(NewAgentUserSecurityID: Guid)

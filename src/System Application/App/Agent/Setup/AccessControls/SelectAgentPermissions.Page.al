@@ -11,7 +11,7 @@ page 4336 "Select Agent Permissions"
 {
     PageType = StandardDialog;
     ApplicationArea = All;
-    SourceTable = "Access Control Buffer";
+    SourceTable = "Access Control";
     SourceTableTemporary = true;
     Caption = 'Edit Agent Permissions (Preview)';
     DataCaptionExpression = '';
@@ -35,103 +35,46 @@ page 4336 "Select Agent Permissions"
     }
 
     trigger OnOpenPage()
+    var
+        UserSecurityID: Guid;
     begin
-        BackupAccessControlBuffer();
+        BackupAccessControl();
 
-        CurrPage.PermissionsPart.Page.SetTempAccessControlBuffer(Rec);
+        if Rec.FindFirst() then
+            UserSecurityID := Rec."User Security ID";
+
+        CurrPage.PermissionsPart.Page.SetUserSecurityID(UserSecurityID);
+        CurrPage.PermissionsPart.Page.SetTempAccessControl(Rec);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
-    var
-        TempModifiedAccessControlBuffer: Record "Access Control Buffer" temporary;
     begin
         if CloseAction = CloseAction::LookupCancel then
-            RestoreAccessControlBuffer()
-        else if CloseAction = CloseAction::OK then begin
-            CurrPage.PermissionsPart.Page.GetTempAccessControlBuffer(TempModifiedAccessControlBuffer);
-            SaveChangesToAccessControl(TempModifiedAccessControlBuffer);
-        end;
+            RestoreAccessControl();
 
         exit(true);
     end;
 
-    internal procedure Load(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    internal procedure SetTempAccessControl(var TempAccessControl: Record "Access Control" temporary)
     begin
-        Rec.Reset();
-        Rec.DeleteAll();
-
-        TempAccessControlBuffer.Reset();
-        if not TempAccessControlBuffer.FindSet() then
-            exit;
-
-        repeat
-            Rec.TransferFields(TempAccessControlBuffer);
-            Rec.Insert();
-        until TempAccessControlBuffer.Next() = 0;
-
-        AgentUserSecurityID := UserSecurityID;
+        Rec.Copy(TempAccessControl, true);
     end;
 
-    internal procedure SetAgentUserSecurityID(UserSecurityID: Guid)
+    internal procedure GetTempAccessControl(var TempAccessControl: Record "Access Control" temporary)
     begin
-        AgentUserSecurityID := UserSecurityID;
+        TempAccessControl.Copy(Rec, true);
     end;
 
-    local procedure BackupAccessControlBuffer()
+    local procedure BackupAccessControl()
     begin
-        TempBackupAccessControlBuffer.Reset();
-        TempBackupAccessControlBuffer.DeleteAll();
-
-        Rec.Reset();
-        if not Rec.FindSet() then
-            exit;
-
-        repeat
-            TempBackupAccessControlBuffer.TransferFields(Rec);
-            TempBackupAccessControlBuffer.Insert();
-        until Rec.Next() = 0;
+        TempBackupAccessControl.Copy(Rec, true);
     end;
 
-    local procedure RestoreAccessControlBuffer()
+    local procedure RestoreAccessControl()
     begin
-        Rec.Reset();
-        Rec.DeleteAll();
-
-        TempBackupAccessControlBuffer.Reset();
-        if not TempBackupAccessControlBuffer.FindSet() then
-            exit;
-
-        repeat
-            Rec.TransferFields(TempBackupAccessControlBuffer);
-            Rec.Insert();
-        until TempBackupAccessControlBuffer.Next() = 0;
-    end;
-
-    local procedure SaveChangesToAccessControl(var TempModifiedAccessControlBuffer: Record "Access Control Buffer" temporary)
-    var
-        AccessControl: Record "Access Control";
-    begin
-        // Delete all existing access control records for the agent
-        AccessControl.SetRange("User Security ID", AgentUserSecurityID);
-        AccessControl.DeleteAll();
-
-        // Insert the modified records
-        TempModifiedAccessControlBuffer.Reset();
-        if not TempModifiedAccessControlBuffer.FindSet() then
-            exit;
-
-        repeat
-            Clear(AccessControl);
-            AccessControl."User Security ID" := AgentUserSecurityID;
-            AccessControl."Role ID" := TempModifiedAccessControlBuffer."Role ID";
-            AccessControl."Company Name" := TempModifiedAccessControlBuffer."Company Name";
-            AccessControl.Scope := TempModifiedAccessControlBuffer.Scope;
-            AccessControl."App ID" := TempModifiedAccessControlBuffer."App ID";
-            AccessControl.Insert();
-        until TempModifiedAccessControlBuffer.Next() = 0;
+        Rec.Copy(TempBackupAccessControl, true);
     end;
 
     var
-        TempBackupAccessControlBuffer: Record "Access Control Buffer" temporary;
-        AgentUserSecurityID: Guid;
+        TempBackupAccessControl: Record "Access Control" temporary;
 }

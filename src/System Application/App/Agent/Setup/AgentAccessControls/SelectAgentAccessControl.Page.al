@@ -34,10 +34,6 @@ page 4321 "Select Agent Access Control"
 
     trigger OnOpenPage()
     begin
-        // Ensure Load and SetAgentUserSecurityID were called before opening
-        if IsNullGuid(AgentUserSecurityID) then
-            Error('Agent User Security ID must be set before opening this page.');
-
         BackupAgentAccessControl();
         CurrPage.AccessControlPart.Page.SetAgentUserSecurityID(AgentUserSecurityID);
         CurrPage.AccessControlPart.Page.SetTempAgentAccessControl(Rec);
@@ -49,7 +45,7 @@ page 4321 "Select Agent Access Control"
     begin
         if CloseAction = CloseAction::LookupCancel then
             RestoreAgentAccessControl()
-        else if CloseAction = CloseAction::OK then begin
+        else if CloseAction = CloseAction::OK then begin // TODO(qutreson) the saving logic should likely be done from the caller.
             CurrPage.AccessControlPart.Page.GetTempAgentAccessControl(TempModifiedAgentAccessControl);
             SaveChangesToAgentAccessControl(TempModifiedAgentAccessControl);
         end;
@@ -126,7 +122,10 @@ page 4321 "Select Agent Access Control"
 
         repeat
             Clear(AgentAccessControl);
-            AgentAccessControl.TransferFields(TempModifiedAgentAccessControl);
+            AgentAccessControl."Agent User Security ID" := TempModifiedAgentAccessControl."Agent User Security ID";
+            AgentAccessControl."User Security ID" := TempModifiedAgentAccessControl."User Security ID";
+            AgentAccessControl."Company Name" := TempModifiedAgentAccessControl."Company Name";
+            AgentAccessControl."Can Configure Agent" := TempModifiedAgentAccessControl."Can Configure Agent";
             AgentAccessControl.Insert();
         until TempModifiedAgentAccessControl.Next() = 0;
     end;

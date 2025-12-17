@@ -11,7 +11,7 @@ page 4340 "Select Agent Permissions Part"
 {
     PageType = ListPart;
     ApplicationArea = All;
-    SourceTable = "Access Control Buffer";
+    SourceTable = "Access Control";
     SourceTableTemporary = true;
     Caption = 'Agent permissions';
     MultipleNewLines = false;
@@ -164,6 +164,8 @@ page 4340 "Select Agent Permissions Part"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
+        Rec."User Security ID" := UserSecurityID;
+
         if GlobalSingleCompanyName <> '' then begin
             if (Rec."Company Name" = '') and not ShowCompanyField then
                 // Default the company name for the inserted record when all these conditions are met:
@@ -180,28 +182,18 @@ page 4340 "Select Agent Permissions Part"
         end;
     end;
 
-    internal procedure SetTempAccessControlBuffer(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    internal procedure SetUserSecurityID(NewUserSecurityID: Guid)
     begin
-        Rec.Copy(TempAccessControlBuffer, true);
-        AccessControlForSingleCompany(GlobalSingleCompanyName);
-        if not ShowCompanyFieldOverride then
-            ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
-        CurrPage.Update(false);
+        UserSecurityID := NewUserSecurityID;
     end;
 
-    internal procedure GetTempAccessControlBuffer(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    internal procedure SetTempAccessControl(var TempAccessControl: Record "Access Control" temporary)
     begin
-        TempAccessControlBuffer.Reset();
-        TempAccessControlBuffer.DeleteAll();
-
-        Rec.Reset();
-        if not Rec.FindSet() then
-            exit;
-
-        repeat
-            TempAccessControlBuffer.TransferFields(Rec);
-            TempAccessControlBuffer.Insert();
-        until Rec.Next() = 0;
+        Rec.Copy(TempAccessControl, true);
+        TryAccessControlForSingleCompany(GlobalSingleCompanyName); // TODO(qutreson) twice?
+        if not ShowCompanyFieldOverride then
+            ShowCompanyField := not TryAccessControlForSingleCompany(GlobalSingleCompanyName);
+        CurrPage.Update(false);
     end;
 
     local procedure UpdateGlobalVariables()
@@ -220,7 +212,7 @@ page 4340 "Select Agent Permissions Part"
         end;
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
+            ShowCompanyField := not TryAccessControlForSingleCompany(GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
     end;
@@ -229,7 +221,7 @@ page 4340 "Select Agent Permissions Part"
     var
         AccessControl: Record "Access Control";
     begin
-        if not AccessControlForSingleCompany(GlobalSingleCompanyName) then
+        if not TryAccessControlForSingleCompany(GlobalSingleCompanyName) then
             Error(CannotAssignPermissionsMultipleCompaniesErr);
 
         if not Confirm(AssignMyPermissionsQst, true) then
@@ -252,6 +244,7 @@ page 4340 "Select Agent Permissions Part"
         if AccessControl.FindSet() then
             repeat
                 Clear(Rec);
+                Rec."User Security ID" := UserSecurityID;
                 Rec."Role ID" := AccessControl."Role ID";
                 Rec.Scope := AccessControl.Scope;
                 Rec."App ID" := AccessControl."App ID";
@@ -262,44 +255,16 @@ page 4340 "Select Agent Permissions Part"
             until AccessControl.Next() = 0;
     end;
 
-    local procedure AccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
+    local procedure TryAccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
     var
-        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
-        CompanyNames: List of [Text[30]];
-        CompanyName: Text[30];
+        AgentImpl: Codeunit "Agent Impl.";
     begin
-        TempAccessControlBuffer.Copy(Rec, true);
-        TempAccessControlBuffer.Reset();
-        SingleCompanyName := '';
-
-        // No access controls means current company, so single company.
-        if not TempAccessControlBuffer.FindSet() then begin
-#pragma warning disable AA0139
-            SingleCompanyName := CompanyName();
-#pragma warning restore AA0139
-            exit(true);
-        end;
-
-        repeat
-            CompanyName := TempAccessControlBuffer."Company Name";
-
-            // Access control to all companies, so multiple companies.
-            if CompanyName = '' then
-                exit(false)
-            else
-                if not CompanyNames.Contains(CompanyName) then
-                    CompanyNames.Add(CompanyName);
-        until TempAccessControlBuffer.Next() = 0;
-
-        if CompanyNames.Count() <> 1 then
-            exit(false);
-
-        SingleCompanyName := CompanyNames.Get(1);
-        exit(true);
+        exit(AgentImpl.TryGetAccessControlForSingleCompany(Rec."User Security ID", SingleCompanyName));
     end;
 
     var
         PermissionSetLookupRecord: Record "Aggregate Permission Set";
+        UserSecurityID: Guid;
         MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
         AssignMyPermissionsQst: Label 'Assigning your permissions for the current company to the agent will clear its existing permissions if any.\\Do you want to continue?';
         PermissionScope, PermissionAppName, PermissionRoleName : Text;

@@ -9,7 +9,6 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
 
-
 page 4334 "View Agent Permissions"
 {
     ApplicationArea = All;
@@ -86,8 +85,8 @@ page 4334 "View Agent Permissions"
                 trigger OnAction()
                 var
                     Agent: Record Agent;
-                    TempAccessControlBuffer: Record "Access Control Buffer" temporary;
-                    AgentImpl: Codeunit "Agent Impl.";
+                    TempAccessControl: Record "Access Control" temporary;
+                    TempModifiedAccessControl: Record "Access Control" temporary;
                     SelectAgentPermissions: Page "Select Agent Permissions";
                 begin
                     if not Agent.Get(Rec."User Security ID") then
@@ -102,11 +101,14 @@ page 4334 "View Agent Permissions"
                             Commit();
                         end;
 
-                    CopyAccessControlToBuffer(Rec."User Security ID", TempAccessControlBuffer);
+                    CopyAccessControlToBuffer(Rec."User Security ID", TempAccessControl);
 
-                    SelectAgentPermissions.Load(TempAccessControlBuffer);
-                    SelectAgentPermissions.SetAgentUserSecurityID(Rec."User Security ID");
-                    SelectAgentPermissions.RunModal();
+                    SelectAgentPermissions.SetTempAccessControl(TempAccessControl);
+                    if SelectAgentPermissions.RunModal() = Action::OK then begin
+                        SelectAgentPermissions.GetTempAccessControl(TempModifiedAccessControl);
+                        SaveAccessControl(Rec."User Security ID", TempModifiedAccessControl);
+                    end;
+
                     CurrPage.Update(false);
                 end;
             }
@@ -131,6 +133,7 @@ page 4334 "View Agent Permissions"
     trigger OnAfterGetRecord()
     var
         AggregatePermissionSet: Record "Aggregate Permission Set";
+        AgentImpl: Codeunit "Agent Impl.";
         GlobalSingleCompanyName: Text[30];
     begin
         PermissionScope := Format(Rec.Scope);
@@ -140,43 +143,47 @@ page 4334 "View Agent Permissions"
             PermissionSetNotFound := not AggregatePermissionSet.Get(Rec.Scope, Rec."App ID", Rec."Role ID");
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
+            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
     end;
 
-    local procedure AccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
-    var
-        TempCompany: Record Company temporary;
-        UserSettings: Codeunit "User Settings";
-    begin
-        UserSettings.GetAllowedCompaniesForUser(Rec."User Security ID", TempCompany);
-        if TempCompany.Count() <> 1 then
-            exit(false);
-
-        SingleCompanyName := TempCompany.Name;
-        exit(true);
-    end;
-
-    local procedure CopyAccessControlToBuffer(UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    local procedure CopyAccessControlToBuffer(UserSecurityID: Guid; var TempAccessControl: Record "Access Control" temporary)
     var
         AccessControl: Record "Access Control";
     begin
-        TempAccessControlBuffer.Reset();
-        TempAccessControlBuffer.DeleteAll();
+        TempAccessControl.Reset();
+        TempAccessControl.DeleteAll();
 
         AccessControl.SetRange("User Security ID", UserSecurityID);
         if not AccessControl.FindSet() then
             exit;
 
         repeat
-            Clear(TempAccessControlBuffer);
-            TempAccessControlBuffer."Role ID" := AccessControl."Role ID";
-            TempAccessControlBuffer."Company Name" := AccessControl."Company Name";
-            TempAccessControlBuffer.Scope := AccessControl.Scope;
-            TempAccessControlBuffer."App ID" := AccessControl."App ID";
-            TempAccessControlBuffer.Insert();
+            Clear(TempAccessControl);
+            TempAccessControl.TransferFields(AccessControl);
+            TempAccessControl.Insert();
         until AccessControl.Next() = 0;
+    end;
+
+    local procedure SaveAccessControl(UserSecurityID: Guid; var TempModifiedAccessControl: Record "Access Control" temporary)
+    var
+        AccessControl: Record "Access Control";
+    begin
+        // Delete all existing access control records for the agent
+        AccessControl.SetRange("User Security ID", UserSecurityID);
+        AccessControl.DeleteAll();
+
+        // Insert the modified records
+        TempModifiedAccessControl.Reset();
+        if not TempModifiedAccessControl.FindSet() then
+            exit;
+
+        repeat
+            Clear(AccessControl);
+            AccessControl.TransferFields(TempModifiedAccessControl);
+            AccessControl.Insert();
+        until TempModifiedAccessControl.Next() = 0;
     end;
 
     var
