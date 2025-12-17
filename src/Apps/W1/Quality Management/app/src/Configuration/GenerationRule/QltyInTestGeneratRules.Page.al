@@ -179,9 +179,29 @@ page 20405 "Qlty. In. Test Generat. Rules"
             actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
             {
             }
+            actionref(CreateNewGenerationRuleForAsmWizard_Promoted; CreateNewGenerationRuleForAsmWizard)
+            {
+            }
         }
         area(Processing)
         {
+            action(CreateNewGenerationRuleForAsmWizard)
+            {
+                Caption = 'Create Assembly Rule';
+                ToolTip = 'Specifies to create a rule for assembly.';
+                Image = Receipt;
+                ApplicationArea = Assembly;
+
+                trigger OnAction()
+                var
+                    NewQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                    RecQltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                begin
+                    NewQltyInTestGenerationRule.CopyFilters(Rec);
+                    RecQltyAsmGenRuleWizard.RunModalWithGenerationRule(NewQltyInTestGenerationRule);
+                    CurrPage.Update(false);
+                end;
+            }
             action(CreateNewGenerationRuleForProdWizard)
             {
                 Caption = 'Create Production Rule';
@@ -191,9 +211,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
                 trigger OnAction()
                 var
+                    NewQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
                     RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                 begin
-                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInTestGenerationRule.CopyFilters(Rec);
+                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(NewQltyInTestGenerationRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -221,6 +243,30 @@ page 20405 "Qlty. In. Test Generat. Rules"
                     Rec.SetRange("Entry No.");
                 end;
             }
+            action(EditGenerationRuleForAsmWizard)
+            {
+                ApplicationArea = Assembly;
+                Caption = 'Edit Assembly Rule';
+                ToolTip = 'Edit a Rule for assembly.';
+                Image = Receipt;
+                Scope = Repeater;
+                Visible = ShowEditWizardAssemblyRule;
+
+                trigger OnAction()
+                var
+                    QltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
+                    PreviousEntryNo: Integer;
+                begin
+                    PreviousEntryNo := Rec."Entry No.";
+                    QltyAsmGenRuleWizard.RunModalWithGenerationRule(Rec);
+
+                    CurrPage.Update(false);
+                    Rec.Reset();
+                    Rec.SetRange("Entry No.", PreviousEntryNo);
+                    if Rec.FindSet() then;
+                    Rec.SetRange("Entry No.");
+                end;
+            }
             action(CreateNewGenerationRuleForRecWizard)
             {
                 Caption = 'Create Receiving Rule';
@@ -230,9 +276,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
                 trigger OnAction()
                 var
+                    NewQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
                     QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
                 begin
-                    QltyRecGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    NewQltyInTestGenerationRule.CopyFilters(Rec);
+                    QltyRecGenRuleWizard.RunModalWithGenerationRule(NewQltyInTestGenerationRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -271,6 +319,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 var
                     RecQltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
                 begin
+                    Rec.Init();
                     RecQltyWhseGenRuleWizard.RunModalWithGenerationRule(Rec);
                     CurrPage.Update(false);
                 end;
@@ -360,6 +409,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
         ShowEditWizardMovementRule: Boolean;
         ShowEditWizardReceivingRule: Boolean;
         ShowEditWizardProductionRule: Boolean;
+        ShowEditWizardAssemblyRule: Boolean;
         TemplateCode: Code[20];
         ShowAssemblyTrigger: Boolean;
         ShowProductionTrigger: Boolean;
@@ -453,6 +503,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 ShowEditWizardProductionRule := true;
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
+                ShowEditWizardAssemblyRule := true;
                 EditAssemblyTrigger := true;
                 EditProductionTrigger := true;
                 EditPurchaseTrigger := true;
@@ -474,7 +525,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
         case KnownOrInferredIntent of
             Rec.Intent::Assembly:
                 begin
-                    ShowEditWizardProductionRule := true;
+                    ShowEditWizardAssemblyRule := true;
                     EditAssemblyTrigger := true;
                     AssemblyStyle := Format(RowStyle::Standard);
                 end;
@@ -521,6 +572,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
     begin
         ShowEditWizardReceivingRule := false;
         ShowEditWizardProductionRule := false;
+        ShowEditWizardAssemblyRule := false;
         ShowEditWizardMovementRule := false;
         EditProductionTrigger := false;
         EditAssemblyTrigger := false;

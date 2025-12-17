@@ -110,6 +110,7 @@ permissionset 20404 QltyEntryInspector
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
         page "Qlty. Prod. Gen. Rule Wizard" = X,
+        page "Qlty. Asm. Gen. Rule Wizard" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,
         page "Qlty. Related Transfer Orders" = X,
         page "Qlty. Report Selection" = X,

@@ -366,6 +366,7 @@ codeunit 20404 "Qlty. Inspection Test - Create"
 
             if GuiAllowed() then
                 if (not PreventShowingGeneratedTestEvenIfConfigured) and
+                    (QltyInspectionTestHeader."No." <> '') and
                    ((QltyManagementSetup."Show Test Behavior" = QltyManagementSetup."Show Test Behavior"::"Automatic and manually created tests") or
                    (IsManualCreation and (QltyManagementSetup."Show Test Behavior" = QltyManagementSetup."Show Test Behavior"::"Only manually created tests")))
                 then
