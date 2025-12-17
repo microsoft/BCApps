@@ -3339,6 +3339,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
     var
         CountryRegion: Record "Country/Region";
         GenPostingSetup: Record "General Posting Setup";
+        GLSetup: Record "General Ledger Setup";
     begin
         LibrarySetupStorage.Restore();
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"PEPPOL30 Management Tests");
@@ -3362,8 +3363,10 @@ codeunit 139235 "PEPPOL30 Management Tests"
             CompanyInformation."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CompanyInformation."Country/Region Code");
 
         CompanyInformation.Modify(true);
+        GLSetup.GetRecordOnce();
+        GLSetup."VAT Reporting Date Usage" := GLSetup."VAT Reporting Date Usage"::Disabled;
+        GLSetup.Modify(false);
 
-        ConfigureVATPostingSetup();
 
         AddCompPEPPOLIdentifier();
 
@@ -3375,6 +3378,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         UpdateElectronicDocumentFormatSetup();
         LibraryService.SetupServiceMgtNoSeries();
         LibrarySetupStorage.Save(DATABASE::"Company Information");
+
+        ConfigureVATPostingSetup();
 
         GenPostingSetup.ModifyAll("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo());
         GenPostingSetup.ModifyAll("Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
