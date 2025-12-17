@@ -233,16 +233,55 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     /// <param name="DatasetInStream">The InStream of the dataset file.</param>
     procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream)
     var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, 0, DatasetFileName);
+    end;
+
+    /// <summary>
+    /// Import the Test Input Dataset from an InStream of a dataset in a supported format with a specific language.
+    /// Overwrite the dataset if the dataset with same filename is already imported by the same app
+    /// Error if the dataset with the same filename is created by a different app
+    /// </summary>
+    /// <param name="DatasetFileName">The file name of the dataset file which will be used in the description of the dataset.</param>
+    /// <param name="DatasetInStream">The InStream of the dataset file.</param>
+    /// <param name="LanguageID">The language ID to use for the dataset import.</param>
+    procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; LanguageID: Integer)
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, LanguageID, DatasetFileName);
+    end;
+
+    /// <summary>
+    /// Import the Test Input Dataset from an InStream of a dataset in a supported format with a specific language.
+    /// Overwrite the dataset if the dataset with same filename is already imported by the same app
+    /// Error if the dataset with the same filename is created by a different app
+    /// </summary>
+    /// <param name="DatasetFileName">The file name of the dataset file which will be used in the description of the dataset.</param>
+    /// <param name="DatasetInStream">The InStream of the dataset file.</param>
+    /// <param name="LanguageID">The language ID to use for the dataset import.</param>
+    /// <param name="Name">The name to use for the dataset import.</param>
+    procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; LanguageID: Integer; GroupName: Text)
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, LanguageID, GroupName);
+    end;
+
+    local procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; CallerModuleInfo: ModuleInfo; LanguageID: Integer; GroupName: Text)
+    var
         TestInputGroup: Record "Test Input Group";
         TestInputsManagement: Codeunit "Test Inputs Management";
-        CallerModuleInfo: ModuleInfo;
         EmptyGuid: Guid;
         SameDatasetNameErr: Label 'The test input dataset %1 with the same file name already exists. The dataset was uploaded %2. Please rename the current dataset or delete the existing dataset.', Comment = '%1 = test input dataset Name, %2 = "from the UI" or "by the app id: {app_id}';
         SourceOfTheDatasetIsUILbl: Label 'from the UI';
-        SourceOfTheDatasetIsAppIdLbl: Label 'by the app id: %1', Comment = '%1 = app id';
+        SourceOfTheDatasetIsAppIdLbl: Label 'previously by the app id: %1 and now with %2', Comment = '%1 = previous app id, %2 = current app id';
     begin
         // Check if the dataset with the same filename exists
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
         TestInputGroup.SetLoadFields(Code, "Imported by AppId");
 
         if TestInputGroup.Get(TestInputsManagement.GetTestInputGroupCodeFromFileName(DatasetFileName)) then
@@ -253,10 +292,10 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                     EmptyGuid:
                         Error(SameDatasetNameErr, DatasetFileName, SourceOfTheDatasetIsUILbl)
                     else
-                        Error(SameDatasetNameErr, DatasetFileName, StrSubstNo(SourceOfTheDatasetIsAppIdLbl, TestInputGroup."Imported by AppId"));
+                        Error(SameDatasetNameErr, DatasetFileName, StrSubstNo(SourceOfTheDatasetIsAppIdLbl, TestInputGroup."Imported by AppId", CallerModuleInfo.Id));
                 end;
 
-        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id);
+        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id, LanguageID, GroupName);
     end;
 
     /// <summary>
