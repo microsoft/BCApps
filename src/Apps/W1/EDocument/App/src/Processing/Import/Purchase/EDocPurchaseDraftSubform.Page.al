@@ -5,12 +5,10 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
-using System.Log;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using System.Search;
 
 page 6183 "E-Doc. Purchase Draft Subform"
 {
@@ -153,36 +151,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
     {
         area(Processing)
         {
-            action(test)
-            {
-                ApplicationArea = All;
-                Caption = 'Test';
-                Image = SerialNo;
-                ToolTip = 'Test action';
-                trigger OnAction()
-                var
-                    PurchInvLine: Record "Purch. Inv. Line";
-                    TempPurchInvLine: Record "Purch. Inv. Line" temporary;
-                    DataResult: Record "Data Similarity Result";
-                    Search: Codeunit "Activity Log Builder";
-                    REcordRef: RecordRef;
-                begin
-                    RecordRef.Open(Database::"Purch. Inv. Line");
-                    Search.Search(Rec.Description, RecordRef, DataResult); // Initialize search index
-
-
-                    if DataResult.FindSet() then
-                        repeat
-                            PurchInvLine.GetBySystemId(DataResult."System ID");
-                            TempPurchInvLine := PurchInvLine;
-                            TempPurchInvLine.Quantity := DataResult.Similarity;
-                            if TempPurchInvLine.Insert() then;
-                        until DataResult.Next() = 0;
-
-                    Page.RunModal(0, TempPurchInvLine);
-                end;
-            }
-
             action(History)
             {
                 ApplicationArea = All;
