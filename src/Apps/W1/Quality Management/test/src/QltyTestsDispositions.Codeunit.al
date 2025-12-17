@@ -59,7 +59,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         ReUsedLibraryItemTracking: Codeunit "Library - Item Tracking";
-        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=reinspection';
+        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=re-inspection';
         WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         MissingAdjBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
         MissingBinReclassBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclass batch.';
@@ -404,7 +404,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Purchase return disposition with specific quantity behavior is attempted on serial-tracked items
         asserterror QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
         // [THEN] An error is expected because no purchase receipt line exists for specific quantity with serial tracking
-        LibraryAssert.ExpectedError(StrSubstNo(NoPurchRcptLineErr, Item."No.", QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No."));
+        LibraryAssert.ExpectedError(StrSubstNo(NoPurchRcptLineErr, Item."No.", QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
     end;
 
     [Test]
@@ -711,7 +711,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Purchase return disposition is attempted on an unreceived purchase order
         asserterror QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo);
         // [THEN] An error is expected indicating no purchase receipt line exists
-        LibraryAssert.ExpectedError(StrSubstNo(NoPurchRcptLineErr, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No."));
+        LibraryAssert.ExpectedError(StrSubstNo(NoPurchRcptLineErr, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
     end;
 
     [Test]

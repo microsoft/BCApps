@@ -27,7 +27,7 @@ pageextension 20424 "Qlty. Posted Direct Transfer" extends "Posted Direct Transf
                         Rec.QltyShowRelatedInspection();
                     end;
                 }
-                field("Qlty. Reinspection No."; Rec."Qlty. Reinspection No.")
+                field("Qlty. Re-inspection No."; Rec."Qlty. Re-inspection No.")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;

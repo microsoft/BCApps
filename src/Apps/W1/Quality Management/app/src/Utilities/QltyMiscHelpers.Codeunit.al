@@ -183,7 +183,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyTest: Record "Qlty. Test";
     begin
-        QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyTest.Get(QltyInspectionLine."Test Code");
         GetRecordsForTableField(QltyTest, QltyInspectionHeader, QltyInspectionLine, TempBufferQltyLookupCode);
     end;

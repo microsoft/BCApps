@@ -46,7 +46,7 @@ page 20406 "Qlty. Inspection"
                 {
                     Editable = false;
                 }
-                field("Reinspection No."; Rec."Reinspection No.")
+                field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                     Editable = false;
                 }
@@ -209,7 +209,7 @@ page 20406 "Qlty. Inspection"
             {
                 Caption = 'Lines';
                 SubPageLink = "Inspection No." = field("No."),
-                              "Reinspection No." = field("Reinspection No.");
+                              "Re-inspection No." = field("Re-inspection No.");
             }
             group(ControlInfo)
             {
@@ -422,14 +422,14 @@ page 20406 "Qlty. Inspection"
             part("Most Recent Picture"; "Qlty. Most Recent Picture")
             {
                 Caption = 'Picture';
-                SubPageLink = "No." = field("No."), "Reinspection No." = field("Reinspection No.");
+                SubPageLink = "No." = field("No."), "Re-inspection No." = field("Re-inspection No.");
             }
             part("Attached Documents"; "Doc. Attachment List Factbox")
             {
                 Caption = 'Attachments';
                 SubPageLink = "Table ID" = const(Database::"Qlty. Inspection Header"),
                               "No." = field("No."),
-                              "Line No." = field("Reinspection No.");
+                              "Line No." = field("Re-inspection No.");
             }
             part("Template Attached Documents"; "Doc. Attachment List Factbox")
             {
@@ -452,15 +452,15 @@ page 20406 "Qlty. Inspection"
     {
         area(Processing)
         {
-            action(CreateReinspection)
+            action("Create Re-inspection")
             {
-                Caption = 'Create Reinspection';
+                Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Reinspection';
+                ToolTip = 'Create Re-inspection';
                 Enabled = CanCreateReinspection;
 
                 trigger OnAction()

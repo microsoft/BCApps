@@ -78,7 +78,7 @@ report 20412 "Qlty. Schedule Inspection"
     trigger OnInitReport()
     begin
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Create Inspection Behavior" in [QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection", QltyManagementSetup."Create Inspection Behavior"::"Always create reinspection"] then
+        if QltyManagementSetup."Create Inspection Behavior" in [QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection", QltyManagementSetup."Create Inspection Behavior"::"Always create re-inspection"] then
             ShowWarningIfCreateInspection := true;
     end;
 

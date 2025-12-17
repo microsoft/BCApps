@@ -334,7 +334,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] The first inspection line is retrieved
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [GIVEN] The test used in the inspection line is retrieved
         ToLoadQltyTest.Get(QltyInspectionLine."Test Code");
@@ -1674,7 +1674,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] An inspection line is initialized with header keys and line number
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         QltyInspectionLine."Line No." := 10000;
 
         // [WHEN] The inspection line is inserted
@@ -1703,7 +1703,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionLine.FindSet(true), 'Sanity check, there should be an inspection line.');
         repeat
             QltyInspectionHeader.SetTestValue(QltyInspectionLine."Test Code", '1');
@@ -1713,7 +1713,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         Clear(ToLoadQltyIResultConditConf);
         ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Inspection);
         ToLoadQltyIResultConditConf.SetRange("Target Code", QltyInspectionHeader."No.");
-        ToLoadQltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        ToLoadQltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
         LibraryAssert.AreEqual(
             1 * (QltyInspectionResult.Count() * QltyInspectionLine.Count()),
@@ -1727,7 +1727,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         Clear(ToLoadQltyIResultConditConf);
         ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Inspection);
         ToLoadQltyIResultConditConf.SetRange("Target Code", QltyInspectionHeader."No.");
-        ToLoadQltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        ToLoadQltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         ToLoadQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         LibraryAssert.AreEqual(0, ToLoadQltyIResultConditConf.Count(), 'Should be no result condition config lines for the inspection line.');
         ToLoadQltyIResultConditConf.SetRange("Target Line No.");
@@ -1750,7 +1750,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] The inspection line is retrieved and the inspection subform page is opened
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         QltyInspectionSubform.OpenEdit();
         QltyInspectionSubform.GoToRecord(QltyInspectionLine);
 
@@ -1803,7 +1803,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved and the inspection page is opened
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
         QltyInspection.Lines.GoToRecord(QltyInspectionLine);
@@ -1813,7 +1813,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection.Close();
 
         // [THEN] The Test Value is set to the selected option from the list
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         LibraryAssert.AreEqual('Option1', QltyInspectionLine."Test Value", 'Test value should be set.');
 
         QltyInspectionGenRule.Delete();
@@ -1863,7 +1863,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved and the inspection page is opened
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
         QltyInspection.Lines.GoToRecord(QltyInspectionLine);
@@ -1876,7 +1876,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection.Close();
 
         // [THEN] The Test Value is set to the selected location code from the lookup
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         LibraryAssert.AreEqual(Location.Code, QltyInspectionLine."Test Value", 'Test value should be set.');
 
         QltyInspectionGenRule.Delete();
@@ -1939,7 +1939,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line for the text field is retrieved and the inspection page is opened
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         QltyInspection.OpenEdit();
         QltyInspection.GoToRecord(QltyInspectionHeader);
         QltyInspection.Lines.GoToRecord(QltyInspectionLine);
@@ -1949,11 +1949,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection.Close();
 
         // [THEN] The text field's Test Value is set to 'test'
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         LibraryAssert.AreEqual('test', QltyInspectionLine."Test Value", 'Test value should be set.');
 
         // [THEN] The text expression field's Test Value is also automatically set to 'test'
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 20000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 20000);
         LibraryAssert.AreEqual('test', QltyInspectionLine."Test Value", 'Test value should be set.');
 
         QltyInspectionGenRule.Delete();

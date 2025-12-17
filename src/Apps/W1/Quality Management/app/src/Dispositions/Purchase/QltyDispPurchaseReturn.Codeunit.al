@@ -23,7 +23,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
 {
     var
         TempCreatedBufferPurchaseHeader: Record "Purchase Header" temporary;
-        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=reinspection';
+        NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=re-inspection';
         DocumentTypeLbl: Label 'Purchase Return';
 
     /// <summary>
@@ -74,7 +74,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         end;
 
         if not FindPurchaseReceiptLineForInspection(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, PurchRcptLine) then
-            Error(NoPurchRcptLineErr, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+            Error(NoPurchRcptLineErr, QltyInspectionHeader."Source Item No.", QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         TempQuantityToActQltyDispositionBuffer.FindSet();
         repeat
             if CreatedReturnOrderPurchaseHeader."No." = '' then

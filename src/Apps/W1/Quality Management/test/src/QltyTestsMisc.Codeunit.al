@@ -511,7 +511,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection line with a Salesperson/Purchaser code value
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
@@ -891,7 +891,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
@@ -1008,7 +1008,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should be exactly one inspection line that matches.');
@@ -1108,7 +1108,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
@@ -1242,7 +1242,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", LookupQualityMeasureQltyTest.Code);
 
         LibraryAssert.AreEqual(1, QltyInspectionLine.Count(), 'there should  be exactly one inspection line that matches.');
@@ -1662,7 +1662,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
         // [GIVEN] Quality Management setup configured with 'Any' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::Any;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any inspection that matches";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist in the system
@@ -1687,15 +1687,15 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'AnyFinished' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished;
+        // [GIVEN] Quality Management setup configured with "Any finished inspection that matches" conditional lot find behavior
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'AnyFinished' behavior and no inspections
+        // [WHEN] Posting with "Any finished inspection that matches" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1713,15 +1713,15 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'HighestFinishedReinspectionNumber' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedReinspectionNumber;
+        // [GIVEN] Quality Management setup configured with "Only the newest finished inspection/re-inspection" conditional lot find behavior
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'HighestFinishedReinspectionNumber' behavior and no inspections
+        // [WHEN] Posting with "Only the newest finished inspection/re-inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1739,15 +1739,15 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'HighestReinspectionNumber' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestReinspectionNumber;
+        // [GIVEN] Quality Management setup configured with "Only the newest inspection/re-inspection" conditional lot find behavior
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'HighestReinspectionNumber' behavior and no inspections
+        // [WHEN] Posting with "Only the newest inspection/re-inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1765,15 +1765,15 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'MostRecentFinishedModified' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified;
+        // [GIVEN] Quality Management setup configured with "Only the most recently modified finished inspection" conditional lot find behavior
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'MostRecentFinishedModified' behavior and no inspections
+        // [WHEN] Posting with "Only the most recently modified finished inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error
@@ -1791,15 +1791,15 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'MostRecentModified' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified;
+        // [GIVEN] Quality Management setup configured with "Only the most recently modified inspection" conditional lot find behavior
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
         if not QltyInspectionHeader.IsEmpty() then
             QltyInspectionHeader.DeleteAll();
 
-        // [WHEN] Posting with 'MostRecentModified' behavior and no inspections
+        // [WHEN] Posting with "Only the most recently modified inspection" behavior and no inspections
         ItemJnlPostBatch.Run(ItemJournalLine);
 
         // [THEN] Posting succeeds without error - all 6 behaviors allow posting when no inspections exist
@@ -1836,7 +1836,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryUtility: Codeunit "Library - Utility";
         LotNo: Code[20];
     begin
-        // [SCENARIO] Block assembly consumption with AnyFinished behavior should error
+        // [SCENARIO] Block assembly consumption with "Any finished inspection that matches" behavior should error
 
         Initialize();
 
@@ -1855,8 +1855,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Location created
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
 
-        // [GIVEN] Quality Management setup with AnyFinished conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished;
+        // [GIVEN] Quality Management setup with "Any finished inspection that matches" conditional lot find behavior
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Assembly item with one lot-tracked component created
@@ -1921,7 +1921,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure BlockTrackingTransaction_Purchase_HighestReinspectionNumber_ShouldError()
+    procedure BlockTrackingTransaction_Purchase_NewestReinspection_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -1941,7 +1941,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block purchase with HighestReinspectionNumber behavior should error
+        // [SCENARIO] Block purchase with "Only the newest inspection/re-inspection" behavior should error
 
         Initialize();
 
@@ -1964,7 +1964,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection created for purchase line with tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Reinspection created from original inspection
+        // [GIVEN] Re-inspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [GIVEN] Inspection result configured to block purchase
@@ -1973,20 +1973,20 @@ codeunit 139964 "Qlty. Tests - Misc."
         ToLoadQltyInspectionResult."Lot Allow Purchase" := ToLoadQltyInspectionResult."Lot Allow Purchase"::Block;
         ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection assigned the blocking result
+        // [GIVEN] Re-inspection assigned the blocking result
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with HighestReinspectionNumber conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" conditional lot find behavior
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestReinspectionNumber;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Posting the purchase document
-        // [THEN] An error is raised indicating purchase is blocked by the result on the highest reinspection
+        // [THEN] An error is raised indicating purchase is blocked by the result on the highest re-inspection
         asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
         LibraryAssert.ExpectedError(StrSubstNo(EntryTypeBlocked2Err,
             ReQltyInspectionHeader.GetFriendlyIdentifier(),
@@ -2032,7 +2032,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         SerialNo: Code[50];
         ConfigCode: Text;
     begin
-        // [SCENARIO] Block assembly output with MostRecentFinishedModified behavior should error
+        // [SCENARIO] Block assembly output with "Only the most recently modified finished inspection" behavior should error
 
         Initialize();
 
@@ -2139,7 +2139,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] Reinspection created from original inspection
+        // [GIVEN] Re-inspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [GIVEN] Inspection result configured to block assembly output
@@ -2148,19 +2148,19 @@ codeunit 139964 "Qlty. Tests - Misc."
         ToLoadQltyInspectionResult."Lot Allow Assembly Output" := ToLoadQltyInspectionResult."Lot Allow Assembly Output"::Block;
         ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking result
+        // [GIVEN] Re-inspection marked as finished with blocking result
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := ReQltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
         // [GIVEN] Sleep to ensure modified timestamp is different
         Sleep(1001);
 
-        // [GIVEN] Quality Management setup with MostRecentFinishedModified conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" conditional lot find behavior
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
@@ -2235,7 +2235,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection created for purchase line with tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Reinspection created from original inspection
+        // [GIVEN] Re-inspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [GIVEN] Inspection result configured to block put-away
@@ -2249,17 +2249,17 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
-        // [GIVEN] Reinspection assigned the blocking result (highest finished reinspection)
+        // [GIVEN] Re-inspection assigned the blocking result (highest finished re-inspection)
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with HighestFinishedReinspectionNumber conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest finished inspection/re-inspection" conditional lot find behavior
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedReinspectionNumber;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
-        // [THEN] An error is raised indicating put-away is blocked by the highest finished reinspection result
+        // [THEN] An error is raised indicating put-away is blocked by the highest finished re-inspection result
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         asserterror QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
         LibraryAssert.ExpectedError(StrSubstNo(
@@ -2292,7 +2292,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block warehouse put-away with AnyFinished behavior should error
+        // [SCENARIO] Block warehouse put-away with "Any finished inspection that matches" behavior should error
 
         Initialize();
 
@@ -2332,9 +2332,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with AnyFinished conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Any finished inspection that matches" conditional lot find behavior
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
@@ -2375,7 +2375,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
-        // [SCENARIO] Block warehouse inventory put-away with MostRecentFinishedModified behavior should error
+        // [SCENARIO] Block warehouse inventory put-away with "Only the most recently modified finished inspection" behavior should error
 
         Initialize();
 
@@ -2411,7 +2411,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         PurchaseLine."Bin Code" := Bin.Code;
         PurchaseLine.Modify();
 
-        // [GIVEN] Reinspection created from original inspection
+        // [GIVEN] Re-inspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [GIVEN] Inspection result configured to block inventory put-away
@@ -2420,19 +2420,19 @@ codeunit 139964 "Qlty. Tests - Misc."
         ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away" := ToLoadQltyInspectionResult."Lot Allow Invt. Put-Away"::Block;
         ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking result
+        // [GIVEN] Re-inspection marked as finished with blocking result
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
-        // [GIVEN] Quality Management setup with MostRecentFinishedModified conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" conditional lot find behavior
         QltyManagementSetup.Get();
 
         // [GIVEN] Setup trigger defaults cleared
         QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original inspection also marked as finished with blocking result (most recent modified)
@@ -2523,7 +2523,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection created for purchase line with tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Reinspection created from original inspection
+        // [GIVEN] Re-inspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [GIVEN] Inspection result configured to block inventory movement
@@ -2532,16 +2532,16 @@ codeunit 139964 "Qlty. Tests - Misc."
         ToLoadQltyInspectionResult."Lot Allow Invt. Movement" := ToLoadQltyInspectionResult."Lot Allow Invt. Movement"::Block;
         ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking result
+        // [GIVEN] Re-inspection marked as finished with blocking result
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
         Commit();
         Sleep(1001);
 
-        // [GIVEN] Quality Management setup with HighestReinspectionNumber conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" conditional lot find behavior
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::HighestReinspectionNumber;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inventory setup with no series configured
@@ -2578,13 +2578,13 @@ codeunit 139964 "Qlty. Tests - Misc."
         WarehouseActivityLine.Insert();
 
         // [GIVEN] Original inspection also marked as finished with blocking result
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
         // [WHEN] Registering the warehouse inventory movement
-        // [THEN] An error is raised indicating inventory movement is blocked by the highest reinspection result
+        // [THEN] An error is raised indicating inventory movement is blocked by the highest re-inspection result
         asserterror LibraryWarehouse.RegisterWhseActivity(InventoryMovementWarehouseActivityHeader);
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlockedErr,
@@ -2628,7 +2628,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         WhseWorksheetTemplateToUse: Text;
     begin
-        // [SCENARIO] Block warehouse movement with MostRecentModified behavior should error
+        // [SCENARIO] Block warehouse movement with "Only the most recently modified inspection" behavior should error
 
         Initialize();
 
@@ -2662,7 +2662,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Inspection created for purchase line with tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        // [GIVEN] Reinspection created from original inspection
+        // [GIVEN] Re-inspection created from original inspection
         QltyInspectionCreate.CreateReinspection(QltyInspectionHeader, ReQltyInspectionHeader);
 
         // [GIVEN] Inspection result configured to block movement
@@ -2671,11 +2671,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         ToLoadQltyInspectionResult."Lot Allow Movement" := ToLoadQltyInspectionResult."Lot Allow Movement"::Block;
         ToLoadQltyInspectionResult.Modify();
 
-        // [GIVEN] Reinspection marked as finished with blocking result
+        // [GIVEN] Re-inspection marked as finished with blocking result
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Status := ReQltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
         // [GIVEN] Warehouse entry identified (Movement type, not in RECEIVE zone)
@@ -2694,9 +2694,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         DestinationBin.SetFilter(Code, '<>%1', WarehouseEntry."Bin Code");
         DestinationBin.FindFirst();
 
-        // [GIVEN] Quality Management setup with MostRecentModified conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified inspection" conditional lot find behavior
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified;
+        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original inspection assigned the blocking result (most recent modified)
@@ -2942,7 +2942,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         IWXQltyNotificationMgmt.HandleNotificationActionAssignToSelf(MockNotification);
 
         // [THEN] The quality inspection is assigned to the current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(QltyInspectionHeader."Assigned User Id", UserId(), 'Inspection should be assigned to the current user');
     end;
 

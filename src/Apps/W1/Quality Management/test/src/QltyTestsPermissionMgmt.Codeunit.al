@@ -82,21 +82,21 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     [Test]
     procedure Express_VerifyCanCreateReinspection_ShouldError()
     begin
-        // [SCENARIO] Verify that creating a reinspection without proper permissions raises an error
+        // [SCENARIO] Verify that creating a re-inspection without proper permissions raises an error
         // [GIVEN] The user does not have write permission on Quality Inspection Header
         // [WHEN] VerifyCanCreateReinspection is called
-        // [THEN] An error is raised indicating the user lacks permission to create a reinspection
+        // [THEN] An error is raised indicating the user lacks permission to create a re-inspection
 
         if not CheckQltyInspectionHeaderWritePermission() then begin
             asserterror QltyPermissionMgmt.VerifyCanCreateReinspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Create Reinspection'));
+            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'Create Re-inspection'));
         end;
     end;
 
     [Test]
     procedure Express_VerifyCanCreateReinspection()
     begin
-        // [SCENARIO] Verify that creating a reinspection succeeds with proper supervisor permissions
+        // [SCENARIO] Verify that creating a re-inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
         LibraryLowerPermissions.AddPermissionSet(ExpectedSupervisorRoleIDTok);

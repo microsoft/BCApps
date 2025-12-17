@@ -606,13 +606,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [WHEN] AssistEditTest is called on the test code
         QltyInspectionHeader.AssistEditTest(QltyInspectionLine."Test Code");
 
         // [THEN] The test value is updated through the modal page handler
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         LibraryAssert.AreEqual(TestValueTxt, QltyInspectionLine."Test Value", 'Test value should match.');
 
         QltyInspectionGenRule.Delete();
@@ -686,7 +686,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to the first lot number through modal page handler
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
         QltyInspectionGenRule.Delete();
@@ -755,7 +755,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number through modal page handler
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
         QltyInspectionGenRule.Delete();
@@ -830,7 +830,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to the first package number through modal page handler
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
         QltyInspectionGenRule.Delete();
@@ -902,7 +902,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to first lot number from same document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
         QltyInspectionGenRule.Delete();
@@ -971,7 +971,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
         QltyInspectionGenRule.Delete();
@@ -1044,7 +1044,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to first package number from same document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
         QltyInspectionGenRule.Delete();
@@ -1116,7 +1116,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to lot number from different document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
         QltyInspectionGenRule.Delete();
@@ -1189,7 +1189,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to serial number from different document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be other source serial no.');
 
         QltyInspectionGenRule.Delete();
@@ -1262,7 +1262,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to first package number from different document
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
         QltyInspectionGenRule.Delete();
@@ -1698,7 +1698,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Modify(true);
 
         // [THEN] Inspection is automatically assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
     end;
 
@@ -1939,7 +1939,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnbindSubscription(CameraTestLibrary);
 
         // [THEN] Inspection header now has a most recent picture
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader."Most Recent Picture".HasValue(), 'Should have added picture.');
 
         // [THEN] A new document attachment is created
@@ -2127,7 +2127,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.ChangeStatusFinish.Invoke();
 
         // [THEN] Inspection status is changed to Finished
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Inspection should be finished.');
 
         // [GIVEN] Cleanup generation rule
@@ -2177,7 +2177,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.ChangeStatusReopen.Invoke();
 
         // [THEN] Inspection status is changed to Open
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Inspection should be open.');
 
         // [GIVEN] Cleanup generation rule
@@ -2222,7 +2222,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.AssignToSelf.Invoke();
 
         // [THEN] Inspection is assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'Inspection should be assigned to user.');
 
         // [GIVEN] Cleanup generation rule
@@ -2271,7 +2271,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionList.Unassign.Invoke();
 
         // [THEN] Inspection assigned user is cleared
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Inspection should not be assigned to a user.');
 
         // [GIVEN] Cleanup generation rule
@@ -2295,7 +2295,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] First inspection line is retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.FindFirst();
 
         // [WHEN] Measurement note is set
@@ -2509,7 +2509,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection line using the test is created
         QltyInspectionLine.Init();
         QltyInspectionLine.Validate("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.Validate("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.Validate("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine."Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
         QltyInspectionLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateLine."Template Code";
         QltyInspectionLine."Template Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
@@ -3548,7 +3548,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage.Close();
 
         // [THEN] Existing inspection has brick field recalculated
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(QltyInspectionHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Table Name"), 'Expressions should match.');
 
         // [GIVEN] Generation rule is cleaned up
@@ -4393,7 +4393,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] An inspection line is created with the result code
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine."Result Code" := ToLoadQltyInspectionResult.Code;
         QltyInspectionLine.Insert();
@@ -4475,7 +4475,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] An inspection line is created
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine."Test Code" := ConfigurationToLoadQltyInspectionTemplateLine."Test Code";
         QltyInspectionLine."Result Code" := ToLoadQltyInspectionResult.Code;
@@ -4484,7 +4484,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A result condition is created for the inspection
         ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Inspection;
         ToLoadQltyIResultConditConf."Target Code" := QltyInspectionHeader."No.";
-        ToLoadQltyIResultConditConf."Target Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        ToLoadQltyIResultConditConf."Target Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         ToLoadQltyIResultConditConf."Target Line No." := QltyInspectionLine."Line No.";
         ToLoadQltyIResultConditConf."Test Code" := QltyInspectionLine."Test Code";
         ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;

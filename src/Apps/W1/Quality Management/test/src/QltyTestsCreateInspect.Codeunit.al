@@ -151,7 +151,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall inspections');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
-        LibraryAssert.AreNotEqual(CreatedFirstQltyInspectionHeader."No.", CreatedSecondQltyInspectionHeader."No.", 'New inspection should not be a reinspection.');
+        LibraryAssert.AreNotEqual(CreatedFirstQltyInspectionHeader."No.", CreatedSecondQltyInspectionHeader."No.", 'New inspection should not be a re-inspection.');
     end;
 
     [Test]
@@ -172,7 +172,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        // [SCENARIO] Create inspection with CreateAReinspectionAny behavior creates a reinspection when an inspection already exists
+        // [SCENARIO] Create inspection with CreateAReinspectionAny behavior creates a re-inspection when an inspection already exists
 
         Initialize();
 
@@ -184,10 +184,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
 
-        // [GIVEN] The Create Inspection Behavior is set to "Always create reinspection"
+        // [GIVEN] The Create Inspection Behavior is set to "Always create re-inspection"
         QltyManagementSetup.Get();
         QltyCreateInspectBehavior := QltyManagementSetup."Create Inspection Behavior";
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Always create reinspection";
+        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Always create re-inspection";
         QltyManagementSetup.Modify();
 
         QltyInspectionHeader.Reset();
@@ -205,11 +205,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] A reinspection is created and the second inspection has the same number as the first with incremented Reinspection No.
+        // [THEN] A re-inspection is created and the second inspection has the same number as the first with incremented Re-inspection No.
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall inspections increase by 1');
-        LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."No.", SecondCreatedQltyInspectionHeader."No.", 'New inspection should be a reinspection.');
-        LibraryAssert.AreEqual((FirstCreatedQltyInspectionHeader."Reinspection No." + 1), SecondCreatedQltyInspectionHeader."Reinspection No.", 'New inspection "Reinspection No." should have incremented.');
+        LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."No.", SecondCreatedQltyInspectionHeader."No.", 'New inspection should be a re-inspection.');
+        LibraryAssert.AreEqual((FirstCreatedQltyInspectionHeader."Re-inspection No." + 1), SecondCreatedQltyInspectionHeader."Re-inspection No.", 'New inspection "Re-inspection No." should have incremented.');
     end;
 
     [Test]
@@ -242,10 +242,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
 
-        // [GIVEN] The Create Inspection Behavior is set to "Create reinspection if matching inspection is finished"
+        // [GIVEN] The Create Inspection Behavior is set to "Create re-inspection if matching inspection is finished"
         QltyManagementSetup.Get();
         QltyCreateInspectBehavior := QltyManagementSetup."Create Inspection Behavior";
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching inspection is finished";
+        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create re-inspection if matching inspection is finished";
         QltyManagementSetup.Modify();
 
         QltyInspectionHeader.Reset();
@@ -262,11 +262,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] No new inspection is created and the same inspection is retrieved with the same number and Reinspection No.
+        // [THEN] No new inspection is created and the same inspection is retrieved with the same number and Re-inspection No.
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual(BeforeCount, AfterCount, 'Should not be any new inspections counted.');
         LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."No.", SecondCreatedQltyInspectionHeader."No.", 'Should retrieve same inspection.');
-        LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."Reinspection No.", SecondCreatedQltyInspectionHeader."Reinspection No.", 'Should retrieve same inspection.');
+        LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."Re-inspection No.", SecondCreatedQltyInspectionHeader."Re-inspection No.", 'Should retrieve same inspection.');
     end;
 
     [Test]
@@ -287,7 +287,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         AfterCount: Integer;
         ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create inspection with CreateAReinspectionFinished behavior, using a production order routing line, creates a reinspection when the existing inspection is finished
+        // [SCENARIO] Create inspection with CreateAReinspectionFinished behavior, using a production order routing line, creates a re-inspection when the existing inspection is finished
 
         Initialize();
 
@@ -299,10 +299,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
         QltyInspectionCreate.GetCreatedInspection(FirstCreatedQltyInspectionHeader);
 
-        // [GIVEN] The Create Inspection Behavior is set to "Create reinspection if matching inspection is finished"
+        // [GIVEN] The Create Inspection Behavior is set to "Create re-inspection if matching inspection is finished"
         QltyManagementSetup.Get();
         QltyCreateInspectBehavior := QltyManagementSetup."Create Inspection Behavior";
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching inspection is finished";
+        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Create re-inspection if matching inspection is finished";
         QltyManagementSetup.Modify();
 
         // [GIVEN] The first inspection is marked as Finished
@@ -323,11 +323,11 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] A reinspection is created with incremented Reinspection No. and overall inspection count increases by 1
+        // [THEN] A re-inspection is created with incremented Re-inspection No. and overall inspection count increases by 1
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall inspections increase by 1.');
-        LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."No.", SecondCreatedQltyInspectionHeader."No.", 'New inspection should be a reinspection.');
-        LibraryAssert.AreEqual((FirstCreatedQltyInspectionHeader."Reinspection No." + 1), SecondCreatedQltyInspectionHeader."Reinspection No.", 'New inspection "Reinspection No." should have incremented.');
+        LibraryAssert.AreEqual(FirstCreatedQltyInspectionHeader."No.", SecondCreatedQltyInspectionHeader."No.", 'New inspection should be a re-inspection.');
+        LibraryAssert.AreEqual((FirstCreatedQltyInspectionHeader."Re-inspection No." + 1), SecondCreatedQltyInspectionHeader."Re-inspection No.", 'New inspection "Re-inspection No." should have incremented.');
     end;
 
     [Test]
@@ -384,10 +384,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionHeader.Reset();
         AfterCount := QltyInspectionHeader.Count();
 
-        // [THEN] A new inspection is created that is not a reinspection
+        // [THEN] A new inspection is created that is not a re-inspection
         LibraryAssert.IsTrue(ClaimedInspectionWasFoundOrCreated, 'Should claim an inspection has been found/created.');
         LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall inspections');
-        LibraryAssert.AreNotEqual(FirstCreatedQltyInspectionHeader."No.", SecondCreatedQltyInspectionHeader."No.", 'New inspection should not be a reinspection.');
+        LibraryAssert.AreNotEqual(FirstCreatedQltyInspectionHeader."No.", SecondCreatedQltyInspectionHeader."No.", 'New inspection should not be a re-inspection.');
     end;
 
     [Test]
@@ -1274,13 +1274,13 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant3: Variant;
         FoundInspection: Boolean;
     begin
-        // [SCENARIO] Retrieve all existing inspections including reinspections when FindAll is true. Uses a production order routing line and a reinspection. Should find both inspections.
+        // [SCENARIO] Retrieve all existing inspections including re-inspections when FindAll is true. Uses a production order routing line and a re-inspection. Should find both inspections.
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         Initialize();
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] An inspection is created with a reinspection
+        // [GIVEN] An inspection is created with a re-inspection
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, QltyInspectionTemplateHdr.Code);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
@@ -1349,13 +1349,13 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant3: Variant;
         FoundInspection: Boolean;
     begin
-        // [SCENARIO] Retrieve only the last inspection created when FindAll is false. Uses a production order routing line and a reinspection to ensure it only finds the last inspection created.
+        // [SCENARIO] Retrieve only the last inspection created when FindAll is false. Uses a production order routing line and a re-inspection to ensure it only finds the last inspection created.
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         Initialize();
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] An inspection is created with a reinspection
+        // [GIVEN] An inspection is created with a re-inspection
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
         QltyInspectionCreate.CreateInspectionWithSpecificTemplate(ProdOrderRoutingLineRecordRefRecordRef, true, QltyInspectionTemplateHdr.Code);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
@@ -1366,9 +1366,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         FoundInspection := QltyInspectionCreate.FindExistingInspectionWithVariant(ProdOrderRoutingLineRecordRefRecordRef, UnusedVariant1, UnusedVariant2, UnusedVariant3, TempQltyInspectionGenRule, FoundQltyInspectionHeader, false);
         QltyInspectionGenRule.Delete();
 
-        // [THEN] Only the last created inspection (the reinspection) is found
+        // [THEN] Only the last created inspection (the re-inspection) is found
         LibraryAssert.IsTrue(FoundInspection, 'Should claim found inspection.');
-        LibraryAssert.AreEqual(ReQltyInspectionHeader."Reinspection No.", FoundQltyInspectionHeader."Reinspection No.", 'The found inspection should match the last created inspection.');
+        LibraryAssert.AreEqual(ReQltyInspectionHeader."Re-inspection No.", FoundQltyInspectionHeader."Re-inspection No.", 'The found inspection should match the last created inspection.');
     end;
 
     [Test]
@@ -2047,7 +2047,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
         ClaimedInspectionWasFoundOrCreated: Boolean;
     begin
-        // [SCENARIO] Create a reinspection for an existing quality inspection
+        // [SCENARIO] Create a re-inspection for an existing quality inspection
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         Initialize();
@@ -2066,12 +2066,12 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         QltyInspectionGenRule.Delete();
 
-        // [THEN] The reinspection has the same template code as the original inspection
+        // [THEN] The re-inspection has the same template code as the original inspection
         LibraryAssert.AreEqual(QltyInspectionHeader."Template Code", ReQltyInspectionHeader."Template Code", 'Template does not match.');
-        // [THEN] The reinspection has the same inspection number as the original inspection
+        // [THEN] The re-inspection has the same inspection number as the original inspection
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", ReQltyInspectionHeader."No.", 'Inspection No. does not match.');
-        // [THEN] The reinspection number is incremented by 1
-        LibraryAssert.AreEqual((QltyInspectionHeader."Reinspection No." + 1), ReQltyInspectionHeader."Reinspection No.", 'Reinspection No. did not increment.');
+        // [THEN] The re-inspection number is incremented by 1
+        LibraryAssert.AreEqual((QltyInspectionHeader."Re-inspection No." + 1), ReQltyInspectionHeader."Re-inspection No.", 'Re-inspection No. did not increment.');
     end;
 
     [Test]
@@ -2111,8 +2111,8 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         LibraryAssert.IsTrue(InspectionStillExists, 'Inspection should be said to exist.');
         // [THEN] The retrieved inspection has the same inspection number as the last created inspection
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", CreatedQltyInspectionHeader."No.", 'Should get the last created inspection.');
-        // [THEN] The retrieved inspection has the same reinspection number as the last created inspection
-        LibraryAssert.AreEqual(QltyInspectionHeader."Reinspection No.", CreatedQltyInspectionHeader."Reinspection No.", 'Should get the last created inspection.');
+        // [THEN] The retrieved inspection has the same re-inspection number as the last created inspection
+        LibraryAssert.AreEqual(QltyInspectionHeader."Re-inspection No.", CreatedQltyInspectionHeader."Re-inspection No.", 'Should get the last created inspection.');
     end;
 
     [Test]

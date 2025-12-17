@@ -14,7 +14,7 @@ page 20413 "Qlty. Inspection Lines"
     Caption = 'Quality Inspection Lines';
     PageType = List;
     SourceTable = "Qlty. Inspection Line";
-    SourceTableView = sorting("Inspection No.", "Reinspection No.", "Line No.") order(descending);
+    SourceTableView = sorting("Inspection No.", "Re-inspection No.", "Line No.") order(descending);
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
 
@@ -30,7 +30,7 @@ page 20413 "Qlty. Inspection Lines"
                 field("Inspection No."; Rec."Inspection No.")
                 {
                 }
-                field("Reinspection No."; Rec."Reinspection No.")
+                field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                 }
                 field("Line No."; Rec."Line No.")

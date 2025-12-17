@@ -524,7 +524,7 @@ table 20400 "Qlty. Management Setup"
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
-        DefaultTopLeftExpressionTxt: Label '[No.] [Reinspection No.]', Locked = true;
+        DefaultTopLeftExpressionTxt: Label '[No.] [Re-inspection No.]', Locked = true;
         DefaultMiddleLeftExpressionTxt: Label '[Result Description]', Locked = true;
         DefaultMiddleRightExpressionTxt: Label '[Description] [Source Item No.] [Source Lot No.]  [Source Serial No.]', Locked = true;
         DefaultBottomLeftExpressionTxt: Label '[Source Document No.]', Locked = true;

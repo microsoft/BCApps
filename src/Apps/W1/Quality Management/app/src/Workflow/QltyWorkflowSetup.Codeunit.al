@@ -51,7 +51,7 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowResponseDescriptionCreateAQltyInspectionLbl: Label 'Create a Quality Inspection', Locked = true;
         QMWorkflowResponseDescriptionFinishTheQltyInspectionLbl: Label 'Finish the Quality Inspection', Locked = true;
         QMWorkflowResponseDescriptionReopenTheQltyInspectionLbl: Label 'Reopen the Quality Inspection', Locked = true;
-        QMWorkflowResponseDescriptionCreateReinspectionLbl: Label 'Create Reinspection', Locked = true;
+        QMWorkflowResponseDescriptionCreateReinspectionLbl: Label 'Create Re-inspection', Locked = true;
         QMWorkflowResponseDescriptionBlockLotLbl: Label 'Block Lot in the Inspection', Locked = true;
         QMWorkflowResponseDescriptionBlockSerialLbl: Label 'Block Serial in the Inspection', Locked = true;
         QMWorkflowResponseDescriptionBlockPackageLbl: Label 'Block Package in the Inspection', Locked = true;

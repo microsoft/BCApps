@@ -352,7 +352,7 @@ codeunit 20404 "Qlty. Inspection - Create"
             QltyInspectionHeader.Modify(false);
             QltyInspectionLine.Reset();
             QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-            QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+            QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
             if QltyInspectionLine.FindSet() then
                 repeat
                     QltyInspectionLine.UpdateExpressionsInOtherInspectionLinesInSameInspection();
@@ -452,7 +452,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                     Result := true;
                     repeat
                         QltyInspectionHeader.SetRange("No.", PotentialMatchQltyInspectionHeader."No.");
-                        QltyInspectionHeader.SetRange("Reinspection No.", PotentialMatchQltyInspectionHeader."Reinspection No.");
+                        QltyInspectionHeader.SetRange("Re-inspection No.", PotentialMatchQltyInspectionHeader."Re-inspection No.");
                         if QltyInspectionHeader.FindFirst() then
                             QltyInspectionHeader.Mark(true);
                     until PotentialMatchQltyInspectionHeader.Next() = 0;
@@ -464,7 +464,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 Result := true;
                 repeat
                     QltyInspectionHeader.SetRange("No.", PotentialMatchQltyInspectionHeader."No.");
-                    QltyInspectionHeader.SetRange("Reinspection No.", PotentialMatchQltyInspectionHeader."Reinspection No.");
+                    QltyInspectionHeader.SetRange("Re-inspection No.", PotentialMatchQltyInspectionHeader."Re-inspection No.");
                     if QltyInspectionHeader.FindFirst() then
                         QltyInspectionHeader.Mark(true);
                 until PotentialMatchQltyInspectionHeader.Next() = 0;
@@ -472,7 +472,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
         if Result then begin
             QltyInspectionHeader.SetRange("No.");
-            QltyInspectionHeader.SetRange("Reinspection No.");
+            QltyInspectionHeader.SetRange("Re-inspection No.");
             QltyInspectionHeader.MarkedOnly(true);
         end;
     end;
@@ -507,12 +507,12 @@ codeunit 20404 "Qlty. Inspection - Create"
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Always create reinspection":
+                QltyManagementSetup."Create Inspection Behavior"::"Always create re-inspection":
                     begin
                         ShouldCreateReinspection := true;
                         NeedNewInspection := true;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Create reinspection if matching inspection is finished":
+                QltyManagementSetup."Create Inspection Behavior"::"Create re-inspection if matching inspection is finished":
                     if not HasExistingInspection then begin
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
@@ -568,7 +568,7 @@ codeunit 20404 "Qlty. Inspection - Create"
             CreateQualityInspectionResultLinesFromTemplate(QltyInspectionHeader);
         end else
             if HasExistingInspection then
-                if QltyInspectionHeader.Get(ExistingQltyInspectionHeader."No.", ExistingQltyInspectionHeader."Reinspection No.") then begin
+                if QltyInspectionHeader.Get(ExistingQltyInspectionHeader."No.", ExistingQltyInspectionHeader."Re-inspection No.") then begin
                     QltyInspectionHeader.SetRecFilter();
                     HasInspection := true;
                 end;
@@ -595,7 +595,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 QltyInspectionLine."Template Code" := QltyInspectionHeader."Template Code";
                 QltyInspectionLine."Template Line No." := QltyInspectionTemplateLine."Line No.";
                 QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
-                QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
+                QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
                 QltyInspectionLine."Line No." := QltyInspectionTemplateLine."Line No.";
 
                 QltyInspectionLine.Validate("Test Code", QltyInspectionTemplateLine."Test Code");
@@ -610,7 +610,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
         QltyInspectionLine.Reset();
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         if QltyInspectionLine.FindSet(true) then
             repeat
                 if QltyResultEvaluation.TryValidateQltyInspectionLine(QltyInspectionLine, QltyInspectionHeader) then begin
@@ -648,7 +648,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
     /// <summary>
     /// Finds an existing inspection that matches the source criteria.
-    /// If there are multiple inspections finds the reinspection.
+    /// If there are multiple inspections finds the re-inspection.
     /// </summary>
     /// <param name="TargetRecordRef">The main target record that the inspection will be created against</param>
     /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
@@ -689,7 +689,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
         ExistingQltyInspectionHeader.SetRecFilter();
         ExistingQltyInspectionHeader.SetRange("No.");
-        ExistingQltyInspectionHeader.SetRange("Reinspection No.");
+        ExistingQltyInspectionHeader.SetRange("Re-inspection No.");
         ExistingQltyInspectionHeader.SetRange("Template Code");
 
         if QltyManagementSetup."Find Existing Behavior" <> QltyManagementSetup."Find Existing Behavior"::"By Source Record" then
@@ -701,7 +701,7 @@ codeunit 20404 "Qlty. Inspection - Create"
             ExistingQltyInspectionHeader.SetRange("Source Package No.");
         end;
 
-        ExistingQltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
+        ExistingQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
         if FindAll then
             exit(ExistingQltyInspectionHeader.FindSet())
         else
@@ -709,7 +709,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Use this to create a Reinspection.
+    /// Use this to create a Re-inspection.
     /// </summary>
     /// <param name="FromThisQltyInspectionHeader"></param>
     /// <param name="CreatedReinspectionQltyInspectionHeader"></param>
@@ -725,7 +725,7 @@ codeunit 20404 "Qlty. Inspection - Create"
             exit;
 
         ExistingQltyInspectionHeader.SetRange("No.", FromThisQltyInspectionHeader."No.");
-        ExistingQltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
+        ExistingQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
         ExistingQltyInspectionHeader.FindLast();
 
         InitReinspectionHeader(ExistingQltyInspectionHeader, CreatedReinspectionQltyInspectionHeader);
@@ -745,7 +745,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     begin
         CreatedReinspectionQltyInspectionHeader.Init();
         CreatedReinspectionQltyInspectionHeader."No." := FromThisQltyInspectionHeader."No.";
-        CreatedReinspectionQltyInspectionHeader."Reinspection No." := FromThisQltyInspectionHeader."Reinspection No." + 1;
+        CreatedReinspectionQltyInspectionHeader."Re-inspection No." := FromThisQltyInspectionHeader."Re-inspection No." + 1;
         CreatedReinspectionQltyInspectionHeader.Validate("Template Code", CreatedReinspectionQltyInspectionHeader."Template Code");
         CreatedReinspectionQltyInspectionHeader.TransferFields(FromThisQltyInspectionHeader, false);
         CreatedReinspectionQltyInspectionHeader.Status := CreatedReinspectionQltyInspectionHeader.Status::Open;
@@ -860,7 +860,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
             CreatedQltyInspectionHeader.SetFilter("No.", PipeSeparatedFilter);
             if CreatedQltyInspectionIds.Count() = 1 then begin
-                CreatedQltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
+                CreatedQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                 CreatedQltyInspectionHeader.FindLast();
                 Page.Run(Page::"Qlty. Inspection", CreatedQltyInspectionHeader);
             end else begin
@@ -1146,10 +1146,10 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// OnBeforeCreateReinspection supplies an opportunity to change how manual Reinspections are performed.
+    /// OnBeforeCreateReinspection supplies an opportunity to change how manual Re-inspections are performed.
     /// </summary>
-    /// <param name="FromThisQltyInspectionHeader">Which inspection the reinspection is being requested to be created from</param>
-    /// <param name="CreatedReQltyInspectionHeader">If you are setting Handled to true you must supply a valid reinspection record here.</param>
+    /// <param name="FromThisQltyInspectionHeader">Which inspection the re-inspection is being requested to be created from</param>
+    /// <param name="CreatedReQltyInspectionHeader">If you are setting Handled to true you must supply a valid re-inspection record here.</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateReinspection(var FromThisQltyInspectionHeader: Record "Qlty. Inspection Header"; var CreatedReQltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
@@ -1157,10 +1157,10 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// OnAfterCreateReinspection gives an opportunity to integrate with the reinspection record after a manual reinspection is created.
+    /// OnAfterCreateReinspection gives an opportunity to integrate with the re-inspection record after a manual re-inspection is created.
     /// </summary>
-    /// <param name="FromThisQltyInspectionHeader">Which inspection the reinspection is being requested to be created from</param>
-    /// <param name="CreatedReQltyInspectionHeader">The created reinspection</param>
+    /// <param name="FromThisQltyInspectionHeader">Which inspection the re-inspection is being requested to be created from</param>
+    /// <param name="CreatedReQltyInspectionHeader">The created re-inspection</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateReinspection(var FromThisQltyInspectionHeader: Record "Qlty. Inspection Header"; var CreatedReQltyInspectionHeader: Record "Qlty. Inspection Header")
     begin

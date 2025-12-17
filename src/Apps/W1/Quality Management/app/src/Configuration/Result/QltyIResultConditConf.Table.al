@@ -26,7 +26,7 @@ table 20412 "Qlty. I. Result Condit. Conf."
         field(2; "Target Code"; Code[20])
         {
             Caption = 'Target No.';
-            Description = 'When the condition type is a template, then this is the template code should be set. When the condition is an inspection, then this refers to a specific Reinspection.';
+            Description = 'When the condition type is a template, then this is the template code should be set. When the condition is an inspection, then this refers to a specific Re-inspection.';
             NotBlank = true;
             TableRelation = if ("Condition Type" = const("Template")) "Qlty. Inspection Template Hdr.".Code
             else
@@ -34,10 +34,10 @@ table 20412 "Qlty. I. Result Condit. Conf."
             else
             if ("Condition Type" = const(Test)) "Qlty. Test".Code;
         }
-        field(3; "Target Reinspection No."; Integer)
+        field(3; "Target Re-inspection No."; Integer)
         {
-            Caption = 'Reinspection No. (inspections)';
-            Description = 'Only applicable for Reinspections. Does not apply to test configurations or template configurations.';
+            Caption = 'Re-inspection No. (inspections)';
+            Description = 'Only applicable for Re-inspections. Does not apply to test configurations or template configurations.';
             BlankZero = true;
         }
         field(4; "Target Line No."; Integer)
@@ -47,7 +47,7 @@ table 20412 "Qlty. I. Result Condit. Conf."
             NotBlank = true;
             TableRelation = if ("Condition Type" = const("Template")) "Qlty. Inspection Template Line"."Line No." where("Template Code" = field("Target Code"))
             else
-            if ("Condition Type" = const(Inspection)) "Qlty. Inspection Line"."Line No." where("Inspection No." = field("Target Code"), "Reinspection No." = field("Target Reinspection No."));
+            if ("Condition Type" = const(Inspection)) "Qlty. Inspection Line"."Line No." where("Inspection No." = field("Target Code"), "Re-inspection No." = field("Target Re-inspection No."));
         }
         field(5; "Test Code"; Code[20])
         {
@@ -119,14 +119,14 @@ table 20412 "Qlty. I. Result Condit. Conf."
 
     keys
     {
-        key(Key1; "Condition Type", "Target Code", "Target Reinspection No.", "Target Line No.", "Test Code", "Result Code")
+        key(Key1; "Condition Type", "Target Code", "Target Re-inspection No.", "Target Line No.", "Test Code", "Result Code")
         {
             Clustered = true;
         }
-        key(SortByPriority; "Condition Type", Priority, "Target Code", "Target Reinspection No.", "Target Line No.")
+        key(SortByPriority; "Condition Type", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.")
         {
         }
-        key(SortByVisibility; "Condition Type", "Result Visibility", Priority, "Target Code", "Target Reinspection No.", "Target Line No.")
+        key(SortByVisibility; "Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.")
         {
         }
     }

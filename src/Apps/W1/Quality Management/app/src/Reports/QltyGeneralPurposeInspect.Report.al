@@ -28,14 +28,14 @@ report 20405 "Qlty. General Purpose Inspect."
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Reinspection No.", "Template Code";
+            RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
             column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
             column(QltyInspection_Result_Code; "Result Code") { }
             column(QltyInspection_Result_Description; "Result Description") { }
             column(QltyInspection_No; CurrentInspection."No.") { }
-            column(QltyInspection_ReinspectionNo; CurrentInspection."Reinspection No.") { }
+            column(QltyInspection_ReinspectionNo; CurrentInspection."Re-inspection No.") { }
             column(QltyInspection_Finished_By_User_ID; "Finished By User ID") { }
             column(QltyInspection_Finished_By_UserName; FinishedByUserName) { }
             column(QltyInspection_Finished_By_Title; FinishedByUserName) { }
@@ -85,7 +85,7 @@ report 20405 "Qlty. General Purpose Inspect."
 
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
-                DataItemLink = "Inspection No." = field("No."), "Reinspection No." = field("Reinspection No.");
+                DataItemLink = "Inspection No." = field("No."), "Re-inspection No." = field("Re-inspection No.");
                 RequestFilterFields = "Test Code";
                 CalcFields = "Result Description";
 

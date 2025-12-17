@@ -108,7 +108,7 @@ codeunit 20414 "Qlty. Attachment Integration"
             Database::"Qlty. Inspection Header":
                 begin
                     InspectionNo := CopyStr(Format(RecRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(InspectionNo));
-                    ReinspectionNo := RecRef.Field(TempQltyInspectionHeader.FieldNo("Reinspection No.")).Value();
+                    ReinspectionNo := RecRef.Field(TempQltyInspectionHeader.FieldNo("Re-inspection No.")).Value();
                     DocumentAttachment."No." := InspectionNo;
                     DocumentAttachment."Line No." := ReinspectionNo;
                 end;
@@ -173,7 +173,7 @@ codeunit 20414 "Qlty. Attachment Integration"
             Database::"Qlty. Inspection Header":
                 begin
                     InspectionNo := CopyStr(Format(RecordRef.Field(TempQltyInspectionHeader.FieldNo("No.")).Value()), 1, MaxStrLen(InspectionNo));
-                    ReinspectionNo := RecordRef.Field(TempQltyInspectionHeader.FieldNo("Reinspection No.")).Value();
+                    ReinspectionNo := RecordRef.Field(TempQltyInspectionHeader.FieldNo("Re-inspection No.")).Value();
                     DocumentAttachment.SetRange("No.", InspectionNo);
                     DocumentAttachment.SetRange("Line No.", ReinspectionNo);
                 end;
@@ -220,7 +220,7 @@ codeunit 20414 "Qlty. Attachment Integration"
             Database::"Qlty. Inspection Header":
                 begin
                     QltyInspectionHeader.SetRange("No.", DocumentAttachment."No.");
-                    QltyInspectionHeader.SetRange("Reinspection No.", DocumentAttachment."Line No.");
+                    QltyInspectionHeader.SetRange("Re-inspection No.", DocumentAttachment."Line No.");
                     if QltyInspectionHeader.FindLast() then begin
                         QltyInspectionHeader.SetRecFilter();
                         FoundRecordRef.GetTable(QltyInspectionHeader);

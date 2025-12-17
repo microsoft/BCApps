@@ -70,7 +70,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         // [THEN] The document attachment is correctly linked to the inspection header with proper table ID and identifiers
         LibraryAssert.AreEqual(Database::"Qlty. Inspection Header", DocumentAttachment."Table ID", 'Should be inspection.');
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", DocumentAttachment."No.", 'Should be correct inspection.');
-        LibraryAssert.AreEqual(QltyInspectionHeader."Reinspection No.", DocumentAttachment."Line No.", 'Should be correct inspection.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."Re-inspection No.", DocumentAttachment."Line No.", 'Should be correct inspection.');
     end;
 
     [Test]
@@ -165,7 +165,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         // [GIVEN] A Quality Inspection Line is created for the inspection header
         QltyInspectionLine.Init();
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         QltyInspectionLine.Insert(true);
 
         // [GIVEN] A file content is prepared in a temporary blob
@@ -249,7 +249,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         FirstDocumentAttachment.Init();
         FirstDocumentAttachment."Table ID" := Database::"Qlty. Inspection Header";
         FirstDocumentAttachment."No." := QltyInspectionHeader."No.";
-        FirstDocumentAttachment."Line No." := QltyInspectionHeader."Reinspection No.";
+        FirstDocumentAttachment."Line No." := QltyInspectionHeader."Re-inspection No.";
         FirstDocumentAttachment."File Name" := FirstFileNameTxt;
         FirstDocumentAttachment.Insert();
 
@@ -257,7 +257,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         SecondDocumentAttachment.Init();
         SecondDocumentAttachment."Table ID" := Database::"Qlty. Inspection Header";
         SecondDocumentAttachment."No." := SecondQltyInspectionHeader."No.";
-        SecondDocumentAttachment."Line No." := SecondQltyInspectionHeader."Reinspection No.";
+        SecondDocumentAttachment."Line No." := SecondQltyInspectionHeader."Re-inspection No.";
         SecondDocumentAttachment."File Name" := SecondFileNameTxt;
         SecondDocumentAttachment.Insert();
 
@@ -434,7 +434,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         // [GIVEN] A Quality Inspection Line is created for the inspection header
         QltyInspectionLine.Init();
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine.Insert();
 
@@ -533,9 +533,9 @@ codeunit 139970 "Qlty. Tests - Insepctions"
             end;
         until Navigate.Next() = false;
 
-        // [THEN] The correct inspection is opened with the correct inspection number and no reinspection number
+        // [THEN] The correct inspection is opened with the correct inspection number and no re-inspection number
         LibraryAssert.AreEqual(QltyInspectionHeader."No.", QltyInspectionSecond."No.".Value(), 'Should be correct inspection.');
-        LibraryAssert.AreEqual('', QltyInspectionSecond."Reinspection No.".Value(), 'Should be correct inspection.');
+        LibraryAssert.AreEqual('', QltyInspectionSecond."Re-inspection No.".Value(), 'Should be correct inspection.');
     end;
 
     [Test]
@@ -550,7 +550,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Navigate: TestPage Navigate;
         Count: Integer;
     begin
-        // [SCENARIO] Navigate to multiple Quality Inspection records (original and reinspection) from the Navigate page and verify both inspections are shown
+        // [SCENARIO] Navigate to multiple Quality Inspection records (original and re-inspection) from the Navigate page and verify both inspections are shown
 
         Initialize();
 
@@ -560,7 +560,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
 
-        // [GIVEN] A reinspection is created for the original inspection 
+        // [GIVEN] A re-inspection is created for the original inspection 
         QltyInspectionHeader.CreateReinspection();
         ReQltyInspectionHeader.Get(QltyInspectionHeader."No.", 1);
 
@@ -578,7 +578,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
             end;
         until Navigate.Next() = false;
 
-        // [THEN] Both the original inspection and reinspection are shown with the same inspection number
+        // [THEN] Both the original inspection and re-inspection are shown with the same inspection number
         QltyInspectionList.First();
         repeat
             LibraryAssert.AreEqual(QltyInspectionHeader."No.", QltyInspectionList."No.".Value(), 'Should be correct inspection.');

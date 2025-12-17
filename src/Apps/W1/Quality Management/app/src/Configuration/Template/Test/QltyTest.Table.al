@@ -544,7 +544,7 @@ table 20401 "Qlty. Test"
     begin
         QltyInspectionLine.SetRange("Test Code", Rec.Code);
         if QltyInspectionLine.FindLast() then begin
-            if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
+            if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then;
             if AllowActionableError then
                 Error(TestValueTypeErrInfoMsg, TestValueTypeErrTitleMsg, QltyInspectionHeader."No.")
             else

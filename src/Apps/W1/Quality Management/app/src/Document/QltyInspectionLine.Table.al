@@ -32,10 +32,10 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Inspection No.';
             ToolTip = 'Specifies which inspection this is.';
         }
-        field(2; "Reinspection No."; Integer)
+        field(2; "Re-inspection No."; Integer)
         {
-            Caption = 'Reinspection No.';
-            ToolTip = 'Specifies which reinspection this is for.';
+            Caption = 'Re-inspection No.';
+            ToolTip = 'Specifies which re-inspection this is for.';
             Editable = false;
             BlankZero = true;
         }
@@ -195,18 +195,18 @@ table 20406 "Qlty. Inspection Line"
 
     keys
     {
-        key(Key1; "Inspection No.", "Reinspection No.", "Line No.")
+        key(Key1; "Inspection No.", "Re-inspection No.", "Line No.")
         {
             Clustered = true;
         }
-        key(byResult; "Template Code", "Inspection No.", "Reinspection No.", "Test Code", "Result Code")
+        key(byResult; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", "Result Code")
         {
             SumIndexFields = "Result Priority";
         }
-        key(byResultPriority; "Template Code", "Inspection No.", "Reinspection No.", "Result Priority")
+        key(byResultPriority; "Template Code", "Inspection No.", "Re-inspection No.", "Result Priority")
         {
         }
-        key(byDate; "Template Code", "Inspection No.", "Reinspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
+        key(byDate; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
         {
         }
     }
@@ -230,7 +230,7 @@ table 20406 "Qlty. Inspection Line"
     begin
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", Rec."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", Rec."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", Rec."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", Rec."Line No.");
         QltyIResultConditConf.DeleteAll();
     end;
@@ -248,7 +248,7 @@ table 20406 "Qlty. Inspection Line"
         if Rec.IsTemporary() then
             exit(false);
 
-        exit(QltyInspectionHeader.Get(Rec."Inspection No.", Rec."Reinspection No."));
+        exit(QltyInspectionHeader.Get(Rec."Inspection No.", Rec."Re-inspection No."));
     end;
 
     local procedure TestStatusOpen()
@@ -407,7 +407,7 @@ table 20406 "Qlty. Inspection Line"
             exit;
 
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
-        OthersInSameQltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
+        OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         OthersInSameQltyInspectionLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
         OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
         OthersInSameQltyInspectionLine.SetAutoCalcFields("Test Value Type");
@@ -439,7 +439,7 @@ table 20406 "Qlty. Inspection Line"
         if QltyIResultConditConf.FindSet() then
             repeat
                 OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
-                OthersInSameQltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
+                OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
                 OthersInSameQltyInspectionLine.SetRange("Line No.", QltyIResultConditConf."Target Line No.");
                 OthersInSameQltyInspectionLine.SetRange("Test Code", QltyIResultConditConf."Test Code");
                 if OthersInSameQltyInspectionLine.FindFirst() then begin
@@ -450,7 +450,7 @@ table 20406 "Qlty. Inspection Line"
 
         OthersInSameQltyInspectionLine.Reset();
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
-        OthersInSameQltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
+        OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         OthersInSameQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
         OthersInSameQltyInspectionLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', Rec."Test Code"));
         if OthersInSameQltyInspectionLine.FindSet(true) then

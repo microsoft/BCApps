@@ -29,7 +29,7 @@ page 20408 "Qlty. Inspection List"
     Editable = false;
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
-    SourceTableView = sorting("No.", "Reinspection No.") order(descending);
+    SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
     AdditionalSearchTerms = 'Test Results,Certificates,Quality Tests,Inspections,inspection results';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
@@ -44,7 +44,7 @@ page 20408 "Qlty. Inspection List"
                 field("No."; Rec."No.")
                 {
                 }
-                field("Reinspection No."; Rec."Reinspection No.")
+                field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                 }
                 field("Template Code"; Rec."Template Code")
@@ -146,14 +146,14 @@ page 20408 "Qlty. Inspection List"
             part("Most Recent Picture"; "Qlty. Most Recent Picture")
             {
                 Caption = 'Picture';
-                SubPageLink = "No." = field("No."), "Reinspection No." = field("Reinspection No.");
+                SubPageLink = "No." = field("No."), "Re-inspection No." = field("Re-inspection No.");
             }
             part("Attached Documents"; "Doc. Attachment List Factbox")
             {
                 Caption = 'Attachments';
                 SubPageLink = "Table ID" = const(Database::"Qlty. Inspection Header"),
                               "No." = field("No."),
-                              "Line No." = field("Reinspection No.");
+                              "Line No." = field("Re-inspection No.");
             }
             part("Template Attached Documents"; "Doc. Attachment List Factbox")
             {
@@ -197,15 +197,15 @@ page 20408 "Qlty. Inspection List"
                     CurrPage.Update(false); // after creating an inspection from a blank list this helps make sure the actions stay updated.
                 end;
             }
-            action(CreateReinspection)
+            action("Create Re-inspection")
             {
-                Caption = 'Create Reinspection';
+                Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Reinspection';
+                ToolTip = 'Create Re-inspection';
                 Enabled = CanCreateReinspection;
 
                 trigger OnAction()
@@ -622,27 +622,27 @@ page 20408 "Qlty. Inspection List"
         {
             Caption = 'Open (all)';
             Filters = where(Status = const(Open));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewOpenAndDue)
         {
             Caption = 'Open and Due (all)';
             Filters = where(Status = const(Open),
                             "Planned Start Date" = filter('<=T'));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewFinished)
         {
             Caption = 'Finished';
             Filters = where(Status = const(Finished));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewMyOpen)
         {
             Caption = 'Open (mine)';
             Filters = where(Status = const(Open),
                             "Assigned User ID" = filter('%me'));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewMyOpenAndDue)
         {
@@ -650,26 +650,26 @@ page 20408 "Qlty. Inspection List"
             Filters = where(Status = const(Open),
                             "Assigned User ID" = filter('%me'),
                             "Planned Start Date" = filter('<=T'));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewMyFinished)
         {
             Caption = 'Finished (mine)';
             Filters = where(Status = const(Finished),
                             "Assigned User ID" = filter('%me'));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewAssignedtoMe)
         {
             Caption = 'Assigned To Me';
             Filters = where("Assigned User ID" = filter('%me'));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewUnassigned)
         {
             Caption = 'Unassigned';
             Filters = where("Assigned User ID" = filter(''''''));
-            OrderBy = descending("No.", "Reinspection No.");
+            OrderBy = descending("No.", "Re-inspection No.");
         }
     }
 

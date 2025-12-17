@@ -27,7 +27,7 @@ pageextension 20426 "Qlty. Posted Transfer Receipt" extends "Posted Transfer Rec
                         Rec.QltyShowRelatedInspection();
                     end;
                 }
-                field("Qlty. Reinspection No."; Rec."Qlty. Reinspection No.")
+                field("Qlty. Re-inspection No."; Rec."Qlty. Re-inspection No.")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;

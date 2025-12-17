@@ -16,13 +16,13 @@ enum 20402 "Qlty. Create Inspect. Behavior"
     {
         Caption = 'Always create a new inspection';
     }
-    value(1; "Create reinspection if matching inspection is finished")
+    value(1; "Create re-inspection if matching inspection is finished")
     {
-        Caption = 'Create a reinspection if a matching inspection is finished';
+        Caption = 'Create a re-inspection if a matching inspection is finished';
     }
-    value(2; "Always create reinspection")
+    value(2; "Always create re-inspection")
     {
-        Caption = 'Always create a reinspection';
+        Caption = 'Always create a re-inspection';
     }
     value(3; "Use existing open inspection if available")
     {

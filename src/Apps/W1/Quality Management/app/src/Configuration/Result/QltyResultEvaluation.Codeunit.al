@@ -28,7 +28,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         OptionalQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         if (not Rec.IsTemporary()) and (Rec."Inspection No." <> '') then
-            OptionalQltyInspectionHeader.Get(Rec."Inspection No.", Rec."Reinspection No.");
+            OptionalQltyInspectionHeader.Get(Rec."Inspection No.", Rec."Re-inspection No.");
         ValidateQltyInspectionLine(Rec, OptionalQltyInspectionHeader, true);
     end;
 
@@ -145,7 +145,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         OptionalQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         if (not QltyInspectionLine.IsTemporary()) and (QltyInspectionLine."Inspection No." <> '') then
-            if OptionalQltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
+            if OptionalQltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then;
         ValidateQltyInspectionLine(QltyInspectionLine, OptionalQltyInspectionHeader, true);
     end;
 
@@ -218,7 +218,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     begin
         TemplateLineQltyIResultConditConf.SetRange("Condition Type", TemplateLineQltyIResultConditConf."Condition Type"::Inspection);
         TemplateLineQltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        TemplateLineQltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        TemplateLineQltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         TemplateLineQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         TemplateLineQltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
     end;
@@ -228,20 +228,20 @@ codeunit 20410 "Qlty. Result Evaluation"
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
         if QltyIResultConditConf.IsEmpty() then begin
             QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Template);
             QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Template Code");
-            QltyIResultConditConf.SetRange("Target Reinspection No.");
+            QltyIResultConditConf.SetRange("Target Re-inspection No.");
             QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Template Line No.");
             QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
             if QltyIResultConditConf.IsEmpty() then begin
                 QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Test);
                 QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Test Code");
-                QltyIResultConditConf.SetRange("Target Reinspection No.");
+                QltyIResultConditConf.SetRange("Target Re-inspection No.");
                 QltyIResultConditConf.SetRange("Target Line No.");
                 QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
             end;

@@ -339,9 +339,9 @@ page 20407 "Qlty. Inspection Subform"
     begin
         MeasurementNote := Rec.GetMeasurementNote();
 
-        if (CachedReadOnlyQltyInspectionHeader."No." <> Rec."Inspection No.") or (CachedReadOnlyQltyInspectionHeader."Reinspection No." <> CachedReadOnlyQltyInspectionHeader."Reinspection No.") then begin
+        if (CachedReadOnlyQltyInspectionHeader."No." <> Rec."Inspection No.") or (CachedReadOnlyQltyInspectionHeader."Re-inspection No." <> CachedReadOnlyQltyInspectionHeader."Re-inspection No.") then begin
             CachedReadOnlyQltyInspectionHeader.ReadIsolation(IsolationLevel::ReadUncommitted);
-            if CachedReadOnlyQltyInspectionHeader.Get(Rec."Inspection No.", Rec."Reinspection No.") then;
+            if CachedReadOnlyQltyInspectionHeader.Get(Rec."Inspection No.", Rec."Re-inspection No.") then;
         end;
 
         Rec.CalcFields("Test Value Type");

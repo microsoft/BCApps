@@ -21,7 +21,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         ExpressOnlyCaptionEditLineCommentsLbl: Label 'Edit Line Note/Comment';
         ExpressOnlyCaptionCreateInspectionManualLbl: Label 'Create Inspection Manual';
         ExpressOnlyCaptionCreateInspectionAutoLbl: Label 'Create Inspection Auto';
-        ExpressOnlyCaptionCreateReinspectionLbl: Label 'Create Reinspection';
+        ExpressOnlyCaptionCreateReinspectionLbl: Label 'Create Re-inspection';
         ExpressOnlyCaptionDeleteOpenInspectionLbl: Label 'Delete Open Inspection';
         ExpressOnlyCaptionDeleteFinishedInspectionLbl: Label 'Delete Finished Inspection';
         ExpressOnlyCaptionChangeOthersInspectionsLbl: Label 'Change Others Inspections';
@@ -84,7 +84,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Determines if the current user can create a reinspection.
+    /// Determines if the current user can create a re-inspection.
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
@@ -95,7 +95,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// CanCreateReinspection. True if the user can create a reinspection.
+    /// CanCreateReinspection. True if the user can create a re-inspection.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     procedure CanCreateReinspection(): Boolean

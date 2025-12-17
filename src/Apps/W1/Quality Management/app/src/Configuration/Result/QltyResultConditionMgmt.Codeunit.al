@@ -224,7 +224,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             ToCheckQltyIResultConditConf := FromTemplateQltyIResultConditConf;
             ToCheckQltyIResultConditConf."Condition Type" := ToCheckQltyIResultConditConf."Condition Type"::Inspection;
             ToCheckQltyIResultConditConf."Target Code" := QltyInspectionLine."Inspection No.";
-            ToCheckQltyIResultConditConf."Target Reinspection No." := QltyInspectionLine."Reinspection No.";
+            ToCheckQltyIResultConditConf."Target Re-inspection No." := QltyInspectionLine."Re-inspection No.";
             ToCheckQltyIResultConditConf."Target Line No." := QltyInspectionLine."Line No.";
             ToCheckQltyIResultConditConf.SetRecFilter();
             if not ToCheckQltyIResultConditConf.FindFirst() then begin
@@ -467,7 +467,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
 
-        if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then;
+        if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then;
 
         if QltyTest.Get(QltyInspectionLine."Test Code") then;
         if not (QltyTest."Test Value Type" in [QltyTest."Test Value Type"::"Value Type Label"]) then
@@ -480,7 +480,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
 
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
         if QltyIResultConditConf.IsEmpty() then
@@ -524,7 +524,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
         QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
-        QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Reinspection No.", "Target Line No.");
+        QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
         QltyIResultConditConf.Ascending(false);
         if QltyIResultConditConf.FindSet() then
             repeat

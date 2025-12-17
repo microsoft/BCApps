@@ -95,13 +95,13 @@ codeunit 20424 "Qlty. Workflow Response"
                     QltyInspectionHeader2.SetRecFilter();
                     if QltyInspectionHeader2.Count() <> 1 then begin
                         QltyInspectionHeader.SetFilter("No.", QltyInspectionHeader2.GetFilter("No."));
-                        QltyInspectionHeader.SetFilter("Reinspection No.", QltyInspectionHeader2.GetFilter("Reinspection No."));
+                        QltyInspectionHeader.SetFilter("Re-inspection No.", QltyInspectionHeader2.GetFilter("Re-inspection No."));
                     end else
                         QltyInspectionHeader.Copy(QltyInspectionHeader2);
 
                     QltyInspectionHeader.FindFirst();
                     QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-                    QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+                    QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
                     if QltyInspectionLine.FindLast() then;
                 end;
             Database::"Qlty. Inspection Line":
@@ -109,7 +109,7 @@ codeunit 20424 "Qlty. Workflow Response"
                     PrimaryRecordRefInWorkflow.SetTable(QltyInspectionLine);
                     QltyInspectionLine.SetRecFilter();
                     QltyInspectionLine.FindFirst();
-                    if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Reinspection No.") then
+                    if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then
                         QltyInspectionHeader.SetRecFilter();
                 end;
         end;

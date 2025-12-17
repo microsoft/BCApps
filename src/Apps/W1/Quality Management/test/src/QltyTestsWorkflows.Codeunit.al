@@ -1147,7 +1147,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         CreatedInspections: Integer;
     begin
-        // [SCENARIO] Automatically create a reinspection when a quality inspection is finished
+        // [SCENARIO] Automatically create a re-inspection when a quality inspection is finished
 
         Initialize();
 
@@ -1168,7 +1168,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        // [GIVEN] A workflow configured to create reinspection on inspection finished event
+        // [GIVEN] A workflow configured to create re-inspection on inspection finished event
         QltyManagementSetup.Get();
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateReinspection(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreateReinspection(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
@@ -1180,10 +1180,10 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionHeader.Validate(Status, QltyInspectionHeader.Status::Finished);
         QltyInspectionHeader.Modify();
 
-        // [THEN] A new reinspection is created with same inspection number but incremented reinspection number
+        // [THEN] A new re-inspection is created with same inspection number but incremented re-inspection number
         LibraryAssert.AreEqual(CreatedInspections + 1, CreatedQltyInspectionHeader.Count(), 'Should be one more inspection created.');
         CreatedQltyInspectionHeader.SetRange("No.", QltyInspectionHeader."No.");
-        LibraryAssert.AreEqual(2, CreatedQltyInspectionHeader.Count(), 'Should be 2 inspections (one original and one reinspection)');
+        LibraryAssert.AreEqual(2, CreatedQltyInspectionHeader.Count(), 'Should be 2 inspections (one original and one re-inspection)');
 
         QltyInspectionGenRule.Delete();
         DeleteWorkflows();
@@ -1241,7 +1241,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
             ApprovalsMgmt.OnSendPurchaseDocForApproval(PurchaseHeader);
 
         // [THEN] The inspection status is automatically set to finished
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Inspection status should be finished.');
 
         QltyInspectionGenRule.Delete();
@@ -1301,7 +1301,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
             ApprovalsMgmt.OnSendPurchaseDocForApproval(PurchaseHeader);
 
         // [THEN] The inspection status is automatically set to open
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Inspection status should be open.');
 
         QltyInspectionGenRule.Delete();

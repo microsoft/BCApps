@@ -32,7 +32,7 @@ query 20401 "Qlty. Inspection Values"
             column(systemId; SystemId) { }
             column(templateCode; "Template Code") { }
             column(inspectionNo; "No.") { }
-            column(reinspectionNo; "Reinspection No.") { }
+            column(reinspectionNo; "Re-inspection No.") { }
             column(inspectionStatus; Status)
             {
                 Caption = 'inspectionStatus', Locked = true;
@@ -81,7 +81,7 @@ query 20401 "Qlty. Inspection Values"
 
             dataitem(QltyInspectionLine; "Qlty. Inspection Line")
             {
-                DataItemLink = "Inspection No." = QltyInspectionHeader."No.", "Reinspection No." = QltyInspectionHeader."Reinspection No.";
+                DataItemLink = "Inspection No." = QltyInspectionHeader."No.", "Re-inspection No." = QltyInspectionHeader."Re-inspection No.";
 
                 column(lineSystemId; SystemId) { }
                 column(lineNo; "Line No.") { }

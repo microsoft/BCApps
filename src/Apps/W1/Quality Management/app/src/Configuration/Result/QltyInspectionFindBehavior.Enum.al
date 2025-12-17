@@ -12,28 +12,28 @@ enum 20437 "Qlty. Inspection Find Behavior"
 {
     Caption = 'Quality Inspection Find Behavior';
 
-    value(0; Any)
+    value(0; "Any inspection that matches")
     {
         Caption = 'Any inspection that matches';
     }
-    value(1; MostRecentModified)
+    value(1; "Only the most recently modified inspection")
     {
         Caption = 'Only the most recently modified inspection';
     }
-    value(2; HighestReinspectionNumber)
+    value(2; "Only the newest inspection/re-inspection")
     {
-        Caption = 'Only the newest inspection/reinspection';
+        Caption = 'Only the newest inspection/re-inspection';
     }
-    value(3; AnyFinished)
+    value(3; "Any finished inspection that matches")
     {
         Caption = 'Any finished inspection that matches';
     }
-    value(4; MostRecentFinishedModified)
+    value(4; "Only the most recently modified finished inspection")
     {
         Caption = 'Only the most recently modified finished inspection';
     }
-    value(5; HighestFinishedReinspectionNumber)
+    value(5; "Only the newest finished inspection/re-inspection")
     {
-        Caption = 'Only the newest finished inspection/reinspection';
+        Caption = 'Only the newest finished inspection/re-inspection';
     }
 }

@@ -576,7 +576,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         CondManagementQltyResultConditionMgmt.CopyResultConditionsFromTemplateToInspection(ConfigurationToLoadQltyInspectionTemplateLine, QltyInspectionLine);
 
         // [THEN] The inspection receives the result condition configuration with the default value
-        ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Inspection, QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
+        ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Inspection, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(DefaultResult2PassConditionNumberTok, ToLoadQltyIResultConditConf.Condition, 'The condition should match the default value.');
     end;
@@ -874,7 +874,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [WHEN] Promoted results for the inspection line are retrieved
         CondManagementQltyResultConditionMgmt.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
@@ -949,7 +949,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.", 10000);
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
         // [WHEN] Promoted results for the inspection line are retrieved
         CondManagementQltyResultConditionMgmt.GetPromotedResultsForInspectionLine(QltyInspectionLine, MatrixSourceRecordId, MatrixConditionCellData, MatrixConditionDescriptionCellData, MatrixCaptionSet, MatrixVisible);
@@ -1017,7 +1017,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         QltyInspectionLine.Init();
         QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
-        QltyInspectionLine."Reinspection No." := QltyInspectionHeader."Reinspection No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         QltyInspectionLine."Line No." := 10000;
         QltyInspectionLine."Test Code" := ToLoadQltyTest.Code;
         QltyInspectionLine.Insert();

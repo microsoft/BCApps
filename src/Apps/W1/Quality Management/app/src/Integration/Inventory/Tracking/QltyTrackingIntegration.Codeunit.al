@@ -54,33 +54,33 @@ codeunit 20415 "Qlty. Tracking Integration"
             exit;
 
         case QltyManagementSetup."Conditional Lot Find Behavior" of
-            QltyManagementSetup."Conditional Lot Find Behavior"::Any:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Any inspection that matches":
                 if not QltyInspectionHeader.FindSet() then
                     exit;
-            QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     if not QltyInspectionHeader.FindSet() then
                         exit;
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestReinspectionNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection":
                 begin
-                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedReinspectionNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
-                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection":
                 begin
                     QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
                     QltyInspectionHeader.Ascending(false);
@@ -88,7 +88,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
@@ -203,34 +203,34 @@ codeunit 20415 "Qlty. Tracking Integration"
             exit;
 
         case QltyManagementSetup."Conditional Lot Find Behavior" of
-            QltyManagementSetup."Conditional Lot Find Behavior"::Any:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Any inspection that matches":
                 if not QltyInspectionHeader.FindSet() then
                     exit;
-            QltyManagementSetup."Conditional Lot Find Behavior"::AnyFinished:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
                     if not QltyInspectionHeader.FindSet() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestReinspectionNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection":
                 begin
-                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::HighestFinishedReinspectionNumber:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
-                    QltyInspectionHeader.SetCurrentKey("No.", "Reinspection No.");
+                    QltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                     QltyInspectionHeader.Ascending(false);
                     if not QltyInspectionHeader.FindFirst() then
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentModified:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection":
                 begin
                     QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
                     QltyInspectionHeader.Ascending(false);
@@ -238,7 +238,7 @@ codeunit 20415 "Qlty. Tracking Integration"
                         exit;
                     QltyInspectionHeader.SetRecFilter();
                 end;
-            QltyManagementSetup."Conditional Lot Find Behavior"::MostRecentFinishedModified:
+            QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection":
                 begin
                     QltyInspectionHeader.SetRange(Status, QltyInspectionHeader.Status::Finished);
 

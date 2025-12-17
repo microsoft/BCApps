@@ -76,7 +76,7 @@ page 20440 "Qlty. Inspection Template Edit"
                             ChooseInspectionRecordId := QltyInspectionHeader.RecordId();
                             Clear(ChooseInspectionLineChooseInspectionRecordId);
                             QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-                            QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+                            QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
                             if QltyInspectionLine.FindFirst() then
                                 ChooseInspectionLineChooseInspectionRecordId := QltyInspectionLine.RecordId();
 
@@ -101,7 +101,7 @@ page 20440 "Qlty. Inspection Template Edit"
                         if not QltyInspectionHeader.Get(ChooseInspectionRecordId) then
                             Error(ChooseAValidInspectionFirstBeforeChoosingLineErr);
                         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-                        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+                        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
                         if QltyInspectionLine.Get(ChooseInspectionLineChooseInspectionRecordId) then begin
                             QltyInspectionLines.SetRecord(QltyInspectionLine);
                             QltyInspectionLine.SetRecFilter();

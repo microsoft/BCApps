@@ -166,7 +166,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         Input := EvaluateBuiltInTableLookups(Input, CurrentQltyInspectionHeader, SpecificQltyInspectionLine);
         InputCurrentQltyInspectionLine.SetRange("Line No.");
         InputCurrentQltyInspectionLine.SetRange("Inspection No.", CurrentQltyInspectionHeader."No.");
-        InputCurrentQltyInspectionLine.SetRange("Reinspection No.", CurrentQltyInspectionHeader."Reinspection No.");
+        InputCurrentQltyInspectionLine.SetRange("Re-inspection No.", CurrentQltyInspectionHeader."Re-inspection No.");
 
         Result := EvaluateExpressionForRecord(Input, CurrentQltyInspectionHeader, false);
 
@@ -237,7 +237,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
                 ReplaceWith := Format(SearchForFieldRef.Value(), 0, 9);
 
             if ReplaceWith = '0' then
-                if (AlternateRecordRef.Number() = Database::"Qlty. Inspection Header") and (SearchForFieldRef.Number() = TempQltyInspectionHeader.FieldNo("Reinspection No.")) then
+                if (AlternateRecordRef.Number() = Database::"Qlty. Inspection Header") and (SearchForFieldRef.Number() = TempQltyInspectionHeader.FieldNo("Re-inspection No.")) then
                     ReplaceWith := '';
 
             Result := TextReplace(Result, SearchFor, ReplaceWith, "Qlty. Case Sensitivity"::Insensitive);

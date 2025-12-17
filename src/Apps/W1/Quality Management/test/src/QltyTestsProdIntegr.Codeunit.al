@@ -1340,7 +1340,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1409,7 +1409,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1478,7 +1478,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1546,7 +1546,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1615,7 +1615,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1695,7 +1695,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1775,7 +1775,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1855,7 +1855,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] Inspection source record IDs are updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -2136,7 +2136,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] The inspection source record ID is updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
@@ -2196,7 +2196,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] The inspection source record ID is updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
@@ -2256,7 +2256,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
 
         // [THEN] The inspection source record ID is updated to have "Finished" status
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');

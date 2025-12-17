@@ -46,10 +46,10 @@ table 20405 "Qlty. Inspection Header"
             Caption = 'No.';
             ToolTip = 'Specifies the quality inspection document number.';
         }
-        field(2; "Reinspection No."; Integer)
+        field(2; "Re-inspection No."; Integer)
         {
-            Caption = 'Reinspection No.';
-            ToolTip = 'Specifies which reinspection this is for.';
+            Caption = 'Re-inspection No.';
+            ToolTip = 'Specifies which re-inspection this is for.';
             BlankZero = true;
         }
         field(3; "Template Code"; Code[20])
@@ -167,7 +167,7 @@ table 20405 "Qlty. Inspection Header"
             trigger OnValidate()
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Serial No." <> xRec."Source Serial No.") then
-                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Reinspection No.");
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
                 if not GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeTrackingNo();
@@ -182,7 +182,7 @@ table 20405 "Qlty. Inspection Header"
             trigger OnValidate()
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Lot No." <> xRec."Source Lot No.") then
-                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Reinspection No.");
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
                 if not GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeTrackingNo();
@@ -241,7 +241,7 @@ table 20405 "Qlty. Inspection Header"
             trigger OnValidate()
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Package No." <> xRec."Source Package No.") then
-                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Reinspection No.");
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
                 if not GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeTrackingNo();
@@ -387,10 +387,10 @@ table 20405 "Qlty. Inspection Header"
             Caption = 'Finished By User ID';
             ToolTip = 'Specifies the user that finished the inspection';
         }
-        field(50; "Reinspection Iteration State"; Enum "Qlty. Iteration State")
+        field(50; "Re-inspection Iteration State"; Enum "Qlty. Iteration State")
         {
-            Caption = 'Reinspection Iteration State';
-            Description = 'When Reinspections are involved this indicates if it is the most recent Reinspection.';
+            Caption = 'Re-inspection Iteration State';
+            Description = 'When Re-inspections are involved this indicates if it is the most recent Re-inspection.';
             Editable = false;
         }
         field(51; "Assigned User ID"; Code[50])
@@ -414,7 +414,7 @@ table 20405 "Qlty. Inspection Header"
                     CanChangeAssignmentWithoutPermission := QltyPermissionMgmt.CanChangeOtherInspections();
 
                 if not CanChangeAssignmentWithoutPermission then
-                    Error(YouCannotChangeTheAssignmentOfTheInspectionErr, UserId(), Rec."No.", Rec."Reinspection No.");
+                    Error(YouCannotChangeTheAssignmentOfTheInspectionErr, UserId(), Rec."No.", Rec."Re-inspection No.");
             end;
         }
         field(52; "Result Code"; Code[20])
@@ -557,7 +557,7 @@ table 20405 "Qlty. Inspection Header"
 
     keys
     {
-        key(Key1; "No.", "Reinspection No.")
+        key(Key1; "No.", "Re-inspection No.")
         {
             Clustered = true;
         }
@@ -582,7 +582,7 @@ table 20405 "Qlty. Inspection Header"
         key(byUser; SystemCreatedBy, SystemCreatedAt, "Template Code")
         {
         }
-        key(byIterationState; "Reinspection Iteration State")
+        key(byIterationState; "Re-inspection Iteration State")
         {
         }
         key(byDocumentAndItemNo; "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code")
@@ -614,9 +614,9 @@ table 20405 "Qlty. Inspection Header"
         IsChangingStatus: Boolean;
 
     var
-        TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Reinspection no.';
+        TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Re-inspection No.';
         SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
-        YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the reinspection';
+        YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the re-inspection';
         UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
         PleaseConfigureNumberSeriesErr: Label 'Please configure a number series for the Quality Inspection Nos. field on the Quality Management Setup page, or set up a number series on the Quality Inspection Template.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
@@ -626,9 +626,9 @@ table 20405 "Qlty. Inspection Header"
         LotLbl: Label 'lot', Locked = true;
         PackageLbl: Label 'package', Locked = true;
         ReopenInspectionQst: Label 'Are you sure you want to Reopen the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
-        MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Reinspection. Please work with the most recent Reinspection instead.';
-        CreateReinspectionQst: Label 'Are you sure you want to create a Reinspection?';
-        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Reinspection can be made. This is done automatically, but you do not have permission to finish an inspection. Ask your administrator to add the ability to finish an inspection in the Quality Inspection Permissions page.';
+        MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Re-inspection. Please work with the most recent Re-inspection instead.';
+        CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
+        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Re-inspection can be made. This is done automatically, but you do not have permission to finish an inspection. Ask your administrator to add the ability to finish an inspection in the Quality Inspection Permissions page.';
         PictureNameTok: Label '%1_%2_%3', Locked = true;
         FileExtensionTok: Label 'jpeg', Locked = true;
         CameraNotAvailableErr: Label 'The camera is not available. Make sure to use this with a device that has a camera supported by Business Central.';
@@ -641,8 +641,8 @@ table 20405 "Qlty. Inspection Header"
         KeyIsCreatingTok: Label 'IsCreating-%1', Locked = true, Comment = '%1=the record';
         AreYouSureFinishInspectionQst: Label 'Are you sure you want to Finish the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
         AutoAssignmentDecisionTok: Label 'PreventAutoAssign-%1', Locked = true, Comment = '%1=the record id to prevent auto assignment on';
-        InspectionLbl: Label '%1,%2', Comment = '%1=the inspection no., %2=the reinspection no.';
-        NoItemErr: Label 'There is no source item specified for inspection %1-%2', Comment = '%1=the item, %2=the reinspection.';
+        InspectionLbl: Label '%1,%2', Comment = '%1=the inspection no., %2=the re-inspection no.';
+        NoItemErr: Label 'There is no source item specified for inspection %1-%2', Comment = '%1=the item, %2=the re-inspection.';
         NotSerialTrackedErr: Label 'The item %1 does not appear to be serial tracked.', Comment = '%1=the item';
         NotLotTrackedErr: Label 'The item %1 does not appear to be lot tracked.', Comment = '%1=the item';
         NotPackageTrackedErr: Label 'The item %1 does not appear to be package tracked.', Comment = '%1=the item';
@@ -664,12 +664,12 @@ table 20405 "Qlty. Inspection Header"
         end;
 
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         QltyInspectionLine.DeleteAll();
 
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", Rec."No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", Rec."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", Rec."Re-inspection No.");
         QltyIResultConditConf.DeleteAll();
     end;
 
@@ -693,7 +693,7 @@ table 20405 "Qlty. Inspection Header"
         QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", CopyStr(NumberOrNameOfTestCode, 1, MaxStrLen(QltyInspectionLine."Test Code")));
         if QltyInspectionLine.Count() <> 1 then
             Error(UnableToSetTestValueErr, NumberOrNameOfTestCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
@@ -713,7 +713,7 @@ table 20405 "Qlty. Inspection Header"
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", CopyStr(NumberOrNameOfTestCode, 1, MaxStrLen(QltyInspectionLine."Test Code")));
         if QltyInspectionLine.Count() <> 1 then
             Error(UnableToSetTestValueErr, NumberOrNameOfTestCode, Rec.GetFriendlyIdentifier(), QltyInspectionLine.Count);
@@ -734,14 +734,14 @@ table 20405 "Qlty. Inspection Header"
         Handled: Boolean;
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", Rec."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         QltyInspectionLine.SetFilter("Test Value Type", '<>%1', QltyInspectionLine."Test Value Type"::"Value Type Label");
         QltyInspectionLine.SetCurrentKey("Result Priority");
         OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, Handled);
         if Handled then
             exit;
 
-        QltyInspectionLine.SetRange("Failure State", QltyInspectionLine."Failure State"::"Failed from AQL");
+        QltyInspectionLine.SetRange("Failure State", QltyInspectionLine."Failure State"::"Failed from Acceptable Quality Level");
         if not QltyInspectionLine.FindFirst() then
             QltyInspectionLine.SetRange("Failure State");
 
@@ -757,10 +757,10 @@ table 20405 "Qlty. Inspection Header"
     var
         OtherReQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        Rec."Reinspection Iteration State" := Rec."Reinspection Iteration State"::"Most recent";
+        Rec."Re-inspection Iteration State" := Rec."Re-inspection Iteration State"::"Most recent";
         OtherReQltyInspectionHeader.SetRange("No.", Rec."No.");
-        OtherReQltyInspectionHeader.SetFilter("Reinspection No.", '<>%1&<%1', Rec."Reinspection No.");
-        OtherReQltyInspectionHeader.ModifyAll("Reinspection Iteration State", OtherReQltyInspectionHeader."Reinspection Iteration State"::"Newer reinspection available", false);
+        OtherReQltyInspectionHeader.SetFilter("Re-inspection No.", '<>%1&<%1', Rec."Re-inspection No.");
+        OtherReQltyInspectionHeader.ModifyAll("Re-inspection Iteration State", OtherReQltyInspectionHeader."Re-inspection Iteration State"::"Newer re-inspection available", false);
     end;
 
     /// <summary>
@@ -1054,7 +1054,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Creates a Reinspection
+    /// Creates a Re-inspection
     /// </summary>
     procedure CreateReinspection()
     var
@@ -1079,7 +1079,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Returns true if there is a more recent Reinspection than the current inspection.
+    /// Returns true if there is a more recent Re-inspection than the current inspection.
     /// </summary>
     /// <returns></returns>
     procedure HasMoreRecentReinspection(): Boolean
@@ -1087,7 +1087,7 @@ table 20405 "Qlty. Inspection Header"
         RecencyCheckQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         RecencyCheckQltyInspectionHeader.SetRange("No.", Rec."No.");
-        RecencyCheckQltyInspectionHeader.SetFilter("Reinspection No.", '>%1', Rec."Reinspection No.");
+        RecencyCheckQltyInspectionHeader.SetFilter("Re-inspection No.", '>%1', Rec."Re-inspection No.");
         exit(not RecencyCheckQltyInspectionHeader.IsEmpty());
     end;
 
@@ -1134,7 +1134,7 @@ table 20405 "Qlty. Inspection Header"
         OnlyForTheDocument: Boolean;
     begin
         if Rec."Source Item No." = '' then
-            Error(NoItemErr, Rec."No.", Rec."Reinspection No.");
+            Error(NoItemErr, Rec."No.", Rec."Re-inspection No.");
 
         TempItemTrackingSetup."Lot No. Required" := true;
         QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup);
@@ -1204,7 +1204,7 @@ table 20405 "Qlty. Inspection Header"
         OnlyForTheDocument: Boolean;
     begin
         if Rec."Source Item No." = '' then
-            Error(NoItemErr, Rec."No.", Rec."Reinspection No.");
+            Error(NoItemErr, Rec."No.", Rec."Re-inspection No.");
 
         TempItemTrackingSetup."Package No. Required" := true;
         QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup);
@@ -1272,7 +1272,7 @@ table 20405 "Qlty. Inspection Header"
         OnlyForTheDocument: Boolean;
     begin
         if Rec."Source Item No." = '' then
-            Error(NoItemErr, Rec."No.", Rec."Reinspection No.");
+            Error(NoItemErr, Rec."No.", Rec."Re-inspection No.");
 
         TempItemTrackingSetup."Serial No. Required" := true;
         QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup);
@@ -1373,7 +1373,7 @@ table 20405 "Qlty. Inspection Header"
 
         if not Camera.GetPicture(PictureInStream, PictureName) then
             Error(UnableToSavePictureErr);
-        PictureName := StrSubstNo(PictureNameTok, Rec."No.", Rec."Reinspection No.", CurrentDateTime());
+        PictureName := StrSubstNo(PictureNameTok, Rec."No.", Rec."Re-inspection No.", CurrentDateTime());
         PictureName := DelChr(PictureName, '=', ' ><{}.@!`~''"|\/?&*():');
 
         AddPicture(PictureInStream, PictureName, FileExtensionTok);
@@ -1485,7 +1485,7 @@ table 20405 "Qlty. Inspection Header"
     procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
     begin
         Rec.SetRecordFiltersToFindInspectionFor(false, RecordVariant, true, true, true);
-        Rec.SetCurrentKey("No.", "Reinspection No.");
+        Rec.SetCurrentKey("No.", "Re-inspection No.");
         Rec.Ascending(false);
         Success := Rec.FindFirst();
     end;
@@ -1693,12 +1693,12 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Returns the Inspection No. and Reinspection No. (if not 0) in the format No.,Reinspection No.
+    /// Returns the Inspection No. and Re-inspection No. (if not 0) in the format No.,Re-inspection No.
     /// </summary>
-    /// <returns>Text of No.,Reinspection No.</returns>
+    /// <returns>Text of No.,Re-inspection No.</returns>
     procedure GetFriendlyIdentifier(): Text
     begin
-        exit((Rec."Reinspection No." = 0) ? Rec."No." : StrSubstNo(InspectionLbl, Rec."No.", Rec."Reinspection No."));
+        exit((Rec."Re-inspection No." = 0) ? Rec."No." : StrSubstNo(InspectionLbl, Rec."No.", Rec."Re-inspection No."));
     end;
 
     local procedure VerifyPassAndFailQuantities()

@@ -411,14 +411,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -527,14 +527,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", DateTimeQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -618,14 +618,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", DateQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -705,14 +705,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", BooleanQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -787,14 +787,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", LabelQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -881,14 +881,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -903,7 +903,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '8', NumericalMeasureQltyTest."Case Sensitive"), 'slightly exceeding max inspection line result');
         // [THEN] Value 5 (below minimum) evaluates to FAIL
         LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '5', NumericalMeasureQltyTest."Case Sensitive"), 'slightly before min inspection line result');
-        // [THEN] Value 6 (reinspection pass value) evaluates to PASS
+        // [THEN] Value 6 (re-inspection pass value) evaluates to PASS
         LibraryAssert.AreEqual('PASS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '6', NumericalMeasureQltyTest."Case Sensitive"), 'pass value.');
         // [THEN] Blank value is not treated as zero and evaluates to INPROGRESS
         LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, NumericalMeasureQltyTest."Test Value Type", '', NumericalMeasureQltyTest."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
@@ -993,14 +993,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved with no blank results
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", TextQltyTest.Code);
         QltyInspectionLine.FindFirst();
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - f');
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -1030,7 +1030,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'C', TextQltyTest."Case Sensitive"), 'original field');
         // [THEN] Value 'Monkey' (not in any condition) evaluates to FAIL
         LibraryAssert.AreEqual('FAIL', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", 'Monkey', TextQltyTest."Case Sensitive"), 'A value not in any condition.');
-        // [THEN] Blank value reinspectioned evaluates to INPROGRESS
+        // [THEN] Blank value re-inspectioned evaluates to INPROGRESS
         LibraryAssert.AreEqual('INPROGRESS', QltyResultEvaluation.EvaluateResult(QltyInspectionHeader, QltyInspectionLine, QltyIResultConditConf, TextQltyTest."Test Value Type", '', TextQltyTest."Case Sensitive"), 'ensure that blank is not treated as a zero - integer.');
     end;
 
@@ -1115,7 +1115,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line for second field (uses reference) is retrieved
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        UsesReferenceQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        UsesReferenceQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         UsesReferenceQltyInspectionLine.SetRange("Test Code", UsesReferenceInPassConditionQltyTest.Code);
         UsesReferenceQltyInspectionLine.FindFirst();
 
@@ -1123,7 +1123,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", UsesReferenceQltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", UsesReferenceQltyInspectionLine."Test Code");
 
@@ -1257,7 +1257,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line for second field is retrieved with expression '1..{2+[TestCode]}'
         UsesReferenceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        UsesReferenceQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        UsesReferenceQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         UsesReferenceQltyInspectionLine.SetRange("Test Code", UsesReferenceInPassConditionQltyTest.Code);
         UsesReferenceQltyInspectionLine.FindFirst();
 
@@ -1265,7 +1265,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ExpectedQltyIResultConditConf.Reset();
         ExpectedQltyIResultConditConf.SetRange("Condition Type", ExpectedQltyIResultConditConf."Condition Type"::Inspection);
         ExpectedQltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionLine."Inspection No.");
-        ExpectedQltyIResultConditConf.SetRange("Target Reinspection No.", UsesReferenceQltyInspectionLine."Reinspection No.");
+        ExpectedQltyIResultConditConf.SetRange("Target Re-inspection No.", UsesReferenceQltyInspectionLine."Re-inspection No.");
         ExpectedQltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionLine."Line No.");
         ExpectedQltyIResultConditConf.SetRange("Test Code", UsesReferenceQltyInspectionLine."Test Code");
 
@@ -1806,7 +1806,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line is retrieved for test context validation
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", TextQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
@@ -1901,14 +1901,14 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line is retrieved and result conditions are set up
         QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        QltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         QltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         QltyInspectionLine.FindFirst();
 
         QltyIResultConditConf.Reset();
         QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
         QltyIResultConditConf.SetRange("Target Code", QltyInspectionLine."Inspection No.");
-        QltyIResultConditConf.SetRange("Target Reinspection No.", QltyInspectionLine."Reinspection No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", QltyInspectionLine."Re-inspection No.");
         QltyIResultConditConf.SetRange("Target Line No.", QltyInspectionLine."Line No.");
         QltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
 
@@ -2009,7 +2009,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line is retrieved for validation
         NumericMeasureQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        NumericMeasureQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        NumericMeasureQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         NumericMeasureQltyInspectionLine.SetRange("Test Code", NumericalMeasureQltyTest.Code);
         NumericMeasureQltyInspectionLine.FindFirst();
 
@@ -2136,7 +2136,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Inspection line for option field is retrieved
         OptionListQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
-        OptionListQltyInspectionLine.SetRange("Reinspection No.", QltyInspectionHeader."Reinspection No.");
+        OptionListQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
         OptionListQltyInspectionLine.SetRange("Test Code", OptionListMeasureQltyTest.Code);
         OptionListQltyInspectionLine.FindFirst();
 
@@ -2183,7 +2183,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
     begin
         OutTemplateLineQltyIResultConditConf.SetRange("Condition Type", OutTemplateLineQltyIResultConditConf."Condition Type"::Template);
         OutTemplateLineQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
-        OutTemplateLineQltyIResultConditConf.SetRange("Target Reinspection No.");
+        OutTemplateLineQltyIResultConditConf.SetRange("Target Re-inspection No.");
         OutTemplateLineQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
         OutTemplateLineQltyIResultConditConf.SetRange("Test Code", QltyInspectionTemplateLine."Test Code");
     end;
@@ -2192,7 +2192,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
     begin
         OutTemplateLineQltyIResultConditConf.SetRange("Condition Type", OutTemplateLineQltyIResultConditConf."Condition Type"::Test);
         OutTemplateLineQltyIResultConditConf.SetRange("Target Code", QltyTest.Code);
-        OutTemplateLineQltyIResultConditConf.SetRange("Target Reinspection No.");
+        OutTemplateLineQltyIResultConditConf.SetRange("Target Re-inspection No.");
         OutTemplateLineQltyIResultConditConf.SetRange("Target Line No.");
         OutTemplateLineQltyIResultConditConf.SetRange("Test Code", QltyTest.Code);
     end;
