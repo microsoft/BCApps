@@ -143,6 +143,14 @@ pageextension 36954 "Order Processor Role Center" extends "Order Processor Role 
                     RunObject = page "Sales by Projects";
                     Tooltip = 'Open the Power BI Report that breaks down sales performance by project, including sales metrics across customer, item, resources and general ledger accounts.';
                 }
+                action("Customer Retention (Power BI)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Customer Retention (Power BI)';
+                    Image = "PowerBI";
+                    RunObject = page "Customer Retention";
+                    Tooltip = 'Open the Power BI Report that analyzes customer retention, providing insights into repeat purchase behavior, customer loyalty, and trends in customer churn over time.';
+                }
             }
         }
     }
