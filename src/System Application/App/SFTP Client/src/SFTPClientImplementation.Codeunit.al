@@ -17,6 +17,8 @@ codeunit 9763 "SFTP Client Implementation"
     procedure Initialize(Host: Text; Port: Integer; UserName: Text; Password: SecretText): Codeunit "SFTP Operation Response"
     begin
         InitializeSFTPInterface();
+        ISFTPClient.SetSHA256Fingerprints(HostkeyFingerprintsSHA256);
+        ISFTPClient.SetMD5Fingerprints(HostkeyFingerprintsMD5);
         if not ISFTPClient.SftpClient(Host, Port, UserName, Password) then
             exit(ParseException());
     end;
@@ -24,6 +26,8 @@ codeunit 9763 "SFTP Client Implementation"
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream): Codeunit "SFTP Operation Response"
     begin
         InitializeSFTPInterface();
+        ISFTPClient.SetSHA256Fingerprints(HostkeyFingerprintsSHA256);
+        ISFTPClient.SetMD5Fingerprints(HostkeyFingerprintsMD5);
         if not ISFTPClient.SftpClient(HostName, Port, Username, PrivateKey) then
             exit(ParseException());
     end;
@@ -31,6 +35,8 @@ codeunit 9763 "SFTP Client Implementation"
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream; Passphrase: SecretText): Codeunit "SFTP Operation Response"
     begin
         InitializeSFTPInterface();
+        ISFTPClient.SetSHA256Fingerprints(HostkeyFingerprintsSHA256);
+        ISFTPClient.SetMD5Fingerprints(HostkeyFingerprintsMD5);
         if not ISFTPClient.SftpClient(HostName, Port, Username, PrivateKey, Passphrase) then
             exit(ParseException());
     end;
@@ -44,6 +50,16 @@ codeunit 9763 "SFTP Client Implementation"
         ISFTPClient := DotnetSFTPClient;
     end;
 
+    procedure AddFingerPrintSHA256(Fingerprint: Text)
+    begin
+        HostkeyFingerprintsSHA256.Add(Fingerprint);
+    end;
+
+    procedure AddFingerPrintMD5(Fingerprint: Text)
+    begin
+        HostkeyFingerprintsMD5.Add(Fingerprint);
+    end;
+
     local procedure ParseException() Result: Codeunit "SFTP Operation Response"
     var
         SocketExceptionLbl: Label 'Socket connection to the SSH server or proxy server could not be established, or an error occurred while resolving the hostname.';
@@ -51,10 +67,12 @@ codeunit 9763 "SFTP Client Implementation"
         SshConnectionExceptionLbl: Label 'Client is not connected.';
         SshAuthenticationExceptionLbl: Label 'Authentication of SSH session failed.';
         SftpPathNotFoundExceptionLbl: Label 'The specified path is invalid, or its directory was not found on the remote host.';
+        ServerFingerprintNotTrustedLbl: Label 'The server''s host key fingerprint %1 is not trusted.', Comment = '%1 is the SHA256 fingerprint of the server''s host key';
         ExceptionType: Enum "SFTP Exception Type";
         ExceptionMessage: Text;
+        ServerFingerprintSHA256: Text;
     begin
-        ISFTPClient.GetOperationException(ExceptionType, ExceptionMessage);
+        ISFTPClient.GetOperationException(ExceptionType, ExceptionMessage, ServerFingerprintSHA256);
         Result.SetExceptionType(ExceptionType);
         case ExceptionType of
             ExceptionType::"Socket Exception":
@@ -67,6 +85,8 @@ codeunit 9763 "SFTP Client Implementation"
                 Result.SetError(SshAuthenticationExceptionLbl);
             ExceptionType::"SFTP Path Not Found Exception":
                 Result.SetError(SftpPathNotFoundExceptionLbl);
+            ExceptionType::"Untrusted Server Exception":
+                Result.SetError(StrSubstNo(ServerFingerprintNotTrustedLbl, ServerFingerprintSHA256));
             ExceptionType::"Generic Exception": // Catch-all for any other exceptions
                 Result.SetError(ExceptionMessage);
         end;
@@ -185,5 +205,7 @@ codeunit 9763 "SFTP Client Implementation"
 
     var
         ISFTPClient: Interface "ISFTP Client";
+        HostkeyFingerprintsSHA256: List of [Text];
+        HostkeyFingerprintsMD5: List of [Text];
         ISFTPClientSet: Boolean;
 }

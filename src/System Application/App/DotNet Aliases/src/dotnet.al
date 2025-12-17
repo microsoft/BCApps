@@ -2249,6 +2249,10 @@ dotnet
         type(Renci.SshNet.Common.SftpPathNotFoundException; "SftpPathNotFoundException")
         {
         }
+
+        type(Renci.SshNet.Common.HostKeyEventArgs; "RenciHostKeyEventArgs")
+        {
+        }
     }
     assembly("Microsoft.Dynamics.Nav.PowerPlatform.Api")
     {

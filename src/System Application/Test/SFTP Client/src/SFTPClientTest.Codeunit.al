@@ -28,6 +28,7 @@ codeunit 139077 "SFTP Client Test"
         MockSFTPClient.SetShouldFailConnect(true);
         MockSFTPClient.SetExceptionToReturn(Enum::"SFTP Exception Type"::"Socket Exception", 'Some socket error');
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
 
         // [WHEN] Initialize is called
         Response := SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
@@ -51,6 +52,7 @@ codeunit 139077 "SFTP Client Test"
         MockSFTPClient.SetShouldFailConnect(true);
         MockSFTPClient.SetExceptionToReturn(Enum::"SFTP Exception Type"::"SSH Authentication Exception", 'Authentication failed');
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
 
         // [WHEN] Initialize is called
         Response := SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
@@ -97,6 +99,7 @@ codeunit 139077 "SFTP Client Test"
         // [GIVEN] A connected Mock SFTP client configured to fail with Path Not Found Exception
         MockSFTPClient.SetShouldFailConnect(false);
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
         SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
         // Configure mock to fail with Path Not Found on ListDirectory
@@ -125,6 +128,7 @@ codeunit 139077 "SFTP Client Test"
         MockSFTPClient.SetShouldFailConnect(true);
         MockSFTPClient.SetExceptionToReturn(Enum::"SFTP Exception Type"::"Generic Exception", GenericMessage);
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
 
         // [WHEN] Initialize is called
         Response := SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
@@ -148,6 +152,7 @@ codeunit 139077 "SFTP Client Test"
         MockSFTPClient.SetShouldFailConnect(false);
         MockSFTPClient.SetExceptionToReturn(Enum::"SFTP Exception Type"::"SSH Connection Exception", 'Client is not connected.');
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
 
         // [WHEN] A method that requires connection is called without connecting first
         Response := SFTPClientImpl.ListFiles('/some/path', FileList);
@@ -170,6 +175,7 @@ codeunit 139077 "SFTP Client Test"
         // [GIVEN] A connected Mock SFTP client configured to fail on CreateDirectory
         MockSFTPClient.SetShouldFailConnect(false);
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
         SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
         // Configure mock to fail with SFTP Path Not Found on CreateDirectory
@@ -199,6 +205,7 @@ codeunit 139077 "SFTP Client Test"
         // [GIVEN] A connected Mock SFTP client configured to fail on WriteAllBytes
         MockSFTPClient.SetShouldFailConnect(false);
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
         SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
         // Create a test stream
@@ -230,6 +237,7 @@ codeunit 139077 "SFTP Client Test"
         // [GIVEN] A connected Mock SFTP client configured to fail on Get
         MockSFTPClient.SetShouldFailConnect(false);
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
         SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
         // Configure mock to fail with SFTP Path Not Found on Get
@@ -255,6 +263,7 @@ codeunit 139077 "SFTP Client Test"
         // [GIVEN] A Mock SFTP client configured to succeed
         MockSFTPClient.SetShouldFailConnect(false);
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
 
         // [WHEN] Initialize is called
         Response := SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
@@ -278,6 +287,7 @@ codeunit 139077 "SFTP Client Test"
         MockSFTPClient.SetShouldFailConnect(false);
         MockSFTPClient.AddFile('/test/file.txt', 'test content');
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
         SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
         // [WHEN] File operations are performed
@@ -313,6 +323,7 @@ codeunit 139077 "SFTP Client Test"
         MockSFTPClient.SetShouldFailConnect(false);
         MockSFTPClient.SetWorkingDirectoryInternal('/initial/dir');
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
         SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
         // [WHEN] Directory operations are performed
@@ -351,6 +362,7 @@ codeunit 139077 "SFTP Client Test"
         // Set up client
         MockSFTPClient.SetShouldFailConnect(false);
         SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+        SFTPClientImpl.AddFingerPrintSHA256('5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=');
         SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
 
         // Prepare binary stream
@@ -374,5 +386,27 @@ codeunit 139077 "SFTP Client Test"
             OutputInStream.Read(ReadByte);
             Assert.AreEqual(TestBinaryData[i], ReadByte, 'Binary data not preserved correctly');
         end;
+    end;
+
+    [Test]
+    procedure TestUntrustedServerException()
+    var
+        MockSFTPClient: Codeunit "Mock SFTP Client";
+        SFTPClientImpl: Codeunit "SFTP Client Implementation";
+        Response: Codeunit "SFTP Operation Response";
+        ExpectedErrorMessage: Text;
+    begin
+        // [GIVEN] A Mock SFTP client WITHOUT a trusted fingerprint
+        MockSFTPClient.SetShouldFailConnect(false);
+        SFTPClientImpl.SetISFTPClient(MockSFTPClient);
+
+        // [WHEN] Initialize is called without adding fingerprints
+        Response := SFTPClientImpl.Initialize('test.host.com', 22, 'username', SecretStrSubstNo('password'));
+
+        // [THEN] Response should contain an error with the untrusted server exception
+        Assert.IsTrue(Response.IsError(), 'Response should indicate an error');
+        ExpectedErrorMessage := 'The server''s host key fingerprint 5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo= is not trusted.';
+        Assert.AreEqual(ExpectedErrorMessage, Response.GetError(), 'Incorrect error message');
+        Assert.AreEqual(Enum::"SFTP Exception Type"::"Untrusted Server Exception", Response.GetErrorType(), 'Incorrect error type');
     end;
 }

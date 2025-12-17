@@ -12,6 +12,24 @@ codeunit 9762 "SFTP Client"
     InherentPermissions = X;
 
     /// <summary>
+    /// Adds a SHA256 fingerprint to the list of accepted host key fingerprints.
+    /// </summary>
+    /// <param name="Fingerprint"></param>
+    procedure AddFingerprintSHA256(Fingerprint: Text)
+    begin
+        SFTPClientImplementation.AddFingerPrintSHA256(Fingerprint);
+    end;
+
+    /// <summary>
+    /// Adds an MD5 fingerprint to the list of accepted host key fingerprints.
+    /// </summary>
+    /// <param name="Fingerprint"></param>
+    procedure AddFingerprintMD5(Fingerprint: Text)
+    begin
+        SFTPClientImplementation.AddFingerPrintMD5(Fingerprint);
+    end;
+
+    /// <summary>
     /// Initializes the SFTP client with the specified parameters. The client is connected to the server.
     /// </summary>
     /// <param name="Hostname">Hostname of the SFTP server</param>

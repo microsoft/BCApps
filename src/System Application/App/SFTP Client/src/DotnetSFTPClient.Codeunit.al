@@ -14,8 +14,13 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
     InherentPermissions = X;
 
     var
+        [WithEvents]
         RenciSFTPClient: DotNet RenciSftpClient;
+        FingerprintsSHA256: List of [Text];
+        FingerprintsMD5: List of [Text];
+        ServerFingerprintSHA256: Text;
         LastOperationSuccessful: Boolean;
+        TrustedServer: Boolean;
 
     procedure Disconnect()
     begin
@@ -125,7 +130,7 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
         exit(Result);
     end;
 
-    procedure ReadAllBytes(Path: Text; Bytes: Dotnet Array): Boolean
+    procedure ReadAllBytes(Path: Text; var Bytes: Dotnet Array): Boolean
     begin
         LastOperationSuccessful := InternalReadAllBytes(Path, Bytes);
         exit(LastOperationSuccessful);
@@ -166,7 +171,7 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
         Result.SetFile(RenciSFTPClient.Get(Path));
     end;
 
-    procedure GetOperationException(var ExceptionType: Enum "SFTP Exception Type"; var ExceptionMessage: Text)
+    procedure GetOperationException(var ExceptionType: Enum "SFTP Exception Type"; var ExceptionMessage: Text; var ServerFingerprintSHA256Param: Text)
     var
         SocketException: DotNet SocketException;
         InvalidOperationException: DotNet InvalidOperationException;
@@ -178,8 +183,10 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
         BaseExceptionType: DotNet Type;
     begin
         ExceptionType := ExceptionType::None;
+        ServerFingerprintSHA256Param := '';
         if LastOperationSuccessful then
             exit;
+        ServerFingerprintSHA256Param := ServerFingerprintSHA256;
         OuterException := GetLastErrorObject();
         BaseException := OuterException.GetBaseException();
         BaseExceptionType := BaseException.GetType();
@@ -190,7 +197,10 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
             BaseExceptionType.Equals(GetDotNetType(InvalidOperationException)):
                 ExceptionType := ExceptionType::"Invalid Operation Exception";
             BaseExceptionType.Equals(GetDotNetType(SshConnectionException)):
-                ExceptionType := ExceptionType::"SSH Connection Exception";
+                if not TrustedServer then
+                    ExceptionType := ExceptionType::"Untrusted Server Exception"
+                else
+                    ExceptionType := ExceptionType::"SSH Connection Exception";
             BaseExceptionType.Equals(GetDotNetType(SshAuthenticationException)):
                 ExceptionType := ExceptionType::"SSH Authentication Exception";
             BaseExceptionType.Equals(GetDotNetType(SftpPathNotFoundException)):
@@ -222,5 +232,31 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
     local procedure InternalCreateDirectory(Path: Text)
     begin
         RenciSFTPClient.CreateDirectory(Path);
+    end;
+
+    trigger RenciSFTPClient::HostKeyReceived(sender: Variant; e: DotNet RenciHostKeyEventArgs)
+    begin
+        TrustedServer := false;
+        e.CanTrust := false;
+        ServerFingerprintSHA256 := e.FingerPrintSHA256;
+        if FingerprintsSHA256.Contains(ServerFingerprintSHA256) then begin
+            e.CanTrust := true;
+            TrustedServer := true;
+            exit;
+        end;
+        if not FingerprintsMD5.Contains(e.FingerPrintMD5) then
+            exit;
+        e.CanTrust := true;
+        TrustedServer := true;
+    end;
+
+    procedure SetSHA256Fingerprints(Fingerprints: List of [Text])
+    begin
+        FingerprintsSHA256 := Fingerprints;
+    end;
+
+    procedure SetMD5Fingerprints(Fingerprints: List of [Text])
+    begin
+        FingerprintsMD5 := Fingerprints;
     end;
 }

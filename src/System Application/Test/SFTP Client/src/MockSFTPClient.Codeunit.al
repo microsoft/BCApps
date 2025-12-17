@@ -18,8 +18,12 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
         ExceptionTypeToReturn: Enum "SFTP Exception Type";
         ExceptionMessageToReturn: Text;
         WorkingDirectoryVar: Text;
+        SHA256Fingerprint: Text;
+        TrustedServer: Boolean;
         FilesExist: Dictionary of [Text, Boolean];
         FilesContent: Dictionary of [Text, List of [Text]];
+        FingerprintsSHA256: List of [Text];
+        FingerprintsMD5: List of [Text];
 
     procedure SetShouldFailConnect(NewShouldFailConnect: Boolean)
     begin
@@ -35,6 +39,21 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
     procedure SetWorkingDirectoryInternal(NewWorkingDirectory: Text)
     begin
         WorkingDirectoryVar := NewWorkingDirectory;
+    end;
+
+    procedure SetHostKeyFingerprintSHA256(NewSHA256Fingerprint: Text)
+    begin
+        SHA256Fingerprint := NewSHA256Fingerprint;
+    end;
+
+    procedure SetSHA256Fingerprints(FingerPrints: List of [Text])
+    begin
+        FingerprintsSHA256 := FingerPrints;
+    end;
+
+    procedure SetMD5Fingerprints(FingerPrints: List of [Text])
+    begin
+        FingerprintsMD5 := FingerPrints;
     end;
 
     procedure AddFile(Path: Text; Content: Text)
@@ -65,14 +84,29 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
         if ShouldFailConnect then
             exit(false);
 
+        // Simulate fingerprint validation like DotnetSFTPClient
+        TrustedServer := false;
+        if SHA256Fingerprint = '' then
+            SHA256Fingerprint := '5Vot7f2reXMzE6IR9GKiDCOz/bNf3lA0qYnBQzRgObo=';
+
+        if FingerprintsSHA256.Contains(SHA256Fingerprint) then
+            TrustedServer := true;
+
+        if not TrustedServer then begin
+            ExceptionTypeToReturn := Enum::"SFTP Exception Type"::"Untrusted Server Exception";
+            ExceptionMessageToReturn := 'Server fingerprint not trusted';
+            exit(false);
+        end;
+
         IsConnectedVar := true;
         exit(true);
     end;
 
-    procedure GetOperationException(var ExceptionType: Enum "SFTP Exception Type"; var ExceptionMessage: Text)
+    procedure GetOperationException(var ExceptionType: Enum "SFTP Exception Type"; var ExceptionMessage: Text; var ServerFingerprintSHA256Param: Text)
     begin
         ExceptionType := ExceptionTypeToReturn;
         ExceptionMessage := ExceptionMessageToReturn;
+        ServerFingerprintSHA256Param := SHA256Fingerprint;
     end;
 
     procedure Disconnect()
@@ -175,7 +209,7 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
         exit(true);
     end;
 
-    procedure ReadAllBytes(Path: Text; Bytes: Dotnet Array): Boolean
+    procedure ReadAllBytes(Path: Text; var Bytes: Dotnet Array): Boolean
     var
         Encoding: DotNet Encoding;
         ContentList: List of [Text];

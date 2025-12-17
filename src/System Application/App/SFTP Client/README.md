@@ -15,6 +15,8 @@ The authentication methods are as follow:
 
 Please note that the connection is stateful. That means, when you have created a connection, you should always use `SFTPClient.Disconnect()` when finished.
 
+You must always add the fingerprint of the server you want to connect to, before connecting.
+
 Example for uploading a file via SFTP:
 ```al
 local procedure UploadMyFirstFile()
@@ -23,7 +25,10 @@ var
     InStream: InStream;
     ClearTextPassword: Text;
     Password: SecretText;
+    SHA256FingerPrint: Text;
 begin
+    SHA256FingerPrint := 'g3e54QTeJsKxMAo4EyZi+/WSGAnfxI2DkCD69g4bhsw='; 
+    SFTPClient.AddFingerPrintSHA256(SHA256FingerPrint);
     ClearTextPassword := 'password'; // Please dont hardcode credentials
     Password := ClearTextPassword;
     SFTPClient.Initialize('example.com', 22, 'username', Password); // Please dont hardcode credentials

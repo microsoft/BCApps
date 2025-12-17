@@ -38,4 +38,8 @@ enum 9760 "SFTP Exception Type"
     {
         Caption = 'SFTP Path Not Found Exception';
     }
+    value(7; "Untrusted Server Exception")
+    {
+        Caption = 'Untrusted Server Exception';
+    }
 }

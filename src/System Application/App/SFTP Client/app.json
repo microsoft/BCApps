@@ -12,22 +12,22 @@
     "logo": "",
     "dependencies": [
         {
-        "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
-        "name": "DotNet Aliases",
-        "publisher": "Microsoft",
-        "version": "28.0.0.0"
+            "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
+            "name": "DotNet Aliases",
+            "publisher": "Microsoft",
+            "version": "28.0.0.0"
         },
         {
-        "id": "a2ca2793-e1b4-461d-8251-dbe934daec78",
-        "name": "Password",
-        "publisher": "Microsoft",
-        "version": "28.0.0.0"
+            "id": "a2ca2793-e1b4-461d-8251-dbe934daec78",
+            "name": "Password",
+            "publisher": "Microsoft",
+            "version": "28.0.0.0"
         },
         {
-        "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
-        "name": "BLOB Storage",
-        "publisher": "Microsoft",
-        "version": "28.0.0.0"
+            "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
+            "name": "BLOB Storage",
+            "publisher": "Microsoft",
+            "version": "28.0.0.0"
         }
     ],
     "screenshots": [],
