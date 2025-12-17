@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.SFTPClient;
 
-permissionset 9762 "SFTP Admin"
+permissionset 9762 "SFTP - Admin"
 {
     Access = Public;
     Assignable = true;
-    Caption = 'SFTP Admin';
+    Caption = 'SFTP - Admin';
 
     Permissions =
         page "SFTP Client - Debug" = X,

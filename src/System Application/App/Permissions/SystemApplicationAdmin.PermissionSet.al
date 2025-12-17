@@ -38,5 +38,5 @@ permissionset 154 "System Application - Admin"
                              "Page Summary - Admin",
                              "TROUBLESHOOT TOOLS",
                              "VSC Intgr. - Admin",
-                             "SFTP Admin";
+                             "SFTP - Admin";
 }
