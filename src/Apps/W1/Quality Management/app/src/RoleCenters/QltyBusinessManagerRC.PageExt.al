@@ -10,7 +10,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 
 pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role Center"
 {

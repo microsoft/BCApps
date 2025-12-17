@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Setup.Setup;
+namespace Microsoft.QualityManagement.Setup;
 
 /// <summary>
 /// This is used to help determine what to do when a picture is uploaded to an inspection.

@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Setup.Setup;
+namespace Microsoft.QualityManagement.Setup;
 
 /// <summary>
 /// Determines the item tracking behavior, and can be used to help determine whether to require item tracking before finishing an inspection.

@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Setup;

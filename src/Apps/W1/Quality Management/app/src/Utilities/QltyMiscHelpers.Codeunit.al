@@ -12,7 +12,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;

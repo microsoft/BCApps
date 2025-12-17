@@ -17,7 +17,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Customer;
 using Microsoft.Test.QualityManagement.TestLibraries;

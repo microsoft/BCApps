@@ -29,7 +29,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Activity;

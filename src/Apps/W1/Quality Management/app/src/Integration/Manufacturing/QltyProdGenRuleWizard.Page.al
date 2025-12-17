@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Assembly;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 
 page 20462 "Qlty. Prod. Gen. Rule Wizard"

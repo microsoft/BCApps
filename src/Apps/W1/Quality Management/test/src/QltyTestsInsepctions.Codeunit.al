@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Utilities;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Utilities;
 using System.TestLibraries.Utilities;

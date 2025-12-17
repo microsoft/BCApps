@@ -8,7 +8,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 
 page 20405 "Qlty. Inspection Gen. Rules"
 {

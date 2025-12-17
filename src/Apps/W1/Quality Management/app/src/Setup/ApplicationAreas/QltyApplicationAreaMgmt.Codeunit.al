@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.ApplicationAreas;
 
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using System.Environment.Configuration;
 
 codeunit 20420 "Qlty. Application Area Mgmt."

@@ -6,7 +6,7 @@ namespace Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 
 report 20412 "Qlty. Schedule Inspection"
 {

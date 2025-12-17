@@ -18,7 +18,7 @@ using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Document;

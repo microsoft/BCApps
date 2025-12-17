@@ -20,7 +20,7 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Workflow;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Activity;

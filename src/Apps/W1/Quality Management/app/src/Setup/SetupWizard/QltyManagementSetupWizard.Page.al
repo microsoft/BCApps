@@ -5,8 +5,8 @@
 namespace Microsoft.QualityManagement.Setup.SetupWizard;
 
 using Microsoft.QualityManagement.Configuration;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
-using Microsoft.QualityManagement.Setup.Setup;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;

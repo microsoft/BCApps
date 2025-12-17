@@ -12,7 +12,7 @@ using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Activity;
 using System.IO;

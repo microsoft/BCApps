@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Workflow;
 
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using System.Automation;
 using System.Security.AccessControl;
 

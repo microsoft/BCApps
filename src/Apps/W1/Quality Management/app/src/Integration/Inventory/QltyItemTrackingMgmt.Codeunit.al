@@ -13,7 +13,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Tracking;
 

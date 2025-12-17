@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Integration.Utilities;
 
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Utilities;
 using System.Integration;
 

@@ -13,7 +13,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;

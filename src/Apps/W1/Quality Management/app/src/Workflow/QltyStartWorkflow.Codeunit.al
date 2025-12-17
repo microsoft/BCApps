@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Workflow;
 using Microsoft.CRM.Team;
 using Microsoft.HumanResources.Employee;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using System.Automation;
 using System.Environment.Configuration;
