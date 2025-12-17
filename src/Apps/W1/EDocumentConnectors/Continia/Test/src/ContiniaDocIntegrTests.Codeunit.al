@@ -1151,6 +1151,7 @@ codeunit 148203 "Continia Doc. Integr. Tests"
         CompanyInformation.IBAN := 'TEST1234';
         CompanyInformation."Bank Branch No." := '1234';
         CompanyInformation."SWIFT Code" := 'TESTSWIFT';
+        CompanyInformation."Registration No." := '38465732001846';
         CompanyInformation.Modify();
 
         Vendor."VAT Registration No." := 'GB777777772';
