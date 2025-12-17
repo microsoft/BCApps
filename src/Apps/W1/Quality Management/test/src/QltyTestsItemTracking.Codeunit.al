@@ -2466,7 +2466,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         LotNo: Code[50];
@@ -2551,7 +2550,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2625,7 +2623,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
-        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
