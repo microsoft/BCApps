@@ -37,7 +37,7 @@ annotation PBI_QueryOrder = ["Sales Lines","Sales Value Entries","Sales Budget",
 
 annotation __TEdtr = 1
 
-annotation PBI_ProTooling = ["DevMode","DaxQueryView_Desktop"]
+annotation PBI_ProTooling = ["DevMode","DaxQueryView_Desktop","TMDL-Extension"]
 
 annotation TranslationsBuilder = Version:2.2-Updated:2025-05-06
 

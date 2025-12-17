@@ -1,7 +1,7 @@
 table Customer
 	lineageTag: cd4698ab-c592-4ce7-9bf8-661142385bf6
 
-	/// This measure counts new customers by finding the date of their first purchase. It includes customers if their first purchase happened within the date selection.
+	/// Counts customers whose very first posted sales invoice date falls inside the currently selected date period (e.g., this month/quarter/slicer range). It’s essentially, first-time buyers acquired in this period.
 	measure 'No. of New Customers' = ```
 			
 			VAR CustomersWithNewDateSalesValueEntries =
@@ -99,7 +99,7 @@ table Customer
 		displayFolder: _Customer Measures
 		lineageTag: edf4331b-d034-440d-bed3-ee851b7d2b49
 
-	/// This measure calculates the number of customers who were "lost" (stopped purchasing) within the current date selection. It determines the latest date in the selection, prepares a table of customers and their associated "lost" dates, and then filters out the customers whose lost date is within the selected date range. Finally, it counts the rows in this filtered table to get the number of lost customers.
+	/// Counts customers who “become lost” during the currently selected date range, where “lost” is defined by an inactivity threshold in months since their last purchase. The inactivity threshold is managed by setting the Lost Customer Month Range filter. This is not; customers who didn’t buy this period. It’s customers who officially became lost this period according to the rule: no purchases for X months since last purchase.
 	measure 'No. of Lost Customers' = ```
 			
 			VAR PeriodStart = MIN ( 'Date'[Date] )
@@ -249,7 +249,7 @@ table Customer
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
-	/// This measure calculates the number of customers who made a repeat purchase during the current period. It identifies existing customers by filtering customers whose first purchase was before the selected date range, then determines which of these customers made another purchase within the current period. The measure returns the count of these returning customers.
+	/// Counts customers who have at least one posted sales invoice before the current period AND at least one posted sales invoice during the current period. So it’s basically, existing customers who purchased again in this period. It is not “recovered” (lapsed then came back).
 	measure 'No. of Returning Customers' = ```
 			
 			VAR PeriodStart = MIN ( 'Date'[Date] )
@@ -443,7 +443,7 @@ table Customer
 
 		changedProperty = FormatString
 
-	/// This measure calculates the number of customers who were temporarily "lost" (stopped purchasing) but later made a new purchase. It identifies customers who had a "lost" date before the selected date range, then determines which customers made a new purchase within the current period. The measure filters and counts only those customers whose new purchase occurred after their lost date, returning the total number of recovered customers.
+	/// Counts customers who were inactive in the previous period but returned with a purchase in the current period. For example: Bought in October > no purchase in November > bought in December > Recovered.
 	measure 'No. of Recovered Customers' =
 			
 			VAR PeriodStart = MIN ( 'Date'[Date] )
@@ -580,6 +580,7 @@ table Customer
 		displayFolder: _Customer Measures
 		lineageTag: 5d514859-59f1-4dc6-8921-1128f843fa2e
 
+	/// Count of customers who purchased in the previous period but did not purchase in the current period. So it answers how many were active last period, but went quiet this period.
 	measure 'No. of Temporarily Lost Customers' = ```
 			
 			VAR PeriodStart = MIN ( 'Date'[Date] )
@@ -879,8 +880,7 @@ table Customer
 
 		changedProperty = IsHidden
 
-	/// Specifies the distinct count of customers
-	/// 
+	/// Counts unique customers who had at least one posted sales invoice in the selected period, across all sales sources. It counts “customers with activity”, not “customers in the Customer table”. If you have customers with no invoices in the period, they will not be counted.
 	measure 'No. of Customers' = ```
 			
 			VAR Cust_SVE =
