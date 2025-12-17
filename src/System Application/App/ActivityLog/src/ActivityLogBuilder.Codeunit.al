@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Log;
 
-using System.Search;
-
 /// <summary>
 /// Codeunit to build and log activity entries for a specific table and field.
 /// Currently first party applications only to allow for future API changes. 
@@ -99,16 +97,6 @@ codeunit 3111 "Activity Log Builder"
     procedure Log()
     begin
         ActivityLogBuilderImpl.Log();
-    end;
-
-
-    procedure Search(SearchText: Text; RecRef: RecordRef; var DataResult: Record "Data Similarity Result")
-    var
-        Search2: Codeunit "Semantic Data Search";
-    begin
-        Search2.SetTable(RecRef);
-        Search2.SetMaxResults(1000);
-        Search2.FindSimilar(SearchText, DataResult);
     end;
 
 }

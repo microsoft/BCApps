@@ -8,11 +8,11 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Purchases.Vendor;
 using System.AI;
+using Microsoft.Purchases.Vendor;
 using System.Azure.KeyVault;
-using System.Config;
 using System.Telemetry;
+using System.Config;
 
 codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISystem
 {
@@ -25,7 +25,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     var
         TempEDocLineMatchBuffer: Record "EDoc Line Match Buffer" temporary;
         TempHistoricalMatchBuffer: Record "EDoc Historical Match Buffer" temporary;
-        // EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
+        EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
         Telemetry: Codeunit Telemetry;
         EDocumentNo: Integer;
         HistoricalDataLoadFailedErr: Label 'Failed to load historical data for e-document line %1. Error: %2', Comment = '%1 = E-Document System Id, %2 = Error message', Locked = true;
@@ -138,8 +138,6 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         if not EDocumentPurchaseLine.FindFirst() then
             exit(false);
 
-
-
         EDocSystemId := EDocumentPurchaseLine.SystemId;
 
         // Get vendor from header
@@ -246,7 +244,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     begin
         Telemetry.LogMessage('0000QLG', 'Processing similar descriptions for E-Document Line No. ' + Format(EDocumentPurchaseLine."Line No."), Verbosity::Verbose, DataClassification::SystemMetadata);
         // Get similar descriptions using the simplified API
-        //SimilarDescriptions := EDocSimilarDescriptions.GetSimilarDescriptions(EDocumentPurchaseLine.Description);
+        SimilarDescriptions := EDocSimilarDescriptions.GetSimilarDescriptions(EDocumentPurchaseLine.Description);
 
         // Search for matches using each similar description
         foreach Description in SimilarDescriptions do begin
