@@ -30,6 +30,11 @@
   ],
   "rules": [
     {
+      "id": "AL0897",
+      "action": "None",
+      "justification": "TODO(#611991) - Temporarily downgraded to unblock compiler uptake."
+    },
+    {
       "id": "AS0077",
       "action": "None",
       "justification": "Adding a var modifier in events should be allowed in main, as it only will break the runtime behavior of extensions subscribing to it when used in hotfix scenarios."
