@@ -336,11 +336,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
     views
     {
-        view(viewAll)
-        {
-            Caption = 'All';
-            OrderBy = descending("Sort Order");
-        }
         view(viewEnabled)
         {
             Caption = 'Enabled';
