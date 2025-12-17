@@ -1782,10 +1782,6 @@ codeunit 139969 "Qlty. Test Workflows"
         WorkflowResponseHandling: Codeunit "Workflow Response Handling";
         WorkflowEventStepID: Integer;
     begin
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Workflow Integration Enabled" := true;
-        QltyManagementSetup.Modify();
-
         WorkflowEventHandling.CreateEventsLibrary();
         WorkflowResponseHandling.CreateResponsesLibrary();
         LibraryWorkflow.CreateWorkflow(Workflow);
@@ -1802,10 +1798,6 @@ codeunit 139969 "Qlty. Test Workflows"
         WorkflowResponseHandling: Codeunit "Workflow Response Handling";
         WorkflowEventStepID: Integer;
     begin
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Workflow Integration Enabled" := true;
-        QltyManagementSetup.Modify();
-
         WorkflowEventHandling.CreateEventsLibrary();
         WorkflowResponseHandling.CreateResponsesLibrary();
         LibraryWorkflow.CreateWorkflow(Workflow);
@@ -1823,10 +1815,6 @@ codeunit 139969 "Qlty. Test Workflows"
         WorkflowResponseHandling: Codeunit "Workflow Response Handling";
         WorkflowEventStepID: Integer;
     begin
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Workflow Integration Enabled" := true;
-        QltyManagementSetup.Modify();
-
         WorkflowEventHandling.CreateEventsLibrary();
         WorkflowResponseHandling.CreateResponsesLibrary();
         LibraryWorkflow.CreateWorkflow(Workflow);

@@ -36,25 +36,16 @@ codeunit 20426 "Qlty. Start Workflow"
 
     internal procedure StartWorkflowTestCreated(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestCreatedEvent(), QltyInspectionTestHeader);
     end;
 
     internal procedure StartWorkflowTestFinished(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestFinishedEvent(), QltyInspectionTestHeader);
     end;
 
     internal procedure StartWorkflowTestReopens(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestReopensEvent(), QltyInspectionTestHeader);
     end;
 
@@ -65,9 +56,6 @@ codeunit 20426 "Qlty. Start Workflow"
         TestDateTime: DateTime;
     begin
         if QltyInspectionTestHeader.IsTemporary() then
-            exit;
-
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
         Temp := RecursionDetectionQltySessionHelper.GetSessionValue('StartWorkflowTestChanged-Record');
