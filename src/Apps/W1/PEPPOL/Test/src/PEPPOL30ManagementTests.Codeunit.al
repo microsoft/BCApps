@@ -1947,6 +1947,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine."Gen. Prod. Posting Group" := GeneralPostingSetup."Gen. Prod. Posting Group";
         SalesLine.Modify(false);
 
+        Clear(VATPostingSetup);
+        VATPostingSetup.ModifyAll(Blocked, false);
         SalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
         SalesInvoiceLine.Get(SalesInvoiceNo, SalesLine."Line No.");
 
@@ -3425,9 +3427,22 @@ codeunit 139235 "PEPPOL30 Management Tests"
 
     local procedure CreateItemWithPrice(var Item: Record Item; UnitPrice: Decimal)
     begin
-        LibraryInvt.CreateItem(Item);
+        CreateItem(Item);
         Item."Unit Price" := UnitPrice;
         Item.Modify(false);
+    end;
+
+    local procedure CreateItem(var Item: Record Item): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryInvt.CreateItemWithoutVAT(Item);
+
+        VATPostingSetup.SetFilter("VAT %", '<>%1', 0);
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        exit(Item."No.");
     end;
 
     local procedure CreateGenericSalesHeader(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type")
