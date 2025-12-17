@@ -82,7 +82,8 @@ codeunit 4325 "Agent Setup Impl."
                 AgentSetupBuffer."User Name" := Agent."User Name";
                 AgentSetupBuffer."Display Name" := Agent."Display Name";
                 AgentSetupBuffer.State := Agent.State;
-                AgentSetupBuffer.Initials := Agent.Initials;
+                AgentMetadata := Agent."Agent Metadata Provider";
+                AgentSetupBuffer.Initials := AgentMetadata.GetInitials(UserSecurityID);
                 AgentSetupBuffer."Configured By" := Agent.SystemModifiedBy;
                 exit;
             end;
@@ -146,9 +147,8 @@ codeunit 4325 "Agent Setup Impl."
         Agent: Codeunit Agent;
     begin
         AgentSetupBuffer.GetTempAgentAccessControl(TemporaryAgentAccessControl);
-        AgentSetupBuffer."User Security ID" := Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl, AgentSetupBuffer.Initials);
+        AgentSetupBuffer."User Security ID" := Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl);
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
-        SetBufferFieldsToAgent(AgentSetupBuffer, AgentRecord);
         NewUserSettings := AgentSetupBuffer.GetUserSettings();
         Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", NewUserSettings);
         UpdateAgentState(AgentSetupBuffer);
@@ -166,7 +166,7 @@ codeunit 4325 "Agent Setup Impl."
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
 
         if AgentSetupBuffer."Values Updated" then
-            SetBufferFieldsToAgent(AgentSetupBuffer, AgentRecord);
+            Agent.SetDisplayName(AgentSetupBuffer."User Security ID", AgentSetupBuffer."Display Name");
 
         if AgentSetupBuffer."User Settings Updated" then begin
             NewUserSettings := AgentSetupBuffer.GetUserSettings();
@@ -200,15 +200,6 @@ codeunit 4325 "Agent Setup Impl."
         AgentSetupBuffer."Agent Summary".CreateOutStream(SummaryOutStream, GetDefaultEncoding());
         SummaryOutStream.WriteText(SummaryText);
         AgentSetupBuffer.Modify();
-    end;
-
-    local procedure SetBufferFieldsToAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"; var AgentRecord: Record Agent)
-    begin
-        AgentRecord."Display Name" := AgentSetupBuffer."Display Name";
-        AgentRecord."User Name" := AgentSetupBuffer."User Name";
-        // TODO: Return after bug 613431 is fixed
-        // AgentRecord.Initials := AgentSetupBuffer.Initials;
-        AgentRecord.Modify();
     end;
 
     local procedure GetDefaultEncoding(): TextEncoding

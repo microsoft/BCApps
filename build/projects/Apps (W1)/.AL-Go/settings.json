@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/043c3a212d0131d917eb87c9f9d9e8f55bc67179/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/18fe3d5d4fb9940564d80d87201f56992b6ebdff/Actions/.Modules/settings.schema.json",
   "projectName": "Apps (W1)",
   "appFolders": [
     "../../../src/Apps/W1/*/App",
@@ -17,6 +17,7 @@
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
   "testType": "IntegrationTest",
+  "companyName": "My Company",
   "buildModes": [
     "AT",
     "AU",
@@ -56,7 +57,8 @@
         "AU"
       ],
       "settings": {
-        "country": "au"
+        "country": "au",
+        "doNotRunTests": true
       }
     },
     {
@@ -88,8 +90,7 @@
         "CZ"
       ],
       "settings": {
-        "country": "cz",
-        "doNotRunTests": true
+        "country": "cz"
       }
     },
     {
@@ -227,7 +228,8 @@
         "UnitTests"
       ],
       "settings": {
-        "testType": "UnitTest"
+        "testType": "UnitTest",
+        "companyName": "Empty Company"
       }
     },
     {
@@ -235,7 +237,8 @@
         "UncategorizedTests"
       ],
       "settings": {
-        "testType": "Uncategorized"
+        "testType": "Uncategorized",
+        "companyName": "CRONUS International Ltd."
       }
     },
     {

@@ -30,8 +30,8 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
                 Caption = 'Show/hide company';
                 Enabled = IsAgent;
                 Image = CompanyInformation;
-                Visible = IsAgent;
                 ToolTip = 'Show or hide the company name.';
+                Visible = IsAgent;
 
                 trigger OnAction()
                 begin

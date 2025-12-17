@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -19,11 +20,13 @@ codeunit 6196 "E-Doc. PO Matching"
     /// Loads all purchase order lines that can be matched to the specified E-Document line into the specified temporary Purchase Line record.
     /// A line can be matched if it belongs to an order for the same vendor as the E-Document line, and if it is not already matched to another E-Document line.
     /// Lines that are already matched to the specified E-Document line are included.
+    /// By default if the e-document has an order number specified, the results are filtered to only include lines from such order, unless the resulting set is empty.
     /// </summary>
     /// <param name="EDocumentPurchaseLine"></param>
     /// <param name="TempPurchaseLine"></param>
     procedure LoadAvailablePOLinesForEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary)
     var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
         Vendor: Record Vendor;
         PurchaseLine: Record "Purchase Line";
@@ -53,6 +56,12 @@ codeunit 6196 "E-Doc. PO Matching"
                     TempPurchaseLine.Insert();
                 end;
             until PurchaseLine.Next() = 0;
+        if EDocumentPurchaseHeader.Get(EDocumentPurchaseLine."E-Document Entry No.") then
+            if EDocumentPurchaseHeader."[BC] Purchase Order No." <> '' then begin
+                TempPurchaseLine.SetRange("Document No.", EDocumentPurchaseHeader."[BC] Purchase Order No.");
+                if TempPurchaseLine.IsEmpty() then
+                    TempPurchaseLine.SetRange("Document No.")
+            end;
     end;
 
     /// <summary>
@@ -139,22 +148,38 @@ codeunit 6196 "E-Doc. PO Matching"
     procedure LoadReceiptsMatchedToEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseReceiptHeader: Record "Purch. Rcpt. Header" temporary)
     var
         PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
+    begin
+        Clear(TempPurchaseReceiptHeader);
+        TempPurchaseReceiptHeader.DeleteAll();
+        LoadReceiptLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseReceiptLine);
+        if TempPurchaseReceiptLine.FindSet() then
+            repeat
+                if PurchaseReceiptHeader.Get(TempPurchaseReceiptLine."Document No.") then begin
+                    Clear(TempPurchaseReceiptHeader);
+                    TempPurchaseReceiptHeader := PurchaseReceiptHeader;
+                    if TempPurchaseReceiptHeader.Insert() then;
+                end;
+            until TempPurchaseReceiptLine.Next() = 0;
+    end;
+
+    procedure LoadReceiptLinesMatchedToEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary)
+    var
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
         NullGuid: Guid;
     begin
-        Clear(TempPurchaseReceiptHeader);
-        TempPurchaseReceiptHeader.DeleteAll();
+        Clear(TempPurchaseReceiptLine);
+        TempPurchaseReceiptLine.DeleteAll();
         EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
         EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
         if EDocPurchaseLinePOMatch.FindSet() then
             repeat
-                if PurchaseReceiptLine.GetBySystemId(EDocPurchaseLinePOMatch."Receipt Line SystemId") then
-                    if PurchaseReceiptHeader.Get(PurchaseReceiptLine."Document No.") then begin
-                        Clear(TempPurchaseReceiptHeader);
-                        TempPurchaseReceiptHeader := PurchaseReceiptHeader;
-                        if TempPurchaseReceiptHeader.Insert() then;
-                    end;
+                if PurchaseReceiptLine.GetBySystemId(EDocPurchaseLinePOMatch."Receipt Line SystemId") then begin
+                    Clear(TempPurchaseReceiptLine);
+                    TempPurchaseReceiptLine := PurchaseReceiptLine;
+                    TempPurchaseReceiptLine.Insert();
+                end;
             until EDocPurchaseLinePOMatch.Next() = 0;
     end;
 
@@ -183,36 +208,29 @@ codeunit 6196 "E-Doc. PO Matching"
     /// <param name="POMatchWarnings"></param>
     local procedure AppendPOMatchWarnings(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var POMatchWarnings: Record "E-Doc PO Match Warning" temporary)
     var
-        Item: Record Item;
-        ItemUnitOfMeasure: Record "Item Unit of Measure";
         TempPurchaseLine: Record "Purchase Line" temporary;
         EDocLineQuantity: Decimal;
-        PurchaseLinesQuantityInvoiced, PurchaseLinesQuantityReceived : Decimal;
-        ItemFound, ItemUoMFound : Boolean;
+        PurchaseLinesQuantity, PurchaseLinesQuantityInvoiced, PurchaseLinesQuantityReceived : Decimal;
     begin
         LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
         PurchaseLinesQuantityInvoiced := 0;
         PurchaseLinesQuantityReceived := 0;
+        PurchaseLinesQuantity := 0;
         if not TempPurchaseLine.FindSet() then
             exit;
         repeat
             PurchaseLinesQuantityInvoiced += TempPurchaseLine."Qty. Invoiced (Base)";
             PurchaseLinesQuantityReceived += TempPurchaseLine."Qty. Received (Base)";
+            PurchaseLinesQuantity += TempPurchaseLine.Quantity;
         until TempPurchaseLine.Next() = 0;
-        if EDocumentPurchaseLine."[BC] Purchase Line Type" = Enum::"Purchase Line Type"::Item then begin
-            Item.SetLoadFields("No.");
-            ItemFound := Item.Get(EDocumentPurchaseLine."[BC] Purchase Type No.");
-            ItemUnitOfMeasure.SetLoadFields("Item No.", Code, "Qty. per Unit of Measure");
-            ItemUoMFound := ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure");
-            if not (ItemFound and ItemUoMFound) then begin
-                POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
-                POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::MissingInformationForMatch;
-                POMatchWarnings.Insert();
-                exit;
-            end;
-            EDocLineQuantity := EDocumentPurchaseLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure"
+
+        if not GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, EDocLineQuantity) then begin
+            POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
+            POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::MissingInformationForMatch;
+            POMatchWarnings.Insert();
+            exit;
         end;
-        if EDocLineQuantity <> EDocumentPurchaseLine.Quantity then begin
+        if EDocLineQuantity <> PurchaseLinesQuantity - PurchaseLinesQuantityInvoiced then begin
             POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
             POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::QuantityMismatch;
             POMatchWarnings.Insert();
@@ -388,7 +406,8 @@ codeunit 6196 "E-Doc. PO Matching"
         Vendor: Record Vendor;
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
         TempMatchWarnings: Record "E-Doc PO Match Warning" temporary;
-        NotLinkedToVendorErr: Label 'The e-document line is not matched to any vendor.';
+        MatchesToMultiplePOLinesNotSupportedErr: Label 'Matching an e-document line to multiple purchase order lines is not currently supported.';
+        NotLinkedToVendorErr: Label 'The selected purchase order line is not linked to the same vendor as the e-document line.';
         AlreadyMatchedErr: Label 'A selected purchase order line is already matched to another e-document line. E-Document: %1, Purchase document: %2 %3.', Comment = '%1 - E-Document No., %2 - Purchase Document Type, %3 - Purchase Document No.';
         OrderLineAndEDocFromDifferentVendorsErr: Label 'All selected purchase order lines must belong to orders for the same vendor as the e-document line.';
         OrderLinesMustBeOfSameTypeAndNoErr: Label 'All selected purchase order lines must be of the same type and number.';
@@ -399,6 +418,8 @@ codeunit 6196 "E-Doc. PO Matching"
     begin
         if SelectedPOLines.IsEmpty() then
             exit;
+        if SelectedPOLines.Count() > 1 then
+            Error(MatchesToMultiplePOLinesNotSupportedErr);
         RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
         MatchedPOLineVendorNo := '';
         MatchedPOLineTypeNo := '';
@@ -470,10 +491,14 @@ codeunit 6196 "E-Doc. PO Matching"
         NullGuid: Guid;
         ReceiptLineNotMatchedErr: Label 'A selected receipt line is not matched to any of the purchase order lines matched to the e-document line.';
         ReceiptLinesDontCoverErr: Label 'The selected receipt lines do not cover the full quantity of the e-document line.';
+        MatchesToMultipleReceiptLinesNotSupportedErr: Label 'Matching an e-document line to multiple receipt lines is not currently supported.';
         QuantityCovered: Decimal;
     begin
-        if not SelectedReceiptLines.FindSet() then
+        if SelectedReceiptLines.IsEmpty() then
             exit;
+        if SelectedReceiptLines.Count() > 1 then
+            Error(MatchesToMultipleReceiptLinesNotSupportedErr);
+
         // Remove existing receipt line matches
         EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
         EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
@@ -481,6 +506,7 @@ codeunit 6196 "E-Doc. PO Matching"
 
         // Create new matches
         LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempMatchedPurchaseLines);
+        SelectedReceiptLines.FindSet();
         repeat
             TempMatchedPurchaseLines.SetRange("Document No.", SelectedReceiptLines."Order No.");
             TempMatchedPurchaseLines.SetRange("Line No.", SelectedReceiptLines."Order Line No.");
@@ -495,6 +521,18 @@ codeunit 6196 "E-Doc. PO Matching"
         until SelectedReceiptLines.Next() = 0;
         if QuantityCovered < EDocumentPurchaseLine.Quantity then
             Error(ReceiptLinesDontCoverErr);
+    end;
+
+    procedure ConfigureDefaultPOMatchingSettings()
+    var
+        DefaultSetup: Record "E-Doc. PO Matching Setup";
+        DefaultConfiguration: Enum "E-Doc. PO M. Configuration";
+        VendorNos: List of [Code[20]];
+    begin
+        DefaultSetup."PO Matching Config. Receipt" := Enum::"E-Doc. PO M. Config. Receipt"::"Always ask";
+        DefaultSetup."Receive G/L Account Lines" := false;
+        DefaultConfiguration := Enum::"E-Doc. PO M. Configuration"::"Always ask";
+        ConfigurePOMatchingSettings(DefaultSetup, DefaultConfiguration, VendorNos);
     end;
 
     /// <summary>
@@ -543,6 +581,145 @@ codeunit 6196 "E-Doc. PO Matching"
                 EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Never receive at posting";
             EDocPOMatchingSetup.Insert();
         end;
+    end;
+
+    /// <summary>
+    /// If the E-Document has been matched to an order line without specifying receipts, we match with receipt lines for that order line that can cover the E-Document line quantity.
+    /// </summary>
+    /// <param name="EDocumentPurchaseHeader"></param>
+    procedure SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
+        PurchaseOrderLine: Record "Purchase Line";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
+        EDocLineQuantity: Decimal;
+        NullGuid: Guid;
+    begin
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentPurchaseHeader."E-Document Entry No.");
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                Clear(EDocPurchaseLinePOMatch);
+                EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+                EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId", NullGuid);
+                if not EDocPurchaseLinePOMatch.FindFirst() then
+                    continue; // No PO lines matched, so no receipt can be suggested
+                if not PurchaseOrderLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then
+                    continue; // Should not happen, but we skip in case it does, this procedure doesn't error out
+                EDocPurchaseLinePOMatch.SetRange("Purchase Line SystemId", PurchaseOrderLine.SystemId);
+                EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<> %1', NullGuid);
+                if not EDocPurchaseLinePOMatch.IsEmpty() then
+                    continue; // There's already at least one receipt line matched, so no suggestion is needed
+                Session.LogMessage('0000QQI', 'Suggesting receipt line for draft line matched to PO line', Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+                PurchaseReceiptLine.SetRange("Order No.", PurchaseOrderLine."Document No.");
+                PurchaseReceiptLine.SetRange("Order Line No.", PurchaseOrderLine."Line No.");
+                PurchaseReceiptLine.SetFilter(Quantity, '> 0');
+                if PurchaseReceiptLine.FindSet() then
+                    repeat
+                        if GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, EDocLineQuantity) then
+                            if PurchaseReceiptLine.Quantity >= EDocLineQuantity then begin
+                                // We suggest the first receipt line that can cover the full quantity of the E-Document line 
+                                Session.LogMessage('0000QQJ', 'Suggested covering receipt line for draft line matched to PO line', Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+                                Clear(TempPurchaseReceiptLine);
+                                TempPurchaseReceiptLine.DeleteAll();
+                                TempPurchaseReceiptLine.Copy(PurchaseReceiptLine);
+                                TempPurchaseReceiptLine.Insert();
+                                MatchReceiptLinesToEDocumentLine(TempPurchaseReceiptLine, EDocumentPurchaseLine);
+                                break; // We only suggest a single receipt line
+                            end;
+                    until PurchaseReceiptLine.Next() = 0;
+            until EDocumentPurchaseLine.Next() = 0;
+    end;
+
+    local procedure GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var Quantity: Decimal): Boolean
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemFound, ItemUoMFound : Boolean;
+    begin
+        Clear(Quantity);
+        if EDocumentPurchaseLine."[BC] Purchase Line Type" <> Enum::"Purchase Line Type"::Item then begin
+            Quantity := EDocumentPurchaseLine.Quantity;
+            exit(true);
+        end;
+        Item.SetLoadFields("No.");
+        ItemFound := Item.Get(EDocumentPurchaseLine."[BC] Purchase Type No.");
+        ItemUnitOfMeasure.SetLoadFields("Item No.", Code, "Qty. per Unit of Measure");
+        ItemUoMFound := ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure");
+        if not (ItemFound and ItemUoMFound) then
+            exit(false);
+        Quantity := EDocumentPurchaseLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure";
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Transfer PO matches defined in the e-document to the created purchase invoice
+    /// </summary>
+    /// <param name="EDocument"></param>
+    procedure TransferPOMatchesFromEDocumentToInvoice(EDocument: Record "E-Document")
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseLine: Record "Purchase Line";
+        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
+    begin
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                LoadReceiptLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseReceiptLine);
+                if not TempPurchaseReceiptLine.FindFirst() then // We only support a single receipt line match in BaseApp
+                    continue;
+                PurchaseLine := EDocumentPurchaseLine.GetLinkedPurchaseLine();
+                if IsNullGuid(PurchaseLine.SystemId) then
+                    continue;
+                PurchaseLine."Receipt No." := TempPurchaseReceiptLine."Document No.";
+                PurchaseLine."Receipt Line No." := TempPurchaseReceiptLine."Line No.";
+                PurchaseLine.Modify();
+                RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
+            until EDocumentPurchaseLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Transfer PO matches defined in the purchase invoice to the linked e-document
+    /// </summary>
+    /// <param name="PurchaseHeader"></param>
+    procedure TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader: Record "Purchase Header")
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseInvoiceLine: Record "Purchase Line";
+        PurchaseOrderLine: Record "Purchase Line";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        TempPOLineToMatch: Record "Purchase Line" temporary;
+        TempReceiptLineToMatch: Record "Purch. Rcpt. Line" temporary;
+    begin
+        PurchaseInvoiceLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseInvoiceLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseInvoiceLine.SetFilter("Receipt No.", '<>%1', '');
+        PurchaseInvoiceLine.SetFilter("Receipt Line No.", '<>%1', 0);
+        if PurchaseInvoiceLine.IsEmpty() then
+            exit;
+        PurchaseInvoiceLine.FindSet();
+        repeat
+            if not EDocumentPurchaseLine.GetFromLinkedPurchaseLine(PurchaseInvoiceLine) then
+                continue;
+            if not PurchaseReceiptLine.Get(PurchaseInvoiceLine."Receipt No.", PurchaseInvoiceLine."Receipt Line No.") then
+                continue;
+            if not PurchaseOrderLine.Get(Enum::"Purchase Document Type"::Order, PurchaseReceiptLine."Order No.", PurchaseReceiptLine."Order Line No.") then
+                continue;
+            TempPOLineToMatch.DeleteAll();
+            TempPOLineToMatch.Copy(PurchaseOrderLine);
+            TempPOLineToMatch.Insert();
+            MatchPOLinesToEDocumentLine(TempPOLineToMatch, EDocumentPurchaseLine);
+
+            TempReceiptLineToMatch.DeleteAll();
+            TempReceiptLineToMatch.Copy(PurchaseReceiptLine);
+            TempReceiptLineToMatch.Insert();
+            MatchReceiptLinesToEDocumentLine(TempReceiptLineToMatch, EDocumentPurchaseLine);
+        until PurchaseInvoiceLine.Next() = 0;
+        PurchaseInvoiceLine.SetRange("Receipt No.");
+        PurchaseInvoiceLine.SetRange("Receipt Line No.");
+        PurchaseInvoiceLine.ModifyAll("Receipt No.", '');
+        PurchaseInvoiceLine.ModifyAll("Receipt Line No.", 0);
     end;
 
     /// <summary>

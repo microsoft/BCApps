@@ -170,6 +170,7 @@ codeunit 6108 "E-Document Processing"
         TempBlobList: Codeunit "Temp Blob List";
         TypeHelper: Codeunit "Type Helper";
         SourceReference: RecordRef;
+        ExtensionList: List of [Text];
     begin
         // Email if attachment is E-Document or PDF & E-Document
         TypeHelper.CopyRecVariantToRecRef(RecordVariant, SourceReference);
@@ -184,11 +185,13 @@ codeunit 6108 "E-Document Processing"
         if EDocumentService.FindSet() then
             repeat
                 Clear(TempBlob);
-                if EDocumentLog.GetDocumentBlobFromLog(EDocument, EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported) then
+                if EDocumentLog.GetDocumentBlobFromLog(EDocument, EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported) then begin
                     TempBlobList.Add(TempBlob);
+                    ExtensionList.Add(EDocumentService.GetDefaultFileExtension());
+                end;
             until EDocumentService.Next() = 0;
 
-        EDocumentEmailing.SetAttachments(TempBlobList);
+        EDocumentEmailing.SetAttachments(TempBlobList, ExtensionList);
         EDocumentEmailing.SendEDocumentEmail(DocumentSendingProfile, ReportUsage, RecordVariant, DocNo, DocName, ToCust, ShowDialog);
     end;
 
