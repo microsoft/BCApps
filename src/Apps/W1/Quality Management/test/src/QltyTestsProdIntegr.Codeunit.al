@@ -57,7 +57,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when output journal is posted with AnyOutput configuration
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template with 3 tests is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -126,7 +126,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when scrap journal is posted with AnyOutput configuration using prod line quantity
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -191,7 +191,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] No inspection is created when output journal with no quantities fails to post with AnyOutput configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -247,7 +247,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with AnyOutput configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -313,7 +313,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when output journal is posted with AnyQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -377,7 +377,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when scrap journal is posted with AnyQuantity configuration using prod line quantity
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -442,7 +442,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created with total quantity (output + scrap) when both are posted with AnyQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -507,7 +507,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] No inspection is created when output journal with no quantities (output/scrap) fails to post with AnyQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -563,7 +563,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] No inspection is created when only scrap is posted with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -620,7 +620,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when output journal is posted with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -685,7 +685,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created with output quantity when both output and scrap are posted with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
@@ -751,7 +751,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] No inspection is created when output journal with no quantities fails to post with OnlyWithQuantity configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -807,7 +807,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] No inspection is created when only output is posted with OnlyWithScrap configuration
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -863,7 +863,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when scrap journal is posted with OnlyWithScrap configuration using prod line quantity
 
         // [GIVEN] Setup exists and a template with 3 tests is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         CreateOutputPrioritizedRule(QltyInspectionTemplateHdr, QltyInspectionGenRule);
 
@@ -928,7 +928,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when output journal with both output and scrap is posted with OnlyWithScrap configuration using output quantity
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -997,7 +997,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] No inspection is created when output journal with no output or scrap quantity fails to post with OnlyWithScrap configuration
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1056,7 +1056,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when production order is released with routing lines available
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1116,7 +1116,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when production order is released without routing lines
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1182,7 +1182,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when production order with lot-tracked item is released with routing lines available
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1241,7 +1241,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection is created when production order with lot-tracked item is released without routing lines
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1305,7 +1305,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1374,7 +1374,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1443,7 +1443,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1511,7 +1511,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with routing line-based inspection and source order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1580,7 +1580,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with routing line-based inspection and source order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1650,7 +1650,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1730,7 +1730,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1810,7 +1810,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record IDs are updated when production order status changes from Released to Finished with journal line-based inspection and source order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1911,7 +1911,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssembly.SetupItemJournal(ItemJournalTemplate, ItemJournalBatch);
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1947,7 +1947,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The assembly order is posted
-        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
+        EnsureGenPostingSetupForAssemblyExists(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
         // [THEN] Two inspections are created (one for each lot number)
@@ -2002,7 +2002,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssembly.SetupItemJournal(ItemJournalTemplate, ItemJournalBatch);
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2024,7 +2024,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionHeader.Count();
 
         // [WHEN] The assembly order is posted
-        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
+        EnsureGenPostingSetupForAssemblyExists(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
         // [THEN] One inspection is created
@@ -2053,7 +2053,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Quality inspections are created for all routing lines when production order is refreshed with OnReleasedProductionOrderRefresh trigger
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2104,7 +2104,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2164,7 +2164,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting for Prod. Order Line
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2224,7 +2224,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [SCENARIO] Inspection source record ID is updated when production order status changes with no source configuration and "UpdateOnChange" setting for Prod. Order Routing Line
 
         // [GIVEN] Quality management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2281,7 +2281,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInspectionGenRule.Insert(true);
     end;
 
-    local procedure EnsureGenPostingSetupExistsForAssembly(AssemblyHeader: Record "Assembly Header")
+    local procedure EnsureGenPostingSetupForAssemblyExists(AssemblyHeader: Record "Assembly Header")
     var
         AssemblyLine: Record "Assembly Line";
         GeneralPostingSetup: Record "General Posting Setup";

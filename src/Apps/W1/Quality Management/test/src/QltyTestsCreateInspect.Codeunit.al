@@ -1071,7 +1071,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Initialize();
 
         // [GIVEN] Quality inspection setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
         // [GIVEN] Production trigger is disabled temporarily
         ProductionTrigger := QltyManagementSetup."Production Trigger";
@@ -1443,7 +1443,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] Quality Management setup is initialized and a template is created
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [GIVEN] All generation rules are deleted
@@ -1470,7 +1470,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] Quality Management setup is initialized and a template is created
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [WHEN] FindExistingInspectionWithMultipleVariants is called with an empty string variant
@@ -1496,7 +1496,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] Quality Management setup is initialized and a template is created
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
         // [GIVEN] All generation rules are deleted
@@ -2140,7 +2140,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] A quality inspection template is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         // [GIVEN] A generation rule is created for purchase lines
@@ -2225,7 +2225,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] A quality inspection template with 3 inspections and a prioritized generation rule for Purchase Line are created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -2292,7 +2292,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] A quality inspection template with 3 inspections and a prioritized generation rule for Prod. Order Routing Line are created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
@@ -2352,7 +2352,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] The quality management setup is configured to show Automatic and manually created inspections
         QltyManagementSetup.Get();
         QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
@@ -2419,7 +2419,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] The quality management setup is configured to show Automatic and manually created inspections
         QltyManagementSetup.Get();
         QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
@@ -2503,7 +2503,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
 
         // [GIVEN] The quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] A quality inspection template with 3 inspections is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         // [GIVEN] All generation rules are deleted to simulate missing rule scenario
@@ -2563,7 +2563,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
 
@@ -2585,7 +2585,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
         GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);

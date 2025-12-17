@@ -59,7 +59,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
@@ -80,7 +80,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", QltyTest.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(InitialConditionTok, ToLoadQltyIResultConditConf.Condition, 'Result condition should match initial pass condition.');
@@ -117,7 +117,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
@@ -138,7 +138,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", QltyTest.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(InitialConditionTok, ToLoadQltyIResultConditConf.Condition, 'Result condition should match initial pass condition.');
@@ -172,7 +172,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with decimal type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -211,7 +211,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with decimal type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -250,7 +250,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with text type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -288,7 +288,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with text type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -327,7 +327,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with boolean type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -365,7 +365,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with boolean type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -409,7 +409,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A first quality inspection template is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
@@ -428,7 +428,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", ToLoadQltyTest.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
         ToLoadQltyIResultConditConf.Condition := InitialConditionTok;
         ToLoadQltyIResultConditConf.Modify();
@@ -440,7 +440,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadSecondQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadSecondQltyInspectionTemplateLine.Validate("Test Code", ToLoadQltyTest.Code);
         ConfigurationToLoadSecondQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadSecondQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadSecondQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadSecondQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadSecondQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
 
         LibraryAssert.AreEqual(InitialConditionTok, ToLoadQltyIResultConditConf.Condition, 'The template line result condition should match the new condition.');
@@ -473,7 +473,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A first quality inspection template is created with a custom result condition
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
@@ -489,7 +489,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", ToLoadQltyTest.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
         ToLoadQltyIResultConditConf.Condition := InitialConditionTok;
         ToLoadQltyIResultConditConf.Modify();
@@ -599,7 +599,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with decimal type and custom result condition is created
         Clear(ToLoadQltyTest);
@@ -643,7 +643,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with decimal type and no custom result condition is created
         Clear(ToLoadQltyTest);
@@ -684,7 +684,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality test with decimal type and custom result condition is created
         Clear(ToLoadQltyTest);
@@ -707,7 +707,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", ToLoadQltyTest.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
 
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyTest.Code, DefaultResult2PassCodeTok);
 
@@ -741,7 +741,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A decimal type quality test without custom result conditions is created
         Clear(ToLoadQltyTest);
@@ -787,7 +787,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template with a template line without a test is created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
@@ -839,7 +839,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A decimal type quality test with custom result condition is created
         Clear(ToLoadQltyTest);
@@ -863,7 +863,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", ToLoadQltyTest.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
 
         // [GIVEN] A purchase order with item and vendor is created and a quality inspection is created from the purchase line
         LibraryWarehouse.CreateLocation(Location);
@@ -920,7 +920,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A decimal type quality test without custom result conditions is created
         Clear(ToLoadQltyTest);
@@ -938,7 +938,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
         ConfigurationToLoadQltyInspectionTemplateLine.Validate("Test Code", ToLoadQltyTest.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.Insert();
-        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResults(false);
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureResultsExist(false);
 
         // [GIVEN] A purchase order with item and vendor is created and a quality inspection is created from the purchase line
         LibraryWarehouse.CreateLocation(Location);
@@ -992,7 +992,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A decimal type quality test is created
         Clear(ToLoadQltyTest);

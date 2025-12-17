@@ -507,7 +507,7 @@ page 20438 "Qlty. Management Setup Wizard"
                     IsFinishEnabled := false;
                     Commit();
 
-                    QltyAutoConfigure.EnsureBasicSetup(false);
+                    QltyAutoConfigure.EnsureBasicSetupExists(false);
                     if GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Qlty. Management Setup Wizard") or
                        QltyAutoConfigure.GuessDoesAppearToBeSetup() or
                        QltyAutoConfigure.GuessDoesAppearToBeUsed()
@@ -623,7 +623,7 @@ page 20438 "Qlty. Management Setup Wizard"
                     QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
             end;
 
-            QltyAutoConfigure.EnsureBasicSetup(false);
+            QltyAutoConfigure.EnsureBasicSetupExists(false);
         end;
 
         if WhatForReceiving then begin

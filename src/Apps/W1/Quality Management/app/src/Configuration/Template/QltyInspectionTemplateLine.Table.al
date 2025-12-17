@@ -50,7 +50,7 @@ table 20403 "Qlty. Inspection Template Line"
                         Rec."Unit of Measure Code" := QltyTest."Unit of Measure Code";
                     end;
 
-                EnsureResults(Rec."Test Code" <> xRec."Test Code");
+                EnsureResultsExist(Rec."Test Code" <> xRec."Test Code");
             end;
         }
         field(4; Description; Text[100])
@@ -131,7 +131,7 @@ table 20403 "Qlty. Inspection Template Line"
             exit;
 
         InitLineNoIfNeeded();
-        EnsureResults(true);
+        EnsureResultsExist(true);
         Rec.CalcFields("Test Value Type");
     end;
 
@@ -150,7 +150,7 @@ table 20403 "Qlty. Inspection Template Line"
 
     trigger OnModify()
     begin
-        EnsureResults(false);
+        EnsureResultsExist(false);
         Rec.CalcFields("Test Value Type");
         if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"] then
             ValidateExpressionFormula();
@@ -160,7 +160,7 @@ table 20403 "Qlty. Inspection Template Line"
     /// Ensures results exist for this template line.
     /// </summary>
     /// <param name="ForceOverwriteConditions"></param>
-    procedure EnsureResults(ForceOverwriteConditions: Boolean)
+    procedure EnsureResultsExist(ForceOverwriteConditions: Boolean)
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin

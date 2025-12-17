@@ -80,7 +80,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized with warehouse trigger disabled
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::NoTrigger;
 
@@ -1020,7 +1020,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Lot number series and tracking code are created
@@ -1133,7 +1133,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A lot-tracked item with expiration date tracking is created
@@ -1245,7 +1245,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A lot-tracked item with expiration date tracking is created
@@ -1360,7 +1360,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item is created
@@ -1462,7 +1462,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item with expiration date tracking is created
@@ -1576,7 +1576,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item with expiration date tracking is created
@@ -1691,7 +1691,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Package number series is created and configured in inventory setup
@@ -1806,7 +1806,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Lot number series is created
@@ -1963,7 +1963,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A lot-tracked item with expiration date tracking is created
@@ -2070,7 +2070,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item is created
@@ -2236,7 +2236,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Package number series is configured in inventory setup
@@ -2352,7 +2352,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Lot and package number series is configured in inventory setup
@@ -2492,7 +2492,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
         // [GIVEN] Quality inspection template and inspection are created for purchase line
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
@@ -2575,7 +2575,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
         // [GIVEN] Quality inspection template and inspection are created for purchase line
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
@@ -2649,7 +2649,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
         // [GIVEN] Quality inspection template and inspection are created for purchase line with serial number tracking
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);

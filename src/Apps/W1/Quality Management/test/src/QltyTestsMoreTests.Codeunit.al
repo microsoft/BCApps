@@ -255,7 +255,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] User can use AssistEdit to select a default value from the lookup table for a Table Lookup field
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -525,7 +525,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Picture Upload Behavior can be validated and changed to "Attach document"
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] The setup record is retrieved and Picture Upload Behavior is set to "Do nothing"
         QltyManagementSetup.Get();
@@ -549,7 +549,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Setting Picture Upload Behavior to "Attach and upload to OneDrive" requires OneDrive configuration
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] The setup record is retrieved and Picture Upload Behavior is set to "Do nothing"
         QltyManagementSetup.Get();
@@ -583,7 +583,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Bin Move Batch Name can be validated and set to a Transfer journal batch
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] All existing item journal templates are deleted
         if not ItemJournalTemplate.IsEmpty() then
@@ -614,7 +614,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Adjustment Batch Name can be validated and set to an Item journal batch
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] All existing item journal templates are deleted
         if not ItemJournalTemplate.IsEmpty() then
@@ -675,7 +675,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] GetSetupVideoLink returns an empty string
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] The setup record is retrieved
         QltyManagementSetup.Get();
@@ -1028,7 +1028,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Using Lookup on Schedule Group creates default schedule group and job queue entry
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] All existing templates are deleted
         ConfigurationToLoadQltyInspectionTemplateHdr.DeleteAll();
@@ -1082,7 +1082,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Production Trigger can be validated and set to OnProductionOrderRelease
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Prod. Order Routing Line with Disabled activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1105,7 +1105,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Warehouse Receive Trigger can be validated and set to OnWarehouseReceiptCreate
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Warehouse Receipt Line with Disabled activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1128,7 +1128,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Warehouse Movement Trigger can be validated and set to OnWhseMovementRegister
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Warehouse Entry with Disabled activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1151,7 +1151,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Purchase Trigger can be validated and set to OnPurchaseOrderPostReceive
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Purchase Line with Disabled activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1174,7 +1174,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Sales Return Trigger can be validated and set to OnSalesReturnOrderPostReceive
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Sales Line with Disabled activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1197,7 +1197,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Transfer Trigger can be validated and set to OnTransferOrderPostReceive
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Transfer Line with Disabled activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1220,7 +1220,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Assembly Trigger can be validated and set to OnAssemblyOutputPost
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Assembly Line with Disabled activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1244,7 +1244,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Setting Assembly Trigger changes Activation Trigger from "Manual only" to "Manual or Automatic"
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Assembly Line with "Manual only" activation trigger is initialized
         QltyInspectionGenRule.Init();
@@ -1272,7 +1272,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] User can use AssistEdit to define a Condition Filter for generation rule
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] All existing generation rules are deleted
         QltyInspectionGenRule.DeleteAll();
@@ -1310,7 +1310,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] User can use AssistEdit to define an Item Filter for generation rule
 
         // [GIVEN] Quality Management setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] An item is created
         LibraryInventory.CreateItem(Item);
@@ -1564,7 +1564,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when item cannot be identified
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Source field configuration for Purchase Line "No." field is deleted
         SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
@@ -1601,7 +1601,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when tracking information cannot be identified
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1633,7 +1633,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when document information cannot be identified
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1697,7 +1697,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] OnDelete trigger removes associated result condition configurations
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -1783,7 +1783,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] User can use AssistEdit to select from allowable values list for Test Value
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         LibraryInventory.CreateItem(Item);
 
@@ -1842,7 +1842,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] User can use AssistEdit to select from table lookup for Test Value
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         LibraryInventory.CreateItem(Item);
 
@@ -1906,7 +1906,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Updating a text field value automatically updates dependent text expression fields
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         LibraryInventory.CreateItem(Item);
 
@@ -1991,7 +1991,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] OnInsert trigger automatically sets Sort Order to next available value
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] The maximum Sort Order is retrieved from existing source configurations
         MultipleQltyInspectSourceConfig.SetCurrentKey("Sort Order");
@@ -2022,7 +2022,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] OnModify trigger recalculates Sort Order when manually set to low value
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new source configuration record is created
         SpecificQltyInspectSourceConfig.Init();
@@ -2055,7 +2055,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Insert throws error when attempting to create recursive configuration
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new source configuration is initialized with reversed From/To tables (Prod. Order Routing Line → Prod. Order Line)
         SpecificQltyInspectSourceConfig.Init();
@@ -2080,7 +2080,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] Modify throws error when attempting to change to recursive configuration
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new source configuration is created
         SpecificQltyInspectSourceConfig.Init();
@@ -2137,7 +2137,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] DetectInterestingConfiguration throws error when From Table is Reservation Entry
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new source configuration is initialized with Reservation Entry as From Table
         SpecificQltyInspectSourceConfig.Init();
@@ -2161,7 +2161,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] DetectInterestingConfiguration throws error when To Table is Reservation Entry
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new source configuration is initialized with Reservation Entry as To Table
         SpecificQltyInspectSourceConfig.Init();
@@ -2188,7 +2188,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [SCENARIO] To Field No. can be validated to a custom field on inspection header
 
         // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new source configuration with To Type = Inspection is created
         SpecificQltyInspectSourceConfig.Init();

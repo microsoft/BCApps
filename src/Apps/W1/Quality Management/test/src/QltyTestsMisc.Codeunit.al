@@ -481,7 +481,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] An inspection template with a table lookup field for Salesperson/Purchaser
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
@@ -749,7 +749,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 2
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         QltyManagementSetup.Get();
         QltyManagementSetup."Max Rows Field Lookups" := 2;
@@ -772,7 +772,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 0
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         QltyManagementSetup.Get();
         QltyManagementSetup."Max Rows Field Lookups" := 0;
@@ -858,7 +858,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered to one record
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
@@ -975,7 +975,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser filtered by email
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
@@ -1075,7 +1075,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] An inspection template with table lookup field for Salesperson/Purchaser
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
@@ -1204,7 +1204,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         UserSetup."Phone No." := '+1-866-440-7543';
         UserSetup.Modify(false);
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Quality Management Setup with max rows field lookups set to 0 (unlimited)
         QltyManagementSetup.Get();
@@ -1635,7 +1635,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Location created
@@ -1849,7 +1849,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Location created
@@ -1950,7 +1950,7 @@ codeunit 139964 "Qlty. Tests - Misc."
             ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -2053,7 +2053,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssembly.SetupItemJournal(ItemJournalTemplate, ItemJournalBatch);
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Inspection template with 3 characteristics created
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 3);
@@ -2173,7 +2173,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] Posting the assembly header
         // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified inspection result
-        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
+        EnsureGenPostingSetupForAssemblyExists(AssemblyHeader);
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlocked2Err,
@@ -2218,7 +2218,7 @@ codeunit 139964 "Qlty. Tests - Misc."
             ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -2304,7 +2304,7 @@ codeunit 139964 "Qlty. Tests - Misc."
             ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -2387,7 +2387,7 @@ codeunit 139964 "Qlty. Tests - Misc."
             ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created (then cleared)
         QltyInspectionGenRule.DeleteAll();
@@ -2493,7 +2493,7 @@ codeunit 139964 "Qlty. Tests - Misc."
             ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -2640,7 +2640,7 @@ codeunit 139964 "Qlty. Tests - Misc."
             ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -2768,7 +2768,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Quality Management setup ensured
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Full WMS location with 3 zones created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -2871,7 +2871,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Quality management setup with location, item, and inspection template are configured
         Initialize();
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -2925,7 +2925,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Quality management setup with location, item, and inspection template are configured
         Initialize();
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -2968,7 +2968,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Quality management setup with location, item, and inspection template are configured
         Initialize();
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -2996,7 +2996,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         IsInitialized := true;
     end;
 
-    local procedure EnsureGenPostingSetupExistsForAssembly(AssemblyHeader: Record "Assembly Header")
+    local procedure EnsureGenPostingSetupForAssemblyExists(AssemblyHeader: Record "Assembly Header")
     var
         AssemblyLine: Record "Assembly Line";
         GeneralPostingSetup: Record "General Posting Setup";

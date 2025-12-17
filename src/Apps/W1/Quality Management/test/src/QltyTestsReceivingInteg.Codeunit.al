@@ -60,7 +60,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -118,7 +118,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -174,7 +174,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
@@ -232,7 +232,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A full WMS location, quality inspection template, and warehouse receipt line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
@@ -289,7 +289,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
@@ -345,7 +345,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -403,7 +403,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -461,7 +461,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -526,7 +526,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
@@ -613,7 +613,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
@@ -693,7 +693,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
@@ -772,7 +772,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
@@ -850,7 +850,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
@@ -924,7 +924,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A quality inspection template and transfer line generation rule are set up
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
@@ -994,7 +994,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] Setup is ensured and a quality inspection template is created
         Initialize();
         LibraryERMCountryData.CreateVATData();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
@@ -1092,7 +1092,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
@@ -1162,7 +1162,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
 
@@ -1260,7 +1260,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
 
         // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
         Initialize();
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionGenRule.DeleteAll();
 
@@ -1348,7 +1348,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -1411,7 +1411,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -1471,7 +1471,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
         Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
@@ -1524,7 +1524,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         BeforeCount: Integer;
     begin
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);

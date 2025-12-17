@@ -36,13 +36,13 @@ codeunit 139950 "Qlty. Inspection Utility"
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
 
-    procedure EnsureSetup()
+    procedure EnsureSetupExists()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         UserPermissionsLibrary: Codeunit "User Permissions Library";
     begin
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
         QltyManagementSetup.Get();
         QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
         QltyManagementSetup.Modify();
@@ -63,7 +63,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         BeforeCount: Integer;
         AfterCount: Integer;
     begin
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         QltyInspectionUtility.CreateTemplate(OutQltyInspectionTemplateHdr, 3);
 
@@ -746,7 +746,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         OrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
-        EnsureSetup();
+        EnsureSetupExists();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         CreateTemplate(QltyInspectionTemplateHdr, 1);
         CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", CreatedQltyInspectionGenRule);

@@ -344,7 +344,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         // [SCENARIO] Set filters to applicable templates and verify the source configuration is filtered correctly
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A quality inspection template is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);

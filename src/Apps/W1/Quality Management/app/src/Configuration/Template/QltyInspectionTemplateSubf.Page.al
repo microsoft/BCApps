@@ -42,7 +42,7 @@ page 20403 "Qlty. Inspection Template Subf"
 
                     trigger OnValidate()
                     begin
-                        Rec.EnsureResults(Rec."Test Code" <> xRec."Test Code");
+                        Rec.EnsureResultsExist(Rec."Test Code" <> xRec."Test Code");
                         UpdateRowData();
                         CurrPage.Update(true);
                     end;
@@ -448,7 +448,7 @@ page 20403 "Qlty. Inspection Template Subf"
                         Rec.Validate("Test Code", QltyTest.Code);
                         Rec.Description := QltyTest.Description;
                         Rec."Expression Formula" := QltyTest."Expression Formula";
-                        Rec.EnsureResults(true);
+                        Rec.EnsureResultsExist(true);
                         CurrPage.Update(true);
                     end else
                         CurrPage.Update(false);
@@ -485,7 +485,7 @@ page 20403 "Qlty. Inspection Template Subf"
             if Rec."Template Code" <> '' then
                 if CachedQltyInspectionTemplateHdr.Get(Rec."Template Code") then;
         end;
-        Rec.EnsureResults(false);
+        Rec.EnsureResultsExist(false);
     end;
 
     trigger OnFindRecord(Which: Text): Boolean

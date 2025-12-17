@@ -362,11 +362,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Evaluate result for decimal field with optional inspection line-specific result conditions overriding template conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -376,7 +376,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
 
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result (overrides field-level)
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -482,11 +482,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Evaluate result for datetime field with optional inspection line-specific result conditions overriding field-level conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a datetime field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -496,7 +496,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         DateTimeQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '2001-02-03 01:02:03', true);
 
         // [GIVEN] Template-level result condition is modified to '2004-05-06 01:02:03' for PASS result (overrides field-level)
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -574,11 +574,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Evaluate result for date field with optional inspection line-specific result conditions overriding field-level conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a date field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -587,7 +587,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Field-level result condition is set to '2001-02-03' for PASS result
         DateQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '2001-02-03', true);
         // [GIVEN] Template-level result condition is modified to '2004-05-06' for PASS result (overrides field-level)
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -665,17 +665,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Evaluate result for boolean field with template-level condition requiring 'Yes' value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a boolean field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
         QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, BooleanQltyTest."Test Value Type"::"Value Type Boolean", BooleanQltyTest, QltyInspectionTemplateLine);
         // [GIVEN] Template-level result condition is set to 'Yes' for PASS result
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -755,11 +755,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Evaluate result for label field type which should always return blank result regardless of value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a label field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -830,11 +830,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Evaluate result for integer field with template-level result conditions overriding field-level conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with an integer field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -844,7 +844,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
 
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result (overrides field-level)
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -947,11 +947,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         SanityCheckQltyInspectionResult.SetFilter(Code, '=''''');
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - a');
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured and no blank results created
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - b');
         // [GIVEN] An inspection template with a text field is created and no blank results created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -961,7 +961,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         TextQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), 'A|B|C', true);
 
         // [GIVEN] Template-level result condition is modified to 'D|E' for PASS result (overrides field-level)
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -1060,11 +1060,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Evaluate result using expression with field reference replacement for dynamic decimal range validation
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with two decimal fields is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1073,7 +1073,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyTest."Test Value Type"::"Value Type Decimal", UsesReferenceInPassConditionQltyTest, UsesReferenceQltyInspectionTemplateLine);
 
         // [GIVEN] First field has template-level result condition set to 6..7 for PASS
-        OriginalQltyInspectionTemplateLine.EnsureResults(false);
+        OriginalQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", OriginalQltyInspectionTemplateLine."Line No.");
@@ -1085,7 +1085,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         // [GIVEN] Second field has dynamic condition '1..[TestCode]' that references first field's value
         Clear(QltyIResultConditConf);
-        UsesReferenceQltyInspectionTemplateLine.EnsureResults(false);
+        UsesReferenceQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionTemplateLine."Line No.");
@@ -1208,17 +1208,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Verify GetInspectionLineConfigFilters returns correct filters for inspection line-specific result conditions with expression replacement
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureReferenceQltyTest, OriginalQltyInspectionTemplateLine);
 
         QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, UsesReferenceInPassConditionQltyTest."Test Value Type"::"Value Type Decimal", UsesReferenceInPassConditionQltyTest, UsesReferenceQltyInspectionTemplateLine);
-        OriginalQltyInspectionTemplateLine.EnsureResults(false);
+        OriginalQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", OriginalQltyInspectionTemplateLine."Line No.");
@@ -1229,7 +1229,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Modify();
 
         Clear(ToLoadToLoadToUseAsATemplateQltyIResultConditConf);
-        UsesReferenceQltyInspectionTemplateLine.EnsureResults(false);
+        UsesReferenceQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", UsesReferenceQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", UsesReferenceQltyInspectionTemplateLine."Line No.");
@@ -1291,17 +1291,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Verify GetTemplateLineConfigFilters returns correct filters for template line-specific result conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, NumericalMeasureReferenceQltyTest."Test Value Type"::"Value Type Decimal", NumericalMeasureReferenceQltyTest, OriginalQltyInspectionTemplateLine);
         // [GIVEN] Template-level result condition is set to 6..7 for PASS result
-        OriginalQltyInspectionTemplateLine.EnsureResults(false);
+        OriginalQltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", OriginalQltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", OriginalQltyInspectionTemplateLine."Line No.");
@@ -1339,11 +1339,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Verify GetFieldConfigFilters returns correct filters for field-specific result conditions
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1375,11 +1375,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that decimal field default values must fall within allowable values range (1..3)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a decimal field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1426,11 +1426,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that option field default values must be one of the allowable comma-delimited options (A,B,C,D)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with an option field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1481,11 +1481,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that integer field default values must fall within allowable values range (1..3)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with an integer field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1531,11 +1531,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that text field default values must be one of the allowable pipe-delimited options (A|B|C)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a text field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1577,11 +1577,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that date field default values must match the exact allowable date value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a date field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1623,11 +1623,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that datetime field default values must match the exact allowable datetime value
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a datetime field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1669,11 +1669,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that boolean field default values must match the allowable boolean value and accept equivalent representations
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a boolean field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1771,11 +1771,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate that field default values are validated with Inspection context, accepting valid values and rejecting invalid ones
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a text field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -1850,11 +1850,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Test OnRun method of result evaluation codeunit with integer field values and error handling
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with an integer field is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -1864,7 +1864,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
 
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -1964,11 +1964,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate inspection line values against allowable values range for decimal field with result evaluation
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with a decimal field and allowable values range 0..12345 is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -1979,7 +1979,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Field-level result condition is set to 4..5 for PASS result
         NumericalMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), '4..5', true);
         // [GIVEN] Template-level result condition is modified to 6..7 for PASS result
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");
@@ -2087,11 +2087,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [SCENARIO] Validate inspection line values for option field with allowable values (A,B,C,D,E) and template-level result conditions (C|D for PASS)
 
         // [GIVEN] Quality management setup is initialized with basic configuration
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Basic quality setup is ensured
-        QltyAutoConfigure.EnsureBasicSetup(false);
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
 
         // [GIVEN] An inspection template with an option field is created with allowable values 'A,B,C,D,E'
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
@@ -2105,7 +2105,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         // [GIVEN] Field-level result condition is set to 'A|B' for PASS result
         OptionListMeasureQltyTest.SetResultCondition(QltyAutoConfigure.GetDefaultPassResult(), 'A|B', true);
         // [GIVEN] Template-level result condition is modified to 'C|D' for PASS result (overrides field-level)
-        QltyInspectionTemplateLine.EnsureResults(false);
+        QltyInspectionTemplateLine.EnsureResultsExist(false);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Condition Type", ToLoadToLoadToUseAsATemplateQltyIResultConditConf."Condition Type"::Template);
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Code", QltyInspectionTemplateLine."Template Code");
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.SetRange("Target Line No.", QltyInspectionTemplateLine."Line No.");

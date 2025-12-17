@@ -105,18 +105,18 @@ codeunit 20402 "Qlty. Auto Configure"
         exit(DefaultResult2PassCodeTok);
     end;
 
-    internal procedure EnsureBasicSetup(ShowMessage: Boolean)
+    internal procedure EnsureBasicSetupExists(ShowMessage: Boolean)
     begin
-        EnsureSetupRecord();
-        EnsureResults();
-        EnsureAtLeastOneSourceConfiguration(true);
+        EnsureSetupRecordExists();
+        EnsureResultExists();
+        EnsureAtLeastOneSourceConfigurationExist(true);
         if ShowMessage then
             Message(BasicDefaultRecordsConfiguredMsg);
     end;
 
-    local procedure EnsureResults()
+    local procedure EnsureResultExists()
     begin
-        EnsureSingleResult(
+        EnsureSingleResultExists(
             DefaultResult0InProgressCodeTok,
             DefaultResult0InProgressDescriptionTok,
             false,
@@ -125,7 +125,7 @@ codeunit 20402 "Qlty. Auto Configure"
             DefaultResult0InProgressConditionTextTok,
             DefaultResult0InProgressConditionBooleanTok,
             false);
-        EnsureSingleResult(
+        EnsureSingleResultExists(
             DefaultResult1FailCodeTok,
             DefaultResult1FailDescriptionTok,
             false,
@@ -134,7 +134,7 @@ codeunit 20402 "Qlty. Auto Configure"
             DefaultResult1FailConditionTextTok,
             DefaultResult1FailConditionBooleanTok,
             true);
-        EnsureSingleResult(
+        EnsureSingleResultExists(
             DefaultResult2PassCodeTok,
             DefaultResult2PassDescriptionTok,
             true,
@@ -145,7 +145,7 @@ codeunit 20402 "Qlty. Auto Configure"
             true);
     end;
 
-    local procedure EnsureSingleResult(ResultCode: Text; ResultDescription: Text; IsPromoted: Boolean; EvaluationOrderLowestFirstHighestLast: Integer; DefaultNumericalCondition: Text; DefaultTextCondition: Text; DefaultBooleanCondition: Text; AllowFinish: Boolean)
+    local procedure EnsureSingleResultExists(ResultCode: Text; ResultDescription: Text; IsPromoted: Boolean; EvaluationOrderLowestFirstHighestLast: Integer; DefaultNumericalCondition: Text; DefaultTextCondition: Text; DefaultBooleanCondition: Text; AllowFinish: Boolean)
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
@@ -168,7 +168,7 @@ codeunit 20402 "Qlty. Auto Configure"
         end;
     end;
 
-    local procedure EnsureSetupRecord()
+    local procedure EnsureSetupRecordExists()
     begin
         if not QltyManagementSetup.WritePermission() then
             exit;
@@ -188,7 +188,7 @@ codeunit 20402 "Qlty. Auto Configure"
     /// Otherwise it will assume an empty system and create default purchase receipt configuration.
     /// </summary>
     /// <param name="ForceAll"></param>
-    internal procedure EnsureAtLeastOneSourceConfiguration(ForceAll: Boolean)
+    internal procedure EnsureAtLeastOneSourceConfigurationExist(ForceAll: Boolean)
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
     begin
@@ -272,68 +272,68 @@ codeunit 20402 "Qlty. Auto Configure"
         TempWarehouseEntry: Record "Warehouse Entry" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             WarehouseEntryToInspectTok,
             WarehouseEntryToInspectDescriptionTok,
             Database::"Warehouse Entry",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Whse. Document No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Source No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo(Quantity),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Location Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseEntry.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
@@ -347,68 +347,68 @@ codeunit 20402 "Qlty. Auto Configure"
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             WarehouseJournalToInspectTok,
             WarehouseJournalToInspectDescriptionTok,
             Database::"Warehouse Journal Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Whse. Document No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Qty. (Absolute, Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Location Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
@@ -438,7 +438,7 @@ codeunit 20402 "Qlty. Auto Configure"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
     begin
-        EnsureSourceConfigWithFilterAndTrackFlag(
+        EnsureSourceConfigWithFilterAndTrackFlagExists(
             SalesLineToTrackingTok,
             SalesLineToTrackingDescriptionTok,
             Database::"Tracking Specification",
@@ -446,69 +446,69 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSourceConfig,
             'WHERE(Source Type=CONST(37))',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source Subtype"),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Document Type"),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source ID"),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Document No."),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source Ref. No."),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Line No."),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Quantity (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '',
             true);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -524,7 +524,7 @@ codeunit 20402 "Qlty. Auto Configure"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
     begin
-        EnsureSourceConfigWithFilterAndTrackFlag(
+        EnsureSourceConfigWithFilterAndTrackFlagExists(
             ProdLineToTrackingTok,
             ProdLineToTrackingDescriptionTok,
             Database::"Tracking Specification",
@@ -532,69 +532,69 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSourceConfig,
             'WHERE(Source Type=CONST(5406))',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source Subtype"),
             Database::"Prod. Order Line",
             TempProdOrderLine.FieldNo(Status),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source ID"),
             Database::"Prod. Order Line",
             TempProdOrderLine.FieldNo("Prod. Order No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source Prod. Order Line"),
             Database::"Prod. Order Line",
             TempProdOrderLine.FieldNo("Line No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Quantity (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
                '',
             true);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -610,7 +610,7 @@ codeunit 20402 "Qlty. Auto Configure"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
     begin
-        EnsureSourceConfigWithFilterAndTrackFlag(
+        EnsureSourceConfigWithFilterAndTrackFlagExists(
             PurchLineToTrackingTok,
             PurchLineToTrackingDescriptionTok,
             Database::"Tracking Specification",
@@ -618,69 +618,69 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSourceConfig,
             'WHERE(Source Type=CONST(39))',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source Subtype"),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Document Type"),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source ID"),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Document No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Source Ref. No."),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Line No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Quantity (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
                '',
             true);
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
                '',
             true);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -696,68 +696,68 @@ codeunit 20402 "Qlty. Auto Configure"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             WhseJournalToSalesLineTok,
             WhseJournalToSalesLineDescriptionTok,
             Database::"Warehouse Journal Line",
             Database::"Sales Line",
             QltyInspectSourceConfig,
             'WHERE(Source Type=CONST(37))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Source Subtype"),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Document Type"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Source No."),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Source Line No."),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Qty. (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -772,68 +772,68 @@ codeunit 20402 "Qlty. Auto Configure"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             WhseJournalToPurchLineTok,
             WhseJournalToPurchLineDescriptionTok,
             Database::"Warehouse Journal Line",
             Database::"Purchase Line",
             QltyInspectSourceConfig,
             'WHERE(Source Type=CONST(39))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Source Subtype"),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Document Type"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Source No."),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Source Line No."),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Qty. (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseJournalLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -847,26 +847,26 @@ codeunit 20402 "Qlty. Auto Configure"
         TempSalesLine: Record "Sales Line" temporary;
         TempWarehouseReceiptLine: Record "Warehouse Receipt Line" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             WhseReceiptToSalesLineTok,
             WhseReceiptToSalesLineDescriptionTok,
             Database::"Warehouse Receipt Line",
             Database::"Sales Line",
             QltyInspectSourceConfig,
             'WHERE(Source Type=CONST(37))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseReceiptLine.FieldNo("Source Subtype"),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Document Type"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseReceiptLine.FieldNo("Source No."),
             Database::"Sales Line",
             TempSalesLine.FieldNo("Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseReceiptLine.FieldNo("Source Line No."),
             Database::"Sales Line",
@@ -880,26 +880,26 @@ codeunit 20402 "Qlty. Auto Configure"
         TempPurchaseLine: Record "Purchase Line" temporary;
         TempWarehouseReceiptLine: Record "Warehouse Receipt Line" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             WhseReceiptToPurchLineTok,
             WhseReceiptToPurchLineDescriptionTok,
             Database::"Warehouse Receipt Line",
             Database::"Purchase Line",
             QltyInspectSourceConfig,
             'WHERE(Source Type=CONST(39))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseReceiptLine.FieldNo("Source Subtype"),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Document Type"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseReceiptLine.FieldNo("Source No."),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempWarehouseReceiptLine.FieldNo("Source Line No."),
             Database::"Purchase Line",
@@ -914,20 +914,20 @@ codeunit 20402 "Qlty. Auto Configure"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             TrackingSpecToInspectTok,
             TrackingSpecToInspectDescriptionTok,
             Database::"Tracking Specification",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsurePrioritizedSourceConfigLineWithTrackFlag(
+        EnsurePrioritizedSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Quantity (Base)"),
             Database::"Qlty. Inspection Header",
@@ -935,31 +935,31 @@ codeunit 20402 "Qlty. Auto Configure"
             '',
             false,
             QltyConfigTestPriority::Priority);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTrackingSpecification.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -973,50 +973,50 @@ codeunit 20402 "Qlty. Auto Configure"
         TempPurchaseLine: Record "Purchase Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             PurchLineToInspectTok,
             PurchLineToInspectDescriptionTok,
             Database::"Purchase Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             'WHERE(Type=FILTER(Item))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPurchaseLine.FieldNo("Document No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPurchaseLine.FieldNo("Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPurchaseLine.FieldNo("No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPurchaseLine.FieldNo("Qty. to Receive (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPurchaseLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPurchaseLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Location Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPurchaseLine.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
@@ -1030,50 +1030,50 @@ codeunit 20402 "Qlty. Auto Configure"
         TempSalesLine: Record "Sales Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             SalesLineToInspectTok,
             SalesLineToInspectDescriptionTok,
             Database::"Sales Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             SalesLineToInspectFilterTok);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Document No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Qty. to Ship (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Description"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempSalesLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -1087,50 +1087,50 @@ codeunit 20402 "Qlty. Auto Configure"
         TempReturnSalesLine: Record "Sales Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             SalesReturnLineToInspectTok,
             SalesReturnLineToInspectDescriptionTok,
             Database::"Sales Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             SalesReturnLineToInspectFilterTok);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Document No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Return Qty. to Receive (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Description"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempReturnSalesLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -1145,38 +1145,38 @@ codeunit 20402 "Qlty. Auto Configure"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             ProdJnlToInspectTok,
             ProdJnlToInspectDescriptionTok,
             Database::"Item Journal Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             'WHERE(Entry Type=FILTER(Output),Order Type=FILTER(Production))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Order No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Order Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Operation No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Task No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsurePrioritizedSourceConfigLineWithTrackFlag(
+        EnsurePrioritizedSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Quantity (Base)"),
             Database::"Qlty. Inspection Header",
@@ -1184,37 +1184,37 @@ codeunit 20402 "Qlty. Auto Configure"
             '',
             false,
             QltyConfigTestPriority::Priority);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Description"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemJournalLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -1228,68 +1228,68 @@ codeunit 20402 "Qlty. Auto Configure"
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             LedgerToInspectTok,
             LedgerToInspectDescriptionTok,
             Database::"Item Ledger Entry",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             'WHERE(Entry Type=FILTER(Output),Order Type=FILTER(Production))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Order No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Order Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo(Quantity),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Lot No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Lot No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Serial No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Serial No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Package No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Package No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo(Description),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo(Description),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempItemLedgerEntry.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -1304,44 +1304,44 @@ codeunit 20402 "Qlty. Auto Configure"
         TempItemJournalLine: Record "Item Journal Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             RtngToItemJnlTok,
             RtngToItemJnlDescriptionTok,
             Database::"Prod. Order Routing Line",
             Database::"Item Journal Line",
             QltyInspectSourceConfig,
             'WHERE(Status=FILTER(Released))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Prod. Order No."),
             Database::"Item Journal Line",
             TempItemJournalLine.FieldNo("Order No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Routing No."),
             Database::"Item Journal Line",
             TempItemJournalLine.FieldNo("Routing No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Routing Reference No."),
             Database::"Item Journal Line",
             TempItemJournalLine.FieldNo("Routing Reference No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Operation No."),
             Database::"Item Journal Line",
             TempItemJournalLine.FieldNo("Operation No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Type"),
             ' ');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
@@ -1356,44 +1356,44 @@ codeunit 20402 "Qlty. Auto Configure"
         TempItemJournalLine: Record "Item Journal Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             ProdLineToJnlTok,
             ProdLineToJnlDescriptionTok,
             Database::"Prod. Order Line",
             Database::"Item Journal Line",
             QltyInspectSourceConfig,
             'WHERE(Status=FILTER(Released))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Prod. Order No."),
             Database::"Item Journal Line",
             TempItemJournalLine.FieldNo("Order No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Line No."),
             Database::"Item Journal Line",
             TempItemJournalLine.FieldNo("Order Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Item No."),
             Database::"Item Journal Line",
             TempItemJournalLine.FieldNo("Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Variant Code"),
             Database::"Item Ledger Entry",
             TempItemJournalLine.FieldNo("Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Type"),
             ' ');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
@@ -1408,44 +1408,44 @@ codeunit 20402 "Qlty. Auto Configure"
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             ProdLineToLedgerTok,
             ProdLineToLedgerDescriptionTok,
             Database::"Prod. Order Line",
             Database::"Item Ledger Entry",
             QltyInspectSourceConfig,
             'WHERE(Status=FILTER(Released))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Prod. Order No."),
             Database::"Item Ledger Entry",
             TempItemLedgerEntry.FieldNo("Order No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Line No."),
             Database::"Item Ledger Entry",
             TempItemLedgerEntry.FieldNo("Order Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Item No."),
             Database::"Item Ledger Entry",
             TempItemLedgerEntry.FieldNo("Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Variant Code"),
             Database::"Item Ledger Entry",
             TempItemLedgerEntry.FieldNo("Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Type"),
             ' ');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
@@ -1459,43 +1459,43 @@ codeunit 20402 "Qlty. Auto Configure"
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfig(
+        EnsureSourceConfigExists(
             ProdRoutingToInspectTok,
             ProdRoutingToInspectDescriptionTok,
             Database::"Prod. Order Routing Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Prod. Order No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Type"),
             ' ');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo(Status),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Custom 1"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Operation No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Task No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Description"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderRoutingLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -1510,61 +1510,61 @@ codeunit 20402 "Qlty. Auto Configure"
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfig(
+        EnsureSourceConfigExists(
             ProdLineToRoutingTok,
             ProdLineToRoutingDescriptionTok,
             Database::"Prod. Order Line",
             Database::"Prod. Order Routing Line",
             QltyInspectSourceConfig);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Status"),
             Database::"Prod. Order Routing Line",
             TempProdOrderRoutingLine.FieldNo("Status"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Prod. Order No."),
             Database::"Prod. Order Routing Line",
             TempProdOrderRoutingLine.FieldNo("Prod. Order No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Routing No."),
             Database::"Prod. Order Routing Line",
             TempProdOrderRoutingLine.FieldNo("Routing No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Routing Reference No."),
             Database::"Prod. Order Routing Line",
             TempProdOrderRoutingLine.FieldNo("Routing Reference No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Quantity (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempProdOrderLine.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
@@ -1578,50 +1578,50 @@ codeunit 20402 "Qlty. Auto Configure"
         TempTransferline: Record "Transfer Line" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfigWithFilter(
+        EnsureSourceConfigWithFilterExists(
             InTransLineToInspectTok,
             InTransLineToInspectDescriptionTok,
             Database::"Transfer Line",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig,
             'WHERE(Type=FILTER(Item))');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTransferline.FieldNo("Document No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTransferline.FieldNo("Line No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document Line No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTransferline.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTransferline.FieldNo("Qty. to Receive (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTransferline.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Variant Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTransferline.FieldNo("Transfer-to Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Location Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempTransferline.FieldNo("Description"),
             Database::"Qlty. Inspection Header",
@@ -1635,43 +1635,43 @@ codeunit 20402 "Qlty. Auto Configure"
         TempPostedAssemblyHeader: Record "Posted Assembly Header" temporary;
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
-        EnsureSourceConfig(
+        EnsureSourceConfigExists(
             AssemblyOutputToInspectTok,
             AssemblyOutputToInspectDescriptionTok,
             Database::"Posted Assembly Header",
             Database::"Qlty. Inspection Header",
             QltyInspectSourceConfig);
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPostedAssemblyHeader.FieldNo("No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Document No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPostedAssemblyHeader.FieldNo("Location Code"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Location Code"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPostedAssemblyHeader.FieldNo("Quantity (Base)"),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Quantity (Base)"),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPostedAssemblyHeader.FieldNo("Item No."),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo("Source Item No."),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPostedAssemblyHeader.FieldNo(Description),
             Database::"Qlty. Inspection Header",
             TempQltyInspectionHeader.FieldNo(Description),
             '');
-        EnsureSourceConfigLine(
+        EnsureSourceConfigLineExists(
             QltyInspectSourceConfig,
             TempPostedAssemblyHeader.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Header",
@@ -1679,9 +1679,9 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure EnsureSourceConfig(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
+    local procedure EnsureSourceConfigExists(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
     begin
-        EnsureSourceConfigWithTrackFlag(
+        EnsureSourceConfigWithTrackFlagExists(
             Name,
             Description,
             FromTable,
@@ -1690,9 +1690,9 @@ codeunit 20402 "Qlty. Auto Configure"
             false);
     end;
 
-    local procedure EnsureSourceConfigWithTrackFlag(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; TrackingOnly: Boolean)
+    local procedure EnsureSourceConfigWithTrackFlagExists(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; TrackingOnly: Boolean)
     begin
-        EnsureSourceConfigWithFilterAndTrackFlag(
+        EnsureSourceConfigWithFilterAndTrackFlagExists(
             Name,
             Description,
             FromTable,
@@ -1702,9 +1702,9 @@ codeunit 20402 "Qlty. Auto Configure"
             TrackingOnly);
     end;
 
-    local procedure EnsureSourceConfigWithFilter(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromFilter: Text)
+    local procedure EnsureSourceConfigWithFilterExists(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromFilter: Text)
     begin
-        EnsureSourceConfigWithFilterAndTrackFlag(
+        EnsureSourceConfigWithFilterAndTrackFlagExists(
             Name,
             Description,
             FromTable,
@@ -1714,7 +1714,7 @@ codeunit 20402 "Qlty. Auto Configure"
             false);
     end;
 
-    local procedure EnsureSourceConfigWithFilterAndTrackFlag(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromFilter: Text; TrackingOnly: Boolean)
+    local procedure EnsureSourceConfigWithFilterAndTrackFlagExists(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromFilter: Text; TrackingOnly: Boolean)
     begin
         QltyInspectSourceConfig.Reset();
         if not QltyInspectSourceConfig.Get(CopyStr(Name, 1, MaxStrLen(QltyInspectSourceConfig.Code))) then begin
@@ -1736,9 +1736,9 @@ codeunit 20402 "Qlty. Auto Configure"
         end;
     end;
 
-    local procedure EnsureSourceConfigLine(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text)
+    local procedure EnsureSourceConfigLineExists(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text)
     begin
-        EnsureSourceConfigLineWithTrackFlag(
+        EnsureSourceConfigLineWithTrackFlagExists(
             QltyInspectSourceConfig,
             FromField,
             ToTable,
@@ -1747,14 +1747,14 @@ codeunit 20402 "Qlty. Auto Configure"
             false);
     end;
 
-    local procedure EnsureSourceConfigLineWithTrackFlag(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text; TrackingOnly: Boolean)
+    local procedure EnsureSourceConfigLineWithTrackFlagExists(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text; TrackingOnly: Boolean)
     var
         QltyConfigTestPriority: Enum "Qlty. Config. Test Priority";
     begin
-        EnsurePrioritizedSourceConfigLineWithTrackFlag(QltyInspectSourceConfig, FromField, ToTable, ToField, OptionalOverrideDisplay, TrackingOnly, QltyConfigTestPriority::Normal);
+        EnsurePrioritizedSourceConfigLineWithTrackFlagExists(QltyInspectSourceConfig, FromField, ToTable, ToField, OptionalOverrideDisplay, TrackingOnly, QltyConfigTestPriority::Normal);
     end;
 
-    local procedure EnsurePrioritizedSourceConfigLineWithTrackFlag(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text; TrackingOnly: Boolean; QltyConfigTestPriority: Enum "Qlty. Config. Test Priority")
+    local procedure EnsurePrioritizedSourceConfigLineWithTrackFlagExists(QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromField: Integer; ToTable: Integer; ToField: Integer; OptionalOverrideDisplay: Text; TrackingOnly: Boolean; QltyConfigTestPriority: Enum "Qlty. Config. Test Priority")
     var
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
     begin

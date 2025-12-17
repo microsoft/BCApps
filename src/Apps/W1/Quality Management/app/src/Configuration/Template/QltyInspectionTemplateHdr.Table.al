@@ -128,7 +128,7 @@ table 20402 "Qlty. Inspection Template Hdr."
             QltyInspectionTemplateLine.InitLineNoIfNeeded();
             QltyInspectionTemplateLine.Validate("Test Code", TestCode);
             QltyInspectionTemplateLine.Insert(true);
-            QltyInspectionTemplateLine.EnsureResults(true);
+            QltyInspectionTemplateLine.EnsureResultsExist(true);
             QltyInspectionTemplateLine.Modify();
             exit(true);
         end;

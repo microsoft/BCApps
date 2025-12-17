@@ -417,7 +417,7 @@ table 20401 "Qlty. Test"
     internal procedure SuggestUnusedTestCodeFromDescriptionAndList(InputDescription: Text; IgnoredListOptionalAdditionalUsed: List of [Text]; var SuggestionCode: Code[20])
     begin
         GenerateShortTestCodeFromLongerText(InputDescription, SuggestionCode);
-        EnsureUnusedCode(SuggestionCode, IgnoredListOptionalAdditionalUsed);
+        EnsureTestCodeIsUnused(SuggestionCode, IgnoredListOptionalAdditionalUsed);
     end;
 
     internal procedure GenerateShortTestCodeFromLongerText(Input: Text; var SuggestionCode: Code[20])
@@ -438,7 +438,7 @@ table 20401 "Qlty. Test"
     /// If the supplied test code has already been used then it will suggest an alternative.
     /// </summary>
     /// <param name="Suggestion"></param>
-    local procedure EnsureUnusedCode(var Suggestion: Code[20]; OptionalAdditionalUsed: List of [Text])
+    local procedure EnsureTestCodeIsUnused(var Suggestion: Code[20]; OptionalAdditionalUsed: List of [Text])
     var
         QltyTest: Record "Qlty. Test";
         TempNumber: Text;

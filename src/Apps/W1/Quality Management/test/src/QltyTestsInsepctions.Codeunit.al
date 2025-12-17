@@ -53,7 +53,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new Quality Inspection Header record is created
         QltyInspectionHeader.Init();
@@ -87,7 +87,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A Quality Inspection Template is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
@@ -120,7 +120,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A Quality Test with a randomly generated code is created
         ToLoadQltyTest.Init();
@@ -156,7 +156,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A Quality Inspection Header is created
         QltyInspectionHeader.Init();
@@ -197,7 +197,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A Quality Inspection Template with one line is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
@@ -236,7 +236,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Two Quality Inspection Headers are created
         QltyInspectionHeader.Init();
@@ -340,7 +340,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
 
         Initialize();
 
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Two Quality Test records with different codes are created
         QltyTest.Init();
@@ -425,7 +425,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A Quality Inspection Header is created
         QltyInspectionHeader.Init();
@@ -470,7 +470,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A Quality Inspection Template with a randomly generated code is created
         QltyInspectionTemplateHdr.Init();
@@ -514,7 +514,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
@@ -555,7 +555,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
@@ -609,7 +609,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized and a full WMS location is created
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
 
         // [GIVEN] A lot-tracked item with a purchase order and reservation entry are created
@@ -701,7 +701,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Brick headers are configured in Quality Management setup

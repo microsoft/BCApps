@@ -522,7 +522,7 @@ page 20400 "Qlty. Management Setup"
     begin
         FeatureTelemetry.LogUptake('0000QID', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
         if not Rec.Get() then begin
-            QltyAutoConfigure.EnsureBasicSetup(false);
+            QltyAutoConfigure.EnsureBasicSetupExists(false);
             if Rec.Get() then;
             FeatureTelemetry.LogUptake('0000QIE', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
         end;

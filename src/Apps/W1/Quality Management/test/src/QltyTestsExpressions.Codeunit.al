@@ -262,7 +262,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
         // [SCENARIO] Validate that expression evaluation for records is case-insensitive
 
         // [GIVEN] Quality management setup is initialized
-        QltyInspectionUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
