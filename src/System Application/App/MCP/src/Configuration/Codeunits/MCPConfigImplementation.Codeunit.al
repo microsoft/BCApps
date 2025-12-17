@@ -263,9 +263,10 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure FindWarningsForConfiguration(ConfigId: Guid; var MCPConfigurationWarning: Record "MCP Config Warning"): Boolean
     var
-        MCPConfigurationTool: Record "MCP Configuration Tool";
-        AllObj: Record AllObj;
+        IMCPConfigWarning: Interface "MCP Config Warning";
         MCPConfigWarningType: Enum "MCP Config Warning Type";
+        WarningImplementations: List of [Integer];
+        WarningImplementation: Integer;
         EntryNo: Integer;
     begin
         if MCPConfigurationWarning.FindLast() then
@@ -273,24 +274,11 @@ codeunit 8351 "MCP Config Implementation"
         else
             EntryNo := 1;
 
-        // Check for missing objects
-        MCPConfigurationTool.SetRange(ID, ConfigId);
-        if MCPConfigurationTool.FindSet() then
-            repeat
-                AllObj.SetRange("Object Type", AllObj."Object Type"::Page);
-                AllObj.SetRange("Object ID", MCPConfigurationTool."Object ID");
-                if AllObj.IsEmpty() then begin
-                    MCPConfigurationWarning."Entry No." := EntryNo;
-                    MCPConfigurationWarning."Config Id" := ConfigId;
-                    MCPConfigurationWarning."Tool Id" := MCPConfigurationTool.SystemId;
-                    MCPConfigurationWarning."Warning Type" := MCPConfigWarningType::"Missing Object";
-                    MCPConfigurationWarning.Insert();
-                    EntryNo += 1;
-                end;
-            until MCPConfigurationTool.Next() = 0;
-
-        // Check for missing parent objects
-        // TODO: Implement after platform support for parent-child relationships of API pages
+        WarningImplementations := MCPConfigWarningType.Ordinals();
+        foreach WarningImplementation in WarningImplementations do begin
+            IMCPConfigWarning := "MCP Config Warning Type".FromInteger(WarningImplementation);
+            IMCPConfigWarning.CheckForWarnings(ConfigId, MCPConfigurationWarning, EntryNo);
+        end;
 
         exit(not MCPConfigurationWarning.IsEmpty());
     end;

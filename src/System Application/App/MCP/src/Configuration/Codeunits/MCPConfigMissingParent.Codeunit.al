@@ -15,6 +15,12 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
         MissingParentWarningLbl: Label 'This API page has a parent page that is not included in the configuration.';
         MissingParentFixLbl: Label 'Add the parent API pages to the configuration.';
 
+    procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
+    begin
+        EntryNo += 0;
+        // TODO: Implement after platform support for parent-child relationships of API pages
+    end;
+
     procedure WarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
     begin
         exit(MissingParentWarningLbl); // TODO: Enhance message with specific parent details.

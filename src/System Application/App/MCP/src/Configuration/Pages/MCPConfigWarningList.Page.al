@@ -56,7 +56,8 @@ page 8358 "MCP Config Warning List"
                     SetSelectionFilter(Rec);
                     MCPConfigImplementation.ApplyRecommendedActions(Rec);
                     Rec.Reset();
-                    Rec.FindSet();
+                    if not Rec.IsEmpty() then
+                        Rec.FindSet();
                 end;
             }
         }
