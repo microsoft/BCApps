@@ -7,11 +7,12 @@ namespace System.Agents;
 
 using System.Security.AccessControl;
 
-page 4320 "Agent Access Control"
+page 4325 "Select Agent Acc. Control Part"
 {
     PageType = ListPart;
     ApplicationArea = All;
     SourceTable = "Agent Access Control";
+    SourceTableTemporary = true;
     Caption = 'Agent Access Control';
     MultipleNewLines = false;
     Extensible = false;
@@ -75,14 +76,13 @@ page 4320 "Agent Access Control"
 
                 trigger OnAction()
                 begin
-                    if (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
+                    if AgentAccessControlMgt.ShouldConfirmShowCompanyForSingleCompany() then
                         // A confirmation dialog is raised when the user shows the company field
                         // for an agent that operates in a single company.
                         if not Confirm(ShowSingleCompanyQst, false) then
                             exit;
 
-                    ShowCompanyFieldOverride := true;
-                    ShowCompanyField := not ShowCompanyField;
+                    ShowCompanyField := AgentAccessControlMgt.ToggleShowCompanyField();
                     CurrPage.Update(false);
                 end;
             }
@@ -94,73 +94,59 @@ page 4320 "Agent Access Control"
         AgentUtilities: Codeunit "Agent Utilities";
     begin
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
+
+        if not IsNullGuid(Rec."Agent User Security ID") then begin
+            AgentAccessControlMgt.Initialize(Rec."Agent User Security ID");
+            ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
+        end;
     end;
 
-    trigger OnAfterGetRecord() // Same
+    trigger OnAfterGetRecord()
+    begin
+        UpdateGlobalVariables();
+        AgentAccessControlMgt.UpdateCompanyFieldVisibility();
+        ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
+    end;
+
+    trigger OnAfterGetCurrRecord()
     begin
         UpdateGlobalVariables();
     end;
 
-    trigger OnAfterGetCurrRecord() // Same
-    begin
-        UpdateGlobalVariables();
-    end;
-
-    trigger OnDeleteRecord(): Boolean // Similar, because this is not temp table
+    trigger OnDeleteRecord(): Boolean
     begin
         AgentImpl.VerifyOwnerExists(Rec);
     end;
 
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean // Same
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
+        // Ensure the Agent User Security ID is set on new records
+        if IsNullGuid(Rec."Agent User Security ID") then
+            Rec."Agent User Security ID" := AgentUserSecurityID;
+
+        // Default company name if not showing company field
         if (Rec."Company Name" = '') and not ShowCompanyField then
-            // If the company field is not displayed, default to the current company.
-            // If the user is displaying the company field, respect what they entered.
             Rec."Company Name" := CompanyName();
 
+        // Update GlobalSingleCompanyName if transitioning to multi-company
         if (GlobalSingleCompanyName <> '') and (Rec."Company Name" <> GlobalSingleCompanyName) then
-            // The agent used to operate in a single company, but operates in multiple ones now.
-            // Ideally, other scenarios should also trigger an update (delete, modify), but insert
-            // was identified as the main one.
             GlobalSingleCompanyName := '';
+
+        exit(true);
     end;
 
-    local procedure ValidateUserName(NewUserName: Text) // Same
+    local procedure ValidateUserName(NewUserName: Text)
     var
-        User: Record "User";
-        UserGuid: Guid;
+        UserSecurityID: Guid;
     begin
-        if Evaluate(UserGuid, NewUserName) then begin
-            User.Get(UserGuid);
-            UpdateUser(User."User Security ID");
-            UpdateGlobalVariables();
+        if not AgentAccessControlMgt.FindUserByName(NewUserName, UserSecurityID) then
             exit;
-        end;
 
-        User.SetRange("User Name", NewUserName);
-        if not User.FindFirst() then begin
-            User.SetFilter("User Name", '@*''''' + NewUserName + '''''*');
-            User.FindFirst();
-        end;
-
-        UpdateUser(User."User Security ID");
+        Rec.Validate("User Security ID", UserSecurityID);
         UpdateGlobalVariables();
     end;
 
-    local procedure UpdateUser(NewUserID: Guid)// Similar, because this is not temp table
-    var
-        RecordExists: Boolean;
-    begin
-        RecordExists := Rec.Find();
-
-        if RecordExists then
-            Error(CannotUpdateUserErr);
-
-        Rec."User Security ID" := NewUserID;
-        Rec.Insert(true);
-    end;
-
-    local procedure UpdateGlobalVariables() // Same 
+    local procedure UpdateGlobalVariables()
     var
         User: Record "User";
     begin
@@ -175,19 +161,53 @@ page 4320 "Agent Access Control"
 
         UserName := User."User Name";
         UserFullName := User."Full Name";
+    end;
 
-        if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."Agent User Security ID", GlobalSingleCompanyName);
-            CurrPage.Update(false);
-        end;
+    internal procedure SetAgentUserSecurityID(NewAgentUserSecurityID: Guid)
+    begin
+        AgentUserSecurityID := NewAgentUserSecurityID;
+        AgentAccessControlMgt.Initialize(AgentUserSecurityID);
+        UpdateCompanyFieldVisibility();
+    end;
+
+    internal procedure SetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    begin
+        Rec.Copy(TempAgentAccessControl, true);
+        UpdateCompanyFieldVisibility();
+        CurrPage.Update(false);
+    end;
+
+    local procedure UpdateCompanyFieldVisibility()
+    begin
+        AgentAccessControlMgt.UpdateCompanyFieldVisibility();
+        ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
+
+        // Track single company name for insert logic
+        AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
+    end;
+
+    internal procedure GetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    begin
+        TempAgentAccessControl.Reset();
+        TempAgentAccessControl.DeleteAll();
+
+        Rec.Reset();
+        if not Rec.FindSet() then
+            exit;
+
+        repeat
+            TempAgentAccessControl.TransferFields(Rec);
+            TempAgentAccessControl.Insert();
+        until Rec.Next() = 0;
     end;
 
     var
         AgentImpl: Codeunit "Agent Impl.";
+        AgentAccessControlMgt: Codeunit "Agent Access Control Mgt.";
         UserFullName: Text[80];
         UserName: Code[50];
-        ShowCompanyField, ShowCompanyFieldOverride : Boolean;
+        AgentUserSecurityID: Guid;
         GlobalSingleCompanyName: Text[30];
-        CannotUpdateUserErr: Label 'You cannot change the User. Delete and create the entry again.';
+        ShowCompanyField: Boolean;
         ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign access controls in other companies where the agent is not available.\\Do you want to continue?';
 }

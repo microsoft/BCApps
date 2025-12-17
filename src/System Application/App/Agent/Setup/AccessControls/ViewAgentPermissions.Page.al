@@ -12,6 +12,7 @@ using System.Security.AccessControl;
 
 page 4334 "View Agent Permissions"
 {
+    ApplicationArea = All;
     Caption = 'Agent Permission Sets';
     PageType = ListPart;
     SourceTable = "Access Control";
@@ -85,6 +86,8 @@ page 4334 "View Agent Permissions"
                 trigger OnAction()
                 var
                     Agent: Record Agent;
+                    TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+                    AgentImpl: Codeunit "Agent Impl.";
                     SelectAgentPermissions: Page "Select Agent Permissions";
                 begin
                     if not Agent.Get(Rec."User Security ID") then
@@ -99,7 +102,10 @@ page 4334 "View Agent Permissions"
                             Commit();
                         end;
 
-                    SelectAgentPermissions.SetRecord(Agent);
+                    CopyAccessControlToBuffer(Rec."User Security ID", TempAccessControlBuffer);
+
+                    SelectAgentPermissions.Load(TempAccessControlBuffer);
+                    SelectAgentPermissions.SetAgentUserSecurityID(Rec."User Security ID");
                     SelectAgentPermissions.RunModal();
                     CurrPage.Update(false);
                 end;
@@ -125,6 +131,7 @@ page 4334 "View Agent Permissions"
     trigger OnAfterGetRecord()
     var
         AggregatePermissionSet: Record "Aggregate Permission Set";
+        GlobalSingleCompanyName: Text[30];
     begin
         PermissionScope := Format(Rec.Scope);
 
@@ -151,11 +158,31 @@ page 4334 "View Agent Permissions"
         exit(true);
     end;
 
+    local procedure CopyAccessControlToBuffer(UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AccessControl: Record "Access Control";
+    begin
+        TempAccessControlBuffer.Reset();
+        TempAccessControlBuffer.DeleteAll();
+
+        AccessControl.SetRange("User Security ID", UserSecurityID);
+        if not AccessControl.FindSet() then
+            exit;
+
+        repeat
+            Clear(TempAccessControlBuffer);
+            TempAccessControlBuffer."Role ID" := AccessControl."Role ID";
+            TempAccessControlBuffer."Company Name" := AccessControl."Company Name";
+            TempAccessControlBuffer.Scope := AccessControl.Scope;
+            TempAccessControlBuffer."App ID" := AccessControl."App ID";
+            TempAccessControlBuffer.Insert();
+        until AccessControl.Next() = 0;
+    end;
+
     var
         ShowCompanyField: Boolean;
         ShowCompanyFieldOverride: Boolean;
         PermissionScope: Text;
         PermissionSetNotFound: Boolean;
-        GlobalSingleCompanyName: Text[30];
         DeactivateAgentToEditPermissionsQst: Label 'Permissions can only be edited for inactive agents. Do you want to make the agent inactive now?';
 }
