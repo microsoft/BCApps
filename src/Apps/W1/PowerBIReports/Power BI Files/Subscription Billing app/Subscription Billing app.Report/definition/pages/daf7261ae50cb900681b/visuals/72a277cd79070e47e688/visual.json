@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "72a277cd79070e47e688",
   "position": {
-    "x": 25.802047781569964,
-    "y": 387.03071672354952,
+    "x": 25.545041317358088,
+    "y": 387.10562611688795,
     "z": 0,
-    "height": 307,
-    "width": 1226.8259385665528,
+    "height": 310.47050216481369,
+    "width": 602,
     "tabOrder": 0
   },
   "visual": {
@@ -127,6 +127,18 @@
               "Date.Fiscal Year-Quarter-Month-Week.Fiscal Year"
             ],
             "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              }
+            ],
             "isPinned": true
           },
           {
@@ -207,36 +219,31 @@
           }
         }
       ],
-      "columnHeaders": [
+      "values": [
         {
           "properties": {
-            "autoSizeColumnWidth": {
+            "webURL": {
               "expr": {
-                "Literal": {
-                  "Value": "true"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Vendor Deferrals Back Link"
                 }
               }
             }
-          }
-        }
-      ],
-      "subTotals": [
-        {
-          "properties": {
-            "rowSubtotals": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
                 }
               }
-            },
-            "columnSubtotals": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            }
+            ],
+            "metadata": "Subscription Billing KPIs.Vendor Deferrals"
           }
         }
       ]

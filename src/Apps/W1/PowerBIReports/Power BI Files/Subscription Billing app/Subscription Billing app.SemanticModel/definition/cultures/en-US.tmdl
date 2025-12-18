@@ -442,6 +442,26 @@ cultureInfo en-US
 					caption: Churn Analysis
 				measure 'Avg. Mon. Churn Rate % by Year and Month'
 					caption: Avg. Mon. Churn Rate % by Year and Month
+				measure 'Total Contract Value by Package'
+					caption: Total Contract Value by Package
+				measure 'Mon. Recurring Revenue by Package'
+					caption: Mon. Recurring Revenue by Package
+				measure 'Churn by Customer'
+					caption: Churn by Customer
+				measure 'Profitability by Item'
+					caption: Profitability by Item
+				measure 'Mon. Recurring Revenue by Customer Location'
+					caption: Mon. Recurring Revenue by Customer Location
+				measure 'Profitability by Salesperson'
+					caption: Profitability by Salesperson
+				measure 'Total Contract Value by Salesperson'
+					caption: Total Contract Value by Salesperson
+				measure 'Customer Deferrals by Released Status'
+					caption: Customer Deferrals by Released Status
+				measure 'Vendor Deferrals by Released Status'
+					caption: Vendor Deferrals by Released Status
+				measure 'Billing Forecast by Billing Period, Vendor and Contract No.'
+					caption: Billing Forecast by Billing Period, Vendor and Contract No.
 			table Subscription
 				caption: Service Object
 				column 'Subscription No.'
@@ -2343,19 +2363,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "Change in Mon. Recurring Revenue"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Overall Change": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "fiscal_calendar_time_intelligence.sales_amount_pp_fiscal": {
 			      "Definition": {
