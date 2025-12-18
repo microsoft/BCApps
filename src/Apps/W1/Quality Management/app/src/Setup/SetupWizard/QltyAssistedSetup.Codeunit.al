@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.SetupWizard;
 
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
-using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Media;
