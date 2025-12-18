@@ -11,6 +11,7 @@ table 6120 "E-Doc Sample Purch. Inv File"
     DataClassification = CustomerContent;
     LookupPageId = "E-Doc Sample Purch. Inv. Files";
     DrillDownPageId = "E-Doc Sample Purch. Inv. Files";
+    ReplicateData = false;
 
     fields
     {
