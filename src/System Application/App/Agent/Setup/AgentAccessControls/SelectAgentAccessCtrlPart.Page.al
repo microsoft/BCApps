@@ -114,7 +114,9 @@ page 4325 "Select Agent Access Ctrl Part"
 
         // Default company name if not showing company field
         if (Rec."Company Name" = '') and not ShowCompanyField then
+#pragma warning disable AA0139
             Rec."Company Name" := CompanyName();
+#pragma warning restore AA0139
 
         // Update GlobalSingleCompanyName if transitioning to multi-company
         if (GlobalSingleCompanyName <> '') and (Rec."Company Name" <> GlobalSingleCompanyName) then
@@ -156,9 +158,7 @@ page 4325 "Select Agent Access Ctrl Part"
 
     local procedure ValidateUserName(NewUserName: Text)
     var
-        User: Record User;
         UserSecurityID: Guid;
-        UserGuid: Guid;
     begin
         if not FindUserByName(NewUserName, UserSecurityID) then
             exit;

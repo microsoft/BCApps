@@ -67,8 +67,8 @@ page 4320 "View Agent Access Control"
                 trigger OnAction()
                 var
                     TempAgentAccessControl: Record "Agent Access Control" temporary;
-                    SelectAgentAccessControl: Page "Select Agent Access Control";
                     AgentImpl: Codeunit "Agent Impl.";
+                    SelectAgentAccessControl: Page "Select Agent Access Control";
                 begin
                     CopyAgentAccessControlToBuffer(Rec."Agent User Security ID", TempAgentAccessControl);
 
