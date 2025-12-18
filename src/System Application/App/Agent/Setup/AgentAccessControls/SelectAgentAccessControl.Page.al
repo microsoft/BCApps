@@ -5,8 +5,6 @@
 
 namespace System.Agents;
 
-using System.Security.AccessControl;
-
 page 4321 "Select Agent Access Control"
 {
     PageType = StandardDialog;
@@ -40,32 +38,21 @@ page 4321 "Select Agent Access Control"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
-    var
-        TempModifiedAgentAccessControl: Record "Agent Access Control" temporary;
     begin
         if CloseAction = CloseAction::LookupCancel then
-            RestoreAgentAccessControl()
-        else if CloseAction = CloseAction::OK then begin // TODO(qutreson) the saving logic should likely be done from the caller.
-            CurrPage.AccessControlPart.Page.GetTempAgentAccessControl(TempModifiedAgentAccessControl);
-            SaveChangesToAgentAccessControl(TempModifiedAgentAccessControl);
-        end;
+            RestoreAgentAccessControl();
 
         exit(true);
     end;
 
-    internal procedure Load(var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    internal procedure SetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
     begin
-        Rec.Reset();
-        Rec.DeleteAll();
+        Rec.Copy(TempAgentAccessControl, true);
+    end;
 
-        TempAgentAccessControl.Reset();
-        if not TempAgentAccessControl.FindSet() then
-            exit;
-
-        repeat
-            Rec.TransferFields(TempAgentAccessControl);
-            Rec.Insert();
-        until TempAgentAccessControl.Next() = 0;
+    internal procedure GetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    begin
+        TempAgentAccessControl.Copy(Rec, true);
     end;
 
     internal procedure SetAgentUserSecurityID(UserSecurityID: Guid)
@@ -77,57 +64,12 @@ page 4321 "Select Agent Access Control"
 
     local procedure BackupAgentAccessControl()
     begin
-        TempBackupAgentAccessControl.Reset();
-        TempBackupAgentAccessControl.DeleteAll();
-
-        Rec.Reset();
-        if not Rec.FindSet() then
-            exit;
-
-        repeat
-            TempBackupAgentAccessControl.TransferFields(Rec);
-            TempBackupAgentAccessControl.Insert();
-        until Rec.Next() = 0;
+        TempBackupAgentAccessControl.Copy(Rec, true);
     end;
 
     local procedure RestoreAgentAccessControl()
     begin
-        Rec.Reset();
-        Rec.DeleteAll();
-
-        TempBackupAgentAccessControl.Reset();
-        if not TempBackupAgentAccessControl.FindSet() then
-            exit;
-
-        repeat
-            Rec.TransferFields(TempBackupAgentAccessControl);
-            Rec.Insert();
-        until TempBackupAgentAccessControl.Next() = 0;
-    end;
-
-    local procedure SaveChangesToAgentAccessControl(var TempModifiedAgentAccessControl: Record "Agent Access Control" temporary)
-    var
-        AgentAccessControl: Record "Agent Access Control";
-    begin
-        // Delete all existing access control records for the agent
-        AgentAccessControl.SetRange("Agent User Security ID", AgentUserSecurityID);
-        if AgentAccessControl.FindSet() then
-            repeat
-            until AgentAccessControl.Delete();
-
-        // Insert the modified records
-        TempModifiedAgentAccessControl.Reset();
-        if not TempModifiedAgentAccessControl.FindSet() then
-            exit;
-
-        repeat
-            Clear(AgentAccessControl);
-            AgentAccessControl."Agent User Security ID" := TempModifiedAgentAccessControl."Agent User Security ID";
-            AgentAccessControl."User Security ID" := TempModifiedAgentAccessControl."User Security ID";
-            AgentAccessControl."Company Name" := TempModifiedAgentAccessControl."Company Name";
-            AgentAccessControl."Can Configure Agent" := TempModifiedAgentAccessControl."Can Configure Agent";
-            AgentAccessControl.Insert();
-        until TempModifiedAgentAccessControl.Next() = 0;
+        Rec.Copy(TempBackupAgentAccessControl, true);
     end;
 
     var

@@ -379,7 +379,7 @@ codeunit 4301 "Agent Impl."
         AgentAccessControl.SetFilter("User Security ID", '<>%1', UserSecurityId());
         if AgentAccessControl.FindSet() then
             repeat
-                if not TempAgentAccessControl.Get(AgentAccessControl."Agent User Security ID", AgentAccessControl."User Security ID") then
+                if not TempAgentAccessControl.Get(AgentAccessControl."Agent User Security ID", AgentAccessControl."User Security ID", AgentAccessControl."Company Name") then
                     AgentAccessControl.Delete(true);
             until AgentAccessControl.Next() = 0;
 
@@ -390,13 +390,15 @@ codeunit 4301 "Agent Impl."
             exit;
 
         repeat
-            if AgentAccessControl.Get(Agent."User Security ID", TempAgentAccessControl."User Security ID") then begin
-                AgentAccessControl.TransferFields(TempAgentAccessControl, true);
-                AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
+            if AgentAccessControl.Get(Agent."User Security ID", TempAgentAccessControl."User Security ID", TempAgentAccessControl."Company Name") then begin
+                AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
                 AgentAccessControl.Modify();
             end else begin
-                AgentAccessControl.TransferFields(TempAgentAccessControl, true);
+                Clear(AgentAccessControl);
                 AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
+                AgentAccessControl."User Security ID" := TempAgentAccessControl."User Security ID";
+                AgentAccessControl."Company Name" := TempAgentAccessControl."Company Name";
+                AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
                 AgentAccessControl.Insert();
             end;
         until TempAgentAccessControl.Next() = 0;
@@ -408,20 +410,28 @@ codeunit 4301 "Agent Impl."
     begin
         TempAgentAccessControl.SetFilter("User Security ID", UserSecurityId());
         if not TempAgentAccessControl.FindFirst() then begin
-            if AgentAccessControl.Get(Agent."User Security ID", UserSecurityId()) then
-                AgentAccessControl.Delete();
-
+            // Delete all records for this user regardless of company
+            AgentAccessControl.SetRange("Agent User Security ID", Agent."User Security ID");
+            AgentAccessControl.SetRange("User Security ID", UserSecurityId());
+            if AgentAccessControl.FindSet() then
+                repeat
+                    AgentAccessControl.Delete()
+                until AgentAccessControl.Next() = 0;
             exit;
         end;
 
-        if AgentAccessControl.Get(Agent."User Security ID", UserSecurityId()) then begin
-            AgentAccessControl.TransferFields(TempAgentAccessControl, true);
-            AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
+        // TODO(qutreson) - This needs to loop on records.
+
+        if AgentAccessControl.Get(Agent."User Security ID", UserSecurityId(), TempAgentAccessControl."Company Name") then begin
+            AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
             AgentAccessControl.Modify();
             exit;
         end else begin
-            AgentAccessControl.TransferFields(TempAgentAccessControl, true);
+            Clear(AgentAccessControl);
             AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
+            AgentAccessControl."User Security ID" := TempAgentAccessControl."User Security ID";
+            AgentAccessControl."Company Name" := TempAgentAccessControl."Company Name";
+            AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
             AgentAccessControl.Insert();
             exit;
         end;

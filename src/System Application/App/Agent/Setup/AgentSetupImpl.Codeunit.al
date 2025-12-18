@@ -53,7 +53,7 @@ codeunit 4325 "Agent Setup Impl."
     begin
         AgentSetupBuffer.GetTempAgentAccessControl(TempAgentAccessControl);
         SelectAgentAccessControl.SetAgentUserSecurityID(AgentSetupBuffer."User Security ID");
-        SelectAgentAccessControl.Load(TempAgentAccessControl);
+        SelectAgentAccessControl.SetTempAgentAccessControl(TempAgentAccessControl);
         if (SelectAgentAccessControl.RunModal() in [Action::LookupOK, Action::OK]) then begin
             AgentSetupBuffer."Access Updated" := true;
             AgentSetupBuffer.Modify(true);

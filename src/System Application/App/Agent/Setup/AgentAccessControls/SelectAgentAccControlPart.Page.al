@@ -136,6 +136,20 @@ page 4325 "Select Agent Acc. Control Part"
         exit(true);
     end;
 
+    internal procedure SetAgentUserSecurityID(NewAgentUserSecurityID: Guid)
+    begin
+        AgentUserSecurityID := NewAgentUserSecurityID;
+        AgentAccessControlMgt.Initialize(AgentUserSecurityID);
+        UpdateCompanyFieldVisibility();
+    end;
+
+    internal procedure SetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    begin
+        Rec.Copy(TempAgentAccessControl, true);
+        UpdateCompanyFieldVisibility();
+        CurrPage.Update(false);
+    end;
+
     local procedure ValidateUserName(NewUserName: Text)
     var
         UserSecurityID: Guid;
@@ -181,42 +195,12 @@ page 4325 "Select Agent Acc. Control Part"
             Error('One owner must be defined for the agent.');
     end;
 
-    internal procedure SetAgentUserSecurityID(NewAgentUserSecurityID: Guid)
-    begin
-        AgentUserSecurityID := NewAgentUserSecurityID;
-        AgentAccessControlMgt.Initialize(AgentUserSecurityID);
-        UpdateCompanyFieldVisibility();
-    end;
-
-    internal procedure SetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
-    begin
-        Rec.Copy(TempAgentAccessControl, true);
-        UpdateCompanyFieldVisibility();
-        CurrPage.Update(false);
-    end;
-
     local procedure UpdateCompanyFieldVisibility()
     begin
         AgentAccessControlMgt.UpdateCompanyFieldVisibility();
         ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
 
-        // Track single company name for insert logic
         AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
-    end;
-
-    internal procedure GetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
-    begin
-        TempAgentAccessControl.Reset();
-        TempAgentAccessControl.DeleteAll();
-
-        Rec.Reset();
-        if not Rec.FindSet() then
-            exit;
-
-        repeat
-            TempAgentAccessControl.TransferFields(Rec);
-            TempAgentAccessControl.Insert();
-        until Rec.Next() = 0;
     end;
 
     var

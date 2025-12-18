@@ -66,27 +66,19 @@ page 4320 "View Agent Access Control"
 
                 trigger OnAction()
                 var
-                    Agent: Record Agent;
                     TempAgentAccessControl: Record "Agent Access Control" temporary;
                     SelectAgentAccessControl: Page "Select Agent Access Control";
+                    AgentImpl: Codeunit "Agent Impl.";
                 begin
-                    if not Agent.Get(Rec."Agent User Security ID") then
-                        exit;
-
-                    if Agent.State <> Agent.State::Disabled then
-                        if not Confirm(DeactivateAgentToEditAccessQst, false) then
-                            exit
-                        else begin
-                            Agent.State := Agent.State::Disabled;
-                            Agent.Modify(true);
-                            Commit();
-                        end;
-
                     CopyAgentAccessControlToBuffer(Rec."Agent User Security ID", TempAgentAccessControl);
 
-                    SelectAgentAccessControl.Load(TempAgentAccessControl);
+                    SelectAgentAccessControl.SetTempAgentAccessControl(TempAgentAccessControl);
                     SelectAgentAccessControl.SetAgentUserSecurityID(Rec."Agent User Security ID");
-                    SelectAgentAccessControl.RunModal();
+                    if SelectAgentAccessControl.RunModal() = Action::OK then begin
+                        SelectAgentAccessControl.GetTempAgentAccessControl(TempAgentAccessControl);
+                        AgentImpl.UpdateAgentAccessControl(Rec."Agent User Security ID", TempAgentAccessControl);
+                    end;
+
                     CurrPage.Update(false);
                 end;
             }
@@ -154,5 +146,4 @@ page 4320 "View Agent Access Control"
         UserFullName: Text[80];
         UserName: Code[50];
         ShowCompanyField, ShowCompanyFieldOverride : Boolean;
-        DeactivateAgentToEditAccessQst: Label 'Access control can only be edited for inactive agents. Do you want to make the agent inactive now?';
 }
