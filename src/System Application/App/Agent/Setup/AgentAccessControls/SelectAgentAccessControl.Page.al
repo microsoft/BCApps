@@ -56,10 +56,12 @@ page 4321 "Select Agent Access Control"
     end;
 
     internal procedure SetAgentUserSecurityID(UserSecurityID: Guid)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+        GlobalSingleCompanyName: Text[30];
     begin
         AgentUserSecurityID := UserSecurityID;
-        AgentAccessControlMgt.Initialize(AgentUserSecurityID);
-        ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
+        ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
     end;
 
     local procedure BackupAgentAccessControl()
@@ -73,7 +75,6 @@ page 4321 "Select Agent Access Control"
     end;
 
     var
-        AgentAccessControlMgt: Codeunit "Agent Access Control Mgt.";
         TempBackupAgentAccessControl: Record "Agent Access Control" temporary;
         AgentUserSecurityID: Guid;
         ShowCompanyField: Boolean;

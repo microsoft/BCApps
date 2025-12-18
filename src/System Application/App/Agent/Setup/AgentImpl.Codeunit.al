@@ -315,7 +315,7 @@ codeunit 4301 "Agent Impl."
             until AllProfile.Next() = 0;
     end;
 
-    procedure AssignPermissionSets(var UserSID: Guid; PermissionCompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    procedure AssignPermissionSets(var AgentUserSecurityID: Guid; PermissionCompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
     var
         AccessControl: Record "Access Control";
     begin
@@ -324,7 +324,7 @@ codeunit 4301 "Agent Impl."
 
         repeat
             AccessControl."App ID" := AggregatePermissionSet."App ID";
-            AccessControl."User Security ID" := UserSID;
+            AccessControl."User Security ID" := AgentUserSecurityID;
             AccessControl."Role ID" := AggregatePermissionSet."Role ID";
             AccessControl.Scope := AggregatePermissionSet.Scope;
 #pragma warning disable AA0139

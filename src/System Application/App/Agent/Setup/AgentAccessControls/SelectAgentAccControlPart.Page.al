@@ -76,13 +76,14 @@ page 4325 "Select Agent Acc. Control Part"
 
                 trigger OnAction()
                 begin
-                    if AgentAccessControlMgt.ShouldConfirmShowCompanyForSingleCompany() then
+                    if (not ShowCompanyField) and (GlobalSingleCompanyName <> '') then
                         // A confirmation dialog is raised when the user shows the company field
                         // for an agent that operates in a single company.
                         if not Confirm(ShowSingleCompanyQst, false) then
                             exit;
 
-                    ShowCompanyField := AgentAccessControlMgt.ToggleShowCompanyField();
+                    ShowCompanyFieldOverride := true;
+                    ShowCompanyField := not ShowCompanyField;
                     CurrPage.Update(false);
                 end;
             }
@@ -96,16 +97,17 @@ page 4325 "Select Agent Acc. Control Part"
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
 
         if not IsNullGuid(Rec."Agent User Security ID") then begin
-            AgentAccessControlMgt.Initialize(Rec."Agent User Security ID");
-            ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
+            ShowCompanyFieldOverride := false;
+            if not ShowCompanyFieldOverride then
+                ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."Agent User Security ID", GlobalSingleCompanyName);
         end;
     end;
 
     trigger OnAfterGetRecord()
     begin
         UpdateGlobalVariables();
-        AgentAccessControlMgt.UpdateCompanyFieldVisibility();
-        ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
+        if not ShowCompanyFieldOverride then
+            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -123,7 +125,7 @@ page 4325 "Select Agent Acc. Control Part"
     begin
         // Ensure the Agent User Security ID is set on new records
         if IsNullGuid(Rec."Agent User Security ID") then
-            Rec."Agent User Security ID" := AgentUserSecurityID;
+            Rec."Agent User Security ID" := AgentUserSecurityID; // TODO(qutreson) - Is this needed?
 
         // Default company name if not showing company field
         if (Rec."Company Name" = '') and not ShowCompanyField then
@@ -139,7 +141,7 @@ page 4325 "Select Agent Acc. Control Part"
     internal procedure SetAgentUserSecurityID(NewAgentUserSecurityID: Guid)
     begin
         AgentUserSecurityID := NewAgentUserSecurityID;
-        AgentAccessControlMgt.Initialize(AgentUserSecurityID);
+        ShowCompanyFieldOverride := false;
         UpdateCompanyFieldVisibility();
     end;
 
@@ -152,13 +154,38 @@ page 4325 "Select Agent Acc. Control Part"
 
     local procedure ValidateUserName(NewUserName: Text)
     var
+        User: Record User;
         UserSecurityID: Guid;
+        UserGuid: Guid;
     begin
-        if not AgentAccessControlMgt.FindUserByName(NewUserName, UserSecurityID) then
+        if not FindUserByName(NewUserName, UserSecurityID) then
             exit;
 
         Rec.Validate("User Security ID", UserSecurityID);
         UpdateGlobalVariables();
+    end;
+
+    local procedure FindUserByName(NewUserName: Text; var UserSecurityID: Guid): Boolean
+    var
+        User: Record User;
+        UserGuid: Guid;
+    begin
+        if Evaluate(UserGuid, NewUserName) then begin
+            if not User.Get(UserGuid) then
+                exit(false);
+            UserSecurityID := User."User Security ID";
+            exit(true);
+        end;
+
+        User.SetRange("User Name", NewUserName);
+        if not User.FindFirst() then begin
+            User.SetFilter("User Name", '@*''''' + NewUserName + '''''*');
+            if not User.FindFirst() then
+                exit(false);
+        end;
+
+        UserSecurityID := User."User Security ID";
+        exit(true);
     end;
 
     local procedure UpdateGlobalVariables()
@@ -197,19 +224,17 @@ page 4325 "Select Agent Acc. Control Part"
 
     local procedure UpdateCompanyFieldVisibility()
     begin
-        AgentAccessControlMgt.UpdateCompanyFieldVisibility();
-        ShowCompanyField := AgentAccessControlMgt.GetShowCompanyField();
-
-        AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
+        if not ShowCompanyFieldOverride then
+            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
     end;
 
     var
         AgentImpl: Codeunit "Agent Impl.";
-        AgentAccessControlMgt: Codeunit "Agent Access Control Mgt.";
         UserFullName: Text[80];
         UserName: Code[50];
         AgentUserSecurityID: Guid;
         GlobalSingleCompanyName: Text[30];
         ShowCompanyField: Boolean;
+        ShowCompanyFieldOverride: Boolean;
         ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign access controls in other companies where the agent is not available.\\Do you want to continue?';
 }

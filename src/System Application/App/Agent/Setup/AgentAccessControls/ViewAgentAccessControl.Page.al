@@ -107,7 +107,7 @@ page 4320 "View Agent Access Control"
         GlobalSingleCompanyName: Text[30];
     begin
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName);
+            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."Agent User Security ID", GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
 
