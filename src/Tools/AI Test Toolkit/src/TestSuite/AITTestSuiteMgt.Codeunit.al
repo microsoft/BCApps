@@ -6,9 +6,9 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
+using System.Telemetry;
 using System.TestTools.TestRunner;
 using System.Utilities;
-using System.Telemetry;
 
 codeunit 149034 "AIT Test Suite Mgt."
 {
@@ -16,11 +16,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     var
         GlobalAITTestSuite: Record "AIT Test Suite";
-        EmptyDatasetSuiteErr: Label 'Please provide a dataset for the AI Test Suite %1.', Comment = '%1 is the AI Test Suite code';
-        NoDatasetInSuiteErr: Label 'The dataset %1 specified for AI Test Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the AI Test Suite code';
-        NoInputsInSuiteErr: Label 'The dataset %1 specified for AI Test Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Test Suite code.';
         NoDatasetInLineErr: Label 'The dataset %1 specified for AI Test Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is AI Test Line No.';
         NoInputsInLineErr: Label 'The dataset %1 specified for AI Test line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Test Line No.';
+        LanguageMismatchInLineErr: Label 'The dataset %1 specified for AI Test line %2 does not have inputs for language %3.', Comment = '%1 is the Dataset name, %2 is the AI Test Line No., %3 is the Language ID';
         ScenarioStarted: Dictionary of [Text, DateTime];
         ScenarioOutput: Dictionary of [Text, Text];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
@@ -36,7 +34,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         TestMethodLineNotFoundErr: Label 'The test suite %1 does not contain the test line %2. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
         TestSuiteChangedErr: Label 'The test suite %1 has been changed since test line %2 was run. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
         NoEvaluatorsLbl: Label 'Configure...';
-
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -179,12 +176,9 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         CodeunitMetadata: Record "CodeUnit Metadata";
+        DatasetName: Code[100];
         ValidDatasets: List of [Code[100]];
     begin
-        // Validate test suite dataset
-        ValidateSuiteDataset(AITTestSuite);
-        ValidDatasets.Add(AITTestSuite."Input Dataset");
-
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
         if not AITTestMethodLine.FindSet() then
             Error(NothingToRunErr);
@@ -192,33 +186,37 @@ codeunit 149034 "AIT Test Suite Mgt."
         repeat
             CodeunitMetadata.Get(AITTestMethodLine."Codeunit ID");
 
+            DatasetName := AITTestMethodLine.GetTestInputCode();
             // Validate test line dataset
-            if (AITTestMethodLine."Input Dataset" <> '') and (not ValidDatasets.Contains(AITTestMethodLine."Input Dataset")) then begin
-                ValidateTestLineDataset(AITTestMethodLine, AITTestMethodLine."Input Dataset");
-                ValidDatasets.Add(AITTestMethodLine."Input Dataset");
+            if (DatasetName <> '') and (not ValidDatasets.Contains(DatasetName)) then begin
+                ValidateTestLineDataset(AITTestMethodLine, DatasetName, AITTestSuite."Run Language ID");
+                ValidDatasets.Add(DatasetName);
             end;
+
         until AITTestMethodLine.Next() = 0;
     end;
 
-    local procedure ValidateSuiteDataset(var AITTestSuite: Record "AIT Test Suite")
-    begin
-        // Validate test suite
-        if AITTestSuite."Input Dataset" = '' then
-            Error(EmptyDatasetSuiteErr, AITTestSuite."Code");
-
-        if not DatasetExists(AITTestSuite."Input Dataset") then
-            Error(NoDatasetInSuiteErr, AITTestSuite."Input Dataset", AITTestSuite."Code");
-
-        if not InputDataLinesExists(AITTestSuite."Input Dataset") then
-            Error(NoInputsInSuiteErr, AITTestSuite."Input Dataset", AITTestSuite."Code");
-    end;
-
-    local procedure ValidateTestLineDataset(AITTestMethodLine: Record "AIT Test Method Line"; DatasetName: Code[100])
+    local procedure ValidateTestLineDataset(AITTestMethodLine: Record "AIT Test Method Line"; DatasetName: Code[100]; LanguageID: Integer)
+    var
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
     begin
         if not DatasetExists(DatasetName) then
             Error(NoDatasetInLineErr, DatasetName, AITTestMethodLine."Line No.");
         if not InputDataLinesExists(DatasetName) then
             Error(NoInputsInLineErr, DatasetName, AITTestMethodLine."Line No.");
+        if not DatasetLanguageMatchRunLanguage(DatasetName, LanguageID) then
+            Error(LanguageMismatchInLineErr, DatasetName, AITTestMethodLine."Line No.", AITTestSuiteLanguage.GetLanguageDisplayName(LanguageID));
+    end;
+
+    local procedure DatasetLanguageMatchRunLanguage(DatasetName: Code[100]; RunLanguageID: Integer): Boolean
+    var
+        TestInputGroup: Record "Test Input Group";
+    begin
+        if RunLanguageID = 0 then
+            exit(true);
+
+        TestInputGroup.Get(DatasetName);
+        exit(TestInputGroup."Language ID" = RunLanguageID);
     end;
 
     local procedure DatasetExists(DatasetName: Code[100]): Boolean
@@ -541,6 +539,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure DeleteLinesOnDeleteAITTestSuite(var Rec: Record "AIT Test Suite"; RunTrigger: Boolean)
     var
         AITTestMethodLine: Record "AIT Test Method Line";
+        AITTestSuiteLanguage: Record "AIT Test Suite Language";
         AITEvaluator: Record "AIT Evaluator";
         AITColumnMapping: Record "AIT Column Mapping";
         AITLogEntry: Record "AIT Log Entry";
@@ -563,6 +562,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITRunHistory.SetRange("Test Suite Code", Rec."Code");
         AITRunHistory.DeleteAll(true);
+
+        AITTestSuiteLanguage.SetRange("Test Suite Code", Rec."Code");
+        AITTestSuiteLanguage.DeleteAll(true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Method Line", OnBeforeInsertEvent, '', false, false)]

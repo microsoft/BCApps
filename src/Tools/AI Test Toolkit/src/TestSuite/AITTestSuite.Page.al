@@ -57,6 +57,30 @@ page 149031 "AIT Test Suite"
                         AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
                     end;
                 }
+                field("Copilot Capability"; Rec."Copilot Capability")
+                {
+                    ApplicationArea = All;
+                }
+                field("Run Frequency"; Rec."Run Frequency")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies how frequently the test suite should be run.';
+                }
+                field("Language Tag"; Language)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Language';
+                    ToolTip = 'Specifies the language to use when running the test suite. Available languages are based on languages of input datasets.';
+                    Editable = false;
+
+                    trigger OnAssistEdit()
+                    var
+                        AITTestSuiteLanguages: Codeunit "AIT Test Suite Language";
+                    begin
+                        AITTestSuiteLanguages.AssistEditTestSuiteLanguage(Rec);
+                        CurrPage.Update(true);
+                    end;
+                }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
                     Caption = 'Test Runner';
@@ -334,6 +358,22 @@ page 149031 "AIT Test Suite"
                 ToolTip = 'Open input datasets.';
                 RunObject = page "Test Input Groups";
             }
+            action(Languages)
+            {
+                Caption = 'Configure languages';
+                ToolTip = 'Configure the languages for the test suite.';
+                Image = Language;
+
+                trigger OnAction()
+                var
+                    AITTestSuiteLanguage: Record "AIT Test Suite Language";
+                    AITTestSuiteLanguages: Page "AIT Test Suite Languages Part";
+                begin
+                    AITTestSuiteLanguage.SetRange("Test Suite Code", Rec.Code);
+                    AITTestSuiteLanguages.SetTableView(AITTestSuiteLanguage);
+                    AITTestSuiteLanguages.RunModal();
+                end;
+            }
         }
         area(Promoted)
         {
@@ -357,6 +397,9 @@ page 149031 "AIT Test Suite"
                 actionref(Datasets_Promoted; Datasets)
                 {
                 }
+                actionref(Languages_Promoted; Languages)
+                {
+                }
                 actionref(ExportAIT_Promoted; ExportAIT)
                 {
                 }
@@ -371,6 +414,7 @@ page 149031 "AIT Test Suite"
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
+        Language: Text;
         InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
         EvaluationSetupTxt: Text;
 
@@ -388,10 +432,12 @@ page 149031 "AIT Test Suite"
 
     trigger OnAfterGetCurrRecord()
     var
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         UpdateTotalDuration();
         UpdateAverages();
+        Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
     end;

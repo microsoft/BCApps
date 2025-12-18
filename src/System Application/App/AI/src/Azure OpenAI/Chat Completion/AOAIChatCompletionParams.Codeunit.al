@@ -64,6 +64,15 @@ codeunit 7761 "AOAI Chat Completion Params"
     end;
 
     /// <summary>
+    /// Gets the current AOAI policy parameters containing harms severity and XPIA detection settings.
+    /// </summary>
+    /// <returns>The AOAI policy parameters.</returns>
+    procedure GetAOAIPolicyParams(): Codeunit "AOAI Policy Params"
+    begin
+        exit(AOAIChatComplParamsImpl.GetAOAIPolicyParams());
+    end;
+
+    /// <summary>
     /// Sets the sampling temperature to use, between 0 and 2. A higher temperature increases the likelihood that the next most probable token will not be selected. When requesting structured data, set the temperature to 0. For human sounding speech, 0.7 is a typical value
     /// </summary>
     /// <param name="NewTemperature">The new sampling temperature to use.</param>
@@ -125,6 +134,15 @@ codeunit 7761 "AOAI Chat Completion Params"
     procedure SetFrequencyPenalty(NewFrequencyPenalty: Decimal)
     begin
         AOAIChatComplParamsImpl.SetFrequencyPenalty(NewFrequencyPenalty);
+    end;
+
+    /// <summary>
+    /// Sets the AOAI policy parameters containing harms severity and XPIA detection settings.
+    /// </summary>
+    /// <param name="PolicyParams">The AOAI policy parameters containing harms severity and XPIA detection settings.</param>
+    procedure SetAOAIPolicyParams(PolicyParams: Codeunit "AOAI Policy Params")
+    begin
+        AOAIChatComplParamsImpl.SetAOAIPolicyParams(PolicyParams);
     end;
 
     /// <summary>
