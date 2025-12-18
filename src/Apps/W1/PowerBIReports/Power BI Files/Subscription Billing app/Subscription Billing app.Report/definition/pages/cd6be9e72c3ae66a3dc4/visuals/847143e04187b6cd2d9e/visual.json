@@ -2,36 +2,37 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "847143e04187b6cd2d9e",
   "position": {
-    "x": 25.802047781569964,
-    "y": 61.43344709897611,
+    "x": 25.545041317358088,
+    "y": 61.89760011513691,
     "z": 1000,
-    "height": 307,
-    "width": 1228.0546075085324,
-    "tabOrder": 5
+    "height": 306.54049580829707,
+    "width": 601.29097254704425,
+    "tabOrder": 1000
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "treemap",
     "query": {
       "queryState": {
-        "Category": {
+        "Group": {
           "projections": [
             {
               "field": {
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Item"
+                      "Entity": "Item Category"
                     }
                   },
-                  "Property": "Item Category Code"
+                  "Property": "Item Category Description"
                 }
               },
-              "queryRef": "Item.Item Category Code",
+              "queryRef": "Item Category.Item Category Description",
+              "nativeQueryRef": "Item Category Description",
               "active": true
             }
           ]
         },
-        "Y": {
+        "Values": {
           "projections": [
             {
               "field": {
@@ -44,7 +45,7 @@
                   "Property": "Mon. Recurring Revenue"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.MRR",
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Revenue",
               "nativeQueryRef": "Mon. Recurring Revenue1"
             }
           ]
@@ -76,7 +77,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
