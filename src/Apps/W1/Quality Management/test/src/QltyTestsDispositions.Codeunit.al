@@ -7311,7 +7311,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] The purchase order is received
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
-        // [GIVEN] Find test
+        // [GIVEN] Find Inspection Header created from purchase line
         QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionHeader.FindFirst();
 
