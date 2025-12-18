@@ -15,7 +15,7 @@ page 8351 "MCP Config Card"
     InherentEntitlements = X;
     InherentPermissions = X;
     AboutTitle = 'About model context protocol (MCP) server configuration';
-    AboutText = 'Manage how MCP configurations are set up. Specify which APIs are available as tools, control data access permissions, and enable dynamic discovery of tools. You can also duplicate existing configurations to quickly create new setups.';
+    AboutText = 'Manage how MCP configurations are set up. Specify which APIs are available as tools, control data access permissions, and enable dynamic discovery of tools. You can also duplicate existing configurations to quickly create new setups. Configurations are read-only when activated to ensure stability.';
 
     layout
     {
