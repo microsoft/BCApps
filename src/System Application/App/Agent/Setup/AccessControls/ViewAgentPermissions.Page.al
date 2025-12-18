@@ -83,7 +83,7 @@ page 4334 "View Agent Permissions"
                 trigger OnAction()
                 var
                     Agent: Record Agent;
-                    TempAccessControl: Record "Access Control" temporary;
+                    TempAccessControlBuffer: Record "Access Control Buffer" temporary;
                     SelectAgentPermissions: Page "Select Agent Permissions";
                 begin
                     if not Agent.Get(Rec."User Security ID") then
@@ -98,12 +98,12 @@ page 4334 "View Agent Permissions"
                             Commit();
                         end;
 
-                    CopyAccessControlToBuffer(Rec."User Security ID", TempAccessControl);
+                    CopyAccessControlToBuffer(Rec."User Security ID", TempAccessControlBuffer);
 
-                    SelectAgentPermissions.Initialize(Rec."User Security ID", TempAccessControl);
+                    SelectAgentPermissions.Initialize(Rec."User Security ID", TempAccessControlBuffer);
                     if SelectAgentPermissions.RunModal() = Action::OK then begin
-                        SelectAgentPermissions.GetTempAccessControl(TempAccessControl);
-                        SaveAccessControl(Rec."User Security ID", TempAccessControl);
+                        SelectAgentPermissions.GetTempAccessControlBuffer(TempAccessControlBuffer);
+                        SaveAccessControlBuffer(Rec."User Security ID", TempAccessControlBuffer);
                     end;
 
                     CurrPage.Update(false);
@@ -145,25 +145,28 @@ page 4334 "View Agent Permissions"
         end;
     end;
 
-    local procedure CopyAccessControlToBuffer(UserSecurityID: Guid; var TempAccessControl: Record "Access Control" temporary)
+    local procedure CopyAccessControlToBuffer(UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         AccessControl: Record "Access Control";
     begin
-        TempAccessControl.Reset();
-        TempAccessControl.DeleteAll();
+        TempAccessControlBuffer.Reset();
+        TempAccessControlBuffer.DeleteAll();
 
         AccessControl.SetRange("User Security ID", UserSecurityID);
         if not AccessControl.FindSet() then
             exit;
 
         repeat
-            Clear(TempAccessControl);
-            TempAccessControl.TransferFields(AccessControl);
-            TempAccessControl.Insert();
+            Clear(TempAccessControlBuffer);
+            TempAccessControlBuffer."Company Name" := AccessControl."Company Name";
+            TempAccessControlBuffer.Scope := AccessControl.Scope;
+            TempAccessControlBuffer."App ID" := AccessControl."App ID";
+            TempAccessControlBuffer."Role ID" := AccessControl."Role ID";
+            TempAccessControlBuffer.Insert();
         until AccessControl.Next() = 0;
     end;
 
-    local procedure SaveAccessControl(UserSecurityID: Guid; var TempModifiedAccessControl: Record "Access Control" temporary)
+    local procedure SaveAccessControlBuffer(UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         AccessControl: Record "Access Control";
     begin
@@ -172,15 +175,19 @@ page 4334 "View Agent Permissions"
         AccessControl.DeleteAll();
 
         // Insert the modified records
-        TempModifiedAccessControl.Reset();
-        if not TempModifiedAccessControl.FindSet() then
+        TempAccessControlBuffer.Reset();
+        if not TempAccessControlBuffer.FindSet() then
             exit;
 
         repeat
             Clear(AccessControl);
-            AccessControl.TransferFields(TempModifiedAccessControl);
+            AccessControl."User Security ID" := UserSecurityID;
+            AccessControl."Company Name" := TempAccessControlBuffer."Company Name";
+            AccessControl.Scope := TempAccessControlBuffer.Scope;
+            AccessControl."App ID" := TempAccessControlBuffer."App ID";
+            AccessControl."Role ID" := TempAccessControlBuffer."Role ID";
             AccessControl.Insert();
-        until TempModifiedAccessControl.Next() = 0;
+        until TempAccessControlBuffer.Next() = 0;
     end;
 
     var

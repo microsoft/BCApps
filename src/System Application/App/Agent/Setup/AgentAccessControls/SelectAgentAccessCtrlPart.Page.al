@@ -7,7 +7,7 @@ namespace System.Agents;
 
 using System.Security.AccessControl;
 
-page 4325 "Select Agent Acc. Control Part"
+page 4325 "Select Agent Access Ctrl Part"
 {
     PageType = ListPart;
     ApplicationArea = All;

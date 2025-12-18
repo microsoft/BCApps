@@ -21,7 +21,7 @@ page 4321 "Select Agent Access Control"
     {
         area(Content)
         {
-            part(AccessControlPart; "Select Agent Acc. Control Part")
+            part(AccessControlPart; "Select Agent Access Ctrl Part")
             {
                 Caption = 'Agent Access Control';
                 ApplicationArea = All;

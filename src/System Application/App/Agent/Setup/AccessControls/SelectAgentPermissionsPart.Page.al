@@ -11,7 +11,7 @@ page 4340 "Select Agent Permissions Part"
 {
     PageType = ListPart;
     ApplicationArea = All;
-    SourceTable = "Access Control";
+    SourceTable = "Access Control Buffer";
     SourceTableTemporary = true;
     Caption = 'Agent permissions';
     MultipleNewLines = false;
@@ -164,8 +164,6 @@ page 4340 "Select Agent Permissions Part"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        Rec."User Security ID" := AgentUserSecurityID;
-
         if GlobalSingleCompanyName <> '' then begin
             if (Rec."Company Name" = '') and not ShowCompanyField then
                 // Default the company name for the inserted record when all these conditions are met:
@@ -182,12 +180,12 @@ page 4340 "Select Agent Permissions Part"
         end;
     end;
 
-    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControl: Record "Access Control" temporary)
+    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         AgentSingleCompany: Boolean;
     begin
         AgentUserSecurityID := NewAgentUserSecurityID;
-        Rec.Copy(TempAccessControl, true);
+        Rec.Copy(TempAccessControlBuffer, true);
 
         AgentSingleCompany := TryGetAccessControlForSingleCompany(GlobalSingleCompanyName);
         if not ShowCompanyFieldOverride then
@@ -244,7 +242,6 @@ page 4340 "Select Agent Permissions Part"
         if AccessControl.FindSet() then
             repeat
                 Clear(Rec);
-                Rec."User Security ID" := AgentUserSecurityID;
                 Rec."Role ID" := AccessControl."Role ID";
                 Rec.Scope := AccessControl.Scope;
                 Rec."App ID" := AccessControl."App ID";

@@ -11,7 +11,7 @@ page 4336 "Select Agent Permissions"
 {
     PageType = StandardDialog;
     ApplicationArea = All;
-    SourceTable = "Access Control";
+    SourceTable = "Access Control Buffer";
     SourceTableTemporary = true;
     Caption = 'Edit Agent Permissions (Preview)';
     Extensible = false;
@@ -37,40 +37,40 @@ page 4336 "Select Agent Permissions"
 
     trigger OnOpenPage()
     begin
-        BackupAccessControl();
+        BackupAccessControlBuffer();
         CurrPage.PermissionsPart.Page.Initialize(AgentUserSecurityID, Rec);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if CloseAction = CloseAction::LookupCancel then
-            RestoreAccessControl();
+            RestoreAccessControlBuffer();
 
         exit(true);
     end;
 
-    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControl: Record "Access Control" temporary)
+    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     begin
         AgentUserSecurityID := NewAgentUserSecurityID;
-        Rec.Copy(TempAccessControl, true);
+        Rec.Copy(TempAccessControlBuffer, true);
     end;
 
-    internal procedure GetTempAccessControl(var TempAccessControl: Record "Access Control" temporary)
+    internal procedure GetTempAccessControlBuffer(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     begin
-        TempAccessControl.Copy(Rec, true);
+        TempAccessControlBuffer.Copy(Rec, true);
     end;
 
-    local procedure BackupAccessControl()
+    local procedure BackupAccessControlBuffer()
     begin
-        TempBackupAccessControl.Copy(Rec, true);
+        TempBackupAccessControlBuffer.Copy(Rec, true);
     end;
 
-    local procedure RestoreAccessControl()
+    local procedure RestoreAccessControlBuffer()
     begin
-        Rec.Copy(TempBackupAccessControl, true);
+        Rec.Copy(TempBackupAccessControlBuffer, true);
     end;
 
     var
-        TempBackupAccessControl: Record "Access Control" temporary;
+        TempBackupAccessControlBuffer: Record "Access Control Buffer" temporary;
         AgentUserSecurityID: Guid;
 }
