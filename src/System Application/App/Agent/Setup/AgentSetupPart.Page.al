@@ -63,8 +63,10 @@ page 4310 "Agent Setup Part"
 
                     trigger OnDrillDown()
                     begin
-                        if AgentSetup.SetupLanguageAndRegion(Rec) then
+                        if AgentSetup.SetupLanguageAndRegion(Rec) then begin
+                            UpdateAgentSummaryDisplayText();
                             CurrPage.Update(false);
+                        end;
                     end;
                 }
                 field(UserAccessLink; ManageUserAccessLbl)
@@ -80,7 +82,7 @@ page 4310 "Agent Setup Part"
                     end;
                 }
             }
-            field(Summary; AgentSummary)
+            field(Summary; AgentSummaryDisplayText)
             {
                 Caption = 'Summary';
                 MultiLine = true;
@@ -108,6 +110,7 @@ page 4310 "Agent Setup Part"
     begin
         AgentSetup.GetSetupRecord(Rec, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
         AgentSummary := NewAgentSummary;
+        UpdateAgentSummaryDisplayText();
     end;
 
     /// <summary>
@@ -134,6 +137,7 @@ page 4310 "Agent Setup Part"
     begin
         AgentSetupImpl.CopyAgentSetupBuffer(Rec, AgentSetupBuffer);
         AgentSummary := AgentSetupImpl.GetAgentSummary(AgentSetupBuffer);
+        UpdateAgentSummaryDisplayText();
     end;
 
     /// <summary>
@@ -146,6 +150,7 @@ page 4310 "Agent Setup Part"
     procedure SetAgentSummary(NewAgentSummary: Text)
     begin
         AgentSummary := NewAgentSummary;
+        UpdateAgentSummaryDisplayText();
     end;
 
     /// <summary>
@@ -157,8 +162,16 @@ page 4310 "Agent Setup Part"
         exit(AgentSetup.GetChangesMade(Rec));
     end;
 
+    local procedure UpdateAgentSummaryDisplayText()
+    var
+        AgentSetupImpl: Codeunit "Agent Setup Impl.";
+    begin
+        AgentSummaryDisplayText := AgentSetupImpl.AppendLanguageUsed(AgentSummary, Rec);
+    end;
+
     var
         AgentSetup: Codeunit "Agent Setup";
+        AgentSummaryDisplayText: Text;
         AgentSummary: Text;
         ManageUserAccessLbl: Label 'Manage user access';
         LanguageAndRegionLbl: Label 'Language and region';

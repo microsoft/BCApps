@@ -139,6 +139,20 @@ codeunit 4325 "Agent Setup Impl."
         exit(FullSummaryText.ToText());
     end;
 
+    internal procedure AppendLanguageUsed(SummaryText: Text; var AgentSetupBuffer: Record "Agent Setup Buffer"): Text
+    var
+        UserSettings: Record "User Settings";
+        Language: Codeunit Language;
+        NewSummaryText: Text;
+    begin
+        if SummaryText.Contains(LanguageUsedLbl) then
+            exit;
+
+        AgentSetupBuffer.GetUserSettings(UserSettings);
+        NewSummaryText := SummaryText + '\\' + StrSubstNo(LanguageUsedLbl, CopyStr(Language.GetWindowsLanguageName(UserSettings."Language ID"), 1, MaxStrLen(AgentSetupBuffer."Language Used")));
+        exit(NewSummaryText);
+    end;
+
     internal procedure CopyAgentSetupBuffer(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
     var
         TempUserSettings: Record "User Settings" temporary;
@@ -218,4 +232,7 @@ codeunit 4325 "Agent Setup Impl."
     begin
         exit(TextEncoding::UTF8);
     end;
+
+    var
+        LanguageUsedLbl: Label 'Language used: %1', Comment = '%1 is the language name, e.g. English (United States).';
 }
