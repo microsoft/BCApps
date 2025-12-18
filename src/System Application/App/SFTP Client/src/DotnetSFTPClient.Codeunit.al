@@ -137,7 +137,7 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
     end;
 
     [TryFunction]
-    local procedure InternalReadAllBytes(Path: Text; Bytes: Dotnet Array)
+    local procedure InternalReadAllBytes(Path: Text; var Bytes: Dotnet Array)
     begin
         Bytes := RenciSFTPClient.ReadAllBytes(Path);
     end;
