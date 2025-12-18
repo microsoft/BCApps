@@ -94,7 +94,7 @@ page 20412 "Qlty. Ins. Source Config. List"
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
-        QltyAutoConfigure.EnsureAtLeastOneSourceConfiguration(false);
+        QltyAutoConfigure.EnsureAtLeastOneSourceConfigurationExist(false);
     end;
 
     trigger OnAfterGetRecord()

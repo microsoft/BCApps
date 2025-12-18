@@ -22,9 +22,9 @@ report 20408 "Qlty. Create Negative Adjmt."
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
@@ -34,18 +34,18 @@ report 20408 "Qlty. Create Negative Adjmt."
                 SerialNo: Text;
                 PackageNo: Text;
             begin
-                if QltyDispNegAdjustInv.PerformDisposition(CurrentTest, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, PostBehavior, ReasonCode) then
+                if QltyDispNegAdjustInv.PerformDisposition(CurrentInspection, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, PostBehavior, ReasonCode) then
                     exit;
 
-                if CurrentTest."Source Variant Code" <> '' then
-                    CurrentVariant := StrSubstNo(VariantLbl, CurrentTest."Source Variant Code");
+                if CurrentInspection."Source Variant Code" <> '' then
+                    CurrentVariant := StrSubstNo(VariantLbl, CurrentInspection."Source Variant Code");
 
-                if CurrentTest."Source Lot No." <> '' then
-                    LotNo := StrSubstNo(LotLbl, CurrentTest."Source Lot No.");
-                if CurrentTest."Source Serial No." <> '' then
-                    SerialNo := StrSubstNo(SerialLbl, CurrentTest."Source Serial No.");
-                if CurrentTest."Source Package No." <> '' then
-                    PackageNo := StrSubstNo(PackageLbl, CurrentTest."Source Package No.");
+                if CurrentInspection."Source Lot No." <> '' then
+                    LotNo := StrSubstNo(LotLbl, CurrentInspection."Source Lot No.");
+                if CurrentInspection."Source Serial No." <> '' then
+                    SerialNo := StrSubstNo(SerialLbl, CurrentInspection."Source Serial No.");
+                if CurrentInspection."Source Package No." <> '' then
+                    PackageNo := StrSubstNo(PackageLbl, CurrentInspection."Source Package No.");
             end;
         }
     }
@@ -62,7 +62,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                 group(SettingsForQuantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'In destructive testing scenarios, the number of samples that were destroyed. For other scenarios, the quantity of the tested item that will be written off.';
+                    InstructionalText = 'In destructive testing scenarios, the number of samples that were destroyed. For other scenarios, the quantity of the inspected item that will be written off.';
 
                     field(ChooseRemoveTracked; RemoveTracked)
                     {
@@ -202,7 +202,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the test covers more than one bin.';
+                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the inspection covers more than one bin.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocation)
                     {
@@ -257,15 +257,15 @@ report 20408 "Qlty. Create Negative Adjmt."
 
         trigger OnOpenPage()
         var
-            QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+            QltyInspectionHeader: Record "Qlty. Inspection Header";
         begin
-            QltyInspectionTestHeader.CopyFilters(CurrentTest);
-            if QltyInspectionTestHeader.Count() <> 1 then
+            QltyInspectionHeader.CopyFilters(CurrentInspection);
+            if QltyInspectionHeader.Count() <> 1 then
                 exit;
 
-            QltyInspectionTestHeader.FindFirst();
-            if (QltyInspectionTestHeader."Location Code" <> '') and (FilterOfSourceLocation = '') then
-                FilterOfSourceLocation := QltyInspectionTestHeader."Location Code";
+            QltyInspectionHeader.FindFirst();
+            if (QltyInspectionHeader."Location Code" <> '') and (FilterOfSourceLocation = '') then
+                FilterOfSourceLocation := QltyInspectionHeader."Location Code";
         end;
     }
 
