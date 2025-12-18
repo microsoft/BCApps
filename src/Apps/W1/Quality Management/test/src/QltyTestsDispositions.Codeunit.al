@@ -7253,13 +7253,13 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     [Test]
     procedure PostItemJournalForNegativeAdjustmentCreatedFromTest()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalTemplate: Record "Item Journal Template";
@@ -7274,15 +7274,15 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
-        QltyInTestGenerationRule."Activation Trigger" := QltyInTestGenerationRule."Activation Trigger"::"Automatic only";
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
         // [GIVEN] An item journal template and batch are created for adjustments
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
@@ -7312,11 +7312,11 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [GIVEN] Find test
-        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
-        QltyInspectionTestHeader.FindFirst();
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
 
         // [WHEN] Negative adjustment disposition is performed with specific quantity
-        QltyDispNegAdjustInv.PerformDisposition(QltyInspectionTestHeader, PurchaseLine.Quantity, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", '');
+        QltyDispNegAdjustInv.PerformDisposition(QltyInspectionHeader, PurchaseLine.Quantity, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", '');
 
         // [THEN] Post item journal line should be successful
         AdjustmentItemJournalLine.Get(ItemJournalTemplate.Name, ItemJournalBatch.Name, 10000);
@@ -7324,7 +7324,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ItemJournalBatch.Delete();
         ItemJournalTemplate.Delete();
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     local procedure Initialize()
