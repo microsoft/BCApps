@@ -59,13 +59,13 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempTrackingSpecification.SetRange("Source Ref. No.", PurchaseLine."Line No.");
         TempTrackingSpecification.SetRange("Source Type", Database::"Purchase Line");
 
-        ExpectedAmountOfTests := TempTrackingSpecification.Count();
-        if ExpectedAmountOfTests = 0 then begin
-            ExpectedAmountOfTests := 1;
-            if not ApplicableReceivingQltyInTestGenerationRule.IsEmpty() then begin
+        ExpectedCountOfInspections := TempTrackingSpecification.Count();
+        if ExpectedCountOfInspections = 0 then begin
+            ExpectedCountOfInspections := 1;
+            if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
                 TempSingleBufferTrackingSpecification.Init();
                 TempSingleBufferTrackingSpecification.Insert(false);
-                AttemptCreateTestWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempSingleBufferTrackingSpecification);
+                AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempSingleBufferTrackingSpecification);
             end
         end else
             if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
