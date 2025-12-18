@@ -11,6 +11,7 @@ using Microsoft.Purchases.Vendor;
 using System.Feedback;
 using System.Telemetry;
 using System.Utilities;
+using System.Text;
 
 page 6181 "E-Document Purchase Draft"
 {
@@ -636,11 +637,22 @@ page 6181 "E-Document Purchase Draft"
 
     local procedure ProvideFeedback()
     var
+        EDocumentDataStorage: Record "E-Doc. Data Storage";
         MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
+        Base64Convert: Codeunit "Base64 Convert";
         EDocDraftFeedback: Page "E-Doc. Draft Feedback";
+        Base64Data: Text;
+        InStream: InStream;
+        ContextFiles, ContextProperties : Dictionary of [Text, Text];
     begin
-        if EDocDraftFeedback.RunModal() = Action::Yes then
-            MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent');
+        if EDocDraftFeedback.RunModal() = Action::Yes then begin
+            if EDocumentDataStorage.Get(Rec."Unstructured Data Entry No.") then begin
+                EDocumentDataStorage.GetTempBlob().CreateInStream(InStream);
+                Base64Data := Base64Convert.ToBase64(InStream);
+                ContextFiles.Add(EDocumentDataStorage.Name, Base64Data);
+            end;
+            MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent', ContextFiles, ContextProperties);
+        end;
     end;
 
     var
