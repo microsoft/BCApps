@@ -365,27 +365,29 @@ codeunit 4301 "Agent Impl."
     local procedure UpdateAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent)
     begin
         // We must delete or update the user doing the change the last to avoid removing permissions that are needed to commit the change
-        UpdateUsersOtherThanMainUser(TempAgentAccessControl, Agent);
+        UpdateAgentAccessControlForUsers(TempAgentAccessControl, Agent, '<>%1', UserSecurityId());
 
         // Update the user at the end
-        UpdateUserDoingTheChange(TempAgentAccessControl, Agent);
+        UpdateAgentAccessControlForUsers(TempAgentAccessControl, Agent, '%1', UserSecurityId());
     end;
 
-    local procedure UpdateUsersOtherThanMainUser(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent)
+    local procedure UpdateAgentAccessControlForUsers(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent; UserSecurityIdFilter: Text; UserSecurityIdValue: Guid)
     var
         AgentAccessControl: Record "Agent Access Control";
     begin
+        // Delete any existing records that match the filter and are not in the temp table
         AgentAccessControl.SetRange("Agent User Security ID", Agent."User Security ID");
-        AgentAccessControl.SetFilter("User Security ID", '<>%1', UserSecurityId());
+        AgentAccessControl.SetFilter("User Security ID", UserSecurityIdFilter, UserSecurityIdValue);
         if AgentAccessControl.FindSet() then
             repeat
                 if not TempAgentAccessControl.Get(AgentAccessControl."Agent User Security ID", AgentAccessControl."User Security ID", AgentAccessControl."Company Name") then
                     AgentAccessControl.Delete(true);
             until AgentAccessControl.Next() = 0;
 
+        // Insert or update all records from temp table that match the filter
         AgentAccessControl.Reset();
         TempAgentAccessControl.Reset();
-        TempAgentAccessControl.SetFilter("User Security ID", '<>%1', UserSecurityId());
+        TempAgentAccessControl.SetFilter("User Security ID", UserSecurityIdFilter, UserSecurityIdValue);
         if not TempAgentAccessControl.FindSet() then
             exit;
 
@@ -402,39 +404,6 @@ codeunit 4301 "Agent Impl."
                 AgentAccessControl.Insert();
             end;
         until TempAgentAccessControl.Next() = 0;
-    end;
-
-    local procedure UpdateUserDoingTheChange(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent)
-    var
-        AgentAccessControl: Record "Agent Access Control";
-    begin
-        TempAgentAccessControl.SetFilter("User Security ID", UserSecurityId());
-        if not TempAgentAccessControl.FindFirst() then begin
-            // Delete all records for this user regardless of company
-            AgentAccessControl.SetRange("Agent User Security ID", Agent."User Security ID");
-            AgentAccessControl.SetRange("User Security ID", UserSecurityId());
-            if AgentAccessControl.FindSet() then
-                repeat
-                    AgentAccessControl.Delete()
-                until AgentAccessControl.Next() = 0;
-            exit;
-        end;
-
-        // TODO(qutreson) - This needs to loop on records.
-
-        if AgentAccessControl.Get(Agent."User Security ID", UserSecurityId(), TempAgentAccessControl."Company Name") then begin
-            AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
-            AgentAccessControl.Modify();
-            exit;
-        end else begin
-            Clear(AgentAccessControl);
-            AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
-            AgentAccessControl."User Security ID" := TempAgentAccessControl."User Security ID";
-            AgentAccessControl."Company Name" := TempAgentAccessControl."Company Name";
-            AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
-            AgentAccessControl.Insert();
-            exit;
-        end;
     end;
 
     procedure SelectAgent(var Agent: Record "Agent")
