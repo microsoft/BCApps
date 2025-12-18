@@ -2467,8 +2467,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         LotNo: Code[50];
@@ -2551,8 +2550,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2624,8 +2622,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -3045,7 +3042,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     [Test]
     procedure ItemTrackingDetailsAreNotPopulatedOnTestForNonTrackingItem()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         LotTrackedItem: Record Item;
@@ -3053,7 +3050,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LotNoSeries: Record "No. Series";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         NoSeries: Codeunit "No. Series";
     begin
@@ -3061,21 +3058,21 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
-        QltyInTestGenerationRule."Activation Trigger" := QltyInTestGenerationRule."Activation Trigger"::"Automatic only";
-        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
 
         // [GIVEN] Lot-tracked item with no. series is created
-        QltyTestsUtility.CreateLotTrackedItem(LotTrackedItem, LotNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(LotTrackedItem, LotNoSeries);
 
         // [GIVEN] An Non tracking item is created
         LibraryInventory.CreateItem(NonTrackingItem);
@@ -3090,16 +3087,16 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [THEN] Find first test and verify item tracking details are populated for Lot tracked item
-        FindQltyInpectionTest(QltyInspectionTestHeader, LotTrackedItem."No.");
-        LibraryAssert.AreEqual(LotTrackedItem."No.", QltyInspectionTestHeader."Source Item No.", 'Should be same item.');
-        LibraryAssert.AreEqual(QltyInspectionTestHeader."Source Lot No.", NoSeries.GetLastNoUsed(LotNoSeries.Code), 'Lot No. should be populated.');
+        FindQltyInspectionHeader(QltyInspectionHeader, LotTrackedItem."No.");
+        LibraryAssert.AreEqual(LotTrackedItem."No.", QltyInspectionHeader."Source Item No.", 'Should be same item.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."Source Lot No.", NoSeries.GetLastNoUsed(LotNoSeries.Code), 'Lot No. should be populated.');
 
         // [THEN] Find first test and verify item tracking details are populated for Lot tracked item
-        FindQltyInpectionTest(QltyInspectionTestHeader, NonTrackingItem."No.");
-        LibraryAssert.AreEqual(NonTrackingItem."No.", QltyInspectionTestHeader."Source Item No.", 'Should be same item.');
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Source Lot No." = '', 'Lot No. should not be populated.');
+        FindQltyInspectionHeader(QltyInspectionHeader, NonTrackingItem."No.");
+        LibraryAssert.AreEqual(NonTrackingItem."No.", QltyInspectionHeader."Source Item No.", 'Should be same item.');
+        LibraryAssert.IsTrue(QltyInspectionHeader."Source Lot No." = '', 'Lot No. should not be populated.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     local procedure Initialize()
@@ -3110,11 +3107,11 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         IsInitialized := true;
     end;
 
-    local procedure FindQltyInpectionTest(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ItemNo: Code[20])
+    local procedure FindQltyInspectionHeader(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ItemNo: Code[20])
     begin
-        QltyInspectionTestHeader.Reset();
-        QltyInspectionTestHeader.SetRange("Source Item No.", ItemNo);
-        QltyInspectionTestHeader.FindFirst();
+        QltyInspectionHeader.Reset();
+        QltyInspectionHeader.SetRange("Source Item No.", ItemNo);
+        QltyInspectionHeader.FindFirst();
     end;
 
     [ConfirmHandler]
