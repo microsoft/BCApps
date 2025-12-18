@@ -560,12 +560,12 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         ProductionBOMHeader: Record "Production BOM Header";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         FundProductionBOMHeader: Record "Production BOM Header";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryInventory: Codeunit "Library - Inventory";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant1: Variant;
         EmptyVariant2: Variant;
@@ -575,25 +575,25 @@ codeunit 139968 "Qlty. Tests - Traversal"
     begin
         // [SCENARIO] Find a related BOM from an item using source configuration mapping
 
-        // [GIVEN] A source configuration mapping from Item to Test with BOM field mapping
+        // [GIVEN] A source configuration mapping from Item to Inspection with BOM field mapping
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::Item);
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
 
-        // [GIVEN] A field configuration mapping from Item's Production BOM No. to test header
+        // [GIVEN] A field configuration mapping from Item's Production BOM No. to inspection header
         SpecificQltyInspectSrcFldConf.Init();
         SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := Item.FieldNo("Production BOM No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Custom 1");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Custom 1");
         SpecificQltyInspectSrcFldConf.Insert();
 
         // [WHEN] An item with a production BOM assigned
@@ -732,7 +732,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
     procedure FindRelatedItem_ParentRecord()
     var
         Location: Record Location;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         AssemblyLine: Record "Assembly Line";
@@ -746,7 +746,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -762,7 +762,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         if not SpecificQltyInspectSourceConfig.IsEmpty() then
             SpecificQltyInspectSourceConfig.DeleteAll();
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Assembly Header");
@@ -781,39 +781,39 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf."To Field No." := AssemblyLine.FieldNo("Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
-        // [GIVEN] Field configuration mapping assembly header item number to test header
+        // [GIVEN] Field configuration mapping assembly header item number to inspection header
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
         SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := AssemblyHeader.FieldNo("Item No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Item No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Item No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
-        // [GIVEN] A second source configuration from Assembly Line to Test
+        // [GIVEN] A second source configuration from Assembly Line to Inspection
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Assembly Line");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
 
-        // [GIVEN] Field configurations for assembly line to test header fields
+        // [GIVEN] Field configurations for assembly line to inspection header fields
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
         SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := AssemblyLine.FieldNo("Document No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
@@ -821,9 +821,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := AssemblyLine.FieldNo("Line No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document Line No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document Line No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
         // [GIVEN] An assembly order with component line is created
@@ -848,7 +848,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
     procedure FindRelatedVendor_ParentRecord()
     var
         Location: Record Location;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         PurchaseHeader: Record "Purchase Header";
@@ -861,7 +861,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -877,7 +877,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [GIVEN] A source configuration for chained table mapping from Purchase Header to Purchase Line
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Header");
@@ -911,20 +911,20 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := PurchaseHeader.FieldNo("Buy-from Vendor No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Custom 1");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Custom 1");
         SpecificQltyInspectSrcFldConf.Insert();
 
-        // [GIVEN] A second source configuration from Purchase Line to Test with field mappings
+        // [GIVEN] A second source configuration from Purchase Line to Inspection with field mappings
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Line");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
@@ -932,9 +932,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := PurchaseLine.FieldNo("Document No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
@@ -942,9 +942,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := PurchaseLine.FieldNo("Line No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document Line No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document Line No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
         // [GIVEN] A purchase order with vendor, item, and location is created
@@ -964,7 +964,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
     procedure FindRelatedCustomer_ParentRecord()
     var
         Location: Record Location;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         SalesHeader: Record "Sales Header";
@@ -975,7 +975,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -989,7 +989,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         if not SpecificQltyInspectSourceConfig.IsEmpty() then
             SpecificQltyInspectSourceConfig.DeleteAll();
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Sales Header");
@@ -1021,20 +1021,20 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := SalesHeader.FieldNo("Sell-to Customer No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Custom 1");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Custom 1");
         SpecificQltyInspectSrcFldConf.Insert();
 
-        // [GIVEN] Source configuration from Sales Line to Test with field mappings
+        // [GIVEN] Source configuration from Sales Line to Inspection with field mappings
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Sales Line");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
@@ -1042,9 +1042,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := SalesLine.FieldNo("Document No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
@@ -1052,9 +1052,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := SalesLine.FieldNo("Line No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document Line No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document Line No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
         // [GIVEN] A sales order with customer, item, and location is created
@@ -1074,7 +1074,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
     [Test]
     procedure FindRelatedRouting_ParentRecord()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         ProdProductionOrder: Record "Production Order";
@@ -1082,7 +1082,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         Item: Record Item;
         FoundRoutingHeader: Record "Routing Header";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -1097,7 +1097,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
             SpecificQltyInspectSourceConfig.DeleteAll();
 
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Production Order");
@@ -1132,19 +1132,19 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := ProdProductionOrder.FieldNo("Routing No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Custom 1");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Custom 1");
         SpecificQltyInspectSrcFldConf.Insert();
 
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Routing Line");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
 
         Clear(SpecificQltyInspectSrcFldConf);
@@ -1153,9 +1153,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := ProdOrderRoutingLine.FieldNo("Prod. Order No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
         Clear(SpecificQltyInspectSrcFldConf);
@@ -1164,10 +1164,10 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := ProdOrderRoutingLine.FieldNo(Status);
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
 
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Sub Type");
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Sub Type");
         SpecificQltyInspectSrcFldConf.Insert();
 
         // [GIVEN] An item and production order with routing line are created
@@ -1183,7 +1183,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
     [Test]
     procedure FindRelatedRoutingLine_ParentRecord()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         ProdProductionOrder: Record "Production Order";
@@ -1192,7 +1192,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         Item: Record Item;
         FoundProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -1207,7 +1207,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
             SpecificQltyInspectSourceConfig.DeleteAll();
 
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Line");
@@ -1238,12 +1238,12 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Routing Line");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
 
         Clear(SpecificQltyInspectSrcFldConf);
@@ -1252,9 +1252,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := ProdOrderRoutingLine.FieldNo("No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
 
         Clear(SpecificQltyInspectSrcFldConf);
@@ -1263,9 +1263,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := ProdOrderRoutingLine.FieldNo(Status);
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Sub Type");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Sub Type");
         SpecificQltyInspectSrcFldConf.Insert();
 
         // [GIVEN] An item and production order with routing line are created
@@ -1290,7 +1290,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
     [Test]
     procedure FindRelatedBOM_ParentRecord()
     var
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         ProdProductionOrder: Record "Production Order";
@@ -1299,7 +1299,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         Item: Record Item;
         FundProductionBOMHeader: Record "Production BOM Header";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         RecordRef: RecordRef;
         EmptyVariant2: Variant;
         EmptyVariant3: Variant;
@@ -1314,7 +1314,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
             SpecificQltyInspectSourceConfig.DeleteAll();
 
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Line");
@@ -1349,19 +1349,19 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := Item.FieldNo("Production BOM No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Custom 1");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Custom 1");
         SpecificQltyInspectSrcFldConf.Insert();
 
         Clear(SpecificQltyInspectSourceConfig);
         SpecificQltyInspectSourceConfig.Init();
-        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Prod. Order Routing Line");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Test;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Test Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
         SpecificQltyInspectSourceConfig.Insert();
 
         Clear(SpecificQltyInspectSrcFldConf);
@@ -1370,9 +1370,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := ProdOrderRoutingLine.FieldNo("Prod. Order No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Document No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
         SpecificQltyInspectSrcFldConf.Insert();
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.Init();
@@ -1380,9 +1380,9 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
         SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
         SpecificQltyInspectSrcFldConf."From Field No." := ProdOrderRoutingLine.FieldNo(Status);
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Test;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Test Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionTestHeader.FieldNo("Source Sub Type");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Sub Type");
         SpecificQltyInspectSrcFldConf.Insert();
 
         // [GIVEN] An item and production order with routing line and production BOM are created
