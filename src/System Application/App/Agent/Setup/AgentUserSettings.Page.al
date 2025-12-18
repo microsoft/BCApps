@@ -61,18 +61,6 @@ page 4317 "Agent User Settings"
                             CurrPage.Update()
                         end;
                     }
-                    field(Region; Language.GetWindowsLanguageName(GlobalLocaleID))
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                        Caption = 'Region';
-                        ToolTip = 'Specifies the regional settings, such as date and numeric format, on all devices.';
-
-                        trigger OnAssistEdit()
-                        begin
-                            Language.LookupWindowsLanguageId(GlobalLocaleID);
-                        end;
-                    }
                     field(LanguageName; Language.GetWindowsLanguageName(GlobalLanguageID))
                     {
                         ApplicationArea = All;
@@ -84,6 +72,18 @@ page 4317 "Agent User Settings"
                         trigger OnAssistEdit()
                         begin
                             Language.LookupApplicationLanguageId(GlobalLanguageID);
+                        end;
+                    }
+                    field(Region; Language.GetWindowsLanguageName(GlobalLocaleID))
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                        Caption = 'Region';
+                        ToolTip = 'Specifies the regional settings, such as date and numeric format, on all devices.';
+
+                        trigger OnAssistEdit()
+                        begin
+                            Language.LookupWindowsLanguageId(GlobalLocaleID);
                         end;
                     }
                     field("Time Zone"; TimeZoneSelection.GetTimeZoneDisplayName(GlobalTimeZoneText))
