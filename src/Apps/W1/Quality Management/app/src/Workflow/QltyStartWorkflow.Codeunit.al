@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Workflow;
 using Microsoft.CRM.Team;
 using Microsoft.HumanResources.Employee;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using System.Automation;
 using System.Environment.Configuration;
@@ -20,8 +20,8 @@ codeunit 20426 "Qlty. Start Workflow"
 {
     Permissions =
         tabledata "Qlty. Management Setup" = r,
-        tabledata "Qlty. Inspection Test Header" = rimd,
-        tabledata "Qlty. Inspection Test Line" = rimd,
+        tabledata "Qlty. Inspection Header" = rimd,
+        tabledata "Qlty. Inspection Line" = rimd,
         tabledata "Workflow Step Instance" = r,
         tabledata "Employee" = r,
         tabledata "User Setup" = r,
@@ -34,60 +34,60 @@ codeunit 20426 "Qlty. Start Workflow"
         WorkflowManagement: Codeunit "Workflow Management";
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
 
-    internal procedure StartWorkflowTestCreated(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowInspectionCreated(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestCreatedEvent(), QltyInspectionTestHeader);
+        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetInspectionCreatedEvent(), QltyInspectionHeader);
     end;
 
-    internal procedure StartWorkflowTestFinished(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowInspectionFinished(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestFinishedEvent(), QltyInspectionTestHeader);
+        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyInspectionHeader);
     end;
 
-    internal procedure StartWorkflowTestReopens(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowInspectionReopens(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetTestReopensEvent(), QltyInspectionTestHeader);
+        WorkflowManagement.HandleEvent(QltyWorkflowSetup.GetInspectionReopenedEvent(), QltyInspectionHeader);
     end;
 
-    internal procedure StartWorkflowTestChanged(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; xQltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    internal procedure StartWorkflowInspectionChanged(var QltyInspectionHeader: Record "Qlty. Inspection Header"; xQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         RecursionDetectionQltySessionHelper: Codeunit "Qlty. Session Helper";
         Temp: Text;
         TestDateTime: DateTime;
     begin
-        if QltyInspectionTestHeader.IsTemporary() then
+        if QltyInspectionHeader.IsTemporary() then
             exit;
 
         if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
             exit;
 
-        Temp := RecursionDetectionQltySessionHelper.GetSessionValue('StartWorkflowTestChanged-Record');
+        Temp := RecursionDetectionQltySessionHelper.GetSessionValue('StartWorkflowInspectionChanged-Record');
         if Temp <> '' then
-            if Temp = QltyInspectionTestHeader."No." then begin
-                Temp := RecursionDetectionQltySessionHelper.GetSessionValue('StartWorkflowTestChanged-Time');
+            if Temp = QltyInspectionHeader."No." then begin
+                Temp := RecursionDetectionQltySessionHelper.GetSessionValue('StartWorkflowInspectionChanged-Time');
                 if Temp <> '' then
                     if Evaluate(TestDateTime, Temp) then
                         if (CurrentDateTime() - TestDateTime) < 5000 then begin
-                            RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Time', '');
-                            RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Record', '');
+                            RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Time', '');
+                            RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Record', '');
                             exit;
                         end;
             end;
 
         Temp := Format(CurrentDateTime());
-        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Record', QltyInspectionTestHeader."No.");
-        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Time', Temp);
-        WorkflowManagement.HandleEventWithxRec(CopyStr(QltyWorkflowSetup.GetTestHasChangedEvent(), 1, 128), QltyInspectionTestHeader, xQltyInspectionTestHeader);
-        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Time', '');
-        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowTestChanged-Record', '');
+        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Record', QltyInspectionHeader."No.");
+        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Time', Temp);
+        WorkflowManagement.HandleEventWithxRec(CopyStr(QltyWorkflowSetup.GetInspectionHasChangedEvent(), 1, 128), QltyInspectionHeader, xQltyInspectionHeader);
+        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Time', '');
+        RecursionDetectionQltySessionHelper.SetSessionValue('StartWorkflowInspectionChanged-Record', '');
     end;
 }

@@ -62,7 +62,7 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(6; "From Field Name"; Text[250])
         {
             CalcFormula = lookup(Field."Field Caption" where(TableNo = field("From Table No."),
-                                                              "No." = field("From Field No.")));
+                                                             "No." = field("From Field No.")));
             Caption = 'From Field Name';
             Description = 'Specifies the from field.';
             Editable = false;
@@ -72,11 +72,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         field(7; "To Field No."; Integer)
         {
             Caption = 'To Field No.';
-            Description = 'Specifies the To Field No. When the target is a test this would be a field on the test itself.';
+            Description = 'Specifies the To Field No. When the target is an inspection this would be a test on the inspection itself.';
             NotBlank = true;
             BlankZero = true;
             TableRelation = Field."No." where(TableNo = field("To Table No."));
-            ToolTip = 'Specifies the To Field No. When the target is a test this would be a field on the test itself.';
+            ToolTip = 'Specifies the To Field No. When the target is an inspection this would be a test on the inspection itself.';
 
             trigger OnLookup()
             begin
@@ -113,43 +113,43 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
             Caption = 'To Field Name';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the To Field Name. When the target is a test this would be a field on the test itself.';
+            ToolTip = 'Specifies the To Field Name. When the target is an inspection this would be a test on the inspection itself.';
         }
         field(9; "To Type"; Enum "Qlty. Target Type")
         {
             Caption = 'To Type';
-            ToolTip = 'Specifies whether this connects to a test, or a chained table.';
+            ToolTip = 'Specifies whether this connects to an inspection, or a chained table.';
 
             trigger OnValidate()
             var
                 QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
             begin
                 if QltyInspectSourceConfig.Get(Rec.Code) then
-                    if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Test then
-                        if Rec."To Type" <> Rec."To Type"::Test then
+                    if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Inspection then
+                        if Rec."To Type" <> Rec."To Type"::Inspection then
                             Error(TargetConfigErr);
 
-                if Rec."To Type" = Rec."To Type"::Test then
-                    Rec."To Table No." := Database::"Qlty. Inspection Test Header";
+                if Rec."To Type" = Rec."To Type"::Inspection then
+                    Rec."To Table No." := Database::"Qlty. Inspection Header";
             end;
         }
         field(10; "Display As"; Text[80])
         {
             Caption = 'Display in Control Information as';
-            Description = 'Specifies what to show in the caption for the Control Information section on a test.';
-            ToolTip = 'Specifies what to show in the caption for the Control Information section on a test.';
+            Description = 'Specifies what to show in the caption for the Control Information section on an inspection.';
+            ToolTip = 'Specifies what to show in the caption for the Control Information section on an inspection.';
 
             trigger OnValidate()
             begin
-                if (Rec."Display As" <> '') and (Rec."To Type" <> Rec."To Type"::Test) then
-                    Error(CanOnlyBeSetWhenToTypeIsTestErr);
+                if (Rec."Display As" <> '') and (Rec."To Type" <> Rec."To Type"::Inspection) then
+                    Error(CanOnlyBeSetWhenToTypeIsInspectionErr);
             end;
         }
-        field(11; "Priority Field"; Enum "Qlty. Config. Field Priority")
+        field(11; "Priority Test"; Enum "Qlty. Config. Test Priority")
         {
-            Caption = 'Priority Field';
-            Description = 'Specifies if this field is a priority field. Priority fields will always overwrite existing values.';
-            ToolTip = 'Specifies if this field is a priority field. Priority fields will always overwrite existing values.';
+            Caption = 'Priority Test';
+            Description = 'Specifies if this test is a priority test. Priority tests will always overwrite existing values.';
+            ToolTip = 'Specifies if this test is a priority test. Priority tests will always overwrite existing values.';
         }
     }
 
@@ -167,10 +167,10 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         SourceTok: Label 'Source*', Locked = true;
-        TargetConfigErr: Label 'When the target of the source configuration is a test, then all target fields must also refer to the test. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
-        CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is a test';
+        TargetConfigErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
+        CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
         ChooseAFromFieldFirstErr: Label 'Please choose a "from" field first before choosing a "to" field.';
-        TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4.  Are you sure you want to also map the same field here? ', Comment = '%1=the config, %2=the field being mapped in the test, %3=the field it is coming from, %4=the table it is coming from. ';
+        TheConfigIsAlreadyUsingSourceAndInARelatedChainQst: Label 'The configuration %1 already uses the field %2 to show %3 from the table %4. Are you sure you want to also map the same field here? ', Comment = '%1=the config, %2=the field being mapped in the inspection, %3=the field it is coming from, %4=the table it is coming from. ';
         CustomTok: Label 'Custom', Locked = true;
 
     trigger OnInsert()
@@ -206,11 +206,11 @@ table 20409 "Qlty. Inspect. Src. Fld. Conf."
         FieldNumber: Integer;
     begin
         if GetFromFieldRecord(CurrentField) then begin
-            if (Rec."To Table No." = Database::"Qlty. Inspection Test Header") or (Rec."To Type" = Rec."To Type"::Test) then
+            if (Rec."To Table No." = Database::"Qlty. Inspection Header") or (Rec."To Type" = Rec."To Type"::Inspection) then
                 if CurrentField.Type = CurrentField.Type::Option then
-                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Test Header", -1, SourceTok)
+                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Header", -1, SourceTok)
                 else
-                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Test Header", CurrentField.Type, SourceTok)
+                    FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Database::"Qlty. Inspection Header", CurrentField.Type, SourceTok)
             else
                 FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(Rec."To Table No.", CurrentField.Type, '');
 
