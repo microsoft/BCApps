@@ -11,6 +11,7 @@ table 149035 "AIT Test Suite Language"
 {
     Caption = 'AI Test Suite Language';
     DataClassification = SystemMetadata;
+    ReplicateData = false;
     Access = Public;
 
     fields
