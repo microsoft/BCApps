@@ -27,7 +27,7 @@ codeunit 4310 "Agent Task Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
+    procedure Create(SetTaskStatusToReady: Boolean; RequiresMessage: Boolean): Record "Agent Task"
     var
         AgentTaskRecord: Record "Agent Task";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -40,7 +40,7 @@ codeunit 4310 "Agent Task Builder Impl."
         end;
 
         if SetTaskStatusToReady then
-            AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTaskRecord);
+            AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTaskRecord, RequiresMessage);
 
         exit(AgentTaskRecord);
     end;

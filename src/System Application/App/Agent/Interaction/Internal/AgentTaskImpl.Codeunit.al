@@ -7,6 +7,7 @@ namespace System.Agents;
 
 using System.Environment;
 using System.Integration;
+using System.Security.AccessControl;
 
 codeunit 4300 "Agent Task Impl."
 {
@@ -178,12 +179,39 @@ codeunit 4300 "Agent Task Impl."
 
     procedure SetTaskStatusToReadyIfPossible(var AgentTask: Record "Agent Task")
     begin
+        SetTaskStatusToReadyIfPossible(AgentTask, true);
+    end;
+
+    procedure SetTaskStatusToReadyIfPossible(var AgentTask: Record "Agent Task"; RequiresMessage: Boolean)
+    begin
+        ValidateTaskCanBeSetToReady(AgentTask, RequiresMessage);
+
         // Only change the status if the task is in a status where it can be started again.
         // If the task is running, we should not change the state, as platform will pickup a new message automatically.
         if CanAgentTaskBeSetToReady(AgentTask) then begin
             AgentTask.Status := AgentTask.Status::Ready;
             AgentTask.Modify(true);
         end;
+    end;
+
+    local procedure ValidateTaskCanBeSetToReady(var AgentTask: Record "Agent Task"; RequiresMessage: Boolean)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        AccessControl: Record "Access Control";
+    begin
+        if RequiresMessage then begin
+            // 1. Tasks without messages cannot be set to ready to enforce a user intervention to approve the message/task.
+            // This temporary restriction ensures that the user reviews the message/task at least once.
+            AgentTaskMessage.SetRange("Task ID", AgentTask.ID);
+            if AgentTaskMessage.IsEmpty() then
+                Error(TaskCannotBeSetToReadyWithoutMessagesErr);
+        end;
+
+        // 2. Tasks cannot be set to ready if the agent has 0 access controls in the current company.
+        AccessControl.SetRange("User Security ID", AgentTask."Agent User Security ID");
+        AccessControl.SetRange("Company Name", CompanyName());
+        if AccessControl.IsEmpty() then
+            Error(TaskCannotBeSetToReadyWithoutAccessControlErr, CompanyName());
     end;
 
     procedure CanAgentTaskBeSetToReady(var AgentTask: Record "Agent Task"): Boolean
@@ -236,5 +264,7 @@ codeunit 4300 "Agent Task Impl."
         AreYouSureThatYouWantToRestartTheTaskQst: Label 'Are you sure that you want to restart the task?';
         AreYouSureThatYouWantToStopTheTaskQst: Label 'Are you sure that you want to stop the task?';
         InvalidSelectedSuggestionIdErr: Label 'Invalid SelectedSuggestionId: %1', Comment = '%1 - SelectedSuggestionId', Locked = true;
+        TaskCannotBeSetToReadyWithoutMessagesErr: Label 'The task cannot be set to ready because it has no messages. Add at least one message to the task before setting it to ready.';
+        TaskCannotBeSetToReadyWithoutAccessControlErr: Label 'The task cannot be set to ready because the agent has no access control permissions in the %1 company. Grant the agent permissions in this company before setting the task to ready.', Comment = '%1 - Company Name';
         CategoryTok: Label 'Agents', Locked = true;
 }
