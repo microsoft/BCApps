@@ -5,8 +5,6 @@
 
 namespace System.Agents;
 
-using System.Environment.Configuration;
-
 /// <summary>
 /// Setup part that is representing the first page of the configuration dialog
 /// </summary>
@@ -118,14 +116,36 @@ page 4310 "Agent Setup Part"
     /// <param name="AgentSetupBuffer">The setup buffer that is used for configuring the agent.</param>
     procedure GetAgentSetupBuffer(var AgentSetupBuffer: Record "Agent Setup Buffer")
     var
-        TempUserSettings: Record "User Settings" temporary;
-        TempAccessControl: Record "Agent Access Control" temporary;
+        AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
-        AgentSetupBuffer.Copy(Rec, true);
-        TempUserSettings := Rec.GetUserSettings();
-        AgentSetupBuffer.SetUserSettings(TempUserSettings);
-        Rec.GetTempAgentAccessControl(TempAccessControl);
-        AgentSetupBuffer.SetTempAgentAccessControl(TempAccessControl);
+        AgentSetupImpl.CopyAgentSetupBuffer(AgentSetupBuffer, Rec);
+    end;
+
+    /// <summary>
+    /// Sets the agent setup buffer as the new record.
+    /// You need to update the page manually after calling this method.
+    /// </summary>
+    /// <param name="AgentSetupBuffer">
+    /// The setup buffer that is used for configuring the agent that will be set as a new record.
+    /// </param>
+    procedure SetAgentSetupBuffer(var AgentSetupBuffer: Record "Agent Setup Buffer")
+    var
+        AgentSetupImpl: Codeunit "Agent Setup Impl.";
+    begin
+        AgentSetupImpl.CopyAgentSetupBuffer(Rec, AgentSetupBuffer);
+        AgentSummary := AgentSetupImpl.GetAgentSummary(AgentSetupBuffer);
+    end;
+
+    /// <summary>
+    /// Sets the agent summary to the page.
+    /// You need to update the page manually after calling this method.
+    /// </summary>
+    /// <param name="NewAgentSummary">
+    /// The new summary information about the agent.
+    /// </param>
+    procedure SetAgentSummary(NewAgentSummary: Text)
+    begin
+        AgentSummary := NewAgentSummary;
     end;
 
     /// <summary>
