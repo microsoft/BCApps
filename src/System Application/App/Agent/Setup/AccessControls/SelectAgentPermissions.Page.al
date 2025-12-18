@@ -14,6 +14,7 @@ page 4336 "Select Agent Permissions"
     SourceTable = "Access Control";
     SourceTableTemporary = true;
     Caption = 'Edit Agent Permissions (Preview)';
+    Extensible = false;
     DataCaptionExpression = '';
     InherentPermissions = X;
     InherentEntitlements = X;
@@ -35,16 +36,9 @@ page 4336 "Select Agent Permissions"
     }
 
     trigger OnOpenPage()
-    var
-        UserSecurityID: Guid;
     begin
         BackupAccessControl();
-
-        if Rec.FindFirst() then
-            UserSecurityID := Rec."User Security ID";
-
-        CurrPage.PermissionsPart.Page.SetUserSecurityID(UserSecurityID);
-        CurrPage.PermissionsPart.Page.SetTempAccessControl(Rec);
+        CurrPage.PermissionsPart.Page.Initialize(AgentUserSecurityID, Rec);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -55,8 +49,9 @@ page 4336 "Select Agent Permissions"
         exit(true);
     end;
 
-    internal procedure SetTempAccessControl(var TempAccessControl: Record "Access Control" temporary)
+    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControl: Record "Access Control" temporary)
     begin
+        AgentUserSecurityID := NewAgentUserSecurityID;
         Rec.Copy(TempAccessControl, true);
     end;
 
@@ -77,4 +72,5 @@ page 4336 "Select Agent Permissions"
 
     var
         TempBackupAccessControl: Record "Access Control" temporary;
+        AgentUserSecurityID: Guid;
 }

@@ -12,7 +12,6 @@ page 4321 "Select Agent Access Control"
     SourceTable = "Agent Access Control";
     SourceTableTemporary = true;
     Caption = 'Select users to manage tasks and configure the agent';
-    MultipleNewLines = false;
     Extensible = false;
     DataCaptionExpression = '';
     InherentEntitlements = X;
@@ -33,8 +32,7 @@ page 4321 "Select Agent Access Control"
     trigger OnOpenPage()
     begin
         BackupAgentAccessControl();
-        CurrPage.AccessControlPart.Page.SetAgentUserSecurityID(AgentUserSecurityID);
-        CurrPage.AccessControlPart.Page.SetTempAgentAccessControl(Rec);
+        CurrPage.AccessControlPart.Page.Initialize(AgentUserSecurityID, Rec);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -45,23 +43,15 @@ page 4321 "Select Agent Access Control"
         exit(true);
     end;
 
-    internal procedure SetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     begin
+        AgentUserSecurityID := NewAgentUserSecurityID;
         Rec.Copy(TempAgentAccessControl, true);
     end;
 
     internal procedure GetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
     begin
         TempAgentAccessControl.Copy(Rec, true);
-    end;
-
-    internal procedure SetAgentUserSecurityID(UserSecurityID: Guid)
-    var
-        AgentImpl: Codeunit "Agent Impl.";
-        GlobalSingleCompanyName: Text[30];
-    begin
-        AgentUserSecurityID := UserSecurityID;
-        ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
     end;
 
     local procedure BackupAgentAccessControl()
@@ -77,5 +67,4 @@ page 4321 "Select Agent Access Control"
     var
         TempBackupAgentAccessControl: Record "Agent Access Control" temporary;
         AgentUserSecurityID: Guid;
-        ShowCompanyField: Boolean;
 }

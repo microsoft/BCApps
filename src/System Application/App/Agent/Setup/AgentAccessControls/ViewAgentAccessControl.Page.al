@@ -72,8 +72,7 @@ page 4320 "View Agent Access Control"
                 begin
                     CopyAgentAccessControlToBuffer(Rec."Agent User Security ID", TempAgentAccessControl);
 
-                    SelectAgentAccessControl.SetTempAgentAccessControl(TempAgentAccessControl);
-                    SelectAgentAccessControl.SetAgentUserSecurityID(Rec."Agent User Security ID");
+                    SelectAgentAccessControl.Initialize(Rec."Agent User Security ID", TempAgentAccessControl);
                     if SelectAgentAccessControl.RunModal() = Action::OK then begin
                         SelectAgentAccessControl.GetTempAgentAccessControl(TempAgentAccessControl);
                         AgentImpl.UpdateAgentAccessControl(Rec."Agent User Security ID", TempAgentAccessControl);
@@ -124,14 +123,14 @@ page 4320 "View Agent Access Control"
         UserFullName := User."Full Name";
     end;
 
-    local procedure CopyAgentAccessControlToBuffer(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    local procedure CopyAgentAccessControlToBuffer(UserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         AgentAccessControl: Record "Agent Access Control";
     begin
         TempAgentAccessControl.Reset();
         TempAgentAccessControl.DeleteAll();
 
-        AgentAccessControl.SetRange("Agent User Security ID", AgentUserSecurityID);
+        AgentAccessControl.SetRange("Agent User Security ID", UserSecurityID);
         if not AgentAccessControl.FindSet() then
             exit;
 

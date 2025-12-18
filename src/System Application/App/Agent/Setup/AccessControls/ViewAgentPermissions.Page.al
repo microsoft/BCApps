@@ -5,8 +5,6 @@
 
 namespace System.Agents;
 
-using System.Environment;
-using System.Environment.Configuration;
 using System.Security.AccessControl;
 
 page 4334 "View Agent Permissions"
@@ -86,7 +84,6 @@ page 4334 "View Agent Permissions"
                 var
                     Agent: Record Agent;
                     TempAccessControl: Record "Access Control" temporary;
-                    TempModifiedAccessControl: Record "Access Control" temporary;
                     SelectAgentPermissions: Page "Select Agent Permissions";
                 begin
                     if not Agent.Get(Rec."User Security ID") then
@@ -103,10 +100,10 @@ page 4334 "View Agent Permissions"
 
                     CopyAccessControlToBuffer(Rec."User Security ID", TempAccessControl);
 
-                    SelectAgentPermissions.SetTempAccessControl(TempAccessControl);
+                    SelectAgentPermissions.Initialize(Rec."User Security ID", TempAccessControl);
                     if SelectAgentPermissions.RunModal() = Action::OK then begin
-                        SelectAgentPermissions.GetTempAccessControl(TempModifiedAccessControl);
-                        SaveAccessControl(Rec."User Security ID", TempModifiedAccessControl);
+                        SelectAgentPermissions.GetTempAccessControl(TempAccessControl);
+                        SaveAccessControl(Rec."User Security ID", TempAccessControl);
                     end;
 
                     CurrPage.Update(false);

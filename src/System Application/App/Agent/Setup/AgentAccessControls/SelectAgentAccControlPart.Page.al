@@ -95,22 +95,9 @@ page 4325 "Select Agent Acc. Control Part"
         AgentUtilities: Codeunit "Agent Utilities";
     begin
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
-
-        if not IsNullGuid(Rec."Agent User Security ID") then begin
-            ShowCompanyFieldOverride := false;
-            if not ShowCompanyFieldOverride then
-                ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."Agent User Security ID", GlobalSingleCompanyName);
-        end;
     end;
 
     trigger OnAfterGetRecord()
-    begin
-        UpdateGlobalVariables();
-        if not ShowCompanyFieldOverride then
-            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
-    end;
-
-    trigger OnAfterGetCurrRecord()
     begin
         UpdateGlobalVariables();
     end;
@@ -123,9 +110,7 @@ page 4325 "Select Agent Acc. Control Part"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        // Ensure the Agent User Security ID is set on new records
-        if IsNullGuid(Rec."Agent User Security ID") then
-            Rec."Agent User Security ID" := AgentUserSecurityID; // TODO(qutreson) - Is this needed?
+        Rec."Agent User Security ID" := AgentUserSecurityID;
 
         // Default company name if not showing company field
         if (Rec."Company Name" = '') and not ShowCompanyField then
@@ -138,18 +123,35 @@ page 4325 "Select Agent Acc. Control Part"
         exit(true);
     end;
 
-    internal procedure SetAgentUserSecurityID(NewAgentUserSecurityID: Guid)
+    internal procedure Initialize(NewAgentUserSecurityId: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    var
+        AgentSingleCompany: Boolean;
     begin
-        AgentUserSecurityID := NewAgentUserSecurityID;
-        ShowCompanyFieldOverride := false;
-        UpdateCompanyFieldVisibility();
+        AgentUserSecurityID := NewAgentUserSecurityId;
+        Rec.Copy(TempAgentAccessControl, true);
+
+        AgentSingleCompany := AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
+        if not ShowCompanyFieldOverride then
+            ShowCompanyField := not AgentSingleCompany;
+
+        CurrPage.Update(false);
     end;
 
-    internal procedure SetTempAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    local procedure UpdateGlobalVariables()
+    var
+        User: Record "User";
     begin
-        Rec.Copy(TempAgentAccessControl, true);
-        UpdateCompanyFieldVisibility();
-        CurrPage.Update(false);
+        Clear(UserFullName);
+        Clear(UserName);
+
+        if IsNullGuid(Rec."User Security ID") then
+            exit;
+
+        if not User.Get(Rec."User Security ID") then
+            exit;
+
+        UserName := User."User Name";
+        UserFullName := User."Full Name";
     end;
 
     local procedure ValidateUserName(NewUserName: Text)
@@ -188,23 +190,6 @@ page 4325 "Select Agent Acc. Control Part"
         exit(true);
     end;
 
-    local procedure UpdateGlobalVariables()
-    var
-        User: Record "User";
-    begin
-        Clear(UserFullName);
-        Clear(UserName);
-
-        if IsNullGuid(Rec."User Security ID") then
-            exit;
-
-        if not User.Get(Rec."User Security ID") then
-            exit;
-
-        UserName := User."User Name";
-        UserFullName := User."Full Name";
-    end;
-
     local procedure VerifyOwnerExistsInTempTable()
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
@@ -222,17 +207,11 @@ page 4325 "Select Agent Acc. Control Part"
             Error('One owner must be defined for the agent.');
     end;
 
-    local procedure UpdateCompanyFieldVisibility()
-    begin
-        if not ShowCompanyFieldOverride then
-            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
-    end;
-
     var
         AgentImpl: Codeunit "Agent Impl.";
+        AgentUserSecurityID: Guid;
         UserFullName: Text[80];
         UserName: Code[50];
-        AgentUserSecurityID: Guid;
         GlobalSingleCompanyName: Text[30];
         ShowCompanyField: Boolean;
         ShowCompanyFieldOverride: Boolean;

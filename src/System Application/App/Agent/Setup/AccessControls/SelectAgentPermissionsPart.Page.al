@@ -164,7 +164,7 @@ page 4340 "Select Agent Permissions Part"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        Rec."User Security ID" := UserSecurityID;
+        Rec."User Security ID" := AgentUserSecurityID;
 
         if GlobalSingleCompanyName <> '' then begin
             if (Rec."Company Name" = '') and not ShowCompanyField then
@@ -182,17 +182,17 @@ page 4340 "Select Agent Permissions Part"
         end;
     end;
 
-    internal procedure SetUserSecurityID(NewUserSecurityID: Guid)
+    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControl: Record "Access Control" temporary)
+    var
+        AgentSingleCompany: Boolean;
     begin
-        UserSecurityID := NewUserSecurityID;
-    end;
-
-    internal procedure SetTempAccessControl(var TempAccessControl: Record "Access Control" temporary)
-    begin
+        AgentUserSecurityID := NewAgentUserSecurityID;
         Rec.Copy(TempAccessControl, true);
-        TryAccessControlForSingleCompany(GlobalSingleCompanyName); // TODO(qutreson) twice?
+
+        AgentSingleCompany := TryGetAccessControlForSingleCompany(GlobalSingleCompanyName);
         if not ShowCompanyFieldOverride then
-            ShowCompanyField := not TryAccessControlForSingleCompany(GlobalSingleCompanyName);
+            ShowCompanyField := not AgentSingleCompany;
+
         CurrPage.Update(false);
     end;
 
@@ -212,7 +212,7 @@ page 4340 "Select Agent Permissions Part"
         end;
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not TryAccessControlForSingleCompany(GlobalSingleCompanyName);
+            ShowCompanyField := not TryGetAccessControlForSingleCompany(GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
     end;
@@ -221,7 +221,7 @@ page 4340 "Select Agent Permissions Part"
     var
         AccessControl: Record "Access Control";
     begin
-        if not TryAccessControlForSingleCompany(GlobalSingleCompanyName) then
+        if not TryGetAccessControlForSingleCompany(GlobalSingleCompanyName) then
             Error(CannotAssignPermissionsMultipleCompaniesErr);
 
         if not Confirm(AssignMyPermissionsQst, true) then
@@ -230,13 +230,13 @@ page 4340 "Select Agent Permissions Part"
         Rec.Reset();
         Rec.DeleteAll();
 
-        AddAccessControlsForCompany(AccessControl, CompanyName());
-        AddAccessControlsForCompany(AccessControl, '');
+        AddCurrentUserAccessControlsForCompany(AccessControl, CompanyName());
+        AddCurrentUserAccessControlsForCompany(AccessControl, '');
 
         UpdateGlobalVariables();
     end;
 
-    local procedure AddAccessControlsForCompany(var AccessControl: Record "Access Control"; CompanyName: Text)
+    local procedure AddCurrentUserAccessControlsForCompany(var AccessControl: Record "Access Control"; CompanyName: Text)
     begin
         AccessControl.Reset();
         AccessControl.SetRange("User Security ID", UserSecurityId());
@@ -244,7 +244,7 @@ page 4340 "Select Agent Permissions Part"
         if AccessControl.FindSet() then
             repeat
                 Clear(Rec);
-                Rec."User Security ID" := UserSecurityID;
+                Rec."User Security ID" := AgentUserSecurityID;
                 Rec."Role ID" := AccessControl."Role ID";
                 Rec.Scope := AccessControl.Scope;
                 Rec."App ID" := AccessControl."App ID";
@@ -255,22 +255,22 @@ page 4340 "Select Agent Permissions Part"
             until AccessControl.Next() = 0;
     end;
 
-    local procedure TryAccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
+    local procedure TryGetAccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        exit(AgentImpl.TryGetAccessControlForSingleCompany(Rec."User Security ID", SingleCompanyName));
+        exit(AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, SingleCompanyName));
     end;
 
     var
         PermissionSetLookupRecord: Record "Aggregate Permission Set";
-        UserSecurityID: Guid;
-        MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
-        AssignMyPermissionsQst: Label 'Assigning your permissions for the current company to the agent will clear its existing permissions if any.\\Do you want to continue?';
+        AgentUserSecurityID: Guid;
         PermissionScope, PermissionAppName, PermissionRoleName : Text;
         PermissionSetNotFound: Boolean;
         ShowCompanyField, ShowCompanyFieldOverride : Boolean;
         GlobalSingleCompanyName: Text[30];
+        MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
+        AssignMyPermissionsQst: Label 'Assigning your permissions for the current company to the agent will clear its existing permissions if any.\\Do you want to continue?';
         ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign permissions in other companies, making the agent available there. The agent may not have been designed to work cross companies.\\Do you want to continue?';
         CannotAssignPermissionsMultipleCompaniesErr: Label 'Cannot assign your permissions because the agent is set up to work in multiple companies.';
 }
