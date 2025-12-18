@@ -1940,7 +1940,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
 
-        LibraryResource.CreateResource(Resource, VATPostingSetup."VAT Bus. Posting Group");
+        LibraryResource.CreateResource(Resource, Cust."VAT Bus. Posting Group");
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Cust."No.");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Resource, Resource."No.", 1);
         SalesLine."Gen. Bus. Posting Group" := GeneralPostingSetup."Gen. Bus. Posting Group";
