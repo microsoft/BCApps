@@ -29,8 +29,8 @@ codeunit 30184 "Shpfy Sync Product Image"
     var
         Shop: Record "Shpfy Shop";
         ProductImageExport: Codeunit "Shpfy Product Image Export";
-        ProductEvents: Codeunit "Shpfy Product Events";
         VariantImageExport: Codeunit "Shpfy Variant Image Export";
+        ProductEvents: Codeunit "Shpfy Product Events";
         ProductFilter: Text;
 
     /// <summary> 
@@ -71,35 +71,13 @@ codeunit 30184 "Shpfy Sync Product Image"
     local procedure ExportVariantsImages(ProductId: BigInteger)
     var
         ShopifyVariant: Record "Shpfy Variant";
-        ProductApi: Codeunit "Shpfy Product API";
-        VariantApi: Codeunit "Shpfy Variant API";
-        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
-        IBulkOperation: Interface "Shpfy IBulk Operation";
-        VariantImageUrls: Dictionary of [BigInteger, Text];
-        VariantImageIds: Dictionary of [BigInteger, BigInteger];
-        BulkOperationInput: TextBuilder;
-        JRequestData: JsonArray;
-        VariantId: BigInteger;
     begin
         ShopifyVariant.SetRange("Shop Code", Shop.Code);
         ShopifyVariant.SetRange("Product Id", ProductId);
-        VariantImageExport.SetRecordCount(ShopifyVariant.Count());
         if ShopifyVariant.FindSet() then
             repeat
                 if VariantImageExport.Run(ShopifyVariant) then;
             until ShopifyVariant.Next() = 0;
-        VariantImageUrls := VariantImageExport.GetVariantImageUrls();
-        if VariantImageUrls.Count() > 0 then begin
-            IBulkOperation := Enum::"Shpfy Bulk Operation Type"::UpdateVariantImage;
-            VariantImageIds := ProductApi.UpdateProductWithMultipleVariantImages(ProductId, VariantImageUrls);
-            foreach VariantId in VariantImageIds.Keys() do
-                BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ProductId, VariantId, VariantImageIds.Get(VariantId)));
-            JRequestData := VariantImageExport.GetRequestData();
-            if not BulkOperationMgt.SendBulkMutation(Shop, Enum::"Shpfy Bulk Operation Type"::UpdateVariantImage, BulkOperationInput.ToText(), JRequestData) then
-                foreach VariantId in VariantImageIds.Keys() do
-                    if not VariantApi.SetVariantImage(ProductId, VariantId, VariantImageIds.Get(VariantId)) then
-                        RevertVariantImageChanges(VariantId, JRequestData);
-        end;
     end;
 
     /// <summary> 
@@ -139,37 +117,38 @@ codeunit 30184 "Shpfy Sync Product Image"
         VariantApi.RetrieveShopifyProductVariantImages(VariantImages);
         foreach Id in VariantImages.Keys do
             if ShopifyVariant.Get(Id) then
-                case true of
-                    ItemVariant.GetBySystemId(ShopifyVariant."Item Variant SystemId"):
-                        begin
-                            VariantImageData := VariantImages.Get(Id);
-                            if VariantImageData.Keys.Count() > 0 then
-                                foreach ImageId in VariantImageData.Keys() do
-                                    if ImageId <> ShopifyVariant."Image Id" then
-                                        if UpdateItemVariantImage(ItemVariant, VariantImageData.Get(ImageId)) then begin
-                                            ShopifyVariant."Image Id" := ImageId;
-                                            ShopifyVariant.Modify(false);
-                                        end;
-                        end;
-                    (Item.GetBySystemId(ShopifyVariant."Item SystemId")):
-                        begin
-                            ShopifyProduct.Get(ShopifyVariant."Product Id");
-                            if ShopifyProduct."Item SystemId" = ShopifyVariant."Item SystemId" then
-                                continue
-                            else
-                                Item.GetBySystemId(ShopifyVariant."Item SystemId");
+                if ItemVariant.GetBySystemId(ShopifyVariant."Item Variant SystemId") then begin
+                    VariantImageData := VariantImages.Get(Id);
+                    if VariantImageData.Keys.Count() > 0 then
+                        foreach ImageId in VariantImageData.Keys() do
+                            if ImageId <> ShopifyVariant."Image Id" then
+                                if UpdateItemVariantImage(ItemVariant, VariantImageData.Get(ImageId)) then begin
+                                    ShopifyVariant."Image Id" := ImageId;
+                                    ShopifyVariant.Modify();
+                                end;
+                end else
+                    if Item.GetBySystemId(ShopifyVariant."Item SystemId") then begin
+                        VariantImageData := VariantImages.Get(Id);
+                        if VariantImageData.Keys.Count() > 0 then
+                            foreach ImageId in VariantImageData.Keys() do
+                                if ImageId <> ShopifyVariant."Image Id" then
+                                    if UpdateItemImage(Item, VariantImageData.Get(ImageId)) then begin
+                                        ShopifyVariant."Image Id" := ImageId;
+                                        ShopifyVariant.Modify();
+                                    end;
 
-                            VariantImageData := VariantImages.Get(Id);
-                            if VariantImageData.Keys.Count() > 0 then
-                                foreach ImageId in VariantImageData.Keys() do
+                        if VariantImageData.Keys.Count = 0 then
+                            if ProductImages.ContainsKey(ShopifyVariant."Product Id") then begin
+                                ProductImageData := ProductImages.Get(ShopifyVariant."Product Id");
+                                foreach ImageId in ProductImageData.Keys do
                                     if ImageId <> ShopifyVariant."Image Id" then
-                                        if UpdateItemImage(Item, VariantImageData.Get(ImageId)) then begin
-                                            UpdatedItems.Add(Item.SystemId);
-                                            ShopifyVariant."Image Id" := ImageId;
-                                            ShopifyVariant.Modify(false);
-                                        end;
-                        end;
-                end;
+                                        if not UpdatedItems.Contains(Item.SystemId) then
+                                            if UpdateItemImage(Item, ProductImageData.Get(ImageId)) then begin
+                                                ShopifyVariant."Image Id" := ImageId;
+                                                ShopifyVariant.Modify();
+                                            end;
+                            end;
+                    end;
     end;
 
     /// <summary> 
@@ -238,24 +217,6 @@ codeunit 30184 "Shpfy Sync Product Image"
                 if Product.Get(JProduct.GetBigInteger('id')) then begin
                     Product."Image Hash" := JProduct.GetInteger('imageHash');
                     Product.Modify(false);
-                end;
-                exit;
-            end;
-        end;
-    end;
-
-    local procedure RevertVariantImageChanges(VariantId: BigInteger; JRequestData: JsonArray)
-    var
-        Variant: Record "Shpfy Variant";
-        JRequest: JsonToken;
-        JVariant: JsonObject;
-    begin
-        foreach JRequest in JRequestData do begin
-            JVariant := JRequest.AsObject();
-            if Format(JVariant.GetBigInteger('id')) = Format(VariantId) then begin
-                if Variant.Get(JVariant.GetBigInteger('id')) then begin
-                    Variant."Image Hash" := JVariant.GetInteger('imageHash');
-                    Variant.Modify(false);
                 end;
                 exit;
             end;

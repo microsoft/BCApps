@@ -824,11 +824,6 @@ codeunit 30189 "Shpfy Variant API"
                 MetafieldAPI.UpdateMetafieldsFromShopify(JMetafields, Database::"Shpfy Variant", ShopifyVariant.Id);
     end;
 
-    /// <summary>
-    /// Check if Shopify Variant Image Exists.
-    /// </summary>
-    /// <param name="VariantId">Shopify variant id to check.</param>
-    /// <returns>Return value of type Boolean. True if image exists, false otherwise.</returns>
     internal procedure CheckShopifyVariantImageExists(VariantId: BigInteger): Boolean
     var
         Parameters: Dictionary of [Text, Text];
@@ -843,12 +838,6 @@ codeunit 30189 "Shpfy Variant API"
                 exit(true);
     end;
 
-    /// <summary>
-    /// Set variant image using resource URL.
-    /// </summary>
-    /// <param name="ShopifyVariant">Shopify Variant to set new image.</param>
-    /// <param name="ResourceUrl">Resource URL of the image to set.</param>
-    /// <returns>Return value of type BigInteger representing the new image ID.</returns>
     internal procedure SetVariantImage(ShopifyVariant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
     var
         Parameters: Dictionary of [Text, Text];
@@ -874,13 +863,6 @@ codeunit 30189 "Shpfy Variant API"
             exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'node.id')));
     end;
 
-    /// <summary>
-    /// Set variant image using media id.
-    /// </summary>
-    /// <param name="ProductId">Id of product related to variant</param>
-    /// <param name="VariantId">Id of variant to set new image.</param>
-    /// <param name="ImageId">Shopify media id to set as variant picture</param>
-    /// <returns>Return value of type Boolean. True if image was set successfully, false otherwise.</returns>
     internal procedure SetVariantImage(ProductId: BigInteger; VariantId: BigInteger; ImageId: BigInteger): Boolean
     var
         Parameters: Dictionary of [Text, Text];
@@ -895,12 +877,6 @@ codeunit 30189 "Shpfy Variant API"
             exit((JErrors.Count() = 0));
     end;
 
-    /// <summary>
-    /// Create a new Shopify variant image.
-    /// </summary>
-    /// <param name="Variant">Related variant record</param>
-    /// <param name="PictureGuid">GUID of the picture to upload</param>
-    /// <returns>Returns the new image ID</returns>
     internal procedure CreateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
     var
         TenantMedia: Record "Tenant Media";
@@ -913,32 +889,16 @@ codeunit 30189 "Shpfy Variant API"
         end;
     end;
 
-    /// <summary>
-    /// Update variant image.
-    /// </summary>
-    /// <param name="Variant">Related variant record</param>
-    /// <param name="PictureGuid">GUID of the picture to upload</param>
-    /// <param name="RecordCount">Number of records to process</param>
-    /// <param name="VariantImageUrls">Return value:Dictionary to hold uploaded variant image URLs</param>
-    /// <returns>Returns the new image ID in case update is in non bulk mode</returns>
-    internal procedure UpdateShopifyVariantImage(
-        Variant: Record "Shpfy Variant";
-        PictureGuid: Guid;
-        RecordCount: Integer;
-        var VariantImageUrls: Dictionary of [BigInteger, Text]): BigInteger
+    internal procedure UpdateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
     var
         TenantMedia: Record "Tenant Media";
         ProductApi: Codeunit "Shpfy Product API";
-        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
         ResourceUrl: Text;
     begin
         if not TenantMedia.Get(PictureGuid) then
             exit;
 
         if ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl) then
-            if RecordCount <= BulkOperationMgt.GetBulkOperationThreshold() then
-                exit(UpdateVariantImage(Variant, ResourceUrl))
-            else
-                VariantImageUrls.Add(Variant.Id, ResourceUrl);
+            exit(UpdateVariantImage(Variant, ResourceUrl));
     end;
 }

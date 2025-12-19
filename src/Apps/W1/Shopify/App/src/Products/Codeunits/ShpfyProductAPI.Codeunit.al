@@ -192,12 +192,7 @@ codeunit 30176 "Shpfy Product API"
         Headers: HttpHeaders;
         Response: HttpResponseMessage;
         InStream: InStream;
-        IsHandled: Boolean;
     begin
-        OnBeforeUploadImage(TenantMedia, Url, IsHandled);
-        if IsHandled then
-            exit;
-
         Content.GetHeaders(Headers);
         if Headers.Contains('Content-Type') then
             Headers.Remove('Content-Type');
@@ -320,10 +315,14 @@ codeunit 30176 "Shpfy Product API"
         TenantMedia: Record "Tenant Media";
         ResourceUrl: Text;
     begin
-        if Item.Picture.Count > 0 then
-            if Product."Image Id" = 0 then
-                if UploadShopifyImage(TenantMedia, ResourceUrl) then
-                    exit(SetProductImage(Product, ResourceUrl));
+        if Item.Picture.Count = 0 then
+            exit;
+        if Product."Image Id" <> 0 then
+            exit;
+        if not TenantMedia.Get(Item.Picture.Item(1)) then
+            exit;
+        if UploadShopifyImage(TenantMedia, ResourceUrl) then
+            exit(SetProductImage(Product, ResourceUrl));
     end;
 
     /// <summary> 
@@ -765,7 +764,7 @@ codeunit 30176 "Shpfy Product API"
         ImageIds: List of [BigInteger];
         VariantId: BigInteger;
         ImageId: BigInteger;
-        MediasTok: Label '{ media(reverse: true, first: %1 ){', Locked = true;
+        MediasTok: Label '{ media(reverse: true, first: %1 ){', Locked = true; // TODONAT: how many media can be returned?
     begin
         GraphQuery.Append('{\"query\":\"mutation {productUpdate(product: {id: \\\"gid://shopify/Product/');
         GraphQuery.Append(Format(ProductId));
@@ -794,10 +793,5 @@ codeunit 30176 "Shpfy Product API"
             VariantImageIds.Add(VariantIds.Get(VariantImageIds.Count() + 1), ImageId);
 
         exit(VariantImageIds);
-    end;
-
-    [InternalEvent(false, false)]
-    procedure OnBeforeUploadImage(var TenantMedia: Record "Tenant Media"; var ResourceUrl: Text; var IsHandled: Boolean)
-    begin
     end;
 }

@@ -11,19 +11,11 @@ codeunit 30451 "Shpfy GQL AddImageToProduct" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 
-    /// <summary>
-    /// GetGraphQL.
-    /// </summary>
-    /// <returns>Return value of type Text.</returns>
     procedure GetGraphQL(): Text
     begin
         exit('{"query": "mutation { productUpdate( product:{id: \"gid://shopify/Product/{{ProductId}}\"}, media: [ { originalSource: \"{{ResourceUrl}}\" mediaContentType: IMAGE } ]) { product { media(first: 1, reverse: true) { nodes{ id mediaErrors { code details message } } } } userErrors { field message } } }"}');
     end;
 
-    /// <summary>
-    /// GetExpectedCost.
-    /// </summary>
-    /// <returns>Return value of type Integer.</returns>
     procedure GetExpectedCost(): Integer
     begin
         exit(10);

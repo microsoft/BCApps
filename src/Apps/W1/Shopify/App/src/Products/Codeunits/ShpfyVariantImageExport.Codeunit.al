@@ -25,7 +25,6 @@ codeunit 30456 "Shpfy Variant Image Export"
         NewImageId: BigInteger;
         Hash: Integer;
         ImageExists: Boolean;
-        JRequest: JsonObject;
         ItemAsVariant: Boolean;
         PictureGuid: Guid;
     begin
@@ -63,10 +62,7 @@ codeunit 30456 "Shpfy Variant Image Export"
             Rec."Image Hash" := Hash;
             Rec.Modify(false);
         end else begin
-            NewImageId := VariantApi.UpdateShopifyVariantImage(Rec, PictureGuid, CurrRecordCount, VariantImageUrls);
-            JRequest.Add('id', Rec.Id);
-            JRequest.Add('imageHash', Rec."Image Hash");
-            JRequestData.Add(JRequest);
+            NewImageId := VariantApi.UpdateShopifyVariantImage(Rec, PictureGuid);
             if NewImageId <> 0 then
                 Rec."Image Id" := NewImageId;
             Rec."Image Hash" := Hash;
@@ -78,60 +74,13 @@ codeunit 30456 "Shpfy Variant Image Export"
         Shop: Record "Shpfy Shop";
         ProductApi: Codeunit "Shpfy Product API";
         VariantApi: Codeunit "Shpfy Variant API";
-        CurrRecordCount: Integer;
         NullGuid: Guid;
-        VariantImageUrls: Dictionary of [BigInteger, Text];
-        JRequestData: JsonArray;
 
-    /// <summary> 
-    /// Set Shop.
-    /// </summary>
-    /// <param name="Code">Parameter of type Code[20].</param>
-    internal procedure SetShop(Code: Code[20])
-    begin
-        if (Shop.Code <> Code) then begin
-            Clear(Shop);
-            Shop.Get(Code);
-            SetShop(Shop);
-        end;
-    end;
-
-    /// <summary> 
-    /// Set Shop.
-    /// </summary>
-    /// <param name="ShopifyShop">Parameter of type Record "Shopify Shop".</param>
     internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
     begin
         Shop := ShopifyShop;
         ProductApi.SetShop(Shop);
         VariantApi.SetShop(Shop);
-    end;
-
-    /// <summary>
-    /// Set Record Count.
-    /// </summary>
-    /// <param name="RecordCount">Parameter of type Integer.</param>
-    internal procedure SetRecordCount(RecordCount: Integer)
-    begin
-        CurrRecordCount := RecordCount;
-    end;
-
-    /// <summary>
-    /// Get Request Data required to potenatial bulk operation revert.
-    /// </summary>
-    /// <returns>JsonArray with request data.</returns>
-    internal procedure GetRequestData(): JsonArray
-    begin
-        exit(JRequestData);
-    end;
-
-    /// <summary>
-    /// Get variant ids together with resource urls in Shopify.
-    /// </summary>
-    /// <returns>Dictionary of pairs of variant ids and resource urls.</returns>
-    internal procedure GetVariantImageUrls(): Dictionary of [BigInteger, Text]
-    begin
-        exit(VariantImageUrls);
     end;
 
     local procedure GetPictureGuid(Item: Record Item; ItemVariant: Record "Item Variant"; ItemAsVariant: Boolean): Guid

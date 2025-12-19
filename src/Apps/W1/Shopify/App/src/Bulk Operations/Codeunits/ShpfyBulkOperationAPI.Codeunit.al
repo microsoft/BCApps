@@ -133,12 +133,7 @@ codeunit 30278 "Shpfy Bulk Operation API"
         JParameter: JsonToken;
         Boundary: Text;
         ResponseMessage: Text;
-        IsHandled: Boolean;
     begin
-        OnBeforeUploadJsonl(Request, Url, JParameters, ResourceUrl, IsHandled);
-        if IsHandled then
-            exit;
-
         Boundary := CreateGuid();
         foreach JParameter in JParameters do begin
             MultiPartBody.AppendLine('--' + Format(Boundary));
@@ -182,10 +177,5 @@ codeunit 30278 "Shpfy Bulk Operation API"
             Response.Content.ReadAs(ResponseMessage);
             exit(ResponseMessage);
         end;
-    end;
-
-    [InternalEvent(false, false)]
-    local procedure OnBeforeUploadJsonl(Request: Text; Url: Text; JParameters: JsonArray; var ResourceUrl: Text; var IsHandled: Boolean)
-    begin
     end;
 }
