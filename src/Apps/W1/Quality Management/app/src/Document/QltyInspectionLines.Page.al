@@ -54,6 +54,17 @@ page 20413 "Qlty. Inspection Lines"
                 }
                 field("Test Value"; Rec."Test Value")
                 {
+                    trigger OnAssistEdit()
+                    begin
+                        Rec.AssistEditTestValue();
+                        CurrPage.Update(false);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        Rec.Validate("Test Value", Rec."Test Value");
+                        CurrPage.Update(false);
+                    end;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
