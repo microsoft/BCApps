@@ -3954,6 +3954,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LineExtensionAmountCurrencyID: Text;
         unitCode: Text;
         unitCodeListID: Text;
+        SalesInvoiceLineLineAmount: Decimal;
     begin
         SalesInvoiceHeader.Get(PostedInvoiceNo);
         SalesHeader.TransferFields(SalesInvoiceHeader);
@@ -3975,9 +3976,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual(Format(SalesInvoiceLine.Quantity, 0, 9), InvoicedQuantity, '');
         Assert.AreEqual(UnitOfMeasure."International Standard Code", unitCode, '');
         Assert.AreEqual('UNECERec20', unitCodeListID, '');
-        Assert.AreEqual(
-          Format(SalesInvoiceLine."VAT Base Amount" + SalesInvoiceLine."Inv. Discount Amount", 0, 9),
-          InvoiceLineExtensionAmount, '');
+        SalesInvoiceLineLineAmount := SalesInvoiceLine."Line Amount";
+        Assert.AreEqual(Format(SalesInvoiceLineLineAmount, 0, 9), InvoiceLineExtensionAmount, '');
         Assert.AreEqual(SalesHeader."Currency Code", LineExtensionAmountCurrencyID, '');
         Assert.AreEqual('', InvoiceLineAccountingCost, '');
     end;
