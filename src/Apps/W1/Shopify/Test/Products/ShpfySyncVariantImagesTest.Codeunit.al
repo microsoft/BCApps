@@ -5,18 +5,16 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using System.Text;
 using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
 using Microsoft.Integration.Shopify;
 using System.Utilities;
 
-codeunit 139540 "Shpfy Sync Variant Images Test"
+codeunit 139501 "Shpfy Sync Variant Images Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
-    EventSubscriberInstance = Manual;
     TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
@@ -25,9 +23,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         LibraryAssert: Codeunit "Library Assert";
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
         RequestVariantId, RequestProductId : BigInteger;
-        BulkOperationId: BigInteger;
         Initialized: Boolean;
-        ShopifyShopUrlTok: Label 'admin\/api\/.+\/graphql.json', Locked = true;
         UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
 
     trigger OnRun()
@@ -37,10 +33,10 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
 
     local procedure Initialize()
     var
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
-        InitializeTest: Codeunit "Shpfy Initialize Test";
         Product: Record "Shpfy Product";
         Variant: Record "Shpfy Variant";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
@@ -69,7 +65,6 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Item: Record Item;
         ItemVariant: Record "Item Variant";
         LibraryInventory: Codeunit "Library - Inventory";
-        VariantAPI: Codeunit "Shpfy Variant API";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
     begin
         // [SCENARIO] Importing variant image from Shopify variant
@@ -93,7 +88,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
 
         // [THEN] Image is imported to variant
         ItemVariant.GetBySystemId(ItemVariant.SystemId);
-        LibraryAssert.IsTrue(ItemVariant.Picture.Count = 1, 'Image was not imported to variant.');
+        LibraryAssert.AreEqual(1, ItemVariant.Picture.Count, 'Image was not imported to variant.');
     end;
 
     [Test]
@@ -105,7 +100,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Variant: Record "Shpfy Variant";
         LibraryInventory: Codeunit "Library - Inventory";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
-        ShpfySyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
+        SyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
         ImageId, ProductId, VariantId : BigInteger;
     begin
         // [SCENARIO] Set variant image in shopify when there is no image in shopify
@@ -127,15 +122,15 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         VariantId := CreateVariant(Item, ItemVariant, ProductId);
 
         // [WHEN] Execute sync product image
-        BindSubscription(ShpfySyncVariantImgHelper);
+        BindSubscription(SyncVariantImgHelper);
         SyncProductImage.Run(Shop);
-        UnbindSubscription(ShpfySyncVariantImgHelper);
+        UnbindSubscription(SyncVariantImgHelper);
 
         // [THEN] Variant image is updated in Shopify
         Variant.Get(VariantId);
         Evaluate(ImageId, '1234567891011');
-        LibraryAssert.IsTrue(Variant."Image Id" = ImageId, 'Variant image was not updated in Shopify.');
-        LibraryAssert.IsTrue(Variant."Image Hash" <> 0, 'Variant image hash was not updated.');
+        LibraryAssert.AreEqual(ImageId, Variant."Image Id", 'Variant image was not updated in Shopify.');
+        LibraryAssert.AreNotEqual(0, Variant."Image Hash", 'Variant image hash was not updated.');
     end;
 
     [Test]
@@ -147,7 +142,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Variant: Record "Shpfy Variant";
         LibraryInventory: Codeunit "Library - Inventory";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
-        ShpfySyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
+        SyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
         ImageId, ImageHash, ProductId : BigInteger;
     begin
         // [SCENARIO] Update variant picture in Shopify
@@ -170,71 +165,20 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         ImageHash := SetVariantImageFields(Variant);
 
         // [WHEN] Execute sync product image
-        BindSubscription(ShpfySyncVariantImgHelper);
+        BindSubscription(SyncVariantImgHelper);
         SyncProductImage.Run(Shop);
-        UnbindSubscription(ShpfySyncVariantImgHelper);
+        UnbindSubscription(SyncVariantImgHelper);
 
         // [THEN] Variant image is updated in Shopify
         Variant.GetBySystemId(Variant.SystemId);
         Evaluate(ImageId, '1234567891011');
-        LibraryAssert.IsTrue(Variant."Image Id" = ImageId, 'Variant image was not updated in Shopify.');
-        LibraryAssert.IsTrue(Variant."Image Hash" <> ImageHash, 'Variant image hash was not updated.');
-    end;
-
-    [Test]
-    [HandlerFunctions('HandleShopifyBulkUpdateVariantPictureRequests,BulkMessageHandler')]
-    procedure UnitTestUpdateVariantBulkUpdate()
-    var
-        Item: Record Item;
-        ItemVariant: Record "Item Variant";
-        Variant: Record "Shpfy Variant";
-        BulkOperation: Record "Shpfy Bulk Operation";
-        LibraryInventory: Codeunit "Library - Inventory";
-        SyncProductImage: Codeunit "Shpfy Sync Product Image";
-        ShpfySyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
-        ImageId, ImageHash, ProductId : BigInteger;
-        I: Integer;
-    begin
-        // [SCENARIO] Update variant picture in Shopify
-        Initialize();
-
-        // [GIVEN] Register Expected Outbound API Requests
-        RegExpectedOutboundHttpRequestsForBulkUpdateVariantPicture();
-        // [GIVEN] Shop with setting to sync image to shopify
-        Shop."Sync Item Images" := Shop."Sync Item Images"::"To Shopify";
-        Shop.Modify(false);
-        // [GIVEN] Item with variant
-        LibraryInventory.CreateItem(Item);
-        // [GIVEN] Shopify product
-        ProductId := CreateProduct(Item);
-        // [GIVEN] Item Variants and Shopify variants to fulfill bulk update threshold
-        for I := 1 to 199 do begin
-            LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
-            CreateVariant(Item, ItemVariant, ProductId);
-        end;
-        // [GIVEN] Item variant which will have update image
-        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
-        // [GIVEN] Item variant has image
-        ImportImageToItemVariant(ItemVariant);
-        // [GIVEN] Shopify variant with image
-        Variant.Get(CreateVariant(Item, ItemVariant, ProductId));
-        SetVariantImageFields(Variant);
-        // [GIVEN] Bulk operation ID
-        BulkOperationId := Any.IntegerInRange(1000000, 9999999);
-
-        // [WHEN] Execute sync product image
-        BindSubscription(ShpfySyncVariantImgHelper);
-        SyncProductImage.Run(Shop);
-        UnbindSubscription(ShpfySyncVariantImgHelper);
-
-        // [THEN] Bulk operation is created
-        BulkOperation.Get(BulkOperationId, Shop.Code, BulkOperation.Type::mutation);
+        LibraryAssert.AreEqual(ImageId, Variant."Image Id", 'Variant image was not updated in Shopify.');
+        LibraryAssert.AreNotEqual(ImageHash, Variant."Image Hash", 'Variant image hash was not updated.');
     end;
 
     [HttpClientHandler]
     procedure HandleShopifyImportRequest(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
-        Regex: Codeunit Regex;
         GetProductImagesResponseTok: Label 'Products/EmptyProdImagesResponse.txt', Locked = true;
         GetVariantImagesResponseTok: Label 'Products/GetVariantImagesResponse.txt', Locked = true;
         ImageResponseTok: Label 'Products/ImageResponse.txt', Locked = true;
@@ -255,7 +199,6 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
     procedure HandleShopifyUploadRequest(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         CreateUploadUrlTok: Label 'Products/CreateUploadUrl.txt', Locked = true;
-        UploadImageTok: Label 'Products/UploadImageToProductResponse.txt', Locked = true;
         UploadVariantImageResponseTok: Label 'Products/UploadVariantImageResponse.txt', Locked = true;
     begin
         case OutboundHttpRequests.Length() of
@@ -290,39 +233,6 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         end;
     end;
 
-    [HttpClientHandler]
-    procedure HandleShopifyBulkUpdateVariantPictureRequests(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
-    var
-        GetVariantImageResponseTok: Label 'Products/GetVariantImageResponse.txt', Locked = true;
-        CreateUploadUrlTok: Label 'Products/CreateUploadUrl.txt', Locked = true;
-        UploadImageTok: Label 'Products/UploadImageToProductResponse.txt', Locked = true;
-    begin
-        begin
-            case OutboundHttpRequests.Length() of
-                5:
-                    LoadVariantResourceIntoHttpResponse(GetVariantImageResponseTok, Response);
-                4:
-                    LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
-                3:
-                    LoadResourceIntoHttpResponse(UploadImageTok, Response);
-                2:
-                    LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
-                1:
-                    LoadBulkMutationResponse(Response);
-                0:
-                    Error(UnexpectedAPICallsErr);
-            end;
-        end;
-    end;
-
-    [MessageHandler]
-    procedure BulkMessageHandler(Message: Text[1024])
-    var
-        BulkOperationMsg: Label 'A bulk request was sent to Shopify. You can check the status of the synchronization in the Shopify Bulk Operations page.', Locked = true;
-    begin
-        LibraryAssert.ExpectedMessage(BulkOperationMsg, Message);
-    end;
-
     local procedure RegExpectedOutboundHttpRequestsForGetVariantImages()
     begin
         OutboundHttpRequests.Enqueue('GQL Get Product Images');
@@ -344,15 +254,6 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         OutboundHttpRequests.Enqueue('GQL Set Image to Variant');
     end;
 
-    local procedure RegExpectedOutboundHttpRequestsForBulkUpdateVariantPicture()
-    begin
-        OutboundHttpRequests.Enqueue('GQL Get Variant Image');
-        OutboundHttpRequests.Enqueue('GQL Create Upload URL');
-        OutboundHttpRequests.Enqueue('GQL Upload Product Image');
-        OutboundHttpRequests.Enqueue('GQL Create Bulk Upload URL');
-        OutboundHttpRequests.Enqueue('GQL Send Bulk Request');
-    end;
-
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
@@ -365,20 +266,8 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         OutboundHttpRequests.DequeueText();
     end;
 
-    local procedure LoadBulkMutationResponse(var Response: TestHttpResponseMessage)
-    var
-        HttpResponseMessage: HttpResponseMessage;
-        Body: Text;
-        ResInStream: InStream;
-    begin
-        NavApp.GetResource('Bulk Operations/BulkMutationResponse.txt', ResInStream, TextEncoding::UTF8);
-        ResInStream.ReadText(Body);
-        Response.Content.WriteFrom(StrSubstNo(Body, Format(BulkOperationId)));
-    end;
-
     local procedure ImportImageToItemVariant(var ItemVariant: Record "Item Variant")
     var
-        Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
         OutStr: OutStream;

@@ -192,7 +192,12 @@ codeunit 30176 "Shpfy Product API"
         Headers: HttpHeaders;
         Response: HttpResponseMessage;
         InStream: InStream;
+        IsTestInProgress: Boolean;
     begin
+        OnBeforeUploadImage(TenantMedia, Url, IsTestInProgress);
+        if IsTestInProgress then
+            exit;
+
         Content.GetHeaders(Headers);
         if Headers.Contains('Content-Type') then
             Headers.Remove('Content-Type');
@@ -746,52 +751,8 @@ codeunit 30176 "Shpfy Product API"
                     exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'id')));
     end;
 
-
-    /// <summary>
-    /// Updates the product with multiple new images.
-    /// </summary>
-    /// <param name="ProductId">Shopify product which pictures will be added to.</param>
-    /// <param name="VariantImageUrls">Dictionary of variant IDs to image URLs.</param>
-    /// <returns>Dictionary of variant IDs to image IDs</returns>
-    internal procedure UpdateProductWithMultipleVariantImages(ProductId: BigInteger; VariantImageUrls: Dictionary of [BigInteger, Text]): Dictionary of [BigInteger, BigInteger]
-    var
-        GraphQuery: TextBuilder;
-        JResponse: JsonToken;
-        JMediaArray: JsonArray;
-        JMedia: JsonToken;
-        VariantImageIds: Dictionary of [BigInteger, BigInteger];
-        VariantIds: List of [BigInteger];
-        ImageIds: List of [BigInteger];
-        VariantId: BigInteger;
-        ImageId: BigInteger;
-        MediasTok: Label '{ media(reverse: true, first: %1 ){', Locked = true; // TODONAT: how many media can be returned?
+    [InternalEvent(false, false)]
+    procedure OnBeforeUploadImage(var TenantMedia: Record "Tenant Media"; var ResourceUrl: Text; var IsTestInProgress: Boolean)
     begin
-        GraphQuery.Append('{\"query\":\"mutation {productUpdate(product: {id: \\\"gid://shopify/Product/');
-        GraphQuery.Append(Format(ProductId));
-        GraphQuery.Append('\\\"}');
-        GraphQuery.Append(', media:[');
-        foreach VariantId in VariantImageUrls.Keys() do begin
-            GraphQuery.Append('{mediaContentType: IMAGE, originalSource: \\\"');
-            GraphQuery.Append(VariantImageUrls.Get(VariantId));
-            GraphQuery.Append('\\\"},');
-            VariantIds.Add(VariantId);
-        end;
-        GraphQuery.Remove(GraphQuery.Length(), 1);
-        GraphQuery.Append('])');
-        GraphQuery.Append('{product');
-        GraphQuery.Append(StrSubstNo(MediasTok, VariantIds.Count()));
-        GraphQuery.Append('edges { cursor node { ... on MediaImage { id } } } } }');
-        GraphQuery.Append('userErrors { field message } } }\"}');
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
-        JMediaArray := JsonHelper.GetJsonArray(JResponse, 'data.productUpdate.product.media.edges');
-        foreach JMedia in JMediaArray do
-            ImageIds.Add(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'node.id')));
-
-        ImageIds.Reverse();
-
-        foreach ImageId in ImageIds do
-            VariantImageIds.Add(VariantIds.Get(VariantImageIds.Count() + 1), ImageId);
-
-        exit(VariantImageIds);
     end;
 }

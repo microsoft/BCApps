@@ -883,10 +883,9 @@ codeunit 30189 "Shpfy Variant API"
         ProductApi: Codeunit "Shpfy Product API";
         ResourceUrl: Text;
     begin
-        if TenantMedia.Get(PictureGuid) then begin
-            ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
-            exit(SetVariantImage(Variant, ResourceUrl));
-        end;
+        if TenantMedia.Get(PictureGuid) then
+            if ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl) then
+                exit(SetVariantImage(Variant, ResourceUrl));
     end;
 
     internal procedure UpdateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
