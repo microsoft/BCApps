@@ -7250,6 +7250,83 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(5, TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)", 'Quantity should match the specified quantity');
     end;
 
+    [Test]
+    procedure PostItemJournalForNegativeAdjustmentCreatedFromTest()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalTemplate: Record "Item Journal Template";
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        AdjustmentItemJournalLine: Record "Item Journal Line";
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
+        QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
+    begin
+        // [SCENARIO 610785] Verify user can post item journal line for negative adjustment created from quality test
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A prioritized rule is created for Purchase Line
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
+
+        // [GIVEN] An item journal template and batch are created for adjustments
+        LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+
+        // [GIVEN] User setup number series for item journal batch
+        LibraryUtility.CreateNoSeries(NoSeries, true, true, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, '', '');
+        ItemJournalBatch."No. Series" := NoSeries.Code;
+        ItemJournalBatch.Modify();
+
+        // [GIVEN] Quality management setup is updated with adjustment item journal batch
+        QltyManagementSetup.Get();
+        QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
+        QltyManagementSetup.Modify();
+
+        // [GIVEN] A location is created
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Item is created
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] A purchase order with the Lot trackeditem is created
+        QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] The purchase order is received
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Find Inspection Header created from purchase line
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionHeader.FindFirst();
+
+        // [WHEN] Negative adjustment disposition is performed with specific quantity
+        QltyDispNegAdjustInv.PerformDisposition(QltyInspectionHeader, PurchaseLine.Quantity, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", '');
+
+        // [THEN] Post item journal line should be successful
+        AdjustmentItemJournalLine.Get(ItemJournalTemplate.Name, ItemJournalBatch.Name, 10000);
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+
+        ItemJournalBatch.Delete();
+        ItemJournalTemplate.Delete();
+        QltyInspectionGenRule.Delete();
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
