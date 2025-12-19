@@ -769,7 +769,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(CopyStr(CryptographyManagement.GenerateHash(IdentityString, HashAlgorithmType::SHA256), 1, 16));
     end;
 
-    local procedure IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment: Record "Document Attachment"): Boolean
+    /// <summary>
+    /// Checks if a file belongs to another environment or company.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to check.</param>
+    /// <returns>True if the file is from another environment or company, false otherwise.</returns>
+    procedure IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment: Record "Document Attachment"): Boolean
     var
         CurrentEnvironmentHash: Text[16];
     begin
@@ -781,7 +786,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(DocumentAttachment."Source Environment Hash" <> CurrentEnvironmentHash);
     end;
 
-    local procedure MigrateFileToCurrentEnvironment(var DocumentAttachment: Record "Document Attachment"): Boolean
+    /// <summary>
+    /// Migrates a file from a previous environment or company folder to the current one.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to migrate.</param>
+    /// <returns>True if migration was successful, false otherwise.</returns>
+    procedure MigrateFileToCurrentEnvironment(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
         FileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";

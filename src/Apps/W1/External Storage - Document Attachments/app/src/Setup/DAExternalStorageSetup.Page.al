@@ -110,10 +110,8 @@ page 8750 "DA External Storage Setup"
                 ToolTip = 'Migrate all document attachments from the previous environment/company folder to the current environment/company folder.';
 
                 trigger OnAction()
-                var
-                    DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
                 begin
-                    DAExternalStorageImpl.RunCompanyMigration();
+                    Report.Run(Report::"DA External Storage Migration");
                 end;
             }
             action(ShowCurrentHash)
