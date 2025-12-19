@@ -56,7 +56,7 @@ page 4325 "Select Agent Access Ctrl Part"
                     trigger OnValidate()
                     begin
                         if not Rec."Can Configure Agent" then
-                            VerifyOwnerExistsAfterChange(false);
+                            VerifyOwnerExists();
                     end;
                 }
             }
@@ -105,7 +105,7 @@ page 4325 "Select Agent Access Ctrl Part"
     trigger OnDeleteRecord(): Boolean
     begin
         if Rec."Can Configure Agent" then
-            VerifyOwnerExistsAfterChange(true);
+            VerifyOwnerExists();
         exit(true);
     end;
 
@@ -169,23 +169,12 @@ page 4325 "Select Agent Access Ctrl Part"
 
     local procedure ValidateUserName(NewUserName: Text)
     var
-        User: Record "User";
-        UserGuid: Guid;
+        UserSecurityID: Guid;
     begin
-        if Evaluate(UserGuid, NewUserName) then begin
-            User.Get(UserGuid);
-            Rec.Validate("User Security ID", User."User Security ID");
-            UpdateGlobalVariables();
+        if not FindUserByName(NewUserName, UserSecurityID) then
             exit;
-        end;
 
-        User.SetRange("User Name", NewUserName);
-        if not User.FindFirst() then begin
-            User.SetFilter("User Name", '@*''''' + NewUserName + '''''*');
-            User.FindFirst();
-        end;
-
-        Rec.Validate("User Security ID", User."User Security ID");
+        Rec.Validate("User Security ID", UserSecurityID);
         UpdateGlobalVariables();
     end;
 
@@ -212,41 +201,35 @@ page 4325 "Select Agent Access Ctrl Part"
         exit(true);
     end;
 
-    local procedure VerifyOwnerExistsAfterChange(IsDeleting: Boolean)
+    local procedure VerifyOwnerExists()
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
-        TempCurrentRec: Record "Agent Access Control" temporary;
+        CurrentUserSecurityID: Guid;
+        CurrentCompanyName: Text[30];
+        OwnerFound: Boolean;
     begin
-        // Save the current record state with the new value being validated
-        TempCurrentRec.TransferFields(Rec);
-        TempCurrentRec.Insert();
+        CurrentUserSecurityID := Rec."User Security ID";
+        CurrentCompanyName := Rec."Company Name";
 
-        // Create an independent copy by manually transferring all records
-        Rec.Reset();
+        TempAgentAccessControl.Copy(Rec);
+
+        // Check if there's at least one other record with "Can Configure Agent" = true
+        Rec.SetRange("Agent User Security ID", AgentUserSecurityID);
+        Rec.SetRange("Can Configure Agent", true);
+
+        OwnerFound := false;
         if Rec.FindSet() then
             repeat
-                TempAgentAccessControl.TransferFields(Rec);
-                TempAgentAccessControl.Insert();
-            until Rec.Next() = 0;
+                if not ((Rec."User Security ID" = CurrentUserSecurityID) and (Rec."Company Name" = CurrentCompanyName)) then
+                    OwnerFound := true;
+            until (Rec.Next() = 0) or OwnerFound;
 
-        if IsDeleting then begin
-            // For deletion: Remove the record being deleted from our copy
-            if TempAgentAccessControl.Get(TempCurrentRec."Agent User Security ID", TempCurrentRec."User Security ID", TempCurrentRec."Company Name") then
-                TempAgentAccessControl.Delete();
-        end else
-            // For modification: Update the current record in our copy with the new value being validated
-            if TempAgentAccessControl.Get(TempCurrentRec."Agent User Security ID", TempCurrentRec."User Security ID", TempCurrentRec."Company Name") then begin
-                TempAgentAccessControl."Can Configure Agent" := TempCurrentRec."Can Configure Agent";
-                TempAgentAccessControl.Modify();
-            end;
-
-        // Check if there's at least one owner remaining with the updated value
-        TempAgentAccessControl.Reset();
-        TempAgentAccessControl.SetRange("Can Configure Agent", true);
-        TempAgentAccessControl.SetRange("Agent User Security ID", AgentUserSecurityID);
-
-        if TempAgentAccessControl.IsEmpty() then
+        if not OwnerFound then begin
+            Rec.Copy(TempAgentAccessControl);
             Error(OneOwnerMustBeDefinedForAgentErr);
+        end;
+
+        Rec.Copy(TempAgentAccessControl);
     end;
 
     var

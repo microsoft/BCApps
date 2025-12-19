@@ -71,21 +71,6 @@ codeunit 4301 "Agent Impl."
         AgentAccessControl.Insert();
     end;
 
-    procedure VerifyOwnerExists(AgentAccessControlModified: Record "Agent Access Control")
-    var
-        ExistingAgentAccessControl: Record "Agent Access Control";
-    begin
-        if (AgentAccessControlModified."Can Configure Agent") then
-            exit;
-
-        SetOwnerFilters(ExistingAgentAccessControl);
-        ExistingAgentAccessControl.SetFilter("User Security ID", '<>%1', AgentAccessControlModified."User Security ID");
-        ExistingAgentAccessControl.SetRange("Agent User Security ID", AgentAccessControlModified."Agent User Security ID");
-
-        if ExistingAgentAccessControl.IsEmpty() then
-            Error(OneOwnerMustBeDefinedForAgentErr);
-    end;
-
     procedure GetUserAccess(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         Agent: Record Agent;
@@ -565,7 +550,6 @@ codeunit 4301 "Agent Impl."
     end;
 
     var
-        OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         AgentDoesNotExistErr: Label 'Agent does not exist.';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
