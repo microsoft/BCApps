@@ -160,9 +160,9 @@ codeunit 9455 "External File Storage Impl."
         if TempFileAccountContent.Type <> TempFileAccountContent.Type::Directory then
             exit('');
 
-        // If user selected the ".." navigation entry, return the parent directory directly
+        // The ".." entry represents the current directory for selection purposes
         if TempFileAccountContent.Name = '..' then
-            exit(TempFileAccountContent."Parent Directory");
+            exit(StorageBrowser.GetCurrentDirectory());
 
         exit(CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name));
     end;
