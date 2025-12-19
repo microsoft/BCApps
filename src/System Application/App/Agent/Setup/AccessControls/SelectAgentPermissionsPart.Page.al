@@ -54,7 +54,7 @@ page 4340 "Select Agent Permissions Part"
                     begin
                         PermissionSetLookupRecord.SetRange("Role ID", Rec."Role ID");
                         if PermissionSetLookupRecord.FindFirst() then begin
-                            if PermissionSetLookupRecord.Count > 1 then
+                            if PermissionSetLookupRecord.Count() > 1 then
                                 Error(MultipleRoleIDErr, Rec."Role ID");
 
                             PermissionSetNotFound := false;
@@ -187,7 +187,7 @@ page 4340 "Select Agent Permissions Part"
         AgentUserSecurityID := NewAgentUserSecurityID;
         Rec.Copy(TempAccessControlBuffer, true);
 
-        AgentSingleCompany := TryGetAccessControlForSingleCompany(GlobalSingleCompanyName);
+        AgentSingleCompany := GetAccessControlForSingleCompany(GlobalSingleCompanyName);
         if not ShowCompanyFieldOverride then
             ShowCompanyField := not AgentSingleCompany;
 
@@ -210,7 +210,7 @@ page 4340 "Select Agent Permissions Part"
         end;
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not TryGetAccessControlForSingleCompany(GlobalSingleCompanyName);
+            ShowCompanyField := not GetAccessControlForSingleCompany(GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
     end;
@@ -219,7 +219,7 @@ page 4340 "Select Agent Permissions Part"
     var
         AccessControl: Record "Access Control";
     begin
-        if not TryGetAccessControlForSingleCompany(GlobalSingleCompanyName) then
+        if not GetAccessControlForSingleCompany(GlobalSingleCompanyName) then
             Error(CannotAssignPermissionsMultipleCompaniesErr);
 
         if not Confirm(AssignMyPermissionsQst, true) then
@@ -252,11 +252,11 @@ page 4340 "Select Agent Permissions Part"
             until AccessControl.Next() = 0;
     end;
 
-    local procedure TryGetAccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
+    local procedure GetAccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        exit(AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, SingleCompanyName));
+        exit(AgentImpl.GetAccessControlForSingleCompany(AgentUserSecurityID, SingleCompanyName));
     end;
 
     var

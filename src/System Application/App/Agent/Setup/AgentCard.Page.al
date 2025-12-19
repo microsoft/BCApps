@@ -108,7 +108,6 @@ page 4315 "Agent Card"
             }
             part(Permissions; "View Agent Permissions")
             {
-                Editable = false;
                 ApplicationArea = Basic, Suite;
                 Caption = 'Agent Permissions';
                 SubPageLink = "User Security ID" = field("User Security ID");

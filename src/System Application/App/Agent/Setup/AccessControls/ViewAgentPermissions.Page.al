@@ -140,7 +140,7 @@ page 4334 "View Agent Permissions"
             PermissionSetNotFound := not AggregatePermissionSet.Get(Rec.Scope, Rec."App ID", Rec."Role ID");
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AgentImpl.TryGetAccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName);
+            ShowCompanyField := not AgentImpl.GetAccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
     end;

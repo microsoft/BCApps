@@ -56,7 +56,7 @@ page 4325 "Select Agent Access Ctrl Part"
                     trigger OnValidate()
                     begin
                         if not Rec."Can Configure Agent" then
-                            VerifyOwnerExistsInTempTable();
+                            VerifyOwnerExistsAfterChange(false);
                     end;
                 }
             }
@@ -104,23 +104,34 @@ page 4325 "Select Agent Access Ctrl Part"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        VerifyOwnerExistsInTempTable();
+        if Rec."Can Configure Agent" then
+            VerifyOwnerExistsAfterChange(true);
         exit(true);
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        UserSecurityID: Guid;
     begin
+        // If UserName is already populated (e.g., when duplicating a row), validate it to set User Security ID.
+        if (UserName <> '') and IsNullGuid(Rec."User Security ID") then
+            if FindUserByName(UserName, UserSecurityID) then
+                Rec."User Security ID" := UserSecurityID;
+
+        if IsNullGuid(Rec."User Security ID") then
+            exit(true);
+
         Rec."Agent User Security ID" := AgentUserSecurityID;
 
-        // Default company name if not showing company field
         if (Rec."Company Name" = '') and not ShowCompanyField then
+            if (GlobalSingleCompanyName <> '') then
+                // Default to the single company used by the agent if the company field is not shown.
+                Rec."Company Name" := GlobalSingleCompanyName
+            else
 #pragma warning disable AA0139
-            Rec."Company Name" := CompanyName();
+                // Default to the current company used by the agent if the company field is not shown and the agent operates in multiple ones.
+                Rec."Company Name" := CompanyName();
 #pragma warning restore AA0139
-
-        // Update GlobalSingleCompanyName if transitioning to multi-company
-        if (GlobalSingleCompanyName <> '') and (Rec."Company Name" <> GlobalSingleCompanyName) then
-            GlobalSingleCompanyName := '';
 
         exit(true);
     end;
@@ -132,7 +143,7 @@ page 4325 "Select Agent Access Ctrl Part"
         AgentUserSecurityID := NewAgentUserSecurityId;
         Rec.Copy(TempAgentAccessControl, true);
 
-        AgentSingleCompany := AgentImpl.TryGetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
+        AgentSingleCompany := AgentImpl.GetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
         if not ShowCompanyFieldOverride then
             ShowCompanyField := not AgentSingleCompany;
 
@@ -190,21 +201,41 @@ page 4325 "Select Agent Access Ctrl Part"
         exit(true);
     end;
 
-    local procedure VerifyOwnerExistsInTempTable()
+    local procedure VerifyOwnerExistsAfterChange(IsDeleting: Boolean)
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
+        TempCurrentRec: Record "Agent Access Control" temporary;
     begin
-        if Rec."Can Configure Agent" then
-            exit;
+        // Save the current record state with the new value being validated
+        TempCurrentRec.TransferFields(Rec);
+        TempCurrentRec.Insert();
 
-        // Check if there's at least one other owner in the temp table
-        TempAgentAccessControl.Copy(Rec, true);
+        // Create an independent copy by manually transferring all records
+        Rec.Reset();
+        if Rec.FindSet() then
+            repeat
+                TempAgentAccessControl.TransferFields(Rec);
+                TempAgentAccessControl.Insert();
+            until Rec.Next() = 0;
+
+        if IsDeleting then begin
+            // For deletion: Remove the record being deleted from our copy
+            if TempAgentAccessControl.Get(TempCurrentRec."Agent User Security ID", TempCurrentRec."User Security ID", TempCurrentRec."Company Name") then
+                TempAgentAccessControl.Delete();
+        end else
+            // For modification: Update the current record in our copy with the new value being validated
+            if TempAgentAccessControl.Get(TempCurrentRec."Agent User Security ID", TempCurrentRec."User Security ID", TempCurrentRec."Company Name") then begin
+                TempAgentAccessControl."Can Configure Agent" := TempCurrentRec."Can Configure Agent";
+                TempAgentAccessControl.Modify();
+            end;
+
+        // Check if there's at least one owner remaining with the updated value
+        TempAgentAccessControl.Reset();
         TempAgentAccessControl.SetRange("Can Configure Agent", true);
-        TempAgentAccessControl.SetFilter("User Security ID", '<>%1', Rec."User Security ID");
         TempAgentAccessControl.SetRange("Agent User Security ID", AgentUserSecurityID);
 
         if TempAgentAccessControl.IsEmpty() then
-            Error('One owner must be defined for the agent.');
+            Error(OneOwnerMustBeDefinedForAgentErr);
     end;
 
     var
@@ -215,5 +246,6 @@ page 4325 "Select Agent Access Ctrl Part"
         GlobalSingleCompanyName: Text[30];
         ShowCompanyField: Boolean;
         ShowCompanyFieldOverride: Boolean;
+        OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign access controls in other companies where the agent is not available.\\Do you want to continue?';
 }

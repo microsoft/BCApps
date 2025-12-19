@@ -521,7 +521,7 @@ codeunit 4301 "Agent Impl."
         Page.RunModal(SetupPageId, SourceRecordVariant);
     end;
 
-    procedure TryGetAccessControlForSingleCompany(AgentUserSecurityID: Guid; var SingleCompanyName: Text[30]): Boolean
+    procedure GetAccessControlForSingleCompany(AgentUserSecurityID: Guid; var SingleCompanyName: Text[30]): Boolean
     var
         TempCompany: Record Company temporary;
         UserSettings: Codeunit "User Settings";
