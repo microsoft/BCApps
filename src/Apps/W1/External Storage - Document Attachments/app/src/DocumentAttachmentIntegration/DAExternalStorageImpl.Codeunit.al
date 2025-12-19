@@ -708,19 +708,29 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     local procedure GetTableNameFolder(TableID: Integer): Text[100]
     var
-        RecRef: RecordRef;
         TableName: Text;
     begin
-        // Open the RecordRef to get table metadata
-        RecRef.Open(TableID, false);
-        TableName := RecRef.Name;
-        RecRef.Close();
+        // Try to get table name from metadata, fallback to table ID if not available
+        if not TryGetTableName(TableID, TableName) then
+            TableName := 'Table_' + Format(TableID);
 
         // Replace invalid characters for folder names
         TableName := DelChr(TableName, '=', '<>:"/\|?*');
         TableName := ConvertStr(TableName, ' ', '_');
 
         exit(CopyStr(TableName, 1, 100));
+    end;
+
+    [TryFunction]
+    local procedure TryGetTableName(TableID: Integer; var TableName: Text)
+    var
+        RecRef: RecordRef;
+    begin
+        // Open the RecordRef to get table metadata
+        // This will fail if the table no longer exists (e.g., after uninstalling a 3rd party app)
+        RecRef.Open(TableID, false);
+        TableName := RecRef.Name;
+        RecRef.Close();
     end;
 
     local procedure EnsureFolderExists(CompanyFolderPath: Text)
