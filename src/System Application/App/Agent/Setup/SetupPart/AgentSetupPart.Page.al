@@ -166,7 +166,7 @@ page 4310 "Agent Setup Part"
     var
         AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
-        AgentSummaryDisplayText := AgentSetupImpl.AppendLanguageUsed(AgentSummary, Rec);
+        AgentSummaryDisplayText := AgentSetupImpl.AppendAgentSummary(Rec, AgentSummary);
     end;
 
     var

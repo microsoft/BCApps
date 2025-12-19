@@ -139,17 +139,21 @@ codeunit 4325 "Agent Setup Impl."
         exit(FullSummaryText.ToText());
     end;
 
-    internal procedure AppendLanguageUsed(SummaryText: Text; var AgentSetupBuffer: Record "Agent Setup Buffer"): Text
+    internal procedure AppendAgentSummary(var AgentSetupBuffer: Record "Agent Setup Buffer"; SummaryText: Text): Text
     var
         UserSettings: Record "User Settings";
         Language: Codeunit Language;
         NewSummaryText: Text;
     begin
-        if SummaryText.Contains(LanguageUsedLbl) then
-            exit;
+        NewSummaryText := SummaryText;
+        if not NewSummaryText.Contains(ReviewForAccuracyAgentUsesAILbl) then
+            NewSummaryText := StrSubstNo(AppendTextToEndTxt, NewSummaryText, ReviewForAccuracyAgentUsesAILbl);
 
-        AgentSetupBuffer.GetUserSettings(UserSettings);
-        NewSummaryText := SummaryText + '\\' + StrSubstNo(LanguageUsedLbl, CopyStr(Language.GetWindowsLanguageName(UserSettings."Language ID"), 1, MaxStrLen(AgentSetupBuffer."Language Used")));
+        if not SummaryText.Contains(LanguageUsedLbl) then begin
+            AgentSetupBuffer.GetUserSettings(UserSettings);
+            NewSummaryText := StrSubstNo(AppendTextToEndTxt, NewSummaryText, StrSubstNo(LanguageUsedLbl, Language.GetWindowsLanguageName(UserSettings."Language ID")));
+        end;
+
         exit(NewSummaryText);
     end;
 
@@ -235,4 +239,6 @@ codeunit 4325 "Agent Setup Impl."
 
     var
         LanguageUsedLbl: Label 'Language used: %1', Comment = '%1 is the language name, e.g. English (United States).';
+        ReviewForAccuracyAgentUsesAILbl: Label 'This agent uses AI - review its actions for accuracy.';
+        AppendTextToEndTxt: Label '%1\\%2', Comment = '%1 is the existing summary text, %2 is the text that we are appending to the end';
 }
