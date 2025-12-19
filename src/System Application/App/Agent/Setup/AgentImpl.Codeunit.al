@@ -319,7 +319,6 @@ codeunit 4301 "Agent Impl."
     procedure AssignPermissionSets(var UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         AccessControl: Record "Access Control";
-        TempAggregatePermissionSet: Record "Aggregate Permission Set" temporary;
     begin
         AccessControl.SetRange("User Security ID", UserSecurityID);
         if AccessControl.FindSet() then

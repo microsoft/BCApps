@@ -36,7 +36,7 @@ codeunit 4310 "Agent Task Builder Impl."
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         VerifyMandatoryFieldsSet();
-        VerifyTaskCanBeCreated(GlobalAgentUserSecurityId, RequiresMessage);
+        VerifyTaskCanBeCreated(RequiresMessage);
 
         AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, AgentTaskRecord);
         if MessageSet then begin
@@ -109,7 +109,7 @@ codeunit 4310 "Agent Task Builder Impl."
         Error(CodingErrorInfo);
     end;
 
-    local procedure VerifyTaskCanBeCreated(GlobalAgentUserSecurityId: Guid; RequiresMessage: Boolean)
+    local procedure VerifyTaskCanBeCreated(RequiresMessage: Boolean)
     var
         AllowedCompanies: Text;
     begin
@@ -118,29 +118,29 @@ codeunit 4310 "Agent Task Builder Impl."
             // This temporary restriction ensures that the user reviews the message/task at least once.
             Error(TaskCannotBeSetToReadyWithoutMessagesErr);
 
-        // 2. Tasks cannot be set to ready if the agent has 0 access controls in the current company.
-        if not CheckCompanyAccessForUser(GlobalAgentUserSecurityId, AllowedCompanies) then
+        // 2. Tasks cannot be set to ready if the agent has no access controls in the current company.
+        if not CheckCurrentCompanyAccessForAgent(AllowedCompanies) then
             Error(TaskCannotBeSetToReadyWithoutAccessControlErr, CompanyName(), AllowedCompanies);
     end;
 
-    local procedure CheckCompanyAccessForUser(UserSecurityId: Guid; var AllowedCompaniesText: Text): Boolean
+    local procedure CheckCurrentCompanyAccessForAgent(var AllowedCompaniesText: Text): Boolean
     var
         TempCompany: Record Company temporary;
         UserSettings: Codeunit "User Settings";
     begin
-        UserSettings.GetAllowedCompaniesForUser(UserSecurityId, TempCompany);
+        UserSettings.GetAllowedCompaniesForUser(GlobalAgentUserSecurityId, TempCompany);
 
         // Build list of allowed companies
         AllowedCompaniesText := '';
         if TempCompany.FindSet() then
-            repeat begin
+            repeat
                 if AllowedCompaniesText <> '' then
                     AllowedCompaniesText += ', ';
                 AllowedCompaniesText += TempCompany.Name;
-            end until TempCompany.Next() = 0;
+            until TempCompany.Next() = 0;
 
         TempCompany.SetRange(Name, CompanyName());
-        exit(TempCompany.FindFirst());
+        exit(not TempCompany.IsEmpty());
     end;
 
     var
