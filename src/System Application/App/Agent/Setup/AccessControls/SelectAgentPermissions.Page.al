@@ -43,7 +43,7 @@ page 4336 "Select Agent Permissions"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if CloseAction = CloseAction::LookupCancel then
+        if CloseAction = CloseAction::Cancel then
             RestoreAccessControlBuffer();
 
         exit(true);
@@ -62,12 +62,32 @@ page 4336 "Select Agent Permissions"
 
     local procedure BackupAccessControlBuffer()
     begin
-        TempBackupAccessControlBuffer.Copy(Rec, true);
+        TempBackupAccessControlBuffer.Reset();
+        TempBackupAccessControlBuffer.DeleteAll();
+
+        Rec.Reset();
+        if not Rec.FindSet() then
+            exit;
+
+        repeat
+            TempBackupAccessControlBuffer.TransferFields(Rec);
+            TempBackupAccessControlBuffer.Insert();
+        until Rec.Next() = 0;
     end;
 
     local procedure RestoreAccessControlBuffer()
     begin
-        Rec.Copy(TempBackupAccessControlBuffer, true);
+        Rec.Reset();
+        Rec.DeleteAll();
+
+        TempBackupAccessControlBuffer.Reset();
+        if not TempBackupAccessControlBuffer.FindSet() then
+            exit;
+
+        repeat
+            Rec.TransferFields(TempBackupAccessControlBuffer);
+            Rec.Insert();
+        until TempBackupAccessControlBuffer.Next() = 0;
     end;
 
     var
