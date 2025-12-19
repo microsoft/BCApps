@@ -207,10 +207,6 @@
     <comment>table [Date] column [Calendar Year]</comment>
   </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.eafb2700-d9bf-40ef-b2a6-d97476b09f5e.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Date] column [Calendar Year]</comment>
-  </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.906fcdf7-6285-4922-8968-362fc571dd84.caption" xml:space="preserve">
     <value>Kalenderkvartal</value>
     <comment>table [Date] column [Calendar Quarter]</comment>
@@ -319,10 +315,6 @@
     <value>Regnskapsår</value>
     <comment>table [Date] column [Fiscal Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4309f1b1-5303-4bbe-a033-3ae569481cb4.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Date] column [Fiscal Year]</comment>
-  </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a3fdb947-7ec9-4f75-a830-9e008027f5be.caption" xml:space="preserve">
     <value>Regnskapskvartal</value>
     <comment>table [Date] column [Fiscal Quarter]</comment>
@@ -429,10 +421,6 @@
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ac826f1e-e350-4f10-a088-7cdd9d921d22.caption" xml:space="preserve">
     <value>Regnskapsuke år</value>
-    <comment>table [Date] column [FW Year]</comment>
-  </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ac826f1e-e350-4f10-a088-7cdd9d921d22.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
     <comment>table [Date] column [FW Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ea488855-48b0-4a2d-a99c-cfeb1c841c00.caption" xml:space="preserve">
@@ -571,160 +559,160 @@
     <value>Regnskap år-kvartal-måned-uke</value>
     <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.40f0b909-9e82-4ba3-92df-a8b50b00a40b" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.40f0b909-9e82-4ba3-92df-a8b50b00a40b" xml:space="preserve">
+    <value>Regnskapsår</value>
     <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.b110c9b3-ebdb-4ed1-8427-abbb882e1d58" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.b110c9b3-ebdb-4ed1-8427-abbb882e1d58" xml:space="preserve">
+    <value>Regnskap Kvartal År</value>
     <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Quarter Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.9bd26d03-671d-4cea-9e25-5aafb1c7d21f" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.9bd26d03-671d-4cea-9e25-5aafb1c7d21f" xml:space="preserve">
+    <value>Regnskap Måned År</value>
     <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Month Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.50478d23-8e70-467a-8801-ce96d8e29c35" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.50478d23-8e70-467a-8801-ce96d8e29c35" xml:space="preserve">
+    <value>Regnskap Uke År</value>
     <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Week Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.caption" xml:space="preserve">
     <value>Kalender år-kvartal-måned-uke</value>
     <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.d82e0fe4-49e2-4df6-a525-9a4f6108743b" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.d82e0fe4-49e2-4df6-a525-9a4f6108743b" xml:space="preserve">
+    <value>Kalenderår</value>
     <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.875d1c42-f9de-4373-9dec-a1409f1e179d" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.875d1c42-f9de-4373-9dec-a1409f1e179d" xml:space="preserve">
+    <value>Kalender Kvartal År</value>
     <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Quarter Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.86bf3301-883d-4e52-be22-7585cc62296d" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.86bf3301-883d-4e52-be22-7585cc62296d" xml:space="preserve">
+    <value>Kalender Måned År</value>
     <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Month Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.82ff4fc4-5640-43be-96e1-1ccb6533253e" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.82ff4fc4-5640-43be-96e1-1ccb6533253e" xml:space="preserve">
+    <value>Kalender Uke År</value>
     <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Week Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.caption" xml:space="preserve">
     <value>Regnskapsuke år-kvartal-måned-uke</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.e5cd94ed-0d1a-4e41-89ad-82cf77688b47" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.e5cd94ed-0d1a-4e41-89ad-82cf77688b47" xml:space="preserve">
+    <value>Regnskapsuke år</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.9adb622b-d68e-41eb-92d3-f0d3ea6d363f" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.9adb622b-d68e-41eb-92d3-f0d3ea6d363f" xml:space="preserve">
+    <value>Regnskapsuke Kvartal År</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Quarter Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.80aae42c-b9ec-42c5-ae09-13c65d700732" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.80aae42c-b9ec-42c5-ae09-13c65d700732" xml:space="preserve">
+    <value>Regnskapsuke Måned År</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Month Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.01c4eb82-c283-4300-8765-3e61e813fec9" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.01c4eb82-c283-4300-8765-3e61e813fec9" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Week Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.caption" xml:space="preserve">
     <value>Regnskap år-måned</value>
     <comment>table [Date] hierarchy [Fiscal Year-Month]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.54b6013d-cd41-43ea-adde-7461b8f56250" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.54b6013d-cd41-43ea-adde-7461b8f56250" xml:space="preserve">
+    <value>Regnskapsår</value>
     <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.0e94c815-23fc-4ac6-9863-dd02e6f69315" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.0e94c815-23fc-4ac6-9863-dd02e6f69315" xml:space="preserve">
+    <value>Regnskap Måned År</value>
     <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Month Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.caption" xml:space="preserve">
     <value>Regnskap år-måned-uke</value>
     <comment>table [Date] hierarchy [Fiscal Year-Month-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.e8fd0bf8-66c7-4df2-8526-1bb27177f912" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.e8fd0bf8-66c7-4df2-8526-1bb27177f912" xml:space="preserve">
+    <value>Regnskapsår</value>
     <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.edd3142f-d60d-494b-85fc-dcadaaa5b8a4" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.edd3142f-d60d-494b-85fc-dcadaaa5b8a4" xml:space="preserve">
+    <value>Regnskap Måned År</value>
     <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Month Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.c88b8774-fc79-4567-9b79-2849dedd4657" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.c88b8774-fc79-4567-9b79-2849dedd4657" xml:space="preserve">
+    <value>Regnskap Uke År</value>
     <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Week Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.caption" xml:space="preserve">
     <value>Kalender år-måned</value>
     <comment>table [Date] hierarchy [Calendar Year-Month]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.7bfba93e-5d86-41fa-a428-152ab854a070" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.7bfba93e-5d86-41fa-a428-152ab854a070" xml:space="preserve">
+    <value>Kalenderår</value>
     <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.a923bc3f-1bdd-4926-b538-a0bf17d0b2d5" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.a923bc3f-1bdd-4926-b538-a0bf17d0b2d5" xml:space="preserve">
+    <value>Kalender Måned År</value>
     <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Month Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.caption" xml:space="preserve">
     <value>Kalender år-måned-uke</value>
     <comment>table [Date] hierarchy [Calendar Year-Month-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.b4693f04-e15f-42f1-afce-641aa9bd8386" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.b4693f04-e15f-42f1-afce-641aa9bd8386" xml:space="preserve">
+    <value>Kalenderår</value>
     <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.ad1f4929-9815-47ae-ae38-e76760467433" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.ad1f4929-9815-47ae-ae38-e76760467433" xml:space="preserve">
+    <value>Kalender Måned År</value>
     <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Month Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.8c1e598f-68d9-4ec8-8e8b-94bc0f325e6d" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.8c1e598f-68d9-4ec8-8e8b-94bc0f325e6d" xml:space="preserve">
+    <value>Kalender Uke År</value>
     <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Week Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.caption" xml:space="preserve">
     <value>Regnskapsuke år-måned-uke</value>
     <comment>table [Date] hierarchy [FW Year-Month-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.37704c7b-a221-40d3-a104-a5e5c16746f0" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.37704c7b-a221-40d3-a104-a5e5c16746f0" xml:space="preserve">
+    <value>Regnskapsuke år</value>
     <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.1d9a9430-6bed-465f-afbf-c367b9f5edf6" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.1d9a9430-6bed-465f-afbf-c367b9f5edf6" xml:space="preserve">
+    <value>Regnskapsuke Måned År</value>
     <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Month Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.da024fdc-e22a-4d6e-8355-fbe50de4695c" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.da024fdc-e22a-4d6e-8355-fbe50de4695c" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
     <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Week Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.caption" xml:space="preserve">
     <value>Regnskapsuke år-kvartal-uke</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.c4f66205-6c99-4eed-9ea9-0fd4bf9fa72b" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.c4f66205-6c99-4eed-9ea9-0fd4bf9fa72b" xml:space="preserve">
+    <value>Regnskapsuke år</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.d9c3188f-b8fa-45bc-9e08-880f6c98db91" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.d9c3188f-b8fa-45bc-9e08-880f6c98db91" xml:space="preserve">
+    <value>Regnskapsuke Kvartal År</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Quarter Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.a100ef88-63c6-46b8-88c7-7d5d4ba25929" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.a100ef88-63c6-46b8-88c7-7d5d4ba25929" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
     <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Week Year]</comment>
   </data>
   <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.caption" xml:space="preserve">
     <value>Regnskapsuke år-uke</value>
     <comment>table [Date] hierarchy [FW Year-Week]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.0e86a949-ac84-4345-a88e-352ea19afe07" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.0e86a949-ac84-4345-a88e-352ea19afe07" xml:space="preserve">
+    <value>Regnskapsuke år</value>
     <comment>table [Date] hierarchy [FW Year-Week] level [FW Year]</comment>
   </data>
-  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.7fb1d3c0-186f-4de8-a7be-dec117b3c3fd" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.7fb1d3c0-186f-4de8-a7be-dec117b3c3fd" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
     <comment>table [Date] hierarchy [FW Year-Week] level [FW Week Year]</comment>
   </data>
   <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.2e0d925d-a450-462e-b5aa-768960cbdb6f.caption" xml:space="preserve">
@@ -943,44 +931,44 @@
     <value>Gj.sn. månedlig frafallsrate i prosent etter år og måned</value>
     <comment>table [Localized Labels] measure [Avg. Mon. Churn Rate % by Year and Month]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.eb7ac507-a2f1-4ba2-92d4-e7eb91d456d9.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.eb7ac507-a2f1-4ba2-92d4-e7eb91d456d9.caption" xml:space="preserve">
+    <value>Total Contract Value by Package</value>
     <comment>table [Localized Labels] measure [Total Contract Value by Package]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9c002ddd-002a-426e-a47d-d6351d291e93.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9c002ddd-002a-426e-a47d-d6351d291e93.caption" xml:space="preserve">
+    <value>Mon. Recurring Revenue by Package</value>
     <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Package]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.79e806b1-5fe4-461f-9e2d-8d23af4d33ac.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.79e806b1-5fe4-461f-9e2d-8d23af4d33ac.caption" xml:space="preserve">
+    <value>Churn by Customer</value>
     <comment>table [Localized Labels] measure [Churn by Customer]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.aef1f788-4dd3-4346-ba15-c7964929e203.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.aef1f788-4dd3-4346-ba15-c7964929e203.caption" xml:space="preserve">
+    <value>Profitability by Item</value>
     <comment>table [Localized Labels] measure [Profitability by Item]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.355d4e8c-e2b7-488d-8aae-610791396576.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.355d4e8c-e2b7-488d-8aae-610791396576.caption" xml:space="preserve">
+    <value>Mon. Recurring Revenue by Customer Location</value>
     <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Customer Location]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10fb96a6-7639-4f61-b26c-4c8aeb15b721.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10fb96a6-7639-4f61-b26c-4c8aeb15b721.caption" xml:space="preserve">
+    <value>Profitability by Salesperson</value>
     <comment>table [Localized Labels] measure [Profitability by Salesperson]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.5ca0d80c-d7cc-4f84-9bf1-8cadb5777ad1.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.5ca0d80c-d7cc-4f84-9bf1-8cadb5777ad1.caption" xml:space="preserve">
+    <value>Total Contract Value by Salesperson</value>
     <comment>table [Localized Labels] measure [Total Contract Value by Salesperson]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.dc49dcdf-4074-4dde-845c-dd35d6864bbc.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.dc49dcdf-4074-4dde-845c-dd35d6864bbc.caption" xml:space="preserve">
+    <value>Customer Deferrals by Released Status</value>
     <comment>table [Localized Labels] measure [Customer Deferrals by Released Status]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10e96e0c-8487-469d-97ea-94d49f78cdd5.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10e96e0c-8487-469d-97ea-94d49f78cdd5.caption" xml:space="preserve">
+    <value>Vendor Deferrals by Released Status</value>
     <comment>table [Localized Labels] measure [Vendor Deferrals by Released Status]</comment>
   </data>
-  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.601a43e9-3983-471f-8187-a5cc4ee23dff.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.601a43e9-3983-471f-8187-a5cc4ee23dff.caption" xml:space="preserve">
+    <value>Billing Forecast by Billing Period, Vendor and Contract No.</value>
     <comment>table [Localized Labels] measure [Billing Forecast by Billing Period, Vendor and Contract No.]</comment>
   </data>
   <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.caption" xml:space="preserve">
@@ -1004,7 +992,7 @@
     <comment>table [Subscription] column [Analysis Date]</comment>
   </data>
   <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.column.2280128a-2625-4941-9aa4-22a69182b035.caption" xml:space="preserve">
-    <value>Beskrivelse av Subscription-nr.</value>
+    <value>Beskrivelse av abonnementsnr.</value>
     <comment>table [Subscription] column [Subscription No. Desc.]</comment>
   </data>
   <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.caption" xml:space="preserve">
@@ -1315,8 +1303,8 @@
     <value>Er frigitt</value>
     <comment>table [table.Name]</comment>
   </data>
-  <data name="9728ed60-2d3f-45b2-bab6-f867ea81d7be.column.924163c9-a51f-430e-89bf-b9cf3920703b.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="9728ed60-2d3f-45b2-bab6-f867ea81d7be.column.924163c9-a51f-430e-89bf-b9cf3920703b.caption" xml:space="preserve">
+    <value>Is Released Value</value>
     <comment>table [Is Released] column [Is Released Value]</comment>
   </data>
   <data name="e8181695-0d8d-46a4-a884-1119686c45c5.caption" xml:space="preserve">
@@ -1371,24 +1359,12 @@
     <value>MGI</value>
     <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.efa16235-29ec-4359-b767-4a1a45c5f4e9.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue]</comment>
-  </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d67d9f11-460a-4c86-8b8a-f45107b68634.caption" xml:space="preserve">
     <value>MGK</value>
     <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Cost]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d67d9f11-460a-4c86-8b8a-f45107b68634.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Cost]</comment>
-  </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.8e3a6640-ba6c-4e85-bca9-1b3f173b953b.caption" xml:space="preserve">
     <value>Kundeperiodiseringer</value>
-    <comment>table [Subscription Billing KPIs] measure [Customer Deferrals]</comment>
-  </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.8e3a6640-ba6c-4e85-bca9-1b3f173b953b.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
     <comment>table [Subscription Billing KPIs] measure [Customer Deferrals]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ff5e3370-233c-4ce8-a15f-5f36821380bb.caption" xml:space="preserve">
@@ -1403,16 +1379,8 @@
     <value>TKV</value>
     <comment>table [Subscription Billing KPIs] measure [Total Contract Value]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d28aa5fe-b07c-437f-9674-b3e2e749092c.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Total Contract Value]</comment>
-  </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fab3b270-bd2c-44ed-a3a6-ab77aa69f945.caption" xml:space="preserve">
     <value>Prognosesalg</value>
-    <comment>table [Subscription Billing KPIs] measure [Forecast Sales]</comment>
-  </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fab3b270-bd2c-44ed-a3a6-ab77aa69f945.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
     <comment>table [Subscription Billing KPIs] measure [Forecast Sales]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d2cb18bd-0e6c-4489-a3cd-a4a5cbd6ba41.caption" xml:space="preserve">
@@ -1425,10 +1393,6 @@
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.72940ea8-c027-427e-8310-46864947d133.caption" xml:space="preserve">
     <value>Månedlig gjentakende inntektsfrafall</value>
-    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Churn]</comment>
-  </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.72940ea8-c027-427e-8310-46864947d133.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
     <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Churn]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.7d1bb0d4-ffd8-4611-b01b-acc089d04451.caption" xml:space="preserve">
@@ -1445,10 +1409,6 @@
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1dd703f4-3a19-4c3a-8664-f08c9e914937.caption" xml:space="preserve">
     <value>NMGI</value>
-    <comment>table [Subscription Billing KPIs] measure [Mon. Net Profit Amount]</comment>
-  </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1dd703f4-3a19-4c3a-8664-f08c9e914937.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
     <comment>table [Subscription Billing KPIs] measure [Mon. Net Profit Amount]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.a73a8e79-eaed-4806-8630-1b4b8a4d5bb5.caption" xml:space="preserve">
@@ -1479,10 +1439,6 @@
     <value>Analyseposter sist oppdatert</value>
     <comment>table [Subscription Billing KPIs] measure [Last Update Analysis Entries]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ab1f34d8-7a54-4395-9910-13b1db61857a.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Last Update Analysis Entries]</comment>
-  </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.4746be26-684e-418e-a5bb-26b345b3ff0f.caption" xml:space="preserve">
     <value>Semantisk modell sist oppdatert</value>
     <comment>table [Subscription Billing KPIs] measure [Last Update Semantic Model]</comment>
@@ -1511,10 +1467,6 @@
     <value>Aktive kunder</value>
     <comment>table [Subscription Billing KPIs] measure [Active Customers]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe66cb5b-96ae-4d9a-b313-c3bd58b9ff3b.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Active Customers]</comment>
-  </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.7dce4c20-b81e-4300-b18d-a08795754ee7.caption" xml:space="preserve">
     <value>Aktive kunder PÅ</value>
     <comment>table [Subscription Billing KPIs] measure [Active Customers PY]</comment>
@@ -1539,52 +1491,44 @@
     <value>Månedlig gjentakende inntektsnedgradering</value>
     <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Downgrade]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.97d97364-1e94-42dd-a0a1-50f8c741dab9.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.97d97364-1e94-42dd-a0a1-50f8c741dab9.caption" xml:space="preserve">
+    <value>Churn</value>
     <comment>table [Subscription Billing KPIs] measure [Churn (-)]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.97d97364-1e94-42dd-a0a1-50f8c741dab9.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Churn (-)]</comment>
-  </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.682b0afe-72bd-417b-81b6-b62616a1f9c0.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.682b0afe-72bd-417b-81b6-b62616a1f9c0.caption" xml:space="preserve">
+    <value>Downgrade</value>
     <comment>table [Subscription Billing KPIs] measure [Downgrade (-)]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1b353d3a-e1a9-4b93-ab99-0317060f1aab.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1b353d3a-e1a9-4b93-ab99-0317060f1aab.caption" xml:space="preserve">
+    <value>Usage Based Billing Change</value>
     <comment>table [Subscription Billing KPIs] measure [Usage Based Billing Change]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.04040d7e-b3a4-4069-92cb-e4fb9478ec9f.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.04040d7e-b3a4-4069-92cb-e4fb9478ec9f.caption" xml:space="preserve">
+    <value>Upgrade</value>
     <comment>table [Subscription Billing KPIs] measure [Upgrade]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ca15d892-5102-4d5e-8467-41ef46bb0a4b.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ca15d892-5102-4d5e-8467-41ef46bb0a4b.caption" xml:space="preserve">
+    <value>New</value>
     <comment>table [Subscription Billing KPIs] measure [New]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.0fbe1130-cb6d-4208-93d3-8d15206728ab.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.0fbe1130-cb6d-4208-93d3-8d15206728ab.caption" xml:space="preserve">
+    <value>Total Change</value>
     <comment>table [Subscription Billing KPIs] measure [Total Change]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1f3c3882-eb8b-45ff-9df5-a24d6d0bb80c.caption" xml:space="preserve">
     <value>Valgt datoområde</value>
     <comment>table [Subscription Billing KPIs] measure [Selected Date Range]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.995319bd-3056-41a9-aca0-17142d85fb8d.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.995319bd-3056-41a9-aca0-17142d85fb8d.caption" xml:space="preserve">
+    <value>Churn</value>
     <comment>table [Subscription Billing KPIs] measure [Churn]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.995319bd-3056-41a9-aca0-17142d85fb8d.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Churn]</comment>
-  </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe462ca3-cb8f-4aa2-8444-acfdd1e4755a.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe462ca3-cb8f-4aa2-8444-acfdd1e4755a.caption" xml:space="preserve">
+    <value>Downgrade</value>
     <comment>table [Subscription Billing KPIs] measure [Downgrade]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ac440820-dbc1-4014-9753-dcafa6618075.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ac440820-dbc1-4014-9753-dcafa6618075.caption" xml:space="preserve">
+    <value>MRR End of Period</value>
     <comment>table [Subscription Billing KPIs] measure [MRR End of Period]</comment>
   </data>
   <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.3180f6bf-8dd2-4555-aee9-0423d81808c1.caption" xml:space="preserve">
@@ -1599,24 +1543,20 @@
     <value>Månedlig gjentakende inntektsnedgradering og -frafall</value>
     <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Downgrade &amp; Churn]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.b0e9cd9b-c824-482b-93b8-946fe797d20c.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.b0e9cd9b-c824-482b-93b8-946fe797d20c.caption" xml:space="preserve">
+    <value>Customer Deferrals Back Link</value>
     <comment>table [Subscription Billing KPIs] measure [Customer Deferrals Back Link]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.b0e9cd9b-c824-482b-93b8-946fe797d20c.displayFolder" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>table [Subscription Billing KPIs] measure [Customer Deferrals Back Link]</comment>
-  </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fb40ded3-6eb4-4595-a359-ef320241ce65.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fb40ded3-6eb4-4595-a359-ef320241ce65.caption" xml:space="preserve">
+    <value>Vendor Deferrals Back Link</value>
     <comment>table [Subscription Billing KPIs] measure [Vendor Deferrals Back Link]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe25274f-9ebf-477c-97a4-790b677123a4.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe25274f-9ebf-477c-97a4-790b677123a4.caption" xml:space="preserve">
+    <value>Customer Contract Line Back Link</value>
     <comment>table [Subscription Billing KPIs] measure [Customer Contract Line Back Link]</comment>
   </data>
-  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.39f6703a-1ae0-4b23-b3e6-88e885731623.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.39f6703a-1ae0-4b23-b3e6-88e885731623.caption" xml:space="preserve">
+    <value>Vendor Contract Line Back Link</value>
     <comment>table [Subscription Billing KPIs] measure [Vendor Contract Line Back Link]</comment>
   </data>
   <data name="f229e1ee-eb72-4253-af81-91c9b5a4a709.caption" xml:space="preserve">
@@ -1651,32 +1591,32 @@
     <value>MGI delta</value>
     <comment>table [Customer Contract Changes] column [MRR Delta]</comment>
   </data>
-  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.caption" xml:space="preserve">
+    <value>Item Category</value>
     <comment>table [table.Name]</comment>
   </data>
-  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.112cfe30-01df-49e7-86d8-ba22a667e132.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.112cfe30-01df-49e7-86d8-ba22a667e132.caption" xml:space="preserve">
+    <value>Item Category Code</value>
     <comment>table [Item Category] column [Item Category Code]</comment>
   </data>
-  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.aa593ef2-fa6a-466d-b754-4164fba6d2f7.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.aa593ef2-fa6a-466d-b754-4164fba6d2f7.caption" xml:space="preserve">
+    <value>Item Category Description</value>
     <comment>table [Item Category] column [Item Category Description]</comment>
   </data>
-  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.caption" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.caption" xml:space="preserve">
+    <value>Item Category Code Hierarchy</value>
     <comment>table [Item Category] hierarchy [Item Category Code Hierarchy]</comment>
   </data>
-  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.54983986-fbad-431d-b1a9-1e300a5f1268" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.54983986-fbad-431d-b1a9-1e300a5f1268" xml:space="preserve">
+    <value>Item Category Code Level 1</value>
     <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 1]</comment>
   </data>
-  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.57909489-5b68-44a1-9c28-6fc6cb12c0c2" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.57909489-5b68-44a1-9c28-6fc6cb12c0c2" xml:space="preserve">
+    <value>Item Category Code Level 2</value>
     <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 2]</comment>
   </data>
-  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.607f341e-c72e-4a1b-803e-3637de756fc4" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.607f341e-c72e-4a1b-803e-3637de756fc4" xml:space="preserve">
+    <value>Item Category Code Level 3</value>
     <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 3]</comment>
   </data>
 </root>
