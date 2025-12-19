@@ -18,7 +18,6 @@ page 20435 "Qlty. Lookup Code Part"
     PageType = ListPart;
     SourceTable = "Qlty. Lookup Code";
     SourceTableView = sorting("Group Code", Code);
-    UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 
     layout

@@ -7,28 +7,71 @@
     "z": 1000,
     "height": 307,
     "width": 1226.8259385665528,
-    "tabOrder": 5
+    "tabOrder": 1000
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "lineChart",
     "query": {
       "queryState": {
         "Category": {
           "projections": [
             {
               "field": {
-                "Column": {
+                "HierarchyLevel": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "Date"
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
                     }
                   },
-                  "Property": "Fiscal Month Year"
+                  "Level": "Fiscal Year"
                 }
               },
-              "queryRef": "Date.Fiscal Month Year",
-              "nativeQueryRef": "Fiscal Month Year",
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Year",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
+                    }
+                  },
+                  "Level": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Month Year",
               "active": true
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Churn"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Churn",
+              "nativeQueryRef": "Churn"
             }
           ]
         },
@@ -45,7 +88,7 @@
                   "Property": "Mon. Recurring Revenue"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.MRR",
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Revenue",
               "nativeQueryRef": "Mon. Recurring Revenue1"
             },
             {
@@ -59,62 +102,34 @@
                   "Property": "Mon. Recurring Revenue PY"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.MRR PY",
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Revenue PY",
               "nativeQueryRef": "MRR PY"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Subscription Billing KPIs"
-                    }
-                  },
-                  "Property": "Churn"
-                }
-              },
-              "queryRef": "Subscription Billing KPIs.Churn",
-              "nativeQueryRef": "Churn"
             }
           ]
         }
       }
     },
     "objects": {
-      "categoryAxis": [
+      "legend": [
         {
           "properties": {
-            "concatenateLabels": {
+            "show": {
               "expr": {
                 "Literal": {
                   "Value": "true"
-                }
-              }
-            },
-            "maxMarginFactor": {
-              "expr": {
-                "Literal": {
-                  "Value": "15L"
                 }
               }
             }
           }
         }
       ],
-      "legend": [
+      "categoryAxis": [
         {
           "properties": {
-            "showGradientLegend": {
+            "concatenateLabels": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             }

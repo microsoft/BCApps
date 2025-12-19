@@ -14,10 +14,8 @@ report 20402 "Qlty. Inspection Copy Template"
 {
     Caption = 'Copy Quality Inspection Template';
     ToolTip = 'Copy an Existing Quality Inspection Template.';
-    AdditionalSearchTerms = 'Copy Template,Copy Quality Inspection Template,Duplicate Template';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
-    UsageCategory = Tasks;
     AllowScheduling = false;
 
     dataset
