@@ -7,7 +7,6 @@ namespace System.Agents;
 
 using System.Environment;
 using System.Integration;
-using System.Security.AccessControl;
 
 codeunit 4300 "Agent Task Impl."
 {
