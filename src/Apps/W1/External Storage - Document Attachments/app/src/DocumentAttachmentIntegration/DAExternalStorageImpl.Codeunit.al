@@ -33,7 +33,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FileAccount: Record "File Account";
         ConfirmManagement: Codeunit "Confirm Management";
         FileScenarioCU: Codeunit "File Scenario";
-        DisclaimerMsg: Label 'You are about to enable External Storage!!!\\This feature is provided as-is, and you use it at your own risk.\Microsoft is not responsible for any issues or data loss that may occur.\\Do you wish to continue?';
+        DisclaimerMsg: Label 'You are about to enable External Storage.\\When this feature is enabled, files will be stored outside the Business Central service boundary.\Microsoft does not manage, back up, or restore data stored in external storage.\\You are responsible for the configuration, security, compliance, backup, and recovery of all externally stored files.\This feature is provided as-is, and you enable it at your own risk.\\Do you want to continue?';
     begin
         if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
             exit;
