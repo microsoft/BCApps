@@ -333,6 +333,36 @@ codeunit 4301 "Agent Impl."
             AccessControl.Insert();
         until AggregatePermissionSet.Next() = 0;
     end;
+
+    // TODO(qutreson) temporary - comes from another PR.
+    procedure AssignPermissionSets(var UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AccessControl: Record "Access Control";
+    begin
+        AccessControl.SetRange("User Security ID", UserSecurityID);
+        if AccessControl.FindSet() then
+            repeat
+                if not TempAccessControlBuffer.Get(AccessControl."Company Name", AccessControl.Scope, AccessControl."App ID", AccessControl."Role ID") then
+                    AccessControl.Delete(true);
+            until AccessControl.Next() = 0;
+
+        AccessControl.Reset();
+        TempAccessControlBuffer.Reset();
+        if not TempAccessControlBuffer.FindSet() then
+            exit;
+
+        repeat
+            if not AccessControl.Get(UserSecurityID, TempAccessControlBuffer."Role ID", TempAccessControlBuffer."Company Name", TempAccessControlBuffer.Scope, TempAccessControlBuffer."App ID") then begin
+                AccessControl."User Security ID" := UserSecurityID;
+                AccessControl."Role ID" := TempAccessControlBuffer."Role ID";
+                AccessControl."Company Name" := TempAccessControlBuffer."Company Name";
+                AccessControl.Scope := TempAccessControlBuffer.Scope;
+                AccessControl."App ID" := TempAccessControlBuffer."App ID";
+                AccessControl.Insert();
+            end;
+        until TempAccessControlBuffer.Next() = 0;
+    end;
+
     #endregion
 
     local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
