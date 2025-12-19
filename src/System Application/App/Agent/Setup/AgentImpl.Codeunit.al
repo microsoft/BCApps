@@ -314,26 +314,36 @@ codeunit 4301 "Agent Impl."
                 TempAllProfile.Insert();
             until AllProfile.Next() = 0;
     end;
+    #endregion
 
-    procedure AssignPermissionSets(var UserSID: Guid; PermissionCompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    procedure AssignPermissionSets(var UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         AccessControl: Record "Access Control";
+        TempAggregatePermissionSet: Record "Aggregate Permission Set" temporary;
     begin
-        if not AggregatePermissionSet.FindSet() then
+        AccessControl.SetRange("User Security ID", UserSecurityID);
+        if AccessControl.FindSet() then
+            repeat
+                if not TempAccessControlBuffer.Get(AccessControl."Company Name", AccessControl.Scope, AccessControl."App ID", AccessControl."Role ID") then
+                    AccessControl.Delete(true);
+            until AccessControl.Next() = 0;
+
+        AccessControl.Reset();
+        TempAccessControlBuffer.Reset();
+        if not TempAccessControlBuffer.FindSet() then
             exit;
 
         repeat
-            AccessControl."App ID" := AggregatePermissionSet."App ID";
-            AccessControl."User Security ID" := UserSID;
-            AccessControl."Role ID" := AggregatePermissionSet."Role ID";
-            AccessControl.Scope := AggregatePermissionSet.Scope;
-#pragma warning disable AA0139
-            AccessControl."Company Name" := PermissionCompanyName;
-#pragma warning restore AA0139
-            AccessControl.Insert();
-        until AggregatePermissionSet.Next() = 0;
+            if not AccessControl.Get(UserSecurityID, TempAccessControlBuffer."Role ID", TempAccessControlBuffer."Company Name", TempAccessControlBuffer.Scope, TempAccessControlBuffer."App ID") then begin
+                AccessControl."User Security ID" := UserSecurityID;
+                AccessControl."Role ID" := TempAccessControlBuffer."Role ID";
+                AccessControl."Company Name" := TempAccessControlBuffer."Company Name";
+                AccessControl.Scope := TempAccessControlBuffer.Scope;
+                AccessControl."App ID" := TempAccessControlBuffer."App ID";
+                AccessControl.Insert();
+            end;
+        until TempAccessControlBuffer.Next() = 0;
     end;
-    #endregion
 
     local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
     begin
