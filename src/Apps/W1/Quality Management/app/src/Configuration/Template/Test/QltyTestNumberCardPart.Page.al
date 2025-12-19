@@ -98,14 +98,14 @@ page 20434 "Qlty. Test Number Card Part"
             group(AdvancedConfiguration)
             {
                 Caption = 'Advanced Configuration for Allowed Values';
-                InstructionalText = 'Enter the allowed number syntax. For example 1 through 3 would be 1..3. More than 5 would be >5. 1 or 2 would be 1|2. Full details are available at https://learn.microsoft.com/en-ca/dynamics365/business-central/ui-enter-criteria-filters';
+                InstructionalText = 'Enter the allowed number syntax. For example 1 through 3 would be 1..3. More than 5 would be >5. 1 or 2 would be 1|2.';
                 AboutTitle = 'Advanced range.';
-                AboutText = 'Enter the allowed number syntax. For example 1 through 3 would be 1..3. More than 5 would be >5. 1 or 2 would be 1|2. Full details are available at https://learn.microsoft.com/en-ca/dynamics365/business-central/ui-enter-criteria-filters';
+                AboutText = 'Enter the allowed number syntax. For example 1 through 3 would be 1..3. More than 5 would be >5. 1 or 2 would be 1|2.';
                 Visible = ShowAdvanced;
 
                 field(ChooseAdvanced; AdvancedRange)
                 {
-                    ToolTip = 'Enter the allowed number syntax. For example 1 through 3 would be 1..3. More than 5 would be >5. 1 or 2 would be 1|2. Full details are available at https://learn.microsoft.com/en-ca/dynamics365/business-central/ui-enter-criteria-filters';
+                    ToolTip = 'Enter the allowed number syntax. For example 1 through 3 would be 1..3. More than 5 would be >5. 1 or 2 would be 1|2.';
                     Caption = 'Advanced Range';
                     ShowCaption = false;
                     ShowMandatory = true;

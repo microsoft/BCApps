@@ -84,6 +84,11 @@ page 20406 "Qlty. Inspection"
                         Caption = 'Failed Quantity';
                         Editable = CanChangeQuantity;
                     }
+                    field("Sample Size"; Rec."Sample Size")
+                    {
+                        Editable = CanChangeQuantity;
+                        Importance = Additional;
+                    }
                 }
                 group(SettingsForGradingAndStatus)
                 {

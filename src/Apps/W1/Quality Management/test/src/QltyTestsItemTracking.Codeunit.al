@@ -16,6 +16,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Dispositions.ItemTracking;
@@ -48,6 +49,8 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryPurchase: Codeunit "Library - Purchase";
         NegativeTrackingErr: Label 'Cannot create negative tracking entries on the item %1 in the purchase document %2', Comment = '%1=the item no., %2=the purchase document no';
         SNAlreadyEnteredErr: Label 'Serial Number: [%1] has already been entered.', Comment = '%1 = The serial number';
         IsInitialized: Boolean;
@@ -2464,7 +2467,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
@@ -2548,7 +2550,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
@@ -2621,7 +2622,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
@@ -3039,12 +3039,79 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.IsFalse(TempItemTrackingSetup."Package No. Required", 'Should return is not package-tracked (false)');
     end;
 
+    [Test]
+    procedure ItemTrackingDetailsAreNotPopulatedOnTestForNonTrackingItem()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        Location: Record Location;
+        LotTrackedItem: Record Item;
+        NonTrackingItem: Record Item;
+        LotNoSeries: Record "No. Series";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        NoSeries: Codeunit "No. Series";
+    begin
+        // [SCENARIO 615767] Verify that item tracking details are not populated on quality inspection test for non-tracking item
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A prioritized rule is created for Purchase Line
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
+
+        // [GIVEN] A location is created
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Lot-tracked item with no. series is created
+        QltyInspectionUtility.CreateLotTrackedItem(LotTrackedItem, LotNoSeries);
+
+        // [GIVEN] An Non tracking item is created
+        LibraryInventory.CreateItem(NonTrackingItem);
+
+        // [GIVEN] A purchase order with the Lot trackeditem is created
+        QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, LotTrackedItem, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] Add purchase line with the Non tracking item to the purchase order
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, NonTrackingItem."No.", LibraryRandom.RandInt(10));
+
+        // [WHEN] The purchase order is received
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] Find first test and verify item tracking details are populated for Lot tracked item
+        FindQltyInspectionHeader(QltyInspectionHeader, LotTrackedItem."No.");
+        LibraryAssert.AreEqual(LotTrackedItem."No.", QltyInspectionHeader."Source Item No.", 'Should be same item.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."Source Lot No.", NoSeries.GetLastNoUsed(LotNoSeries.Code), 'Lot No. should be populated.');
+
+        // [THEN] Find first test and verify item tracking details are populated for Lot tracked item
+        FindQltyInspectionHeader(QltyInspectionHeader, NonTrackingItem."No.");
+        LibraryAssert.AreEqual(NonTrackingItem."No.", QltyInspectionHeader."Source Item No.", 'Should be same item.');
+        LibraryAssert.IsTrue(QltyInspectionHeader."Source Lot No." = '', 'Lot No. should not be populated.');
+
+        QltyInspectionGenRule.Delete();
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
+    end;
+
+    local procedure FindQltyInspectionHeader(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ItemNo: Code[20])
+    begin
+        QltyInspectionHeader.Reset();
+        QltyInspectionHeader.SetRange("Source Item No.", ItemNo);
+        QltyInspectionHeader.FindFirst();
     end;
 
     [ConfirmHandler]

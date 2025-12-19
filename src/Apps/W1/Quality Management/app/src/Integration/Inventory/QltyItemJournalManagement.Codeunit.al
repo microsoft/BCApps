@@ -250,10 +250,7 @@ codeunit 20454 "Qlty. Item Journal Management"
         ItemJournalLine.Validate("Posting Date", WorkDate());
 
         if ItemJournalBatch."No. Series" <> '' then
-            if ManagementNoSeries.IsManual(ItemJournalBatch."No. Series") then
-                ItemJournalLine."Document No." := QltyInspectionHeader."No."
-            else
-                ItemJournalLine."Document No." := ManagementNoSeries.PeekNextNo(ItemJournalBatch."No. Series", ItemJournalLine."Posting Date");
+            ItemJournalLine."Document No." := ManagementNoSeries.PeekNextNo(ItemJournalBatch."No. Series", ItemJournalLine."Posting Date");
 
         if ItemJournalLine."Document No." = '' then
             ItemJournalLine."Document No." := QltyInspectionHeader."No.";

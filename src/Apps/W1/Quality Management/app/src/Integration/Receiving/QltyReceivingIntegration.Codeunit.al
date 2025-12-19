@@ -63,9 +63,8 @@ codeunit 20411 "Qlty. Receiving Integration"
         if ExpectedCountOfInspections = 0 then begin
             ExpectedCountOfInspections := 1;
             if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
-                TempSingleBufferTrackingSpecification := TempTrackingSpecification;
+                TempSingleBufferTrackingSpecification.Init();
                 TempSingleBufferTrackingSpecification.Insert(false);
-                TempSingleBufferTrackingSpecification.SetRecFilter();
                 AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempSingleBufferTrackingSpecification);
             end
         end else

@@ -336,11 +336,6 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     views
     {
-        view(viewAll)
-        {
-            Caption = 'All';
-            OrderBy = descending("Sort Order");
-        }
         view(viewEnabled)
         {
             Caption = 'Enabled';
