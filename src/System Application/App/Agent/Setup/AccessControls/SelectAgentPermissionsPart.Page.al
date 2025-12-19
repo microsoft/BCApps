@@ -15,7 +15,6 @@ page 4340 "Select Agent Permissions Part"
     SourceTableTemporary = true;
     Caption = 'Agent permissions';
     MultipleNewLines = false;
-    Extensible = false;
     Editable = true;
     DataCaptionExpression = '';
     InherentEntitlements = X;
@@ -126,19 +125,6 @@ page 4340 "Select Agent Permissions Part"
                     CurrPage.Update(false);
                 end;
             }
-
-            action(Assign)
-            {
-                ApplicationArea = All;
-                Caption = 'Assign my permissions';
-                ToolTip = 'Assign your permissions to the agent for the current company.';
-                Image = Permission;
-
-                trigger OnAction()
-                begin
-                    AssignMyPermissions();
-                end;
-            }
         }
     }
 
@@ -215,44 +201,7 @@ page 4340 "Select Agent Permissions Part"
         end;
     end;
 
-    local procedure AssignMyPermissions()
-    var
-        AccessControl: Record "Access Control";
-    begin
-        if not GetAccessControlForSingleCompany(GlobalSingleCompanyName) then
-            Error(CannotAssignPermissionsMultipleCompaniesErr);
-
-        if not Confirm(AssignMyPermissionsQst, true) then
-            exit;
-
-        Rec.Reset();
-        Rec.DeleteAll();
-
-        AddCurrentUserAccessControlsForCompany(AccessControl, CompanyName());
-        AddCurrentUserAccessControlsForCompany(AccessControl, '');
-
-        UpdateGlobalVariables();
-    end;
-
-    local procedure AddCurrentUserAccessControlsForCompany(var AccessControl: Record "Access Control"; CompanyName: Text)
-    begin
-        AccessControl.Reset();
-        AccessControl.SetRange("User Security ID", UserSecurityId());
-        AccessControl.SetRange("Company Name", CompanyName);
-        if AccessControl.FindSet() then
-            repeat
-                Clear(Rec);
-                Rec."Role ID" := AccessControl."Role ID";
-                Rec.Scope := AccessControl.Scope;
-                Rec."App ID" := AccessControl."App ID";
-#pragma warning disable AA0139
-                Rec."Company Name" := CompanyName();
-#pragma warning restore AA0139
-                Rec.Insert();
-            until AccessControl.Next() = 0;
-    end;
-
-    local procedure GetAccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
+    protected procedure GetAccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
@@ -267,7 +216,5 @@ page 4340 "Select Agent Permissions Part"
         ShowCompanyField, ShowCompanyFieldOverride : Boolean;
         GlobalSingleCompanyName: Text[30];
         MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
-        AssignMyPermissionsQst: Label 'Assigning your permissions for the current company to the agent will clear its existing permissions if any.\\Do you want to continue?';
         ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign permissions in other companies, making the agent available there. The agent may not have been designed to work cross companies.\\Do you want to continue?';
-        CannotAssignPermissionsMultipleCompaniesErr: Label 'Cannot assign your permissions because the agent is set up to work in multiple companies.';
 }

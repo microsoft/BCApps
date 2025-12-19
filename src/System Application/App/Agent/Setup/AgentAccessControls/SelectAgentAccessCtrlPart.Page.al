@@ -169,12 +169,23 @@ page 4325 "Select Agent Access Ctrl Part"
 
     local procedure ValidateUserName(NewUserName: Text)
     var
-        UserSecurityID: Guid;
+        User: Record "User";
+        UserGuid: Guid;
     begin
-        if not FindUserByName(NewUserName, UserSecurityID) then
+        if Evaluate(UserGuid, NewUserName) then begin
+            User.Get(UserGuid);
+            Rec.Validate("User Security ID", User."User Security ID");
+            UpdateGlobalVariables();
             exit;
+        end;
 
-        Rec.Validate("User Security ID", UserSecurityID);
+        User.SetRange("User Name", NewUserName);
+        if not User.FindFirst() then begin
+            User.SetFilter("User Name", '@*''''' + NewUserName + '''''*');
+            User.FindFirst();
+        end;
+
+        Rec.Validate("User Security ID", User."User Security ID");
         UpdateGlobalVariables();
     end;
 
