@@ -345,8 +345,8 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         InventoryPostingGroupCode: Code[20];
         VendorNoFilter: Code[20];
         QltyWarehouseTrigger: Enum "Qlty. Warehouse Trigger";
-        WhseRule: Text[400];
-        ItemRule: Text[400];
+        WhseRule: Text;
+        ItemRule: Text;
         IsIsBackEnabledd: Boolean;
         IsIsNextEnabledd: Boolean;
         IsIsFinishEnabledd: Boolean;
@@ -367,7 +367,6 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         YourUserDoesNotAppearToBeConfiguredAsAWarehouseEmployeeMsg: Label 'Your user id of %1 does not appear to be configured as a warehouse employee. Navigate to Warehouse Employees and create appropriate warehouse employee configuration before using this screen.', Comment = '%1=the user id.';
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         AlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';
-        FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
 
     trigger OnInit();
     begin
