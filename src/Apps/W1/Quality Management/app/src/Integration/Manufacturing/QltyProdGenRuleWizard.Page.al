@@ -552,9 +552,9 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         InventoryPostingGroupCode: Code[20];
         QltyProductionTrigger: Enum "Qlty. Production Trigger";
         QltyAssemblyTrigger: Enum "Qlty. Assembly Trigger";
-        ProdOrderRoutingLineRuleFilter: Text[400];
-        PostedAssemblyOrderRuleFilter: Text[400];
-        ItemRuleFilter: Text[400];
+        ProdOrderRoutingLineRuleFilter: Text;
+        PostedAssemblyOrderRuleFilter: Text;
+        ItemRuleFilter: Text;
         IsBackEnabledd: Boolean;
         IsNextEnabledd: Boolean;
         IsFinishEnabledd: Boolean;
