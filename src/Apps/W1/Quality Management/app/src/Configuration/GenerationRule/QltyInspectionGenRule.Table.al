@@ -141,10 +141,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
             FieldClass = FlowFilter;
             Caption = 'Table ID Filter';
         }
-        field(19; "Item Filter"; Text[400])
+        field(19; "Item Filter"; Blob)
         {
             Caption = 'Item Filter';
-            ToolTip = 'Specifies the item specific criteria for defining when to use this template. ';
         }
         field(20; "Item Attribute Filter"; Text[400])
         {
@@ -365,6 +364,47 @@ table 20404 "Qlty. Inspection Gen. Rule"
     end;
 
     /// <summary>
+    /// Gets the item filter from the Blob field.
+    /// </summary>
+    /// <returns>The item filter text</returns>
+    procedure GetItemFilter(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Item Filter");
+        if not Rec."Item Filter".HasValue() then
+            exit('');
+        Rec."Item Filter".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
+    end;
+
+    /// <summary>
+    /// Sets the item filter to the Blob field.
+    /// </summary>
+    /// <param name="NewItemFilter">The item filter text to set</param>
+    procedure SetItemFilter(NewItemFilter: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Item Filter");
+        if NewItemFilter = '' then
+            exit;
+        Rec."Item Filter".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewItemFilter);
+    end;
+
+    /// <summary>
+    /// Checks if the Item Filter has a value.
+    /// </summary>
+    /// <returns>True if the Item Filter has a value</returns>
+    procedure HasItemFilter(): Boolean
+    begin
+        Rec.CalcFields("Item Filter");
+        exit(Rec."Item Filter".HasValue());
+    end;
+
+    /// <summary>
     /// Provides the ability to assist edit an item filter.
     /// </summary>
     /// <returns></returns>
@@ -373,13 +413,10 @@ table 20404 "Qlty. Inspection Gen. Rule"
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         Value: Text;
     begin
-        Value := Rec."Item Filter";
+        Value := Rec.GetItemFilter();
         if QltyFilterHelpers.BuildFilter(Database::Item, true, Value) then begin
-            if (Value <> Rec."Item Filter") and (Value <> '') then begin
-                Rec."Item Filter" := CopyStr(Value, 1, MaxStrLen(Rec."Item Filter"));
-                if StrLen(Value) > MaxStrLen(Rec."Item Filter") then
-                    Error(FilterLengthErr, MaxStrLen(Rec."Item Filter"));
-            end;
+            if (Value <> Rec.GetItemFilter()) and (Value <> '') then
+                Rec.SetItemFilter(Value);
             Result := true;
         end;
     end;

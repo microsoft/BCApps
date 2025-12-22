@@ -305,8 +305,8 @@ codeunit 20404 "Qlty. Inspection - Create"
         if Handled then
             exit(QltyInspectionCreateStatus::"Unable to Create");
 
-        if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then
-            RelatedItem.SetView(TempFiltersQltyInspectionGenRule."Item Filter");
+        if TempFiltersQltyInspectionGenRule.HasItemFilter() then
+            RelatedItem.SetView(TempFiltersQltyInspectionGenRule.GetItemFilter());
 
         QltyTraversal.FindRelatedItem(RelatedItem, TargetRecordRef, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant);
 
@@ -943,9 +943,9 @@ codeunit 20404 "Qlty. Inspection - Create"
         Clear(VariantEmptyOrTrackingSpecification);
         RelatedReservFilterReservationEntry.SetRange("Entry No.", -1);
 
-        if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then begin
+        if TempFiltersQltyInspectionGenRule.HasItemFilter() then begin
             Item.FilterGroup(20);
-            Item.SetView(TempFiltersQltyInspectionGenRule."Item Filter");
+            Item.SetView(TempFiltersQltyInspectionGenRule.GetItemFilter());
             Item.FilterGroup(0);
         end;
 
@@ -1000,7 +1000,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                     end;
             until RelatedReservFilterReservationEntry.Next() = 0;
         end else begin
-            if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then begin
+            if TempFiltersQltyInspectionGenRule.HasItemFilter() then begin
                 Clear(Item);
                 if QltyTraversal.FindRelatedItem(Item, ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant) then
                     exit;

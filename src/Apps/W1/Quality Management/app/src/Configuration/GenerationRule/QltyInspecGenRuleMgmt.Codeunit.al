@@ -211,12 +211,12 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                 TemporaryInspectionMatchRecordRef.Reset();
                 TemporaryInspectionMatchRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
                 if TemporaryInspectionMatchRecordRef.FindFirst() then
-                    if (QltyInspectionGenRule."Item Filter" <> '') and (OptionalItem."No." <> '') then begin
+                    if QltyInspectionGenRule.HasItemFilter() and (OptionalItem."No." <> '') then begin
                         Clear(SearchItem);
                         SearchItem := OptionalItem;
                         SearchItem.SetRecFilter();
                         SearchItem.FilterGroup(20);
-                        SearchItem.SetView(QltyInspectionGenRule."Item Filter");
+                        SearchItem.SetView(QltyInspectionGenRule.GetItemFilter());
                         if SearchItem.Count() > 0 then
                             if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
                                 TempQltyInspectionGenRule := QltyInspectionGenRule;

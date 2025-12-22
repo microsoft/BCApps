@@ -87,11 +87,21 @@ page 20405 "Qlty. Inspection Gen. Rules"
                             CurrPage.Update(true);
                     end;
                 }
-                field("Item Filter"; Rec."Item Filter")
+                field("Item Filter"; ItemFilterText)
                 {
+                    Caption = 'Item Filter';
+                    ToolTip = 'Specifies the item specific criteria for defining when to use this template.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.SetItemFilter(ItemFilterText);
+                        Rec.Modify();
+                    end;
+
                     trigger OnAssistEdit()
                     begin
                         Rec.AssistEditConditionItemFilter();
+                        ItemFilterText := Rec.GetItemFilter();
                     end;
                 }
                 field("Item Attribute Filter"; Rec."Item Attribute Filter")
@@ -378,6 +388,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
         WhseReceiveStyle: Text;
         WhseMovementStyle: Text;
         TransferStyle: Text;
+        ItemFilterText: Text;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         GenerationRulesCaptionLbl: Label 'Quality Inspection Generation Rules';
         GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Generation Rules for %1', Comment = '%1=the template';
@@ -428,6 +439,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     trigger OnAfterGetRecord()
     begin
+        ItemFilterText := Rec.GetItemFilter();
         UpdateControls();
     end;
 

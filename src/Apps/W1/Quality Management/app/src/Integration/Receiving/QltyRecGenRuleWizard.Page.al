@@ -830,9 +830,9 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullItemFilter()
     begin
-        TempQltyInspectionGenRule."Item Filter" := ItemRule;
+        TempQltyInspectionGenRule.SetItemFilter(ItemRule);
         if TempQltyInspectionGenRule.AssistEditConditionItemFilter() then begin
-            ItemRule := TempQltyInspectionGenRule."Item Filter";
+            ItemRule := TempQltyInspectionGenRule.GetItemFilter();
 
             TempItem.SetView(ItemRule);
             UpdateTableVariablesFromRecordFilters();
@@ -925,13 +925,12 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         end;
 
         if QltyManagementSetup.Modify(false) then;
-        QltyInspectionGenRule."Item Filter" := ItemRule;
+        QltyInspectionGenRule.SetItemFilter(ItemRule);
         QltyInspectionGenRule.Modify();
 
         ExistingQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
         ExistingQltyInspectionGenRule.SetRange("Source Table No.", QltyInspectionGenRule."Source Table No.");
         ExistingQltyInspectionGenRule.SetRange("Condition Filter", QltyInspectionGenRule."Condition Filter");
-        ExistingQltyInspectionGenRule.SetRange("Item Filter", QltyInspectionGenRule."Item Filter");
         if ExistingQltyInspectionGenRule.Count() > 1 then
             if not Confirm(AlreadyThereQst) then
                 Error('');
@@ -980,7 +979,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             IsReturnReceipt := false;
             IsTransferLine := false;
         end;
-        TempItem.SetView(TempQltyInspectionGenRule."Item Filter");
+        if TempQltyInspectionGenRule.HasItemFilter() then
+            TempItem.SetView(TempQltyInspectionGenRule.GetItemFilter());
         UpdateTableVariablesFromRecordFilters();
 
         TemplateCode := QltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(false);
@@ -1024,7 +1024,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true));
 
         CleanUpWhereClause();
 
@@ -1036,9 +1036,6 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
         if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
-
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
     local procedure UpdateTableVariablesFromRecordFilters()

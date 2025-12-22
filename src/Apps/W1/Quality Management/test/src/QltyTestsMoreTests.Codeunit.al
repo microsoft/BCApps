@@ -1336,7 +1336,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [THEN] The Item Filter is updated with the item number filter expression
         QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterItemNoTok, Item."No."), QltyInspectionGenRule."Item Filter", 'Item filter should be set to the item no.');
+        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterItemNoTok, Item."No."), QltyInspectionGenRule.GetItemFilter(), 'Item filter should be set to the item no.');
     end;
 
     [Test]

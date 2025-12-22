@@ -238,7 +238,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [GIVEN] The generation rule is updated with an item filter
         QltyInspectionGenRule.FindFirst();
-        QltyInspectionGenRule."Item Filter" := StrSubstNo(ItemFilterTok, Item."No.");
+        QltyInspectionGenRule.SetItemFilter(StrSubstNo(ItemFilterTok, Item."No."));
         QltyInspectionGenRule.Modify();
 
         // [WHEN] A manual rule search is performed for Purchase Line with the item
