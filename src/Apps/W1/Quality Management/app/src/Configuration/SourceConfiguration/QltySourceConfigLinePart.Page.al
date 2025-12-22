@@ -7,8 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// Used to visually configure in a part which source field a target field
-/// in the test maps to.
+/// Used to visually configure in a part which source field a target field in the inspection maps to.
 /// </summary>
 page 20411 "Qlty. Source Config Line Part"
 {
@@ -66,7 +65,7 @@ page 20411 "Qlty. Source Config Line Part"
                 field("Display As"; Rec."Display As")
                 {
                 }
-                field("Priority Field"; Rec."Priority Field")
+                field("Priority Test"; Rec."Priority Test")
                 {
                     Visible = false;
                 }
@@ -83,9 +82,9 @@ page 20411 "Qlty. Source Config Line Part"
 
         Rec."From Table No." := QltyInspectSourceConfig."From Table No.";
         Rec."To Table No." := QltyInspectSourceConfig."To Table No.";
-        if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Test then begin
-            Rec."To Type" := Rec."To Type"::Test;
-            Rec."To Table No." := Database::"Qlty. Inspection Test Header";
+        if QltyInspectSourceConfig."To Type" = QltyInspectSourceConfig."To Type"::Inspection then begin
+            Rec."To Type" := Rec."To Type"::Inspection;
+            Rec."To Table No." := Database::"Qlty. Inspection Header";
         end;
     end;
 }

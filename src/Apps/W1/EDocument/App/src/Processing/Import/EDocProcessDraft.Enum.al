@@ -11,7 +11,7 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 /// </summary>
 enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
 {
-    Extensible = false;
+    Extensible = true;
 
     value(0; "Purchase Document")
     {

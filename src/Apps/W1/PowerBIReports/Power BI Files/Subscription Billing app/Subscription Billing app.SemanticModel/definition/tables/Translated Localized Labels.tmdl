@@ -1,5 +1,6 @@
 table 'Translated Localized Labels'
-	lineageTag: 3223610e-dc06-4d4a-9680-a7f3fb616df2
+	isHidden
+	lineageTag: d6492e17-230d-4138-9ab1-16fbcbfeff61
 
 	measure 'CONNECT YOUR DATA Label' =
 			SWITCH(USERCULTURE(),
@@ -29,7 +30,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ANSLUT DINA DATA",
 			   "CONNECT YOUR DATA"
 			)
-		lineageTag: 0a4a9105-dfae-47b1-ba59-ba9ff92fcf01
+		isHidden
+		lineageTag: 8a7130b6-de36-4288-952c-0eba32209a73
 
 	measure '1. Download the Finance Connector for Power BI Label' =
 			SWITCH(USERCULTURE(),
@@ -59,7 +61,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "1. Ladda ned Finance Connector for Power BI",
 			   "1. Download the Finance Connector for Power BI"
 			)
-		lineageTag: b50bd1a8-a06c-4768-9ec0-a150073d6df1
+		isHidden
+		lineageTag: 9772b5df-04d4-4bd3-838a-40687eb3b9ef
 
 	measure '2. Configure Dynamics 365 Business Central Label' =
 			SWITCH(USERCULTURE(),
@@ -89,7 +92,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
 			   "2. Configure Dynamics 365 Business Central"
 			)
-		lineageTag: 1d0f8020-abb7-4625-b817-dfd22d86851c
+		isHidden
+		lineageTag: 505d182c-06ee-48c5-94ae-69d2ac2a76e2
 
 	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
 			SWITCH(USERCULTURE(),
@@ -119,7 +123,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
 			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
 			)
-		lineageTag: b70d5003-56fd-4cb7-bb8a-ab27feac9717
+		isHidden
+		lineageTag: bfe44083-3059-4e9b-9446-5afe0d3b2008
 
 	measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch. Label' =
 			SWITCH(USERCULTURE(),
@@ -149,7 +154,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Ekonomi omfattar en mängd olika färdiga rapporter som gör det enkelt att se data direkt. Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
 			   "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch."
 			)
-		lineageTag: 7c6050c5-833c-4d31-8797-f54e1a459b56
+		isHidden
+		lineageTag: ceeaec60-9424-4b93-ac1a-d5c59468fc3b
 
 	measure 'HELP AND SUPPORT Label' =
 			SWITCH(USERCULTURE(),
@@ -179,7 +185,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "HJÄLP OCH SUPPORT",
 			   "HELP AND SUPPORT"
 			)
-		lineageTag: aaff8630-6312-43bb-b016-28b989121107
+		isHidden
+		lineageTag: 1a06eb7f-6bcd-45ee-846f-bbd42b32124d
 
 	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
 			SWITCH(USERCULTURE(),
@@ -209,7 +216,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
 			   "For help and support with your new report please visit the Analytics overview documentation."
 			)
-		lineageTag: 53d97413-4ec0-47b1-8798-4b3d2aae7884
+		isHidden
+		lineageTag: aa852ca7-c9f6-4dda-b81f-bad8e2eb7ed2
 
 	measure 'for Business Central Label' =
 			SWITCH(USERCULTURE(),
@@ -239,7 +247,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "för Business Central",
 			   "for Business Central"
 			)
-		lineageTag: 0eab0ab6-a1a6-4bda-8c62-2daea3d179c8
+		isHidden
+		lineageTag: 22f69113-2403-4419-b18c-47638af906f6
 
 	measure 'Last Refreshed Label' =
 			SWITCH(USERCULTURE(),
@@ -269,7 +278,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Uppdaterades senast",
 			   "Last Refreshed"
 			)
-		lineageTag: da49d838-038c-4094-baf2-181512eee6df
+		isHidden
+		lineageTag: c2f4d7e8-3ab0-4c92-99b7-8b6909b877f6
 
 	measure 'Company Name Label' =
 			SWITCH(USERCULTURE(),
@@ -299,7 +309,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Företagsnamn",
 			   "Company Name"
 			)
-		lineageTag: 4d29b23e-69e5-4763-a68c-033638ce25a4
+		isHidden
+		lineageTag: 5bb86a40-da74-45a7-a578-96b3e6fd8f51
 
 	measure 'Analysis Entries as of Label' =
 			SWITCH(USERCULTURE(),
@@ -329,7 +340,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Analysera transaktioner per",
 			   "Analysis Entries as of"
 			)
-		lineageTag: 94aefe55-eb9d-48ba-854d-53993e2a8b55
+		isHidden
+		lineageTag: db46ff2d-9067-48a8-950c-944de7f0a5eb
 
 	measure 'Billing Forecast by Billing Period, Customer and Contract No. Label' =
 			SWITCH(USERCULTURE(),
@@ -359,7 +371,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Faktureringsprognos per faktureringsperiod, kund och kontraktsnr",
 			   "Billing Forecast by Billing Period, Customer and Contract No."
 			)
-		lineageTag: 550417f4-7b29-4f88-85df-34b4ea9dc53d
+		isHidden
+		lineageTag: eacca12c-73a5-41d8-ac27-1f3474816b6b
 
 	measure 'Billing Forecast by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -389,7 +402,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Faktureringsprognos per kalenderår och månad",
 			   "Billing Forecast by Calendar Year and Month"
 			)
-		lineageTag: 97388aaa-d65f-4115-beba-9815bc1dfac4
+		isHidden
+		lineageTag: 8926a0f2-b801-4546-9dbd-74b5c2cef0fc
 
 	measure 'Billing Schedule Label' =
 			SWITCH(USERCULTURE(),
@@ -419,7 +433,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Faktureringsschema",
 			   "Billing Schedule"
 			)
-		lineageTag: 878726a9-8d31-4394-b149-5265721df19c
+		isHidden
+		lineageTag: 865a4b2c-b572-4eb4-a885-1d3e9051b912
 
 	measure 'Change of Mon. Recurring Revenue by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -449,7 +464,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Ändring av månatliga återkommande intäkter per år och månad",
 			   "Change of Mon. Recurring Revenue by Year and Month"
 			)
-		lineageTag: 76ea3322-b622-4622-82c3-e59a3cafff76
+		isHidden
+		lineageTag: aef7110a-9887-4880-bbc5-eac2cdbafeaa
 
 	measure 'Current Date Range: Label' =
 			SWITCH(USERCULTURE(),
@@ -479,7 +495,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Aktuellt datumintervall:",
 			   "Current Date Range:"
 			)
-		lineageTag: 46568020-b81b-462e-bbbe-dd97ac9cdac9
+		isHidden
+		lineageTag: accb641e-9b2e-4e22-ac79-43979ef7a88e
 
 	measure 'Customer Contract Deferrals Label' =
 			SWITCH(USERCULTURE(),
@@ -509,7 +526,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Periodiseringar av kundkontrakt",
 			   "Customer Contract Deferrals"
 			)
-		lineageTag: 073ba338-d74d-4d9c-80a1-84291f96df3c
+		isHidden
+		lineageTag: 7d2fa010-f223-40d7-be7b-6fd98ec89ff2
 
 	measure 'Customer Contract Lines Label' =
 			SWITCH(USERCULTURE(),
@@ -539,7 +557,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Kundkontraktsrader",
 			   "Customer Contract Lines"
 			)
-		lineageTag: 53dc3c17-f39f-4acc-be6f-c1478c73fcc1
+		isHidden
+		lineageTag: 3fe6d9b4-da2c-4f13-9fbc-173a3c9d08e0
 
 	measure 'Customer Deferrals (Caption) Label' =
 			SWITCH(USERCULTURE(),
@@ -569,7 +588,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Kundperiodiseringar",
 			   "Customer Deferrals"
 			)
-		lineageTag: f4621477-30d0-4a2e-bfad-d9d77f945dab
+		isHidden
+		lineageTag: 8c05fa4e-a749-4fbc-93a1-527472053349
 
 	measure 'Mon. Recurring Revenue Analysis Label' =
 			SWITCH(USERCULTURE(),
@@ -599,7 +619,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Analys av månatliga återkommande intäkter",
 			   "Mon. Recurring Revenue Analysis"
 			)
-		lineageTag: 6cef4547-b030-49bd-a5c2-3d4a5aa41f23
+		isHidden
+		lineageTag: cd6ddd4f-6d85-40e1-8914-6bf7d30edade
 
 	measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month Label' =
 			SWITCH(USERCULTURE(),
@@ -629,7 +650,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter och månatliga återkommande intäkter FÅ per kalendermånad",
 			   "Mon. Recurring Revenue and Mon. Recurring Revenue PY by Calendar Month"
 			)
-		lineageTag: 099bddf0-33b6-4f48-8377-203e8ba0a7af
+		isHidden
+		lineageTag: b5089048-3bc4-4df8-995e-8a8463f0660d
 
 	measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -659,7 +681,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter och tillväxt år för år per kalenderår och månad",
 			   "Mon. Recurring Revenue and Year-Over-Year Growth by Calendar Year and Month"
 			)
-		lineageTag: b46e31dd-929b-4ecf-8964-cf8b4580537f
+		isHidden
+		lineageTag: b521b0eb-ead5-4caa-91ef-874354968829
 
 	measure 'Mon. Recurring Revenue by Customer Label' =
 			SWITCH(USERCULTURE(),
@@ -689,7 +712,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter per kund",
 			   "Mon. Recurring Revenue by Customer"
 			)
-		lineageTag: 86c6e436-d86a-4ea3-81bb-942ad93dc96b
+		isHidden
+		lineageTag: c8865130-8a17-4abf-9171-091295bfad05
 
 	measure 'Mon. Recurring Revenue by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -719,7 +743,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter per säljare",
 			   "Mon. Recurring Revenue by Salesperson"
 			)
-		lineageTag: ecc13d05-bb8f-4c64-be64-bd4d753a2f8d
+		isHidden
+		lineageTag: 3c59b695-be46-4a97-8d41-d3647e24acbc
 
 	measure 'Mon. Recurring Revenue by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -749,7 +774,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter per kalenderår och månad",
 			   "Mon. Recurring Revenue by Calendar Year and Month"
 			)
-		lineageTag: 7e9bfa7a-d0d1-4885-9d86-b02de9483267
+		isHidden
+		lineageTag: 0db46e3c-e9cd-4517-ac0a-5b629bce27be
 
 	measure 'Mon. Recurring Revenue by Item Label' =
 			SWITCH(USERCULTURE(),
@@ -779,7 +805,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter per artikel",
 			   "Mon. Recurring Revenue by Item"
 			)
-		lineageTag: 1a76e5f4-e4df-4617-9f62-036d50f674ff
+		isHidden
+		lineageTag: 540a95c3-6fa9-4b87-a612-02747d2152a1
 
 	measure 'Mon. Recurring Revenue by Item Category Label' =
 			SWITCH(USERCULTURE(),
@@ -809,7 +836,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter per artikelkategori",
 			   "Mon. Recurring Revenue by Item Category"
 			)
-		lineageTag: 17afa1b0-2619-4864-81a3-1021c875f6e6
+		isHidden
+		lineageTag: 4be283ab-e6ca-4aca-a4e9-73564b30b4c8
 
 	measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract Label' =
 			SWITCH(USERCULTURE(),
@@ -839,7 +867,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäktsbortfall och nedgradering per kundkontrakt",
 			   "Mon. Recurring Revenue Churn and Downgrade by Customer Contract"
 			)
-		lineageTag: 4d3f4eed-f343-4abd-83ce-daa8399da37b
+		isHidden
+		lineageTag: e16beb8b-7b17-4a61-b51a-5425cb5608f4
 
 	measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract Label' =
 			SWITCH(USERCULTURE(),
@@ -869,7 +898,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter, nya och nedgradering per kundkontrakt",
 			   "Mon. Recurring Revenue New and Upgrade by Customer Contract"
 			)
-		lineageTag: f89404e1-e02b-40ff-a53c-caf606d194c3
+		isHidden
+		lineageTag: e88cd996-24ac-4a3f-a46b-c5efd3be4a74
 
 	measure 'Monthly Sales and Cost Forecast by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -899,7 +929,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatlig intäkts- och kostnadsprognos per kalenderår och månad",
 			   "Monthly Revenue and Cost Forecast by Calendar Year and Month"
 			)
-		lineageTag: 541796e8-5303-483b-b0a2-896236758965
+		isHidden
+		lineageTag: 0b194870-8f76-4761-bfeb-363bde6a6ea3
 
 	measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No. Label' =
 			SWITCH(USERCULTURE(),
@@ -929,7 +960,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga intäkter och kostnadsprognos per säljare, kund och kontraktsnr",
 			   "Monthly Revenue and Cost Forecast by Salesperson, Customer and Contract No."
 			)
-		lineageTag: 6278d3d4-d4fe-487b-8afd-080e47fc5193
+		isHidden
+		lineageTag: f70616f5-ce9f-42f9-be49-53f186c42193
 
 	measure 'Released and Deferred Amount by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -959,7 +991,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Frisläppt och periodiserat belopp per kalenderår och månad",
 			   "Released and Deferred Amount by Calendar Year and Month"
 			)
-		lineageTag: 5be47dec-2eee-49ba-8137-98a86ba713e5
+		isHidden
+		lineageTag: e958e561-67bc-45ea-b691-d5241a9efb12
 
 	measure 'Revenue Analysis Label' =
 			SWITCH(USERCULTURE(),
@@ -989,7 +1022,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Intäktsanalys",
 			   "Revenue Analysis"
 			)
-		lineageTag: 5f1f6e4c-1c46-4771-96c4-2adad19e6441
+		isHidden
+		lineageTag: d15cf30f-c746-4556-ad49-00927fac9836
 
 	measure 'Revenue by Customer Label' =
 			SWITCH(USERCULTURE(),
@@ -1019,7 +1053,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Intäkt per kund",
 			   "Revenue by Customer"
 			)
-		lineageTag: 4a81cfb0-3e45-4c8d-b22c-f1ad8699f3e6
+		isHidden
+		lineageTag: f030382e-d837-4290-a7c8-02c7373b4c2b
 
 	measure 'Revenue by Item Label' =
 			SWITCH(USERCULTURE(),
@@ -1049,7 +1084,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Intäkt per artikel",
 			   "Revenue by Item"
 			)
-		lineageTag: 0b4d132f-6a8a-49e7-9e58-348621695e40
+		isHidden
+		lineageTag: e876d644-8c77-4beb-bee3-d84955de70f0
 
 	measure 'Revenue by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -1079,7 +1115,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Intäkt per säljare",
 			   "Revenue by Salesperson"
 			)
-		lineageTag: 8f79e3c2-8e6e-4cf4-8117-e6bd04d85996
+		isHidden
+		lineageTag: c2816182-98f5-48d7-b9fb-0c4530e4b7cb
 
 	measure 'Revenue Development Label' =
 			SWITCH(USERCULTURE(),
@@ -1109,7 +1146,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Intäktsutveckling",
 			   "Revenue Development"
 			)
-		lineageTag: 1ed4bc86-f8d3-4574-adf2-3de940e2103b
+		isHidden
+		lineageTag: afef247a-5efc-4c21-9441-fedbe4c023c8
 
 	measure 'Sales and Cost Forecast Label' =
 			SWITCH(USERCULTURE(),
@@ -1139,7 +1177,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Intäktsprognos",
 			   "Revenue Forecast"
 			)
-		lineageTag: e9b49c11-bef6-4774-a20b-192cbce0ccfe
+		isHidden
+		lineageTag: 3a3416c4-f6dc-4f7d-822d-4526a7c509ec
 
 	measure 'Revenue Year-Over-Year Growth Label' =
 			SWITCH(USERCULTURE(),
@@ -1169,7 +1208,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Tillväxtökning år för år",
 			   "Revenue Year-Over-Year Growth"
 			)
-		lineageTag: a7d84e67-5fb7-4d38-89e5-b83455b93aa9
+		isHidden
+		lineageTag: 2d2e3c1d-ceec-4c18-ad3b-c6e93ddf6709
 
 	measure 'Subscription Billing Analysis Label' =
 			SWITCH(USERCULTURE(),
@@ -1199,7 +1239,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Analys av Subscription Billing",
 			   "Subscription Billing Analysis"
 			)
-		lineageTag: a3252ec9-bc13-4ba2-8ddb-4b218b358217
+		isHidden
+		lineageTag: a2636555-b186-43af-9a97-f1be3481f349
 
 	measure 'Subscription Billing Overview Label' =
 			SWITCH(USERCULTURE(),
@@ -1229,7 +1270,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Översikt över Subscription Billing",
 			   "Subscription Billing Overview"
 			)
-		lineageTag: 46da08f4-9f2b-4015-9d38-1591ae7667bf
+		isHidden
+		lineageTag: 0aa305de-1af5-4f1f-823d-b8e488a089a4
 
 	measure 'Top 5 Customers by Mon. Recurring Revenue Label' =
 			SWITCH(USERCULTURE(),
@@ -1259,7 +1301,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "5 främsta kunderna per månatliga återkommande intäkter",
 			   "Top 5 Customers by Mon. Recurring Revenue"
 			)
-		lineageTag: 7553c68d-684f-4926-9238-0d04f0dac63a
+		isHidden
+		lineageTag: 9a6d9b4a-caa4-4ac3-b5dd-1a312516652c
 
 	measure 'Top 5 Vendors by Mon. Recurring Cost Label' =
 			SWITCH(USERCULTURE(),
@@ -1289,7 +1332,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "5 främsta leverantörer per månatlig återkommande kostnad",
 			   "Top 5 Vendors by Mon. Recurring Cost"
 			)
-		lineageTag: 8b985f10-aaff-40d1-bc78-9390c4e754bb
+		isHidden
+		lineageTag: c7af589e-b446-4868-9738-2facc5405a87
 
 	measure 'Total Contract Value Analysis Label' =
 			SWITCH(USERCULTURE(),
@@ -1319,7 +1363,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Analys av totalt kontraktsvärde",
 			   "Total Contract Value Analysis"
 			)
-		lineageTag: b4c8e534-7971-4f5a-aa28-44d55825bb95
+		isHidden
+		lineageTag: 953467b6-cfb0-4859-a22b-35dcc2cc3270
 
 	measure 'Total Contract Value and Total Contract Value PY by Month Label' =
 			SWITCH(USERCULTURE(),
@@ -1349,7 +1394,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Totalt kontraktsvärde och totalt kontraktsvärde FÅ per kalendermånad",
 			   "Total Contract Value and Total Contract Value PY by Calendar Month"
 			)
-		lineageTag: 3366c01d-e753-47f9-a126-727a4509520e
+		isHidden
+		lineageTag: 1507ad1f-7a44-42f7-b19b-6222c22fc3a6
 
 	measure 'Total Contract Value and Year-Over-Year Growth by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -1379,7 +1425,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Totalt kontraktsvärde och tillväxt år för år per kalenderår och månad",
 			   "Total Contract Value and Year-Over-Year Growth by Calendar Year and Month"
 			)
-		lineageTag: f4ec51de-5053-4fa7-b85c-d043bdf2ba52
+		isHidden
+		lineageTag: b0f100f9-330d-47f3-83a8-401ca68ae140
 
 	measure 'Total Contract Value by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -1409,7 +1456,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Totalt kontraktsvärde per kalenderår och månad",
 			   "Total Contract Value by Calendar Year and Month"
 			)
-		lineageTag: db2b801b-db63-4d38-ad79-dccf345b3e99
+		isHidden
+		lineageTag: 1f7bb1f4-5fd2-4cf1-ab4c-1c6636f7929c
 
 	measure 'Total Contract Value Year-Over-Year Growth Label' =
 			SWITCH(USERCULTURE(),
@@ -1439,7 +1487,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Totalt kontraktsvärde tillväxt år för år",
 			   "Total Contract Value Year-Over-Year Growth"
 			)
-		lineageTag: d18afde3-f0f5-4fd8-958c-1cc89de93fe6
+		isHidden
+		lineageTag: bf178bbe-6578-4c6e-b6f6-63f2a3be0df2
 
 	measure 'Vendor Contract Deferrals Label' =
 			SWITCH(USERCULTURE(),
@@ -1469,7 +1518,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Kontraktsperiodiseringar för leverantör",
 			   "Vendor Contract Deferrals"
 			)
-		lineageTag: b347a370-d51c-416a-bb8b-038e54c52fcd
+		isHidden
+		lineageTag: 98a7baf4-4d66-439f-904f-0f969958c522
 
 	measure 'Vendor Deferrals (Caption) Label' =
 			SWITCH(USERCULTURE(),
@@ -1499,7 +1549,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Leverantörsperiodiseringar",
 			   "Vendor Deferrals"
 			)
-		lineageTag: 0ad61b9c-7718-45d5-b8ac-90b302b596cb
+		isHidden
+		lineageTag: dda9de1a-70c9-4297-9555-6abeb4cbac10
 
 	measure 'Back button Label' =
 			SWITCH(USERCULTURE(),
@@ -1529,7 +1580,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Knappen Föregående",
 			   "Back button"
 			)
-		lineageTag: c7179c22-ad28-4b0e-83a3-e275c4173712
+		isHidden
+		lineageTag: 3e75f090-06f5-4d0c-92a9-3adf4085ee06
 
 	measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue Label' =
 			SWITCH(USERCULTURE(),
@@ -1559,7 +1611,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månatliga återkommande intäkter, månatlig återkommande kostnad, månatlig nettovinst, aktiva kunder, totalt kontraktsvärde, förändring i månatliga återkommande intäkter",
 			   "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue"
 			)
-		lineageTag: 38308fd7-4a4e-4476-b054-702230eab91d
+		isHidden
+		lineageTag: 9b422523-bdea-4fed-81b0-ee3be1c4c093
 
 	measure 'Churn Analysis Label' =
 			SWITCH(USERCULTURE(),
@@ -1589,7 +1642,8 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Bortfallsanalys",
 			   "Churn Analysis"
 			)
-		lineageTag: a3bec4e6-28c9-4bfb-8d26-a1b240688934
+		isHidden
+		lineageTag: b7c2633c-0ac8-43e2-acc1-954a28b20297
 
 	measure 'Avg. Mon. Churn Rate % by Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -1619,12 +1673,53 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Genomsnittlig månatlig bortfallsgrad % per år och månad",
 			   "Avg. Mon. Churn Rate % by Year and Month"
 			)
-		lineageTag: 1a862496-ca01-4eeb-8a5b-e339662da515
+		isHidden
+		lineageTag: 2dd7d7b8-b3ee-4940-a139-d2f0f7e9d11e
+
+	measure 'Total Contract Value by Package Label' = "Total Contract Value by Package"
+		isHidden
+		lineageTag: bf787563-9fcc-455b-8bdd-31dad3104ff3
+
+	measure 'Mon. Recurring Revenue by Package Label' = "Mon. Recurring Revenue by Package"
+		isHidden
+		lineageTag: 5f9d0617-ba80-451f-9150-453e124e84b1
+
+	measure 'Churn by Customer Label' = "Churn by Customer"
+		isHidden
+		lineageTag: 25db989a-83ad-47a9-a1e7-e5f1d79df627
+
+	measure 'Profitability by Item Label' = "Profitability by Item"
+		isHidden
+		lineageTag: db70705e-506c-401c-bcc0-919c459c5bae
+
+	measure 'Mon. Recurring Revenue by Customer Location Label' = "Mon. Recurring Revenue by Customer Location"
+		isHidden
+		lineageTag: d8db89f5-2451-43e1-b6ba-966e8046e15c
+
+	measure 'Profitability by Salesperson Label' = "Profitability by Salesperson"
+		isHidden
+		lineageTag: dbcdf3ac-4d37-49c2-8fca-9f63d6e86935
+
+	measure 'Total Contract Value by Salesperson Label' = "Total Contract Value by Salesperson"
+		isHidden
+		lineageTag: 3bd18626-cd15-4df3-9f0d-ea68a333dd1f
+
+	measure 'Customer Deferrals by Released Status Label' = "Customer Deferrals by Released Status"
+		isHidden
+		lineageTag: df99b153-1f8a-4f8c-926f-40453d4d64a0
+
+	measure 'Vendor Deferrals by Released Status Label' = "Vendor Deferrals by Released Status"
+		isHidden
+		lineageTag: e11dfc8c-7b7a-49b0-9285-ab7e0912cda2
+
+	measure 'Billing Forecast by Billing Period, Vendor and Contract No. Label' = "Billing Forecast by Billing Period, Vendor and Contract No."
+		isHidden
+		lineageTag: a919ba27-5489-4ac5-a1de-f1cc7c8963b3
 
 	column unused
 		isHidden
 		displayFolder: unused
-		lineageTag: 2df11e89-93a7-4fe5-b94b-0c245f211b77
+		lineageTag: 18923585-b9c1-450c-9b76-9f4b2022e615
 		isNameInferred
 		sourceColumn: [unused]
 

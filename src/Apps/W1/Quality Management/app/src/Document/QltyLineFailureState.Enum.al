@@ -15,9 +15,9 @@ enum 20435 "Qlty. Line Failure State"
     {
         Caption = ' ';
     }
-    value(1; "Failed from AQL")
+    value(1; "Failed from Acceptable Quality Level")
     {
-        Caption = 'Failed from AQL';
+        Caption = 'Failed from Acceptable Quality Level';
     }
     value(2; "Failed from Acceptance Criteria")
     {
