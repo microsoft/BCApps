@@ -34,6 +34,6 @@ report 30114 "Shpfy Sync Companies"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUsage('', 'Shopify', 'Shopify sync companies executed.');
+        FeatureTelemetry.LogUsage('0000QW9', 'Shopify', 'Shopify sync companies executed.');
     end;
 }

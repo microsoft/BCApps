@@ -108,7 +108,7 @@ report 30104 "Shpfy Sync Orders from Shopify"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUsage('', 'Shopify', 'Shopify sync orders executed.');
+        FeatureTelemetry.LogUsage('0000QWB', 'Shopify', 'Shopify sync orders executed.');
         ToImportView := OrdersToImport.GetView(false);
     end;
 

@@ -34,6 +34,6 @@ report 30100 "Shpfy Sync Customers"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUsage('', 'Shopify', 'Shopify sync customers executed.');
+        FeatureTelemetry.LogUsage('0000QWA', 'Shopify', 'Shopify sync customers executed.');
     end;
 }

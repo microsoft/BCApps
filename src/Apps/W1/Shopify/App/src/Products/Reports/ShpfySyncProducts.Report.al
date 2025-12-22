@@ -66,6 +66,6 @@ report 30108 "Shpfy Sync Products"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUsage('', 'Shopify', 'Shopify sync products executed.');
+        FeatureTelemetry.LogUsage('0000QWC', 'Shopify', 'Shopify sync products executed.');
     end;
 }
