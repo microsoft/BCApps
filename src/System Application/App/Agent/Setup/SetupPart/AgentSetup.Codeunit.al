@@ -47,7 +47,7 @@ codeunit 4324 "Agent Setup"
     [Scope('OnPrem')]
     procedure GetChangesMade(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
-        exit(AgentSetupBuffer."Values Updated" or AgentSetupBuffer."State Updated" or AgentSetupBuffer."Access Updated");
+        exit(AgentSetupImpl.GetChangesMade(AgentSetupBuffer));
     end;
 
     /// <summary>
