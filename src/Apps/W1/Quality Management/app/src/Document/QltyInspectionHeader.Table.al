@@ -430,10 +430,10 @@ table 20405 "Qlty. Inspection Header"
                 QltyInspectionResult: Record "Qlty. Inspection Result";
             begin
                 if Rec."Result Code" = '' then
-                    Rec."Result Priority" := 0
+                    Rec."Evaluation Sequence" := 0
                 else begin
                     QltyInspectionResult.Get("Result Code");
-                    Rec."Result Priority" := "Result Priority";
+                    Rec."Evaluation Sequence" := "Evaluation Sequence";
                 end;
                 Rec.CalcFields("Result Description");
             end;
@@ -447,12 +447,12 @@ table 20405 "Qlty. Inspection Header"
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
             ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
         }
-        field(54; "Result Priority"; Integer)
+        field(54; "Evaluation Sequence"; Integer)
         {
-            Description = 'The associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
+            Description = 'The associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
             Editable = false;
-            Caption = 'Result Priority';
-            ToolTip = 'Specifies the associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
+            Caption = 'Evaluation Sequence';
+            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
         }
         field(56; "Planned Start Date"; DateTime)
         {
@@ -736,7 +736,7 @@ table 20405 "Qlty. Inspection Header"
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         QltyInspectionLine.SetFilter("Test Value Type", '<>%1', QltyInspectionLine."Test Value Type"::"Value Type Label");
-        QltyInspectionLine.SetCurrentKey("Result Priority");
+        QltyInspectionLine.SetCurrentKey("Evaluation Sequence");
         OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, Handled);
         if Handled then
             exit;

@@ -46,6 +46,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Documents Setup" = X,
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
+        table "E-Doc Sample Purch. Inv File" = X,
 #if not CLEAN28
 #pragma warning disable AL0432
         table "EDoc Historical Matching Setup" = X,

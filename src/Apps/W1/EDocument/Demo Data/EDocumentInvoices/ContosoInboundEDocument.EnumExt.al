@@ -2,20 +2,19 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.Processing.Import;
+namespace Microsoft.eServices.EDocument.DemoData;
 
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 /// <summary>
-/// Enum for E-Document Processing
+/// Enum extension for E-Doc. Read into Draft to support Contoso Inbound E-Document invoices.
 /// </summary>
-enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
+enumextension 5392 "Contoso Inbound E-Document" extends "E-Doc. Read into Draft"
 {
-    Extensible = true;
-
-    value(0; "Purchase Document")
+    value(5370; "Demo Invoice")
     {
-        Caption = 'Purchase Document';
-        Implementation = IProcessStructuredData = "Prepare Purchase E-Doc. Draft";
+        Caption = 'Demo Invoice';
+        Implementation = IStructuredFormatReader = "Contoso Inb.Inv. Handler";
     }
 }
