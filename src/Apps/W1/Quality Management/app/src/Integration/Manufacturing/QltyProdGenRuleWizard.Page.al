@@ -581,7 +581,6 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         WorkCenterNoErr: Label 'This Work Center No. filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         RuleAlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';
-        FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
 
     trigger OnInit();
     begin
