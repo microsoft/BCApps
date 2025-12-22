@@ -263,7 +263,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// <param name="ThisQltyInspectionGenRule">The inspection generation rule to validate for scheduling</param>
     procedure CheckIfGenerationRuleCanBeScheduled(var ThisQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     begin
-        if (ThisQltyInspectionGenRule."Condition Filter" = '') and (not ThisQltyInspectionGenRule.HasItemFilter()) and (ThisQltyInspectionGenRule."Item Attribute Filter" = '') then
+        if (not ThisQltyInspectionGenRule.HasConditionFilter()) and (not ThisQltyInspectionGenRule.HasItemFilter()) and (not ThisQltyInspectionGenRule.HasItemAttributeFilter()) then
             Error(FilterMandatoryErr, ThisQltyInspectionGenRule."Schedule Group");
     end;
 

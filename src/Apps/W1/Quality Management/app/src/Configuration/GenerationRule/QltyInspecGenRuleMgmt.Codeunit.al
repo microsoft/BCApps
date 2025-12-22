@@ -209,7 +209,8 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                 TemporaryInspectionMatchRecordRef.Copy(TargetRecordRef);
                 if TemporaryInspectionMatchRecordRef.Insert(false) then;
                 TemporaryInspectionMatchRecordRef.Reset();
-                TemporaryInspectionMatchRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
+                if QltyInspectionGenRule.HasConditionFilter() then
+                    TemporaryInspectionMatchRecordRef.SetView(QltyInspectionGenRule.GetConditionFilter());
                 if TemporaryInspectionMatchRecordRef.FindFirst() then
                     if QltyInspectionGenRule.HasItemFilter() and (OptionalItem."No." <> '') then begin
                         Clear(SearchItem);
@@ -226,7 +227,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                         OptionalItem.FilterGroup(0);
                         SearchItem.FilterGroup(0);
                     end else
-                        if (OptionalItem."No." <> '') and (QltyInspectionGenRule."Item Attribute Filter" <> '') then begin
+                        if (OptionalItem."No." <> '') and QltyInspectionGenRule.HasItemAttributeFilter() then begin
                             if DoesMatchItemAttributeFiltersOrNoFilter(QltyInspectionGenRule, OptionalItem) then begin
                                 TempQltyInspectionGenRule := QltyInspectionGenRule;
                                 Found := TempQltyInspectionGenRule.Insert();
@@ -271,10 +272,10 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         if Item."No." = '' then
             exit(false);
 
-        if QltyInspectionGenRule."Item Attribute Filter" = '' then
+        if not QltyInspectionGenRule.HasItemAttributeFilter() then
             exit(true);
 
-        QltyFilterHelpers.DeserializeFilterIntoItemAttributesBuffer(QltyInspectionGenRule."Item Attribute Filter", TempFilterItemAttributesBuffer);
+        QltyFilterHelpers.DeserializeFilterIntoItemAttributesBuffer(QltyInspectionGenRule.GetItemAttributeFilter(), TempFilterItemAttributesBuffer);
         QltyFilterHelpers.SetItemFilterForItemAttributeFilterSearching(Item."No.");
         BindSubscription(QltyFilterHelpers);
         ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer, TempsItem);

@@ -116,11 +116,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     SetIntentAndDefaultTriggerValuesFromSetup();
             end;
         }
-        field(13; "Condition Filter"; Text[400])
+        field(13; "Condition Filter"; Blob)
         {
             Caption = 'Condition Filter';
-            Description = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
-            ToolTip = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
         }
         field(14; Description; Text[100])
         {
@@ -145,10 +143,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
         {
             Caption = 'Item Filter';
         }
-        field(20; "Item Attribute Filter"; Text[400])
+        field(20; "Item Attribute Filter"; Blob)
         {
             Caption = 'Attribute Filter';
-            ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template. ';
         }
         field(21; "Activation Trigger"; Enum "Qlty. Gen. Rule Act. Trigger")
         {
@@ -287,7 +284,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
         RuleCurrentlyDisabledLbl: Label 'The generation rule Sort Order %1, Template Code %2 is currently disabled. It will need to have an activation trigger of "Automatic Only" or "Manual or Automatic" before it will be triggered by "%3"', Comment = '%1=generation rule sort order,%2=generation rule template code,%3=auto trigger';
         DefaultScheduleGroupLbl: Label 'QM', Locked = true;
         ChooseTemplateFirstErr: Label 'Please choose the template first.';
-        FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
 
     trigger OnInsert()
     begin
@@ -352,13 +348,10 @@ table 20404 "Qlty. Inspection Gen. Rule"
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         Value: Text;
     begin
-        Value := Rec."Condition Filter";
+        Value := Rec.GetConditionFilter();
         if QltyFilterHelpers.BuildFilter(Rec."Source Table No.", true, Value) then begin
-            if (Value <> Rec."Condition Filter") and (Value <> '') then begin
-                Rec."Condition Filter" := CopyStr(Value, 1, MaxStrLen(Rec."Condition Filter"));
-                if StrLen(Value) > MaxStrLen(Rec."Condition Filter") then
-                    Error(FilterLengthErr, MaxStrLen(Rec."Condition Filter"));
-            end;
+            if (Value <> Rec.GetConditionFilter()) and (Value <> '') then
+                Rec.SetConditionFilter(Value);
             Result := true;
         end;
     end;
@@ -405,6 +398,88 @@ table 20404 "Qlty. Inspection Gen. Rule"
     end;
 
     /// <summary>
+    /// Gets the condition filter from the Blob field.
+    /// </summary>
+    /// <returns>The condition filter text</returns>
+    procedure GetConditionFilter(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Condition Filter");
+        if not Rec."Condition Filter".HasValue() then
+            exit('');
+        Rec."Condition Filter".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
+    end;
+
+    /// <summary>
+    /// Sets the condition filter to the Blob field.
+    /// </summary>
+    /// <param name="NewConditionFilter">The condition filter text to set</param>
+    procedure SetConditionFilter(NewConditionFilter: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Condition Filter");
+        if NewConditionFilter = '' then
+            exit;
+        Rec."Condition Filter".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewConditionFilter);
+    end;
+
+    /// <summary>
+    /// Checks if the Condition Filter has a value.
+    /// </summary>
+    /// <returns>True if the Condition Filter has a value</returns>
+    procedure HasConditionFilter(): Boolean
+    begin
+        Rec.CalcFields("Condition Filter");
+        exit(Rec."Condition Filter".HasValue());
+    end;
+
+    /// <summary>
+    /// Gets the item attribute filter from the Blob field.
+    /// </summary>
+    /// <returns>The item attribute filter text</returns>
+    procedure GetItemAttributeFilter(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Item Attribute Filter");
+        if not Rec."Item Attribute Filter".HasValue() then
+            exit('');
+        Rec."Item Attribute Filter".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
+    end;
+
+    /// <summary>
+    /// Sets the item attribute filter to the Blob field.
+    /// </summary>
+    /// <param name="NewItemAttributeFilter">The item attribute filter text to set</param>
+    procedure SetItemAttributeFilter(NewItemAttributeFilter: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Item Attribute Filter");
+        if NewItemAttributeFilter = '' then
+            exit;
+        Rec."Item Attribute Filter".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewItemAttributeFilter);
+    end;
+
+    /// <summary>
+    /// Checks if the Item Attribute Filter has a value.
+    /// </summary>
+    /// <returns>True if the Item Attribute Filter has a value</returns>
+    procedure HasItemAttributeFilter(): Boolean
+    begin
+        Rec.CalcFields("Item Attribute Filter");
+        exit(Rec."Item Attribute Filter".HasValue());
+    end;
+
+    /// <summary>
     /// Provides the ability to assist edit an item filter.
     /// </summary>
     /// <returns></returns>
@@ -427,8 +502,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
     procedure AssistEditConditionAttributeFilter()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        Value: Text;
     begin
-        QltyFilterHelpers.BuildItemAttributeFilter400(Rec."Item Attribute Filter");
+        Value := Rec.GetItemAttributeFilter();
+        QltyFilterHelpers.BuildItemAttributeFilter(Value);
+        Rec.SetItemAttributeFilter(Value);
     end;
 
     /// <summary>
@@ -628,29 +706,31 @@ table 20404 "Qlty. Inspection Gen. Rule"
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         TempItemJournalLine: Record "Item Journal Line" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        ConditionFilterValue: Text;
     begin
         if Rec."Source Table No." = 0 then
             exit(false);
 
-        if Rec."Condition Filter" = '' then
+        if not Rec.HasConditionFilter() then
             exit(false);
 
+        ConditionFilterValue := Rec.GetConditionFilter();
         case Rec."Source Table No." of
             Database::"Prod. Order Routing Line",
             Database::"Prod. Order Line",
             Database::"Production Order":
                 exit(true);
             Database::"Item Ledger Entry":
-                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Output) then
+                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Output) then
                     exit(true)
                 else
-                    if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Order Type"), TempItemLedgerEntry."Order Type"::Production) then
+                    if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemLedgerEntry.FieldNo("Order Type"), TempItemLedgerEntry."Order Type"::Production) then
                         exit(true);
             Database::"Item Journal Line":
-                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Entry Type"), TempItemJournalLine."Entry Type"::Output) then
+                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemJournalLine.FieldNo("Entry Type"), TempItemJournalLine."Entry Type"::Output) then
                     exit(true)
                 else
-                    if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Order Type"), TempItemJournalLine."Order Type"::Production) then
+                    if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemJournalLine.FieldNo("Order Type"), TempItemJournalLine."Order Type"::Production) then
                         exit(true);
         end;
     end;
@@ -659,24 +739,29 @@ table 20404 "Qlty. Inspection Gen. Rule"
     var
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        ConditionFilterValue: Text;
     begin
-        if (Rec."Source Table No." = Database::"Warehouse Journal Line") and (Rec."Condition Filter" <> '') then
-            if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempWarehouseJournalLine.FieldNo("Whse. Document Type"), TempWarehouseJournalLine."Whse. Document Type"::Receipt) then
+        if (Rec."Source Table No." = Database::"Warehouse Journal Line") and Rec.HasConditionFilter() then begin
+            ConditionFilterValue := Rec.GetConditionFilter();
+            if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempWarehouseJournalLine.FieldNo("Whse. Document Type"), TempWarehouseJournalLine."Whse. Document Type"::Receipt) then
                 exit(true)
             else
-                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempWarehouseJournalLine.FieldNo("Reference Document"), TempWarehouseJournalLine."Reference Document"::"Posted Rcpt.") then
+                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempWarehouseJournalLine.FieldNo("Reference Document"), TempWarehouseJournalLine."Reference Document"::"Posted Rcpt.") then
                     exit(true);
+        end;
     end;
 
     local procedure InferIsWarehouseMoveIntentFromCondition(): Boolean
     var
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        ConditionFilterValue: Text;
     begin
-        if (Rec."Source Table No." = Database::"Warehouse Journal Line") and (Rec."Condition Filter" <> '') then begin
-            if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempWarehouseJournalLine.FieldNo("Whse. Document Type"), TempWarehouseJournalLine."Whse. Document Type"::"Internal Put-away") then
+        if (Rec."Source Table No." = Database::"Warehouse Journal Line") and Rec.HasConditionFilter() then begin
+            ConditionFilterValue := Rec.GetConditionFilter();
+            if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempWarehouseJournalLine.FieldNo("Whse. Document Type"), TempWarehouseJournalLine."Whse. Document Type"::"Internal Put-away") then
                 exit(true);
-            if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempWarehouseJournalLine.FieldNo("Entry Type"), Format(TempWarehouseJournalLine."Entry Type"::Movement)) then
+            if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempWarehouseJournalLine.FieldNo("Entry Type"), Format(TempWarehouseJournalLine."Entry Type"::Movement)) then
                 exit(true);
         end;
     end;
@@ -685,25 +770,27 @@ table 20404 "Qlty. Inspection Gen. Rule"
     var
         TempItemJournalLine: Record "Item Journal Line" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        ConditionFilterValue: Text;
     begin
-        if (Rec."Source Table No." = Database::"Item Journal Line") and (Rec."Condition Filter" <> '') then
+        if (Rec."Source Table No." = Database::"Item Journal Line") and Rec.HasConditionFilter() then begin
+            ConditionFilterValue := Rec.GetConditionFilter();
             case true of
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Purchase Receipt"):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Purchase Receipt"):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::Purchase;
                         exit(true);
                     end;
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Sales Return Receipt"):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Sales Return Receipt"):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::"Sales Return";
                         exit(true);
                     end;
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Transfer Receipt"):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Transfer Receipt"):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::Transfer;
                         exit(true);
                     end;
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Direct Transfer"):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemJournalLine.FieldNo("Document Type"), TempItemJournalLine."Document Type"::"Direct Transfer"):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::Transfer;
                         exit(true);
@@ -711,31 +798,34 @@ table 20404 "Qlty. Inspection Gen. Rule"
                 else
                     exit(false);
             end;
+        end;
     end;
 
     local procedure InferItemLedgerIntentFromConditionFilter(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"): Boolean
     var
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        ConditionFilterValue: Text;
     begin
-        if (Rec."Source Table No." = Database::"Item Ledger Entry") and (Rec."Condition Filter" <> '') then
+        if (Rec."Source Table No." = Database::"Item Ledger Entry") and Rec.HasConditionFilter() then begin
+            ConditionFilterValue := Rec.GetConditionFilter();
             case true of
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Purchase):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Purchase):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::Purchase;
                         exit(true);
                     end;
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Sale):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Sale):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::"Sales Return";
                         exit(true);
                     end;
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Transfer):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Transfer):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::Transfer;
                         exit(true);
                     end;
-                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::"Assembly Output"):
+                QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", ConditionFilterValue, TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::"Assembly Output"):
                     begin
                         QltyGenRuleIntent := QltyGenRuleIntent::Assembly;
                         exit(true);
@@ -743,6 +833,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
                 else
                     exit(false);
             end;
+        end;
     end;
 
     local procedure GetIsOnlyAutoTriggerInSetup(IntentToCheck: Enum "Qlty. Gen. Rule Intent"): Boolean

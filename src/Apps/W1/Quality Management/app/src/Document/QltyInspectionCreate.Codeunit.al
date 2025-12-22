@@ -950,7 +950,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
 
         if QltyTraversal.FindRelatedItem(Item, ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant) then begin
-            if (Item."No." <> '') and (TempFiltersQltyInspectionGenRule."Item Attribute Filter" <> '') then
+            if (Item."No." <> '') and TempFiltersQltyInspectionGenRule.HasItemAttributeFilter() then
                 if not QltyInspecGenRuleMgmt.DoesMatchItemAttributeFiltersOrNoFilter(TempFiltersQltyInspectionGenRule, Item) then
                     exit;
 

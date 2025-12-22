@@ -77,11 +77,21 @@ page 20405 "Qlty. Inspection Gen. Rules"
                             CurrPage.Update(true);
                     end;
                 }
-                field("Condition Filter"; Rec."Condition Filter")
+                field("Condition Filter"; ConditionFilterText)
                 {
+                    Caption = 'Condition Filter';
+                    ToolTip = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.SetConditionFilter(ConditionFilterText);
+                        Rec.Modify();
+                    end;
+
                     trigger OnAssistEdit()
                     begin
                         Rec.AssistEditConditionTableFilter();
+                        ConditionFilterText := Rec.GetConditionFilter();
                         Rec.SetIntentAndDefaultTriggerValuesFromSetup();
                         if xRec."Entry No." = Rec."Entry No." then
                             CurrPage.Update(true);
@@ -104,11 +114,21 @@ page 20405 "Qlty. Inspection Gen. Rules"
                         ItemFilterText := Rec.GetItemFilter();
                     end;
                 }
-                field("Item Attribute Filter"; Rec."Item Attribute Filter")
+                field("Item Attribute Filter"; ItemAttributeFilterText)
                 {
+                    Caption = 'Attribute Filter';
+                    ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.SetItemAttributeFilter(ItemAttributeFilterText);
+                        Rec.Modify();
+                    end;
+
                     trigger OnAssistEdit()
                     begin
                         Rec.AssistEditConditionAttributeFilter();
+                        ItemAttributeFilterText := Rec.GetItemAttributeFilter();
                     end;
                 }
                 field("Activation Trigger"; Rec."Activation Trigger")
@@ -389,6 +409,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
         WhseMovementStyle: Text;
         TransferStyle: Text;
         ItemFilterText: Text;
+        ConditionFilterText: Text;
+        ItemAttributeFilterText: Text;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         GenerationRulesCaptionLbl: Label 'Quality Inspection Generation Rules';
         GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Generation Rules for %1', Comment = '%1=the template';
@@ -439,7 +461,9 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     trigger OnAfterGetRecord()
     begin
+        ConditionFilterText := Rec.GetConditionFilter();
         ItemFilterText := Rec.GetItemFilter();
+        ItemAttributeFilterText := Rec.GetItemAttributeFilter();
         UpdateControls();
     end;
 
