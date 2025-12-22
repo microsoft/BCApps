@@ -71,7 +71,7 @@ page 20408 "Qlty. Inspection List"
                     Visible = false;
                     Editable = false;
                 }
-                field("Result Priority"; Rec."Result Priority")
+                field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {
                     Visible = false;
                 }
