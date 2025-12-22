@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Vendor;
 
 page 6105 "Inbound E-Documents"
 {
@@ -20,7 +21,7 @@ page 6105 "Inbound E-Documents"
     DeleteAllowed = true;
     InsertAllowed = false;
     ModifyAllowed = false;
-    SourceTableView = sorting(SystemCreatedAt) order(descending) where(Direction = const("E-Document Direction"::Incoming));
+    SourceTableView = sorting("Due Date") order(ascending) where(Direction = const("E-Document Direction"::Incoming));
 
     layout
     {
@@ -45,6 +46,38 @@ page 6105 "Inbound E-Documents"
                     begin
                         EDocumentHelper.OpenDraftPage(Rec);
                     end;
+                }
+                field(ConfirmedVendorName; ConfirmedVendorTxt)
+                {
+                    Caption = 'Vendor Name';
+                    ToolTip = 'Specifies the bill-to/pay-to name of the document that was confirmed by the user during processing.';
+                    trigger OnDrillDown()
+                    var
+                        Vendor: Record Vendor;
+                        VendorCardPage: Page "Vendor Card";
+                    begin
+                        if Rec."Bill-to/Pay-to No." = '' then
+                            exit;
+                        Vendor.Get(Rec."Bill-to/Pay-to No.");
+                        Vendor.SetRecFilter();
+                        VendorCardPage.SetRecord(Vendor);
+                        VendorCardPage.RunModal();
+                    end;
+                }
+                field("Import Processing Status"; Rec."Import Processing Status")
+                {
+                    Caption = 'Processing Status';
+                    ToolTip = 'Specifies the stage in which the processing of this document is in.';
+                }
+                field("Document Date"; Rec."Document Date")
+                {
+                    Caption = 'Document Date';
+                    ToolTip = 'Specifies the date of the document.';
+                }
+                field("Due Date"; Rec."Due Date")
+                {
+                    Caption = 'Due Date';
+                    ToolTip = 'Specifies the due date of the document.';
                 }
                 field("Task"; TaskTxt)
                 {
@@ -77,15 +110,10 @@ page 6105 "Inbound E-Documents"
                     Caption = 'Source Details';
                     ToolTip = 'Specifies the details about the source of the document.';
                 }
-                field("Vendor Name"; VendorNameTxt)
+                field("Vendor Name"; EDocumentPurchaseHeader."Vendor Company Name")
                 {
                     Caption = 'Sender';
                     ToolTip = 'Specifies the vendor name of the document.';
-                }
-                field("Import Processing Status"; Rec."Import Processing Status")
-                {
-                    Caption = 'Processing Status';
-                    ToolTip = 'Specifies the stage in which the processing of this document is in.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
@@ -355,7 +383,7 @@ page 6105 "Inbound E-Documents"
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
         RecordLinkTxt := EDocumentProcessing.GetRecordLinkText(Rec);
         PopulateDocumentNameTxt();
-        PopulateVendorNameTxt();
+        PopulateConfirmedVendorNameTxt();
         TaskTxt := 'Task #' + Format(Rec."Entry No");
         SetDocumentTypeStyleExpression();
 
@@ -376,17 +404,13 @@ page 6105 "Inbound E-Documents"
         else
             CaptionBuilder.Append('Draft document - ');
 
-        //CaptionBuilder.Append(Format(Rec."Entry No"));
-        if Rec."Bill-to/Pay-to Name" <> '' then begin
-            CaptionBuilder.Append(' - ');
-            CaptionBuilder.Append(Rec."Bill-to/Pay-to Name");
-        end;
+        CaptionBuilder.Append(Format(Rec."Entry No"));
         DocumentNameTxt := CaptionBuilder.ToText();
     end;
 
-    local procedure PopulateVendorNameTxt()
+    local procedure PopulateConfirmedVendorNameTxt()
     begin
-        VendorNameTxt := EDocumentPurchaseHeader."Vendor Company Name";
+        ConfirmedVendorTxt := Rec."Bill-to/Pay-to Name"
     end;
 
     trigger OnOpenPage()
@@ -512,7 +536,7 @@ page 6105 "Inbound E-Documents"
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, VendorNameTxt, DocumentNameTxt, DocumentTypeStyleTxt, TaskTxt : Text;
+        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, TaskTxt : Text;
         HasPdf: Boolean;
 #if not CLEAN27
         EmailVisibilityFlag: Boolean;

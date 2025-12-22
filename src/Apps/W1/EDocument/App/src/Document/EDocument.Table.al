@@ -314,6 +314,9 @@ table 6121 "E-Document"
         key(Key4; SystemCreatedAt)
         {
         }
+        key(DueDate; "Due Date")
+        {
+        }
     }
 
     trigger OnDelete()
