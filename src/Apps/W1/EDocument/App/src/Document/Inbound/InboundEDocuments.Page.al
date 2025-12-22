@@ -8,6 +8,8 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Purchases.Vendor;
+using System.Agents;
+using System.Agents.TaskPane;
 
 page 6105 "Inbound E-Documents"
 {
@@ -79,15 +81,27 @@ page 6105 "Inbound E-Documents"
                     Caption = 'Due Date';
                     ToolTip = 'Specifies the due date of the document.';
                 }
-                field("Task"; TaskTxt)
+                field(TaskID; TaskTxt)
                 {
                     Caption = 'Task';
                     ToolTip = 'Specifies the task number for the document.';
+                    Editable = false;
+                    ExtendedDatatype = Task;
 
                     trigger OnDrillDown()
+                    var
+                        TaskPane: Codeunit "Task Pane";
+                        Task: Record "Agent Task";
                     begin
-                        Message('The task pane will be opened here ----------------->');
+                        Task.Get(Rec."Task ID");
+                        TaskPane.ShowTask(Task);
                     end;
+                }
+                field(TaskStatus; TaskStatusTxt)
+                {
+                    Caption = 'Task Status';
+                    ToolTip = 'Specifies the status of the agent task for this document.';
+                    Editable = false;
                 }
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
@@ -384,7 +398,7 @@ page 6105 "Inbound E-Documents"
         RecordLinkTxt := EDocumentProcessing.GetRecordLinkText(Rec);
         PopulateDocumentNameTxt();
         PopulateConfirmedVendorNameTxt();
-        TaskTxt := 'Task #' + Format(Rec."Entry No");
+        PopulateTaskInfo();
         SetDocumentTypeStyleExpression();
 
         HasPdf := false;
@@ -411,6 +425,22 @@ page 6105 "Inbound E-Documents"
     local procedure PopulateConfirmedVendorNameTxt()
     begin
         ConfirmedVendorTxt := Rec."Bill-to/Pay-to Name"
+    end;
+
+    local procedure PopulateTaskInfo()
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        TaskTxt := '';
+        TaskStatusTxt := '';
+
+        if Rec."Agent Task ID" = 0 then
+            exit;
+
+        TaskTxt := '#' + Format(Rec."Agent Task ID");
+
+        if AgentTask.Get(Rec."Agent Task ID") then
+            TaskStatusTxt := Format(AgentTask.Status);
     end;
 
     trigger OnOpenPage()
@@ -536,7 +566,7 @@ page 6105 "Inbound E-Documents"
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, TaskTxt : Text;
+        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, TaskTxt, TaskStatusTxt : Text;
         HasPdf: Boolean;
 #if not CLEAN27
         EmailVisibilityFlag: Boolean;

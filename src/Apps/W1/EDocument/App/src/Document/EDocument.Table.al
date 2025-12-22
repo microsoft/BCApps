@@ -296,6 +296,12 @@ table 6121 "E-Document"
             Caption = 'Last Clearance Request Time';
             DataClassification = SystemMetadata;
         }
+        field(62; "Agent Task ID"; BigInteger)
+        {
+            Caption = 'Agent Task ID';
+            ToolTip = 'Specifies the ID of the agent task associated with this E-Document.';
+            DataClassification = SystemMetadata;
+        }
 
         #endregion
     }
