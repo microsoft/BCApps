@@ -370,13 +370,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
         {
             Caption = 'Enabled';
             Filters = where("Activation Trigger" = filter("Manual only" | "Manual or Automatic" | "Automatic only"));
-            OrderBy = descending("Sort Order");
         }
         view(viewDisabled)
         {
             Caption = 'Disabled';
             Filters = where("Activation Trigger" = filter(Disabled));
-            OrderBy = descending("Sort Order");
         }
     }
 
