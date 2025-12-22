@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Telemetry;
+
 /// <summary>
 /// Report Shpfy Sync Orders from Shopify (ID 30104).
 /// </summary>
@@ -103,7 +105,10 @@ report 30104 "Shpfy Sync Orders from Shopify"
         ProcessMsg: Label ' To Process: #1###########', Comment = '#1 = ToPrgress';
 
     trigger OnPreReport()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        FeatureTelemetry.LogUsage('', 'Shopify', 'Shopify sync orders executed.');
         ToImportView := OrdersToImport.GetView(false);
     end;
 
