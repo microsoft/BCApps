@@ -818,9 +818,14 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
         ExistingQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
         ExistingQltyInspectionGenRule.SetRange("Source Table No.", QltyInspectionGenRule."Source Table No.");
-        if ExistingQltyInspectionGenRule.Count() > 1 then
-            if not Confirm(RuleAlreadyThereQst) then
-                Error('');
+        ExistingQltyInspectionGenRule.SetFilter("Entry No.", '<>%1', QltyInspectionGenRule."Entry No.");
+        if ExistingQltyInspectionGenRule.FindSet() then
+            repeat
+                if (ExistingQltyInspectionGenRule.GetConditionFilter() = QltyInspectionGenRule.GetConditionFilter()) and
+                   (ExistingQltyInspectionGenRule.GetItemFilter() = QltyInspectionGenRule.GetItemFilter()) then
+                    if not Confirm(RuleAlreadyThereQst) then
+                        Error('');
+            until ExistingQltyInspectionGenRule.Next() = 0;
 
         CurrPage.Close();
     end;
