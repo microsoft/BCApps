@@ -10,8 +10,8 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Feedback;
 using System.Telemetry;
-using System.Utilities;
 using System.Text;
+using System.Utilities;
 
 page 6181 "E-Document Purchase Draft"
 {
