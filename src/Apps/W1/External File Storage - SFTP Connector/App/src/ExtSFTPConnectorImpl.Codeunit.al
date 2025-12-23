@@ -408,18 +408,6 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         Error(ErrorOccuredErr, Response.GetError());
     end;
 
-    local procedure GetParentPath(Path: Text) ParentPath: Text
-    begin
-        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
-            ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
-    end;
-
-    local procedure GetFileName(Path: Text) FileName: Text
-    begin
-        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
-            FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
-    end;
-
     local procedure InitPath(AccountId: Guid; var Path: Text)
     var
         SFTPAccount: Record "Ext. SFTP Account";
