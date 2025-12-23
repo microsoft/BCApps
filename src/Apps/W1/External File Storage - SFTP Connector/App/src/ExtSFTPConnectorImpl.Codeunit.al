@@ -77,7 +77,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         SFTPClient.GetFileAsStream(Path, TempBlobStream);
         SFTPClient.Disconnect();
 
-        // Platform fix: For some reason the Stream from DownloadFileContentByServerRelativeUrl dies after leaving the interface
+        // Platform fix: For some reason the Stream from GetFileAsStream dies after leaving the interface
         Content.WriteFrom(TempBlobStream);
         Content.ReadAs(Stream);
 
@@ -444,7 +444,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
     end;
 
-    local procedure AddFingerprints(Fingerprints: Text[1024]; var SFTPClient: Codeunit "SFTP Client")
+    local procedure AddFingerprints(Fingerprints: Text; var SFTPClient: Codeunit "SFTP Client")
     var
         Fingerprint: Text;
     begin
