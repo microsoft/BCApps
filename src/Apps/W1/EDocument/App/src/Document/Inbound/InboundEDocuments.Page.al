@@ -5,8 +5,8 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.Foundation.Attachment;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
 using System.Agents.TaskPane;
@@ -81,7 +81,7 @@ page 6105 "Inbound E-Documents"
                     Caption = 'Due Date';
                     ToolTip = 'Specifies the due date of the document.';
                 }
-                field(TaskID; Rec."Agent Task ID")
+                field(TaskID; AgentTask.ID)
                 {
                     Caption = 'Task';
                     ToolTip = 'Specifies the task number for the document.';
@@ -90,14 +90,16 @@ page 6105 "Inbound E-Documents"
 
                     trigger OnDrillDown()
                     var
-                        TaskPane: Codeunit "Task Pane";
                         Task: Record "Agent Task";
+                        TaskPane: Codeunit "Task Pane";
                     begin
-                        Task.Get(Rec."Task ID");
+                        if AgentTask.ID = 0 then
+                            exit;
+                        Task.Get(AgentTask.ID);
                         TaskPane.ShowTask(Task);
                     end;
                 }
-                field(TaskStatus; TaskStatusTxt)
+                field(TaskStatus; AgentTask.Status)
                 {
                     Caption = 'Task Status';
                     ToolTip = 'Specifies the status of the agent task for this document.';
@@ -428,16 +430,11 @@ page 6105 "Inbound E-Documents"
     end;
 
     local procedure PopulateTaskInfo()
-    var
-        AgentTask: Record "Agent Task";
     begin
-        TaskStatusTxt := '';
-
-        if Rec."Agent Task ID" = 0 then
-            exit;
-
-        if AgentTask.Get(Rec."Agent Task ID") then
-            TaskStatusTxt := Format(AgentTask.Status);
+        AgentTask.SetRange("Company Name", CompanyName());
+        AgentTask.SetRange("External ID", Format(Rec."Entry No"));
+        if not AgentTask.IsEmpty() then
+            Clear(AgentTask);
     end;
 
     trigger OnOpenPage()
@@ -562,8 +559,9 @@ page 6105 "Inbound E-Documents"
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        AgentTask: Record "Agent Task";
         EDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, TaskStatusTxt : Text;
+        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt : Text;
         HasPdf: Boolean;
 #if not CLEAN27
         EmailVisibilityFlag: Boolean;
