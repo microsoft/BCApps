@@ -109,7 +109,6 @@ table 4590 "Ext. SFTP Account"
         TryDeleteIsolatedStorageValue(Rec."Certificate Password Key");
     end;
 
-#pragma warning disable AS0022
     internal procedure SetPassword(Password: SecretText)
     begin
         if IsNullGuid(Rec."Password Key") then
@@ -151,7 +150,6 @@ table 4590 "Ext. SFTP Account"
         // as only one authentication method can be active
         ClearPasswordAuthentication();
     end;
-#pragma warning restore AS0022
 
     local procedure ClearPasswordAuthentication()
     begin
