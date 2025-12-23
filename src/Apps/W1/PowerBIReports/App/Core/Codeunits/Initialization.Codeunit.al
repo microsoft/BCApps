@@ -7,6 +7,7 @@ namespace Microsoft.PowerBIReports;
 using Microsoft.Finance.PowerBIReports;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Period;
+using Microsoft.Inventory.PowerBIReports;
 using System.Diagnostics;
 using System.Environment.Configuration;
 using System.Media;
@@ -34,6 +35,7 @@ codeunit 36951 Initialization
         InitializeDimSetEntryLastUpdated();
         InitializeSetupFinancePowerBIReports();
         InitializeCloseIncomeSourceCodes();
+        InitializeABCAnalysisSetup();
     end;
 
     internal procedure RestoreDimensionSetEntryCollectionJobQueueEntry()
@@ -229,6 +231,20 @@ codeunit 36951 Initialization
                     CloseIncomeStmtSourceCode.Insert(true);
                 end;
     end;
+
+    internal procedure InitializeABCAnalysisSetup()
+    var
+        ABCAnalysisSetup: Record "ABC Analysis Setup";
+    begin
+        if not ABCAnalysisSetup.Get() then begin
+            ABCAnalysisSetup.Init();
+            ABCAnalysisSetup."Category A" := 50;
+            ABCAnalysisSetup."Category B" := 30;
+            ABCAnalysisSetup."Category C" := 20;
+            ABCAnalysisSetup.Insert();
+        end;
+    end;
+
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Change Log Management", 'OnAfterIsAlwaysLoggedTable', '', false, false)]
     local procedure OnAfterIsAlwaysLoggedTable(TableID: Integer; var AlwaysLogTable: Boolean)

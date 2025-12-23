@@ -5,6 +5,7 @@
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.Finance.PowerBIReports;
+using Microsoft.Inventory.PowerBIReports;
 
 permissionset 36950 "PowerBI Report Admin"
 {
@@ -17,5 +18,6 @@ permissionset 36950 "PowerBI Report Admin"
         tabledata "PowerBI Flat Dim. Set Entry" = RIMD,
         tabledata "PowerBI Reports Setup" = RIMD,
         tabledata "Working Day" = RIMD,
-        tabledata "Account Category" = RM;
+        tabledata "Account Category" = RMID,
+        tabledata "ABC Analysis Setup" = RMID;
 }
