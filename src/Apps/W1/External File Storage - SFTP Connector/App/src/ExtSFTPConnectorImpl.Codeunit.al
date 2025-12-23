@@ -1,0 +1,483 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.ExternalFileStorage;
+
+using System.DataAdministration;
+using System.SFTPClient;
+using System.Text;
+using System.Utilities;
+
+codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Connector"
+{
+    Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "Ext. SFTP Account" = rimd;
+
+    var
+        ConnectorDescriptionTxt: Label 'Use SharePoint to store and retrieve files.', MaxLength = 250;
+        NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
+
+    /// <summary>
+    /// Gets a List of Files stored on the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to get the file.</param>
+    /// <param name="Path">The file path to list.</param>
+    /// <param name="FilePaginationData">Defines the pagination data.</param>
+    /// <param name="TempFileAccountContent">A list with all files stored in the path.</param>
+    procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
+    var
+        FileList: Record "SFTP Folder Content";
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+        OrginalPath: Text;
+    begin
+        OrginalPath := Path;
+        InitPath(AccountId, Path);
+        InitSFTPClient(AccountId, SFTPClient);
+        Response := SFTPClient.ListFiles(Path, FileList);
+
+        if Response.IsError() then
+            ShowError(Response);
+
+        FilePaginationData.SetEndOfListing(true);
+
+        FileList.SetRange("Is Directory", false);
+        if not FileList.FindSet() then
+            exit;
+
+        repeat
+            TempFileAccountContent.Init();
+            TempFileAccountContent.Name := FileList.Name;
+            TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
+            TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
+            TempFileAccountContent.Insert();
+        until FileList.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Gets a file from the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to get the file.</param>
+    /// <param name="Path">The file path inside the file account.</param>
+    /// <param name="Stream">The Stream were the file is read to.</param>
+    procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream)
+    var
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+        Content: HttpContent;
+        TempBlobStream: InStream;
+    begin
+        InitPath(AccountId, Path);
+        InitSFTPClient(AccountId, SFTPClient);
+
+        SFTPClient.GetFileAsStream(Path, TempBlobStream);
+
+        // Platform fix: For some reason the Stream from DownloadFileContentByServerRelativeUrl dies after leaving the interface
+        Content.WriteFrom(TempBlobStream);
+        Content.ReadAs(Stream);
+
+        if Response.IsError() then
+            ShowError(Response);
+    end;
+
+    /// <summary>
+    /// Create a file in the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="Path">The file path inside the file account.</param>
+    /// <param name="Stream">The Stream were the file is read from.</param>
+    procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream)
+    var
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+        ParentPath, FileName : Text;
+    begin
+        InitPath(AccountId, Path);
+        InitSFTPClient(AccountId, SFTPClient);
+        SplitPath(Path, ParentPath, FileName);
+
+        Response := SFTPClient.PutFileStream(Path, Stream);
+
+        if Response.IsError() then
+            ShowError(Response);
+    end;
+
+    /// <summary>
+    /// Copies as file inside the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="SourcePath">The source file path.</param>
+    /// <param name="TargetPath">The target file path.</param>
+    procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Stream: InStream;
+    begin
+        TempBlob.CreateInStream(Stream);
+
+        GetFile(AccountId, SourcePath, Stream);
+        CreateFile(AccountId, TargetPath, Stream);
+    end;
+
+    /// <summary>
+    /// Move as file inside the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="SourcePath">The source file path.</param>
+    /// <param name="TargetPath">The target file path.</param>
+    procedure MoveFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
+    var
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+    begin
+        InitSFTPClient(AccountId, SFTPClient);
+        InitPath(AccountId, SourcePath);
+        InitPath(AccountId, TargetPath);
+
+        Response := SFTPClient.MoveFile(SourcePath, TargetPath);
+        if Response.IsError() then
+            ShowError(Response);
+    end;
+
+    /// <summary>
+    /// Checks if a file exists on the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="Path">The file path inside the file account.</param>
+    /// <returns>Returns true if the file exists</returns>
+    procedure FileExists(AccountId: Guid; Path: Text) Result: Boolean
+    var
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+    begin
+        InitPath(AccountId, Path);
+        InitSFTPClient(AccountId, SFTPClient);
+
+        Response := SFTPClient.FileExists(Path, Result);
+
+        if Response.IsError() then
+            ShowError(Response);
+    end;
+
+    /// <summary>
+    /// Deletes a file exists on the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="Path">The file path inside the file account.</param>
+    procedure DeleteFile(AccountId: Guid; Path: Text)
+    var
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+    begin
+        InitPath(AccountId, Path);
+        InitSFTPClient(AccountId, SFTPClient);
+
+        Response := SFTPClient.DeleteFile(Path);
+
+        if Response.IsError() then
+            ShowError(Response);
+    end;
+
+    /// <summary>
+    /// Gets a List of Directories stored on the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to get the file.</param>
+    /// <param name="Path">The file path to list.</param>
+    /// <param name="FilePaginationData">Defines the pagination data.</param>
+    /// <param name="Files">A list with all directories stored in the path.</param>
+    procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
+    var
+        FileList: Record "SFTP Folder Content";
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+        OrginalPath: Text;
+    begin
+        OrginalPath := Path;
+        InitPath(AccountId, Path);
+        InitSFTPClient(AccountId, SFTPClient);
+        Response := SFTPClient.ListFiles(Path, FileList);
+
+        if Response.IsError() then
+            ShowError(Response);
+
+        FilePaginationData.SetEndOfListing(true);
+
+        FileList.SetRange("Is Directory", true);
+        FileList.SetFilter(Name, '<>%1&<>%2', '.', '..'); // Exclude . and ..
+        if not FileList.FindSet() then
+            exit;
+
+        repeat
+            TempFileAccountContent.Init();
+            TempFileAccountContent.Name := FileList.Name;
+            TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
+            TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
+            TempFileAccountContent.Insert();
+        until FileList.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Creates a directory on the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="Path">The directory path inside the file account.</param>
+    procedure CreateDirectory(AccountId: Guid; Path: Text)
+    var
+        SFTPClient: Codeunit "SFTP Client";
+        Response: Codeunit "SFTP Operation Response";
+    begin
+        InitPath(AccountId, Path);
+        InitSFTPClient(AccountId, SFTPClient);
+        Response := SFTPClient.CreateDirectory(Path);
+
+        if Response.IsError() then
+            ShowError(Response);
+    end;
+
+    /// <summary>
+    /// Checks if a directory exists on the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="Path">The directory path inside the file account.</param>
+    /// <returns>Returns true if the directory exists</returns>
+    procedure DirectoryExists(AccountId: Guid; Path: Text) Result: Boolean
+    begin
+        exit(FileExists(AccountId, Path));
+    end;
+
+    /// <summary>
+    /// Deletes a directory exists on the provided account.
+    /// </summary>
+    /// <param name="AccountId">The file account ID which is used to send out the file.</param>
+    /// <param name="Path">The directory path inside the file account.</param>
+    procedure DeleteDirectory(AccountId: Guid; Path: Text)
+    begin
+        DeleteFile(AccountId, Path);
+    end;
+
+    /// <summary>
+    /// Gets the registered accounts for the SharePoint connector.
+    /// </summary>
+    /// <param name="TempAccounts">Out parameter holding all the registered accounts for the SharePoint connector.</param>
+    procedure GetAccounts(var TempAccounts: Record "File Account" temporary)
+    var
+        Account: Record "Ext. SFTP Account";
+    begin
+        if not Account.FindSet() then
+            exit;
+
+        repeat
+            TempAccounts."Account Id" := Account.Id;
+            TempAccounts.Name := Account.Name;
+            TempAccounts.Connector := Enum::"Ext. File Storage Connector"::"SFTP";
+            TempAccounts.Insert();
+        until Account.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Shows accounts information.
+    /// </summary>
+    /// <param name="AccountId">The ID of the account to show.</param>
+    procedure ShowAccountInformation(AccountId: Guid)
+    var
+        SharePointAccountLocal: Record "Ext. SFTP Account";
+    begin
+        if not SharePointAccountLocal.Get(AccountId) then
+            Error(NotRegisteredAccountErr);
+
+        SharePointAccountLocal.SetRecFilter();
+        Page.Run(Page::"Ext. SFTP Account", SharePointAccountLocal);
+    end;
+
+    /// <summary>
+    /// Register an file account for the SharePoint connector.
+    /// </summary>
+    /// <param name="TempAccount">Out parameter holding details of the registered account.</param>
+    /// <returns>True if the registration was successful; false - otherwise.</returns>
+    procedure RegisterAccount(var TempAccount: Record "File Account" temporary): Boolean
+    var
+        SharePointAccountWizard: Page "Ext. SFTP Account Wizard";
+    begin
+        SharePointAccountWizard.RunModal();
+
+        exit(SharePointAccountWizard.GetAccount(TempAccount));
+    end;
+
+    /// <summary>
+    /// Deletes an file account for the SharePoint connector.
+    /// </summary>
+    /// <param name="AccountId">The ID of the SharePoint account</param>
+    /// <returns>True if an account was deleted.</returns>
+    procedure DeleteAccount(AccountId: Guid): Boolean
+    var
+        SharePointAccountLocal: Record "Ext. SFTP Account";
+    begin
+        if SharePointAccountLocal.Get(AccountId) then
+            exit(SharePointAccountLocal.Delete());
+
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Gets a description of the SharePoint connector.
+    /// </summary>
+    /// <returns>A short description of the SharePoint connector.</returns>
+    procedure GetDescription(): Text[250]
+    begin
+        exit(ConnectorDescriptionTxt);
+    end;
+
+    /// <summary>
+    /// Gets the SharePoint connector logo.
+    /// </summary>
+    /// <returns>A base64-formatted image to be used as logo.</returns>
+    procedure GetLogoAsBase64(): Text
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        Stream: InStream;
+    begin
+        NavApp.GetResource('connector-logo.png', Stream);
+        exit(Base64Convert.ToBase64(Stream));
+    end;
+
+    internal procedure IsAccountValid(var TempAccount: Record "Ext. SFTP Account" temporary): Boolean
+    begin
+        if TempAccount.Name = '' then
+            exit(false);
+
+        if TempAccount."Hostname" = '' then
+            exit(false);
+
+        if TempAccount."Base Relative Folder Path" = '' then
+            exit(false);
+
+        exit(true);
+    end;
+
+    internal procedure CreateAccount(var AccountToCopy: Record "Ext. SFTP Account"; ClientSecretOrCertificate: SecretText; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
+    var
+        NewExtSharePointAccount: Record "Ext. SFTP Account";
+    begin
+        NewExtSharePointAccount.TransferFields(AccountToCopy);
+        NewExtSharePointAccount.Id := CreateGuid();
+
+        NewExtSharePointAccount.SetPassword(ClientSecretOrCertificate);
+
+        NewExtSharePointAccount.Insert();
+
+        TempFileAccount."Account Id" := NewExtSharePointAccount.Id;
+        TempFileAccount.Name := NewExtSharePointAccount.Name;
+        TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"SFTP";
+    end;
+
+    local procedure InitSFTPClient(var AccountId: Guid; var SFTPClient: Codeunit "SFTP Client")
+    var
+        SFTPAccount: Record "Ext. SFTP Account";
+        AccountDisabledErr: Label 'The account "%1" is disabled.', Comment = '%1 - Account Name';
+    begin
+        SFTPAccount.Get(AccountId);
+        if SFTPAccount.Disabled then
+            Error(AccountDisabledErr, SFTPAccount.Name);
+
+        AddFingerPrints(SFTPAccount."Fingerprints", SFTPClient);
+
+        case SFTPAccount."Authentication Type" of
+            Enum::"Ext. SFTP Auth Type"::Password:
+                SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, SFTPAccount.GetPassword(SFTPAccount."Password Key"));
+            Enum::"Ext. SFTP Auth Type"::Certificate:
+                if IsNullGuid(SFTPAccount."Certificate Key") then
+                    SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, SFTPAccount.GetCertificate(SFTPAccount."Certificate Key"))
+                else
+                    SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, SFTPAccount.GetCertificate(SFTPAccount."Certificate Key"), SFTPAccount.GetCertificatePassword(SFTPAccount."Certificate Password Key"));
+        end;
+    end;
+
+    local procedure PathSeparator(): Text
+    begin
+        exit('/');
+    end;
+
+    local procedure ShowError(var Response: Codeunit "SFTP Operation Response")
+    var
+        ErrorOccuredErr: Label 'An error occured.\%1', Comment = '%1 - Error message from sharepoint';
+    begin
+        Error(ErrorOccuredErr, Response.GetError());
+    end;
+
+    local procedure GetParentPath(Path: Text) ParentPath: Text
+    begin
+        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
+            ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
+    end;
+
+    local procedure GetFileName(Path: Text) FileName: Text
+    begin
+        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
+            FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+    end;
+
+    local procedure InitPath(AccountId: Guid; var Path: Text)
+    var
+        SFTPAccount: Record "Ext. SFTP Account";
+    begin
+        SFTPAccount.Get(AccountId);
+        Path := CombinePath(SFTPAccount."Base Relative Folder Path", Path);
+    end;
+
+    local procedure CombinePath(Parent: Text; Child: Text): Text
+    begin
+        if Parent = '' then
+            exit(Child);
+
+        if Child = '' then
+            exit(Parent);
+
+        if not Parent.EndsWith(PathSeparator()) then
+            Parent += PathSeparator();
+
+        exit(Parent + Child);
+    end;
+
+    local procedure SplitPath(Path: Text; var ParentPath: Text; var FileName: Text)
+    begin
+        ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
+        FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+    end;
+
+    local procedure AddFingerprints(Fingerprints: Text[1024]; var SFTPClient: Codeunit "SFTP Client")
+    var
+        Fingerprint: Text;
+    begin
+        foreach Fingerprint in Fingerprints.Split(',') do
+            AddFingerprint(Fingerprint, SFTPClient);
+    end;
+
+    local procedure AddFingerprint(Fingerprint: Text; var SFTPClient: Codeunit "SFTP Client")
+    var
+        SHA256PrefixTok: Label 'sha256:', Locked = true;
+        MD5PrefixTok: Label 'md5:', Locked = true;
+    begin
+        Fingerprint := Fingerprint.Trim();
+        if Fingerprint.StartsWith(SHA256PrefixTok) then
+            SFTPClient.AddFingerprintSHA256(Fingerprint.Substring(StrLen(SHA256PrefixTok) + 1))
+        else
+            if Fingerprint.StartsWith(MD5PrefixTok) then
+                SFTPClient.AddFingerprintMD5(Fingerprint.Substring(StrLen(MD5PrefixTok) + 1));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearCompanyConfig, '', false, false)]
+    local procedure EnvironmentCleanup_OnClearCompanyConfig(CompanyName: Text; SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
+    var
+        ExtSharePointAccount: Record "Ext. SFTP Account";
+    begin
+        ExtSharePointAccount.SetRange(Disabled, false);
+        if ExtSharePointAccount.IsEmpty() then
+            exit;
+
+        ExtSharePointAccount.ModifyAll(Disabled, true);
+    end;
+}
