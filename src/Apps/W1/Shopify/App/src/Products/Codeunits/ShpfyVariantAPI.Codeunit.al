@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Environment;
+
 /// <summary>
 /// Codeunit Shpfy Variant API (ID 30189).
 /// </summary>
@@ -615,6 +617,16 @@ codeunit 30189 "Shpfy Variant API"
         end;
     end;
 
+    local procedure UpdateVariantImage(Variant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
+    var
+        ProductApi: Codeunit "Shpfy Product API";
+        NewImageId: BigInteger;
+    begin
+        NewImageId := ProductApi.UpdateProductWithNewImage(Variant."Product Id", ResourceUrl);
+        SetVariantImage(Variant."Product Id", Variant.Id, NewImageId);
+        exit(NewImageId);
+    end;
+
     internal procedure UpdateProductPrice(ShopifyVariant: Record "Shpfy Variant"; xShopifyVariant: Record "Shpfy Variant"; var BulkOperationInput: TextBuilder; var GraphQueryList: Dictionary of [BigInteger, TextBuilder]; RecordCount: Integer; var JRequestData: JsonArray)
     var
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
@@ -810,5 +822,82 @@ codeunit 30189 "Shpfy Variant API"
         if JsonHelper.GetJsonObject(JVariant, JNode, 'metafields') then
             if JsonHelper.GetJsonArray(JNode, JMetafields, 'edges') then
                 MetafieldAPI.UpdateMetafieldsFromShopify(JMetafields, Database::"Shpfy Variant", ShopifyVariant.Id);
+    end;
+
+    internal procedure CheckShopifyVariantImageExists(VariantId: BigInteger): Boolean
+    var
+        Parameters: Dictionary of [Text, Text];
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        JMedias: JsonArray;
+        JResponse: JsonToken;
+    begin
+        Parameters.Add('VariantId', Format(VariantId));
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantImage, Parameters);
+        if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productVariant.media.edges') then
+            if JMedias.Count() = 1 then
+                exit(true);
+    end;
+
+    internal procedure SetVariantImage(ShopifyVariant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
+    var
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JArray: JsonArray;
+    begin
+        Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
+        Parameters.Add('VariantId', Format(ShopifyVariant.Id));
+        Parameters.Add('ResourceUrl', ResourceUrl);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AddVariantImage, Parameters);
+
+        if not JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariantsBulkUpdate.productVariants') then
+            exit;
+        if JArray.Count() <> 1 then
+            exit;
+        if not JArray.Get(0, JResponse) then
+            exit;
+        if not JsonHelper.GetJsonArray(JResponse, JArray, 'media.edges') then
+            exit;
+        if JArray.Count() <> 1 then
+            exit;
+        if JArray.Get(0, JResponse) then
+            exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'node.id')));
+    end;
+
+    internal procedure SetVariantImage(ProductId: BigInteger; VariantId: BigInteger; ImageId: BigInteger): Boolean
+    var
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JErrors: JsonArray;
+    begin
+        Parameters.Add('ProductId', Format(ProductId));
+        Parameters.Add('VariantId', Format(VariantId));
+        Parameters.Add('ImageId', Format(ImageId));
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
+        if JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantsBulkUpdate.userErrors') then
+            exit((JErrors.Count() = 0));
+    end;
+
+    internal procedure CreateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
+    var
+        TenantMedia: Record "Tenant Media";
+        ProductApi: Codeunit "Shpfy Product API";
+        ResourceUrl: Text;
+    begin
+        if TenantMedia.Get(PictureGuid) then
+            if ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl) then
+                exit(SetVariantImage(Variant, ResourceUrl));
+    end;
+
+    internal procedure UpdateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
+    var
+        TenantMedia: Record "Tenant Media";
+        ProductApi: Codeunit "Shpfy Product API";
+        ResourceUrl: Text;
+    begin
+        if not TenantMedia.Get(PictureGuid) then
+            exit;
+
+        if ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl) then
+            exit(UpdateVariantImage(Variant, ResourceUrl));
     end;
 }

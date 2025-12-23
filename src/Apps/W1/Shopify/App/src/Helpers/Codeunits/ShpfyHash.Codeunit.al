@@ -92,4 +92,21 @@ codeunit 30156 "Shpfy Hash"
                 exit(CalcHash(TenantMedia));
         end;
     end;
+
+    /// <summary> 
+    /// Calc Item Variant Image Hash.
+    /// </summary>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <returns>Return value of type Integer.</returns>
+    internal procedure CalcItemVariantImageHash(ItemVariant: Record "Item Variant"): Integer
+    var
+        TenantMedia: Record "Tenant Media";
+        MediaId: Guid;
+    begin
+        if ItemVariant.Picture.Count() > 0 then begin
+            MediaId := ItemVariant.Picture.Item(1);
+            if TenantMedia.Get(MediaId) then
+                exit(CalcHash(TenantMedia));
+        end;
+    end;
 }
