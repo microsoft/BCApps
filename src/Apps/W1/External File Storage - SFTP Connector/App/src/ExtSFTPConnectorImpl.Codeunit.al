@@ -20,6 +20,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     var
         ConnectorDescriptionTxt: Label 'Use SFTP Server to store and retrieve files.', MaxLength = 250;
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
+        PathSeparatorTok: Label '/', Locked = true;
 
     /// <summary>
     /// Gets a List of Files stored on the provided account.
@@ -39,6 +40,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
         Response := SFTPClient.ListFiles(Path, FolderContent);
+        SFTPClient.Disconnect();
 
         if Response.IsError() then
             ShowError(Response);
@@ -414,11 +416,6 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         end;
     end;
 
-    local procedure PathSeparator(): Text
-    begin
-        exit('/');
-    end;
-
     local procedure ShowError(var Response: Codeunit "SFTP Operation Response")
     var
         ErrorOccuredErr: Label 'An error occured.\%1', Comment = '%1 - Error message from SFTP Server';
@@ -435,6 +432,8 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     end;
 
     local procedure CombinePath(Parent: Text; Child: Text): Text
+    var
+        JoinPathTok: Label '%1/%2', Locked = true;
     begin
         if Parent = '' then
             exit(Child);
@@ -442,16 +441,13 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         if Child = '' then
             exit(Parent);
 
-        if not Parent.EndsWith(PathSeparator()) then
-            Parent += PathSeparator();
-
-        exit(Parent + Child);
+        exit(StrSubstNo(JoinPathTok, Parent.TrimEnd(PathSeparatorTok), Child.TrimStart(PathSeparatorTok)));
     end;
 
     local procedure SplitPath(Path: Text; var ParentPath: Text; var FileName: Text)
     begin
-        ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
-        FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+        ParentPath := Path.TrimEnd(PathSeparatorTok).Substring(1, Path.LastIndexOf(PathSeparatorTok));
+        FileName := Path.TrimEnd(PathSeparatorTok).Substring(Path.LastIndexOf(PathSeparatorTok) + 1);
     end;
 
     local procedure AddFingerprints(Fingerprints: Text; var SFTPClient: Codeunit "SFTP Client")

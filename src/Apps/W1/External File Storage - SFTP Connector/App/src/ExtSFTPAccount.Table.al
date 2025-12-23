@@ -39,6 +39,8 @@ table 4590 "Ext. SFTP Account"
             Caption = 'Port';
             ToolTip = 'Specifies the port number of the SFTP server.';
             InitValue = 22;
+            MinValue = 1;
+            MaxValue = 65535;
         }
         field(6; "Base Relative Folder Path"; Text[2048])
         {
