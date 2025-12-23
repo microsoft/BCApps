@@ -18,7 +18,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     Permissions = tabledata "Ext. SFTP Account" = rimd;
 
     var
-        ConnectorDescriptionTxt: Label 'Use SharePoint to store and retrieve files.', MaxLength = 250;
+        ConnectorDescriptionTxt: Label 'Use SFTP Server to store and retrieve files.', MaxLength = 250;
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
 
     /// <summary>
@@ -30,7 +30,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     /// <param name="TempFileAccountContent">A list with all files stored in the path.</param>
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        FileList: Record "SFTP Folder Content";
+        FolderContent: Record "SFTP Folder Content";
         SFTPClient: Codeunit "SFTP Client";
         Response: Codeunit "SFTP Operation Response";
         OrginalPath: Text;
@@ -38,24 +38,24 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
-        Response := SFTPClient.ListFiles(Path, FileList);
+        Response := SFTPClient.ListFiles(Path, FolderContent);
 
         if Response.IsError() then
             ShowError(Response);
 
         FilePaginationData.SetEndOfListing(true);
 
-        FileList.SetRange("Is Directory", false);
-        if not FileList.FindSet() then
+        FolderContent.SetRange("Is Directory", false);
+        if not FolderContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := FileList.Name;
+            TempFileAccountContent.Name := FolderContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
             TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until FileList.Next() = 0;
+        until FolderContent.Next() = 0;
     end;
 
     /// <summary>
@@ -75,6 +75,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InitSFTPClient(AccountId, SFTPClient);
 
         SFTPClient.GetFileAsStream(Path, TempBlobStream);
+        SFTPClient.Disconnect();
 
         // Platform fix: For some reason the Stream from DownloadFileContentByServerRelativeUrl dies after leaving the interface
         Content.WriteFrom(TempBlobStream);
@@ -101,6 +102,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         SplitPath(Path, ParentPath, FileName);
 
         Response := SFTPClient.PutFileStream(Path, Stream);
+        SFTPClient.Disconnect();
 
         if Response.IsError() then
             ShowError(Response);
@@ -139,6 +141,8 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InitPath(AccountId, TargetPath);
 
         Response := SFTPClient.MoveFile(SourcePath, TargetPath);
+        SFTPClient.Disconnect();
+
         if Response.IsError() then
             ShowError(Response);
     end;
@@ -158,6 +162,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InitSFTPClient(AccountId, SFTPClient);
 
         Response := SFTPClient.FileExists(Path, Result);
+        SFTPClient.Disconnect();
 
         if Response.IsError() then
             ShowError(Response);
@@ -177,6 +182,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InitSFTPClient(AccountId, SFTPClient);
 
         Response := SFTPClient.DeleteFile(Path);
+        SFTPClient.Disconnect();
 
         if Response.IsError() then
             ShowError(Response);
@@ -191,7 +197,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     /// <param name="Files">A list with all directories stored in the path.</param>
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        FileList: Record "SFTP Folder Content";
+        FolderContent: Record "SFTP Folder Content";
         SFTPClient: Codeunit "SFTP Client";
         Response: Codeunit "SFTP Operation Response";
         OrginalPath: Text;
@@ -199,25 +205,26 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
-        Response := SFTPClient.ListFiles(Path, FileList);
+        Response := SFTPClient.ListFiles(Path, FolderContent);
+        SFTPClient.Disconnect();
 
         if Response.IsError() then
             ShowError(Response);
 
         FilePaginationData.SetEndOfListing(true);
 
-        FileList.SetRange("Is Directory", true);
-        FileList.SetFilter(Name, '<>%1&<>%2', '.', '..'); // Exclude . and ..
-        if not FileList.FindSet() then
+        FolderContent.SetRange("Is Directory", true);
+        FolderContent.SetFilter(Name, '<>%1&<>%2', '.', '..'); // Exclude . and ..
+        if not FolderContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := FileList.Name;
+            TempFileAccountContent.Name := FolderContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
             TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until FileList.Next() = 0;
+        until FolderContent.Next() = 0;
     end;
 
     /// <summary>
@@ -233,6 +240,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
         Response := SFTPClient.CreateDirectory(Path);
+        SFTPClient.Disconnect();
 
         if Response.IsError() then
             ShowError(Response);
@@ -260,9 +268,9 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     end;
 
     /// <summary>
-    /// Gets the registered accounts for the SharePoint connector.
+    /// Gets the registered accounts for the SFTP connector.
     /// </summary>
-    /// <param name="TempAccounts">Out parameter holding all the registered accounts for the SharePoint connector.</param>
+    /// <param name="TempAccounts">Out parameter holding all the registered accounts for the SFTP connector.</param>
     procedure GetAccounts(var TempAccounts: Record "File Account" temporary)
     var
         Account: Record "Ext. SFTP Account";
@@ -284,55 +292,55 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     /// <param name="AccountId">The ID of the account to show.</param>
     procedure ShowAccountInformation(AccountId: Guid)
     var
-        SharePointAccountLocal: Record "Ext. SFTP Account";
+        AccountLocal: Record "Ext. SFTP Account";
     begin
-        if not SharePointAccountLocal.Get(AccountId) then
+        if not AccountLocal.Get(AccountId) then
             Error(NotRegisteredAccountErr);
 
-        SharePointAccountLocal.SetRecFilter();
-        Page.Run(Page::"Ext. SFTP Account", SharePointAccountLocal);
+        AccountLocal.SetRecFilter();
+        Page.Run(Page::"Ext. SFTP Account", AccountLocal);
     end;
 
     /// <summary>
-    /// Register an file account for the SharePoint connector.
+    /// Register an file account for the SFTP connector.
     /// </summary>
     /// <param name="TempAccount">Out parameter holding details of the registered account.</param>
     /// <returns>True if the registration was successful; false - otherwise.</returns>
     procedure RegisterAccount(var TempAccount: Record "File Account" temporary): Boolean
     var
-        SharePointAccountWizard: Page "Ext. SFTP Account Wizard";
+        AccountWizard: Page "Ext. SFTP Account Wizard";
     begin
-        SharePointAccountWizard.RunModal();
+        AccountWizard.RunModal();
 
-        exit(SharePointAccountWizard.GetAccount(TempAccount));
+        exit(AccountWizard.GetAccount(TempAccount));
     end;
 
     /// <summary>
-    /// Deletes an file account for the SharePoint connector.
+    /// Deletes an file account for the SFTP connector.
     /// </summary>
-    /// <param name="AccountId">The ID of the SharePoint account</param>
+    /// <param name="AccountId">The ID of the SFTP account</param>
     /// <returns>True if an account was deleted.</returns>
     procedure DeleteAccount(AccountId: Guid): Boolean
     var
-        SharePointAccountLocal: Record "Ext. SFTP Account";
+        AccountLocal: Record "Ext. SFTP Account";
     begin
-        if SharePointAccountLocal.Get(AccountId) then
-            exit(SharePointAccountLocal.Delete());
+        if AccountLocal.Get(AccountId) then
+            exit(AccountLocal.Delete());
 
         exit(false);
     end;
 
     /// <summary>
-    /// Gets a description of the SharePoint connector.
+    /// Gets a description of the SFTP connector.
     /// </summary>
-    /// <returns>A short description of the SharePoint connector.</returns>
+    /// <returns>A short description of the SFTP connector.</returns>
     procedure GetDescription(): Text[250]
     begin
         exit(ConnectorDescriptionTxt);
     end;
 
     /// <summary>
-    /// Gets the SharePoint connector logo.
+    /// Gets the SFTP connector logo.
     /// </summary>
     /// <returns>A base64-formatted image to be used as logo.</returns>
     procedure GetLogoAsBase64(): Text
@@ -360,17 +368,17 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
 
     internal procedure CreateAccount(var AccountToCopy: Record "Ext. SFTP Account"; ClientSecretOrCertificate: SecretText; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
     var
-        NewExtSharePointAccount: Record "Ext. SFTP Account";
+        NewAccount: Record "Ext. SFTP Account";
     begin
-        NewExtSharePointAccount.TransferFields(AccountToCopy);
-        NewExtSharePointAccount.Id := CreateGuid();
+        NewAccount.TransferFields(AccountToCopy);
+        NewAccount.Id := CreateGuid();
 
-        NewExtSharePointAccount.SetPassword(ClientSecretOrCertificate);
+        NewAccount.SetPassword(ClientSecretOrCertificate);
 
-        NewExtSharePointAccount.Insert();
+        NewAccount.Insert();
 
-        TempFileAccount."Account Id" := NewExtSharePointAccount.Id;
-        TempFileAccount.Name := NewExtSharePointAccount.Name;
+        TempFileAccount."Account Id" := NewAccount.Id;
+        TempFileAccount.Name := NewAccount.Name;
         TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"SFTP";
     end;
 
@@ -403,7 +411,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
 
     local procedure ShowError(var Response: Codeunit "SFTP Operation Response")
     var
-        ErrorOccuredErr: Label 'An error occured.\%1', Comment = '%1 - Error message from sharepoint';
+        ErrorOccuredErr: Label 'An error occured.\%1', Comment = '%1 - Error message from SFTP Server';
     begin
         Error(ErrorOccuredErr, Response.GetError());
     end;
@@ -460,12 +468,12 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearCompanyConfig, '', false, false)]
     local procedure EnvironmentCleanup_OnClearCompanyConfig(CompanyName: Text; SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
     var
-        ExtSharePointAccount: Record "Ext. SFTP Account";
+        Account: Record "Ext. SFTP Account";
     begin
-        ExtSharePointAccount.SetRange(Disabled, false);
-        if ExtSharePointAccount.IsEmpty() then
+        Account.SetRange(Disabled, false);
+        if Account.IsEmpty() then
             exit;
 
-        ExtSharePointAccount.ModifyAll(Disabled, true);
+        Account.ModifyAll(Disabled, true);
     end;
 }

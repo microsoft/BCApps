@@ -6,12 +6,12 @@
 namespace System.ExternalFileStorage;
 
 /// <summary>
-/// Enum extension to register the SharePoint connector.
+/// Enum extension to register the SFTP connector.
 /// </summary>
 enumextension 4590 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
 {
     /// <summary>
-    /// The SharePoint connector.
+    /// The SFTP connector.
     /// </summary>
     value(4590; "SFTP")
     {

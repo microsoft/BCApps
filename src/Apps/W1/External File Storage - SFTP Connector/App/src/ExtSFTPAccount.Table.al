@@ -27,7 +27,7 @@ table 4590 "Ext. SFTP Account"
         field(2; Name; Text[250])
         {
             Caption = 'Account Name';
-            ToolTip = 'Specifies a descriptive name for this SharePoint storage account connection.';
+            ToolTip = 'Specifies a descriptive name for this SFTP storage account connection.';
         }
         field(4; Hostname; Text[2048])
         {
@@ -43,7 +43,7 @@ table 4590 "Ext. SFTP Account"
         field(6; "Base Relative Folder Path"; Text[2048])
         {
             Caption = 'Base Relative Folder Path';
-            ToolTip = 'Specifies the folder path relative to the site collection. Start with the document library or folder name (e.g., Shared Documents/Reports). This path can be copied from the URL of the folder in SharePoint after the site collection (e.g., /Shared Documents/Reports from https://mysharepoint.sharepoint.com/sites/ProjectX/Shared%20Documents/Reports).';
+            ToolTip = 'Specifies the base folder path on the SFTP server. Use an absolute path starting with / (e.g., /home/user/files or /data/uploads). All file operations will be relative to this path.';
         }
         field(7; Username; Text[256])
         {

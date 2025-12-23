@@ -43,11 +43,11 @@ page 4591 "Ext. SFTP Account Wizard"
                 Caption = 'Account Name';
                 NotBlank = true;
                 ShowMandatory = true;
-                ToolTip = 'Specifies a descriptive name for this SharePoint storage account connection.';
+                ToolTip = 'Specifies a descriptive name for this SFTP storage account connection.';
 
                 trigger OnValidate()
                 begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                 end;
             }
             field(Hostname; Rec.Hostname)
@@ -57,7 +57,7 @@ page 4591 "Ext. SFTP Account Wizard"
 
                 trigger OnValidate()
                 begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                 end;
             }
             field(Port; Rec.Port)
@@ -67,7 +67,7 @@ page 4591 "Ext. SFTP Account Wizard"
 
                 trigger OnValidate()
                 begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                 end;
             }
             field(Fingerprints; Rec.Fingerprints)
@@ -77,16 +77,16 @@ page 4591 "Ext. SFTP Account Wizard"
 
                 trigger OnValidate()
                 begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                 end;
             }
             field("Authentication Type"; Rec."Authentication Type")
             {
-                ToolTip = 'Specifies the authentication flow used for this SharePoint account. Client Secret uses User grant flow, which means that the user must sign in when using this account. Certificate uses Client credentials flow, which means that the user does not need to sign in when using this account.';
+                ToolTip = 'Specifies the authentication method used for this SFTP account. Password uses username and password authentication. Certificate uses SSH key-based authentication.';
                 trigger OnValidate()
                 begin
                     UpdateAuthTypeVisibility();
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                 end;
             }
             field(Username; Rec.Username)
@@ -96,7 +96,7 @@ page 4591 "Ext. SFTP Account Wizard"
 
                 trigger OnValidate()
                 begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                 end;
             }
             group(PasswordGroup)
@@ -128,7 +128,7 @@ page 4591 "Ext. SFTP Account Wizard"
                     begin
                         Certificate := Rec.UploadCertificateFile();
                         UpdateCertificateStatus();
-                        IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                        IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                     end;
                 }
 
@@ -147,7 +147,7 @@ page 4591 "Ext. SFTP Account Wizard"
 
                 trigger OnValidate()
                 begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    IsNextEnabled := ConnectorImpl.IsAccountValid(Rec);
                 end;
             }
         }
@@ -188,7 +188,7 @@ page 4591 "Ext. SFTP Account Wizard"
                             SecretToPass := Certificate;
                     end;
 
-                    SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount);
+                    ConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, Account);
                     CurrPage.Close();
                 end;
             }
@@ -196,9 +196,9 @@ page 4591 "Ext. SFTP Account Wizard"
     }
 
     var
-        SharePointAccount: Record "File Account";
+        Account: Record "File Account";
         MediaResources: Record "Media Resources";
-        SharePointConnectorImpl: Codeunit "Ext. SFTP Connector Impl";
+        ConnectorImpl: Codeunit "Ext. SFTP Connector Impl";
         [NonDebuggable]
         ClientSecret, CertificatePassword : Text;
         CertificateStatusText: Text;
@@ -223,10 +223,10 @@ page 4591 "Ext. SFTP Account Wizard"
 
     internal procedure GetAccount(var FileAccount: Record "File Account"): Boolean
     begin
-        if IsNullGuid(SharePointAccount."Account Id") then
+        if IsNullGuid(Account."Account Id") then
             exit(false);
 
-        FileAccount := SharePointAccount;
+        FileAccount := Account;
 
         exit(true);
     end;

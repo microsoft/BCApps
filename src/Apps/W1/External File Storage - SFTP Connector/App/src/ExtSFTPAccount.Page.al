@@ -6,7 +6,7 @@
 namespace System.ExternalFileStorage;
 
 /// <summary>
-/// Displays an account that was registered via the SharePoint connector.
+/// Displays an account that was registered via the SFTP connector.
 /// </summary>
 page 4590 "Ext. SFTP Account"
 {
