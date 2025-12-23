@@ -370,6 +370,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Shipping Events" = X,
         codeunit "Shpfy Shipping Methods" = X,
         codeunit "Shpfy Shop Mgt." = X,
+        codeunit "Shpfy Shop Review" = X,
         codeunit "Shpfy Skipped Record" = X,
         codeunit "Shpfy Staff Member API" = X,
         codeunit "Shpfy Suggest Payments" = X,
