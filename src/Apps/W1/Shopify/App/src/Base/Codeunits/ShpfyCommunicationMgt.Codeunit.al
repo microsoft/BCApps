@@ -506,7 +506,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         CustomDimensions.Add('MaxAvailable', Format(MaxAvailable, 0, 9));
         CustomDimensions.Add('RestoreRate', Format(RestoreRate, 0, 9));
 
-        Session.LogMessage('0000OYT', StrSubstNo(GraphQLThrottledTxt, RequestId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        Session.LogMessage('0000QWH', StrSubstNo(GraphQLThrottledTxt, RequestId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     local procedure GetQueryCost(Response: Text): Integer
