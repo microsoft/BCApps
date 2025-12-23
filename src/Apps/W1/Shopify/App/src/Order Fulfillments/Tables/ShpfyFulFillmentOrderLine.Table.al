@@ -79,5 +79,8 @@ table 30144 "Shpfy FulFillment Order Line"
         key(Key2; "Shopify Order Id", "Shopify Variant Id")
         {
         }
+        key(Key3; "Shopify Order Id", "Shopify Variant Id", "Fulfillment Status")
+        {
+        }
     }
 }
