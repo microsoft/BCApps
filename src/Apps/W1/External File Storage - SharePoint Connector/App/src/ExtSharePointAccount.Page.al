@@ -97,6 +97,7 @@ page 4580 "Ext. SharePoint Account"
                 }
             }
             field(Disabled; Rec.Disabled) { }
+            field("Use Graph API"; Rec."Use Graph API") { }
         }
     }
 
