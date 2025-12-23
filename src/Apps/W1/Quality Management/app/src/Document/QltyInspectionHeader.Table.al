@@ -753,6 +753,17 @@ table 20405 "Qlty. Inspection Header"
         OnAfterFindLineUpdateResultFromLines(Rec, QltyInspectionLine);
     end;
 
+    /// <summary>
+    /// Opens the Inspection Result List filtered to the current Result Code.
+    /// </summary>
+    procedure DrillDownResultCode()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        QltyInspectionResult.SetRange(Code, Rec."Result Code");
+        Page.Run(Page::"Qlty. Inspection Result List", QltyInspectionResult);
+    end;
+
     local procedure OnInsertUpdateReinspectionIterationState()
     var
         OtherReQltyInspectionHeader: Record "Qlty. Inspection Header";

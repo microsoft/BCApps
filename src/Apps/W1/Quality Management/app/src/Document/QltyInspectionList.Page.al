@@ -59,9 +59,11 @@ page 20408 "Qlty. Inspection List"
                 field("Result Code"; Rec."Result Code")
                 {
                     Visible = false;
-                }
-                field("Result Description"; Rec."Result Description")
-                {
+
+                    trigger OnDrillDown()
+                    begin
+                        Rec.DrillDownResultCode();
+                    end;
                 }
                 field("Finished Date"; Rec."Finished Date")
                 {

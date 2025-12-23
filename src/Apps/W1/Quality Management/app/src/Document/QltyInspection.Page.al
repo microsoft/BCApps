@@ -9,7 +9,6 @@ using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.AccessControl;
-using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions.InventoryAdjustment;
 using Microsoft.QualityManagement.Dispositions.ItemTracking;
@@ -113,11 +112,8 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
 
                         trigger OnDrillDown()
-                        var
-                            QltyInspectionResult: Record "Qlty. Inspection Result";
                         begin
-                            QltyInspectionResult.SetRange(Code, Rec."Result Code");
-                            Page.Run(Page::"Qlty. Inspection Result List", QltyInspectionResult);
+                            Rec.DrillDownResultCode();
                         end;
                     }
                     field("Evaluation Sequence"; Rec."Evaluation Sequence")
