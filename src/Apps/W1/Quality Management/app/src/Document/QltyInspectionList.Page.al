@@ -58,8 +58,6 @@ page 20408 "Qlty. Inspection List"
                 }
                 field("Result Code"; Rec."Result Code")
                 {
-                    Visible = false;
-
                     trigger OnDrillDown()
                     begin
                         Rec.DrillDownResultCode();
