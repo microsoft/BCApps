@@ -368,7 +368,7 @@ page 20400 "Qlty. Management Setup"
             group(SettingsForMobileAndBricks)
             {
                 Caption = 'Personal Device Interface';
-                InstructionalText = 'Use this section to configure the available fields when looking at inspections on a mobile interface. Additional information about layout can be found here: https://learn.microsoft.com/en-us/dynamics-nav/how-to--display-data-as-bricks';
+                InstructionalText = 'Use this section to configure the available fields when looking at inspections on a mobile interface.';
 
                 field("Brick Top Left Header"; Rec."Brick Top Left Header")
                 {

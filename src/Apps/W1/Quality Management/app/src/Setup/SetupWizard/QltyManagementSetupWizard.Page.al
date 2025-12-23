@@ -72,6 +72,7 @@ page 20438 "Qlty. Management Setup Wizard"
                 group(SettingsFor_WhatFor_ProductionOutput)
                 {
                     Caption = 'Production';
+                    Visible = IsPremiumExperienceEnabled;
                     InstructionalText = 'I want to create inspections when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
 
                     field(ChooseWhatFor_ProductionOutput; WhatForProduction)
@@ -432,6 +433,7 @@ page 20438 "Qlty. Management Setup Wizard"
         ShowOnlyManual: Boolean;
         ShowNever: Boolean;
         ShowHTMLHeader: Boolean;
+        IsPremiumExperienceEnabled: Boolean;
         StepWelcome: Integer;
         StepGettingStarted: Integer;
         StepReceivingConfig: Integer;
@@ -476,7 +478,10 @@ page 20438 "Qlty. Management Setup Wizard"
     end;
 
     trigger OnOpenPage();
+    var
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
+        IsPremiumExperienceEnabled := ApplicationAreaMgmtFacade.IsManufacturingEnabled();
         FeatureTelemetry.LogUptake('0000QIC', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
         ChangeToStep(StepWelcome);
         Commit();
