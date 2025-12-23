@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.MCP;
+
 using System.Reflection;
 
 codeunit 8353 "MCP Config Missing Object" implements "MCP Config Warning"
