@@ -106,9 +106,8 @@ page 4590 "Ext. SFTP Account"
         CertificateVisible: Boolean;
         [NonDebuggable]
         Passowrd: Text;
-        Certificate: SecretText;
         [NonDebuggable]
-        CertificatePassword: Text;
+        CertificatePassword, Certificate : Text;
         CertificateStatusText: Text;
 
     trigger OnOpenPage()

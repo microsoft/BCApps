@@ -368,21 +368,21 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         exit(true);
     end;
 
-    internal procedure CreateAccount(var AccountToCopy: Record "Ext. SFTP Account"; PasswordOrCertificate: SecretText; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
+    internal procedure CreateAccount(var AccountToCopy: Record "Ext. SFTP Account"; Password: SecretText; Certificate: Text; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
     var
         NewAccount: Record "Ext. SFTP Account";
     begin
         NewAccount.TransferFields(AccountToCopy);
         NewAccount.Id := CreateGuid();
 
-        NewAccount.SetPassword(PasswordOrCertificate);
+        NewAccount.SetPassword(Password);
 
         case NewAccount."Authentication Type" of
             Enum::"Ext. SFTP Auth Type"::Password:
-                NewAccount.SetPassword(PasswordOrCertificate);
+                NewAccount.SetPassword(Certificate);
             Enum::"Ext. SFTP Auth Type"::Certificate:
                 begin
-                    NewAccount.SetCertificate(PasswordOrCertificate);
+                    NewAccount.SetCertificate(Certificate);
                     NewAccount.SetCertificatePassword(CertificatePassword);
                 end;
         end;
@@ -394,9 +394,12 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"SFTP";
     end;
 
+    [NonDebuggable]
     local procedure InitSFTPClient(var AccountId: Guid; var SFTPClient: Codeunit "SFTP Client")
     var
         SFTPAccount: Record "Ext. SFTP Account";
+        Response: Codeunit "SFTP Operation Response";
+        Stream: InStream;
         AccountDisabledErr: Label 'The account "%1" is disabled.', Comment = '%1 - Account Name';
     begin
         SFTPAccount.Get(AccountId);
@@ -407,13 +410,19 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
 
         case SFTPAccount."Authentication Type" of
             Enum::"Ext. SFTP Auth Type"::Password:
-                SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, SFTPAccount.GetPassword(SFTPAccount."Password Key"));
+                Response := SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, SFTPAccount.GetPassword(SFTPAccount."Password Key"));
             Enum::"Ext. SFTP Auth Type"::Certificate:
-                if IsNullGuid(SFTPAccount."Certificate Key") then
-                    SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, SFTPAccount.GetCertificate(SFTPAccount."Certificate Key"))
-                else
-                    SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, SFTPAccount.GetCertificate(SFTPAccount."Certificate Key"), SFTPAccount.GetCertificatePassword(SFTPAccount."Certificate Password Key"));
+                begin
+                    SFTPAccount.GetCertificate(SFTPAccount."Certificate Key").CreateInStream(Stream);
+                    if IsNullGuid(SFTPAccount."Certificate Password Key") then
+                        Response := SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, Stream)
+                    else
+                        Response := SFTPClient.Initialize(SFTPAccount.Hostname, SFTPAccount.Port, SFTPAccount.Username, Stream, SFTPAccount.GetCertificatePassword(SFTPAccount."Certificate Password Key"));
+                end;
         end;
+
+        if Response.IsError() then
+            ShowError(Response);
     end;
 
     local procedure ShowError(var Response: Codeunit "SFTP Operation Response")

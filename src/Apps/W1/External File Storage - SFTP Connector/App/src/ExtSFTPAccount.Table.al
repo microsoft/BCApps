@@ -141,12 +141,14 @@ table 4590 "Ext. SFTP Account"
         exit(GetIsolatedStorageValue(PasswordKey, UnableToGetPasswordMsg));
     end;
 
-    internal procedure SetCertificate(Certificate: SecretText)
+    [NonDebuggable]
+    internal procedure SetCertificate(Certificate: Text)
     begin
         if IsNullGuid(Rec."Certificate Key") then
             Rec."Certificate Key" := CreateGuid();
 
-        SetIsolatedStorageValue(Rec."Certificate Key", Certificate, UnableToSetCertificateMsg);
+        if not IsolatedStorage.Set(Format(Rec."Certificate Key"), Certificate, DataScope::Company) then
+            Error(UnableToSetCertificateMsg);
 
         // When setting certificate, clear client secret authentication
         // as only one authentication method can be active
@@ -162,10 +164,10 @@ table 4590 "Ext. SFTP Account"
         Clear(Rec."Password Key");
     end;
 
-    internal procedure GetCertificate(CertificateKey: Guid) Result: InStream
+    [NonDebuggable]
+    internal procedure GetCertificate(CertificateKey: Guid) TempBlob: Codeunit "Temp Blob"
     var
         Base64Convert: Codeunit "Base64 Convert";
-        TempBlob: Codeunit "Temp Blob";
         CertificateBase64: Text;
         Stream: OutStream;
     begin
@@ -174,11 +176,16 @@ table 4590 "Ext. SFTP Account"
 
         TempBlob.CreateOutStream(Stream);
         Base64Convert.FromBase64(CertificateBase64, Stream);
-        TempBlob.CreateInStream(Result);
     end;
 
     internal procedure SetCertificatePassword(CertificatePassword: SecretText)
     begin
+        if CertificatePassword.IsEmpty() then begin
+            TryDeleteIsolatedStorageValue(Rec."Certificate Password Key");
+            Clear(Rec."Certificate Password Key");
+            exit;
+        end;
+
         if IsNullGuid(Rec."Certificate Password Key") then
             Rec."Certificate Password Key" := CreateGuid();
 
@@ -208,13 +215,13 @@ table 4590 "Ext. SFTP Account"
             Error(ErrorMessage);
     end;
 
-    internal procedure UploadCertificateFile() CertificateBase64: SecretText
+    internal procedure UploadCertificateFile() CertificateBase64: Text
     var
         Base64Convert: Codeunit System.Text."Base64 Convert";
         UploadResult: Boolean;
         InStr: InStream;
-        CertificateFilterTxt: Label 'Certificate Files (*.pfx;*.p12)|*.pfx;*.p12|All Files (*.*)|*.*';
-        FileNotUploadedErr: Label 'Certificate file was not uploaded.';
+        CertificateFilterTxt: Label 'Key Files (*.pk;*.ppk;*.pub)|*.pk;*.ppk;*.pub|All Files (*.*)|*.*';
+        FileNotUploadedErr: Label 'Key file was not uploaded.';
     begin
         UploadResult := UploadIntoStream(CertificateFilterTxt, InStr);
 

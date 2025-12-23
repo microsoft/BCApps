@@ -178,17 +178,8 @@ page 4591 "Ext. SFTP Account Wizard"
                 ToolTip = 'Move to next step.';
 
                 trigger OnAction()
-                var
-                    SecretToPass: SecretText;
                 begin
-                    case Rec."Authentication Type" of
-                        Enum::"Ext. SFTP Auth Type"::Password:
-                            SecretToPass := Password;
-                        Enum::"Ext. SFTP Auth Type"::Certificate:
-                            SecretToPass := Certificate;
-                    end;
-
-                    ConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, Account);
+                    ConnectorImpl.CreateAccount(Rec, Password, Certificate, CertificatePassword, Account);
                     CurrPage.Close();
                 end;
             }
@@ -200,9 +191,8 @@ page 4591 "Ext. SFTP Account Wizard"
         MediaResources: Record "Media Resources";
         ConnectorImpl: Codeunit "Ext. SFTP Connector Impl";
         [NonDebuggable]
-        Password, CertificatePassword : Text;
+        Password, CertificatePassword, Certificate : Text;
         CertificateStatusText: Text;
-        Certificate: SecretText;
         IsNextEnabled: Boolean;
         TopBannerVisible: Boolean;
         PasswordVisible, CertificateVisible : Boolean;
@@ -245,7 +235,7 @@ page 4591 "Ext. SFTP Account Wizard"
         NoCertificateUploadedLbl: Label 'Click to upload certificate file...';
         CertificateUploadedLbl: Label 'Certificate uploaded (click to change)';
     begin
-        if Certificate.IsEmpty() then
+        if Certificate = '' then
             CertificateStatusText := NoCertificateUploadedLbl
         else
             CertificateStatusText := CertificateUploadedLbl;
