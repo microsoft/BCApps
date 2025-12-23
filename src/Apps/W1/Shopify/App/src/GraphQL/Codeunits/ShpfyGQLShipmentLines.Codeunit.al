@@ -14,6 +14,6 @@ codeunit 30216 "Shpfy GQL ShipmentLines" implements "Shpfy IGraphQL"
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(73);
+        exit(15);
     end;
 }

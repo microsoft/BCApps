@@ -16,6 +16,6 @@ codeunit 30205 "Shpfy GQL OpenOrdersToImport" implements "Shpfy IGraphQL"
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(158);
+        exit(68);
     end;
 }

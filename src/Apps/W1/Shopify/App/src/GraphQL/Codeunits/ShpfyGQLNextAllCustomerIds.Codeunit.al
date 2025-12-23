@@ -24,6 +24,6 @@ codeunit 30242 "Shpfy GQL NextAllCustomerIds" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(103);
+        exit(11);
     end;
 }

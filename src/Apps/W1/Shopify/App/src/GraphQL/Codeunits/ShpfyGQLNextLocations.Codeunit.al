@@ -27,6 +27,6 @@ codeunit 30214 "Shpfy GQL Next Locations" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(22);
+        exit(12);
     end;
 }

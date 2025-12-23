@@ -24,6 +24,6 @@ codeunit 30268 "Shpfy GQL NextFFOrdersFromOrd" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(134);
+        exit(33);
     end;
 }

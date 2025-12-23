@@ -27,6 +27,6 @@ codeunit 30370 "Shpfy GQL UpdateLocPmtTerms" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(4);
+        exit(10);
     end;
 }
