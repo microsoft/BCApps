@@ -81,7 +81,7 @@ page 6105 "Inbound E-Documents"
                     Caption = 'Due Date';
                     ToolTip = 'Specifies the due date of the document.';
                 }
-                field(TaskID; TaskTxt)
+                field(TaskID; Rec."Agent Task ID")
                 {
                     Caption = 'Task';
                     ToolTip = 'Specifies the task number for the document.';
@@ -431,13 +431,10 @@ page 6105 "Inbound E-Documents"
     var
         AgentTask: Record "Agent Task";
     begin
-        TaskTxt := '';
         TaskStatusTxt := '';
 
         if Rec."Agent Task ID" = 0 then
             exit;
-
-        TaskTxt := '#' + Format(Rec."Agent Task ID");
 
         if AgentTask.Get(Rec."Agent Task ID") then
             TaskStatusTxt := Format(AgentTask.Status);
@@ -566,7 +563,7 @@ page 6105 "Inbound E-Documents"
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, TaskTxt, TaskStatusTxt : Text;
+        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, TaskStatusTxt : Text;
         HasPdf: Boolean;
 #if not CLEAN27
         EmailVisibilityFlag: Boolean;
