@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "04bd429e4709269ddca9",
   "position": {
-    "x": 25.802047781569964,
-    "y": 60.81911262798635,
+    "x": 21.615034960841459,
+    "y": 60.915098526007753,
     "z": 1000,
-    "height": 307,
-    "width": 1226.8259385665528,
-    "tabOrder": 5
+    "height": 306.54049580829707,
+    "width": 1231.074491178834,
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "columnChart",
@@ -33,7 +33,7 @@
               },
               "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Year",
               "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Year",
-              "active": false
+              "active": true
             },
             {
               "field": {
@@ -139,41 +139,7 @@
             "concatenateLabels": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "maxMarginFactor": {
-              "expr": {
-                "Literal": {
-                  "Value": "15L"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "9D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "legend": [
-        {
-          "properties": {
-            "showGradientLegend": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             }

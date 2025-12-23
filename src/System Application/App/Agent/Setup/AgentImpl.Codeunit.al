@@ -299,27 +299,8 @@ codeunit 4301 "Agent Impl."
                 TempAllProfile.Insert();
             until AllProfile.Next() = 0;
     end;
+    #endregion
 
-    procedure AssignPermissionSets(var AgentUserSecurityID: Guid; PermissionCompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
-    var
-        AccessControl: Record "Access Control";
-    begin
-        if not AggregatePermissionSet.FindSet() then
-            exit;
-
-        repeat
-            AccessControl."App ID" := AggregatePermissionSet."App ID";
-            AccessControl."User Security ID" := AgentUserSecurityID;
-            AccessControl."Role ID" := AggregatePermissionSet."Role ID";
-            AccessControl.Scope := AggregatePermissionSet.Scope;
-#pragma warning disable AA0139
-            AccessControl."Company Name" := PermissionCompanyName;
-#pragma warning restore AA0139
-            AccessControl.Insert();
-        until AggregatePermissionSet.Next() = 0;
-    end;
-
-    // TODO(qutreson) temporary - comes from another PR.
     procedure AssignPermissionSets(var UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         AccessControl: Record "Access Control";
@@ -347,8 +328,6 @@ codeunit 4301 "Agent Impl."
             end;
         until TempAccessControlBuffer.Next() = 0;
     end;
-
-    #endregion
 
     local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
     begin
