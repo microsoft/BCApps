@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
-using Microsoft.Integration.Shopify;
 using System.Utilities;
 
 codeunit 139501 "Shpfy Sync Variant Images Test"
