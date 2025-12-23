@@ -116,6 +116,23 @@ table 4590 "Ext. SFTP Account"
             Rec."Password Key" := CreateGuid();
 
         SetIsolatedStorageValue(Rec."Password Key", Password, UnableToSetPasswordMsg);
+
+        // When setting password, clear certificate authentication 
+        // as only one authentication method can be active
+        ClearCertificateAuthentication();
+    end;
+
+    local procedure ClearCertificateAuthentication()
+    begin
+        if not IsNullGuid(Rec."Certificate Key") then begin
+            TryDeleteIsolatedStorageValue(Rec."Certificate Key");
+            Clear(Rec."Certificate Key");
+        end;
+
+        if not IsNullGuid(Rec."Certificate Password Key") then begin
+            TryDeleteIsolatedStorageValue(Rec."Certificate Password Key");
+            Clear(Rec."Certificate Password Key");
+        end;
     end;
 
     internal procedure GetPassword(PasswordKey: Guid): SecretText
@@ -132,16 +149,17 @@ table 4590 "Ext. SFTP Account"
 
         // When setting certificate, clear client secret authentication
         // as only one authentication method can be active
-        ClearClientSecretAuthentication();
+        ClearPasswordAuthentication();
     end;
 #pragma warning restore AS0022
 
-    local procedure ClearClientSecretAuthentication()
+    local procedure ClearPasswordAuthentication()
     begin
-        if not IsNullGuid(Rec."Password Key") then begin
-            TryDeleteIsolatedStorageValue(Rec."Password Key");
-            Clear(Rec."Password Key");
-        end;
+        if IsNullGuid(Rec."Password Key") then
+            exit;
+
+        TryDeleteIsolatedStorageValue(Rec."Password Key");
+        Clear(Rec."Password Key");
     end;
 
     internal procedure GetCertificate(CertificateKey: Guid) Result: InStream

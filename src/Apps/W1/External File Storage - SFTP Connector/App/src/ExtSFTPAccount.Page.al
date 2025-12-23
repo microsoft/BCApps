@@ -51,7 +51,7 @@ page 4590 "Ext. SFTP Account"
                 group(SFTPPasswordGroup)
                 {
                     ShowCaption = false;
-                    Visible = ClientSecretVisible;
+                    Visible = PasswordVisible;
 
                     field(PasswordField; Passowrd)
                     {
@@ -102,7 +102,7 @@ page 4590 "Ext. SFTP Account"
 
     var
         PageEditable: Boolean;
-        ClientSecretVisible: Boolean;
+        PasswordVisible: Boolean;
         CertificateVisible: Boolean;
         [NonDebuggable]
         Passowrd: Text;
@@ -141,7 +141,7 @@ page 4590 "Ext. SFTP Account"
 
     local procedure UpdateAuthTypeVisibility()
     begin
-        ClientSecretVisible := Rec."Authentication Type" = Enum::"Ext. SFTP Auth Type"::Password;
+        PasswordVisible := Rec."Authentication Type" = Enum::"Ext. SFTP Auth Type"::Password;
         CertificateVisible := Rec."Authentication Type" = Enum::"Ext. SFTP Auth Type"::Certificate;
 
 

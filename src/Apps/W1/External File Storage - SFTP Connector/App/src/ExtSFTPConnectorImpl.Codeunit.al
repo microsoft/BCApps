@@ -366,14 +366,24 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         exit(true);
     end;
 
-    internal procedure CreateAccount(var AccountToCopy: Record "Ext. SFTP Account"; ClientSecretOrCertificate: SecretText; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
+    internal procedure CreateAccount(var AccountToCopy: Record "Ext. SFTP Account"; PasswordOrCertificate: SecretText; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
     var
         NewAccount: Record "Ext. SFTP Account";
     begin
         NewAccount.TransferFields(AccountToCopy);
         NewAccount.Id := CreateGuid();
 
-        NewAccount.SetPassword(ClientSecretOrCertificate);
+        NewAccount.SetPassword(PasswordOrCertificate);
+
+        case NewAccount."Authentication Type" of
+            Enum::"Ext. SFTP Auth Type"::Password:
+                NewAccount.SetPassword(PasswordOrCertificate);
+            Enum::"Ext. SFTP Auth Type"::Certificate:
+                begin
+                    NewAccount.SetCertificate(PasswordOrCertificate);
+                    NewAccount.SetCertificatePassword(CertificatePassword);
+                end;
+        end;
 
         NewAccount.Insert();
 

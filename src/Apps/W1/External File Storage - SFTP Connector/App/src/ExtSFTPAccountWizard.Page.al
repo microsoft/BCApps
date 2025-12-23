@@ -102,9 +102,9 @@ page 4591 "Ext. SFTP Account Wizard"
             group(PasswordGroup)
             {
                 ShowCaption = false;
-                Visible = ClientSecretVisible;
+                Visible = PasswordVisible;
 
-                field(Password; ClientSecret)
+                field(Password; Password)
                 {
                     Caption = 'Password';
                     ExtendedDatatype = Masked;
@@ -183,7 +183,7 @@ page 4591 "Ext. SFTP Account Wizard"
                 begin
                     case Rec."Authentication Type" of
                         Enum::"Ext. SFTP Auth Type"::Password:
-                            SecretToPass := ClientSecret;
+                            SecretToPass := Password;
                         Enum::"Ext. SFTP Auth Type"::Certificate:
                             SecretToPass := Certificate;
                     end;
@@ -200,12 +200,12 @@ page 4591 "Ext. SFTP Account Wizard"
         MediaResources: Record "Media Resources";
         ConnectorImpl: Codeunit "Ext. SFTP Connector Impl";
         [NonDebuggable]
-        ClientSecret, CertificatePassword : Text;
+        Password, CertificatePassword : Text;
         CertificateStatusText: Text;
         Certificate: SecretText;
         IsNextEnabled: Boolean;
         TopBannerVisible: Boolean;
-        ClientSecretVisible, CertificateVisible : Boolean;
+        PasswordVisible, CertificateVisible : Boolean;
 
     trigger OnOpenPage()
     var
@@ -233,7 +233,7 @@ page 4591 "Ext. SFTP Account Wizard"
 
     local procedure UpdateAuthTypeVisibility()
     begin
-        ClientSecretVisible := Rec."Authentication Type" = Enum::"Ext. SFTP Auth Type"::Password;
+        PasswordVisible := Rec."Authentication Type" = Enum::"Ext. SFTP Auth Type"::Password;
         CertificateVisible := Rec."Authentication Type" = Enum::"Ext. SFTP Auth Type"::Certificate;
 
         if CertificateVisible then
