@@ -523,7 +523,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpPosting;
                     Caption = 'Post/Release Now or Later';
-                    InstructionalText = 'Posting immediately can impact the Business Central licensing requirements. https://aka.ms/businesscentrallicensing';
+                    InstructionalText = 'Posting immediately can impact the Business Central licensing requirements.';
 
                     group(Qlty_CreatePutAway_Group)
                     {
