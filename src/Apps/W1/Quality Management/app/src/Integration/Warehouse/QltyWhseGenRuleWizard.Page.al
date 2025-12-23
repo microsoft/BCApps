@@ -615,21 +615,21 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-        WhseRule := QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true));
+        WhseRule := QltyFilterHelpers.CleanUpWhereClause(TempWarehouseJournalLine.GetView(true));
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
         TempItem.SetFilter("Vendor No.", VendorNoFilter);
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true));
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause(TempItem.GetView(true));
 
         CleanUpWhereClause();
     end;
 
     local procedure CleanUpWhereClause()
     begin
-        WhseRule := QltyFilterHelpers.CleanUpWhereClause400(WhseRule);
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(ItemRule);
+        WhseRule := QltyFilterHelpers.CleanUpWhereClause(WhseRule);
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause(ItemRule);
     end;
 
     local procedure BackAction();

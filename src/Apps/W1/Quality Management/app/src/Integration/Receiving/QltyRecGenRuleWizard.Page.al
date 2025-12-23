@@ -634,11 +634,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         QltyTransferTrigger: Enum "Qlty. Transfer Trigger";
         QltyWhseReceiveTrigger: Enum "Qlty. Whse. Receive Trigger";
         QltySalesReturnTrigger: Enum "Qlty. Sales Return Trigger";
-        PurchaseLineRule: Text[400];
-        SalesReturnLineRule: Text[400];
-        ItemRule: Text[400];
-        TransferLineRule: Text[400];
-        WarehouseJournalLineRule: Text[400];
+        PurchaseLineRule: Text;
+        SalesReturnLineRule: Text;
+        ItemRule: Text;
+        TransferLineRule: Text;
+        WarehouseJournalLineRule: Text;
         IsReturnReceipt: Boolean;
         IsPurchaseLine: Boolean;
         IsIsBackEnabledd: Boolean;
@@ -842,18 +842,18 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     local procedure CleanUpWhereClause()
     begin
         if IsPurchaseLine then
-            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause400(PurchaseLineRule);
+            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause(PurchaseLineRule);
 
         if IsReturnReceipt then
-            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause400(SalesReturnLineRule);
+            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause(SalesReturnLineRule);
 
         if IsTransferLine then
-            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause400(TransferLineRule);
+            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause(TransferLineRule);
 
         if IsWarehouseReceipt then
-            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause400(WarehouseJournalLineRule);
+            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause(WarehouseJournalLineRule);
 
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(ItemRule);
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause(ItemRule);
     end;
 
     local procedure BackAction();
@@ -998,20 +998,20 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempPurchaseLine.SetFilter("Location Code", LocationCodeFilter);
             TempPurchaseLine.SetFilter("Buy-from Vendor No.", VendorNoFilter);
             TempPurchaseLine.SetFilter("Purchasing Code", PurchasingCode);
-            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause400(TempPurchaseLine.GetView(true));
+            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause(TempPurchaseLine.GetView(true));
         end;
 
         if IsReturnReceipt then begin
             TempReturnSalesLine.SetFilter("Location Code", LocationCodeFilter);
             TempReturnSalesLine.SetFilter("Return Reason Code", ReturnReasonCode);
             TempReturnSalesLine.SetFilter("Sell-to Customer No.", CustomerNoFilter);
-            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause400(TempReturnSalesLine.GetView(true));
+            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause(TempReturnSalesLine.GetView(true));
         end;
 
         if IsTransferLine then begin
             TempTransferLine.SetFilter("Transfer-to Code", TransferToCode);
             TempTransferLine.SetFilter("Transfer-from Code", TransferFromCode);
-            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause400(TempTransferLine.GetView(true));
+            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause(TempTransferLine.GetView(true));
         end;
 
         if IsWarehouseReceipt then begin
@@ -1019,14 +1019,14 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true));
+            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause(TempWarehouseJournalLine.GetView(true));
         end;
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true));
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause(TempItem.GetView(true));
 
         CleanUpWhereClause();
     end;

@@ -764,10 +764,10 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     local procedure CleanUpWhereClause()
     begin
         if IsProductionOrder then
-            ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(ProdOrderRoutingLineRuleFilter);
+            ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause(ProdOrderRoutingLineRuleFilter);
         if IsAssemblyOrder then
-            PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(PostedAssemblyOrderRuleFilter);
-        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(ItemRuleFilter);
+            PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause(PostedAssemblyOrderRuleFilter);
+        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause(ItemRuleFilter);
     end;
 
     local procedure BackAction();
@@ -879,18 +879,18 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             TempProdOrderRoutingLine.SetFilter("To-Production Bin Code", ToBinCodeFilter);
             TempProdOrderRoutingLine.SetFilter("Operation No.", OperationNo);
             TempProdOrderRoutingLine.SetFilter("Description", DescriptionPattern);
-            ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(TempProdOrderRoutingLine.GetView(true));
+            ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause(TempProdOrderRoutingLine.GetView(true));
         end else begin
             TempPostedAssemblyHeader.SetFilter("Location Code", LocationCodeFilter);
             TempPostedAssemblyHeader.SetFilter(Description, DescriptionPattern);
-            PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(TempPostedAssemblyHeader.GetView(true));
+            PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause(TempPostedAssemblyHeader.GetView(true));
         end;
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true));
+        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause(TempItem.GetView(true));
         CleanUpWhereClause();
     end;
 
