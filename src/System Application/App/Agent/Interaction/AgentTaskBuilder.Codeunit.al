@@ -35,34 +35,38 @@ codeunit 4315 "Agent Task Builder"
     /// <summary>
     /// Create a new task for the agent.
     /// </summary>
-    /// <returns>
-    /// Agent task that was created
-    /// </returns>
-    /// <remarks>
-    /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
-    /// </remarks>
+    /// <returns>Agent task that was created.</returns>
+    /// <remarks>The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks.</remarks>
     procedure Create(): Record "Agent Task"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentTaskBuilderImpl.Create(true));
+        exit(AgentTaskBuilderImpl.Create(true, true));
     end;
 
     /// <summary>
     /// Create a new task for the agent.
     /// </summary>
-    /// <param name="SetTaskStatusToReady">
-    /// Specifies if the task status should be set to ready after creation. 
-    /// </param>
-    /// <returns>
-    /// Agent task that was created
-    /// </returns>
-    /// <remarks>
-    /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
-    /// </remarks>
+    /// <param name="SetTaskStatusToReady">Specifies if the task status should be set to ready after creation.</param>
+    /// <returns>Agent task that was created.</returns>
+    /// <remarks>The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks.</remarks>
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentTaskBuilderImpl.Create(SetTaskStatusToReady));
+        exit(AgentTaskBuilderImpl.Create(SetTaskStatusToReady, true));
+    end;
+
+    /// <summary>
+    /// Create a new task for the agent.
+    /// </summary>
+    /// <param name="SetTaskStatusToReady">Specifies if the task status should be set to ready after creation.</param>
+    /// <param name="RequiresMessage">Specifies whether a message is required, default is true.</param>
+    /// <returns>Agent task that was created.</returns>
+    /// <remarks>The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks.</remarks>
+    [Scope('OnPrem')]
+    procedure Create(SetTaskStatusToReady: Boolean; RequiresMessage: Boolean): Record "Agent Task"
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentTaskBuilderImpl.Create(SetTaskStatusToReady, RequiresMessage));
     end;
 
     /// <summary>
