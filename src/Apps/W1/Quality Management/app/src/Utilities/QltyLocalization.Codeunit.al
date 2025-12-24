@@ -41,33 +41,4 @@ codeunit 20598 "Qlty. Localization"
             exit(TranslatableYesLbl);
         exit(TranslatableNoLbl);
     end;
-
-    /// <summary>
-    /// Parses user input text to a boolean value using localized Yes/No interpretation.
-    /// Supports localized Yes/No values as well as standard boolean representations.
-    /// </summary>
-    /// <param name="Input">The text value to parse</param>
-    /// <param name="Value">Output: The parsed boolean value</param>
-    /// <returns>True if parsing succeeded; False if input is not a recognized boolean representation</returns>
-    procedure ParseFromUser(Input: Text; var Value: Boolean): Boolean
-    begin
-        Input := Input.Trim();
-        if Input = '' then
-            exit(false);
-
-        case UpperCase(Input) of
-            UpperCase(TranslatableYesLbl), 'Y', 'YES', 'T', 'TRUE', '1', 'ON':
-                begin
-                    Value := true;
-                    exit(true);
-                end;
-            UpperCase(TranslatableNoLbl), 'N', 'NO', 'F', 'FALSE', '0', 'OFF':
-                begin
-                    Value := false;
-                    exit(true);
-                end;
-        end;
-
-        exit(Evaluate(Value, Input));
-    end;
 }
