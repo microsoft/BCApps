@@ -5,7 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30267 "Shpfy GQL FFOrdersFromOrder" implements "Shpfy IGraphQL"
+/// <summary>
+/// Codeunit Shpfy GQL AcceptFFRequest (ID 30412).
+/// Implements the IGraphQL interface for accepting Shopify fulfillment requests using GraphQL.
+/// </summary>
+codeunit 30414 "Shpfy GQL AcceptFFRequest" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 
@@ -15,7 +19,7 @@ codeunit 30267 "Shpfy GQL FFOrdersFromOrder" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{order(id: \"gid:\/\/shopify\/Order\/{{OrderId}}\") { legacyResourceId fulfillmentOrders(first: 25) { pageInfo { hasNextPage } edges { cursor node { id updatedAt status requestStatus assignedLocation {location {legacyResourceId}} order {legacyResourceId} deliveryMethod {methodType}}}}}}"}');
+        exit('{"query":"mutation { fulfillmentOrderAcceptFulfillmentRequest(id: \"gid://shopify/FulfillmentOrder/{{FulfillmentOrderId}}\") { fulfillmentOrder { id requestStatus } userErrors { field message }}}"}');
     end;
 
     /// <summary>
@@ -24,6 +28,6 @@ codeunit 30267 "Shpfy GQL FFOrdersFromOrder" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(134);
+        exit(10);
     end;
 }
