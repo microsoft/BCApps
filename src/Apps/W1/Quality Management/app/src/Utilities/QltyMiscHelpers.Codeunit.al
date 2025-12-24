@@ -22,8 +22,6 @@ using System.Security.User;
 codeunit 20599 "Qlty. Misc Helpers"
 {
     var
-        TranslatableYesLbl: Label 'Yes';
-        TranslatableNoLbl: Label 'No';
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
         ImportFromLbl: Label 'Import From File';
@@ -41,26 +39,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
         BadFieldTok: Label '?t:%1?f:%2?', Locked = true, Comment = '%1=the table, %2=the requested field';
-
-    /// <summary>
-    /// Returns the translatable "Yes" label with maximum length of 250 characters.
-    /// Used for UI display and user-facing text where localization is required.
-    /// </summary>
-    /// <returns>The localized "Yes" text (up to 250 characters)</returns>
-    procedure GetTranslatedYes250(): Text[250]
-    begin
-        exit(TranslatableYesLbl);
-    end;
-
-    /// <summary>
-    /// Returns the translatable "No" label with maximum length of 250 characters.
-    /// Used for UI display and user-facing text where localization is required.
-    /// </summary>
-    /// <returns>The localized "No" text (up to 250 characters)</returns>
-    procedure GetTranslatedNo250(): Text[250]
-    begin
-        exit(TranslatableNoLbl);
-    end;
 
     /// <summary>
     /// The maximum recursion to use when creating inspections.
@@ -361,13 +339,15 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="Input">The text value to convert to boolean</param>
     /// <returns>True if input matches any positive boolean representation; False otherwise</returns>
     procedure GetBooleanFor(Input: Text) IsTrue: Boolean
+    var
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
         if Input <> '' then begin
             if not Evaluate(IsTrue, Input) then
                 exit(IsTextValuePositiveBoolean(Input));
 
             case UpperCase(Input) of
-                UpperCase(TranslatableYesLbl), UpperCase(LockedYesLbl),
+                UpperCase(QltyLocalization.GetTranslatedYes()), UpperCase(LockedYesLbl),
                 'Y', 'YES', 'T', 'TRUE', '1', 'POSITIVE', 'ENABLED', 'CHECK', 'CHECKED',
                 'GOOD', 'PASS', 'ACCEPTABLE', 'PASSED', 'OK', 'ON',
                 'V', ':SELECTED:':
@@ -391,6 +371,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>True if the value represents a positive/affirmative boolean; False otherwise</returns>
     procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
     var
+        QltyLocalization: Codeunit "Qlty. Localization";
         ConvertedBoolean: Boolean;
     begin
         ValueToCheckIfPositiveBoolean := ValueToCheckIfPositiveBoolean.Trim();
@@ -400,7 +381,7 @@ codeunit 20599 "Qlty. Misc Helpers"
                 exit(true);
 
         case UpperCase(ValueToCheckIfPositiveBoolean) of
-            UpperCase(TranslatableYesLbl),
+            UpperCase(QltyLocalization.GetTranslatedYes()),
             UpperCase(LockedYesLbl),
             'Y',
             'YES',
@@ -442,6 +423,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>True if text represents a negative boolean value; False otherwise (including positive values)</returns>
     procedure IsTextValueNegativeBoolean(ValueToCheckIfNegativeBoolean: Text): Boolean
     var
+        QltyLocalization: Codeunit "Qlty. Localization";
         ConvertedBoolean: Boolean;
     begin
         ValueToCheckIfNegativeBoolean := ValueToCheckIfNegativeBoolean.Trim();
@@ -451,7 +433,7 @@ codeunit 20599 "Qlty. Misc Helpers"
                 exit(true);
 
         case UpperCase(ValueToCheckIfNegativeBoolean) of
-            UpperCase(TranslatableNoLbl),
+            UpperCase(QltyLocalization.GetTranslatedNo()),
             UpperCase(LockedNoLbl),
             'N',
             'NO',

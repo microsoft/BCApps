@@ -1265,31 +1265,31 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure GetTranslatedYes250()
+    procedure GetTranslatedYes()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
         // [SCENARIO] Get translated "Yes" text value
 
         Initialize();
 
-        // [WHEN] GetTranslatedYes250 is called
+        // [WHEN] GetTranslatedYes is called
         // [THEN] The function returns the translated string "Yes"
-        LibraryAssert.AreEqual('Yes', QltyMiscHelpers.GetTranslatedYes250(), 'locked yes.');
+        LibraryAssert.AreEqual('Yes', QltyLocalization.GetTranslatedYes(), 'locked yes.');
     end;
 
     [Test]
-    procedure GetTranslatedNo250()
+    procedure GetTranslatedNo()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
         // [SCENARIO] Get translated "No" text value
 
         Initialize();
 
-        // [WHEN] GetTranslatedNo250 is called
+        // [WHEN] GetTranslatedNo is called
         // [THEN] The function returns the translated string "No"
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyLocalization.GetTranslatedNo(), 'locked no.');
     end;
 
     [Test]
@@ -1324,6 +1324,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure GuessDataTypeFromDescriptionAndValue_Values()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
         QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from actual values
@@ -1333,7 +1334,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Various sample values (boolean, numeric, date, text)
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with value (empty description)
         // [THEN] The function infers the correct data type from value patterns
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyLocalization.GetTranslatedNo(), 'locked no.');
 
         LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
         LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
