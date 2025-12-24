@@ -75,7 +75,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_IntegerSimple()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -86,7 +86,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the range string
         // [THEN] The function returns true and sets Min to 1 and Max to 2
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1, Min, 'simple integer min');
         LibraryAssert.AreEqual(2, Max, 'simple integer max');
     end;
@@ -94,7 +94,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_IntegerNegativeValues()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -105,7 +105,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the negative range
         // [THEN] The function returns true and sets Min to -5 and Max to -1
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
         LibraryAssert.AreEqual(-5, Min, 'simple integer min');
         LibraryAssert.AreEqual(-1, Max, 'simple integer max');
     end;
@@ -113,7 +113,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_DecimalSimple()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -124,7 +124,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the decimal range
         // [THEN] The function returns true and sets Min to 1.00000001 and Max to 2.999999999999
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'simple decimal min');
         LibraryAssert.AreEqual(2.999999999999, Max, 'simple decimal max');
     end;
@@ -132,7 +132,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_DecimalThousands()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -143,7 +143,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the formatted range
         // [THEN] The function returns true and correctly parses Min and Max values
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'thousands separator decimal min');
         LibraryAssert.AreEqual(1234567890.99, Max, 'thousands separator decimal max');
     end;
@@ -151,7 +151,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure GetArbitraryMaximumRecursion()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
         // [SCENARIO] Verify the maximum recursion depth limit
 
@@ -160,7 +160,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] GetArbitraryMaximumRecursion is called
         // [THEN] The function returns 20 as the maximum recursion depth
         Initialize();
-        LibraryAssert.AreEqual(20, QltyMiscHelpers.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
+        LibraryAssert.AreEqual(20, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
     end;
 
     [Test]
@@ -741,7 +741,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure GetDefaultMaximumRowsFieldLookup_Defined()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
         // [SCENARIO] Get maximum rows for field lookup when configured
@@ -757,14 +757,14 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] GetDefaultMaximumRowsFieldLookup is called
         // [THEN] The function returns the configured value of 2
-        LibraryAssert.AreEqual(2, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
+        LibraryAssert.AreEqual(2, QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
     end;
 
     [Test]
     procedure GetDefaultMaximumRowsFieldLookup_Undefined()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
         // [SCENARIO] Get maximum rows for field lookup when not configured
@@ -780,7 +780,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] GetDefaultMaximumRowsFieldLookup is called
         // [THEN] The function returns the default value of 100
-        LibraryAssert.AreEqual(100, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
+        LibraryAssert.AreEqual(100, QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
     end;
 
     [Test]
@@ -1265,31 +1265,31 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure GetTranslatedYes250()
+    procedure GetTranslatedYes()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
         // [SCENARIO] Get translated "Yes" text value
 
         Initialize();
 
-        // [WHEN] GetTranslatedYes250 is called
+        // [WHEN] GetTranslatedYes is called
         // [THEN] The function returns the translated string "Yes"
-        LibraryAssert.AreEqual('Yes', QltyMiscHelpers.GetTranslatedYes250(), 'locked yes.');
+        LibraryAssert.AreEqual('Yes', QltyLocalization.GetTranslatedYes(), 'locked yes.');
     end;
 
     [Test]
-    procedure GetTranslatedNo250()
+    procedure GetTranslatedNo()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
     begin
         // [SCENARIO] Get translated "No" text value
 
         Initialize();
 
-        // [WHEN] GetTranslatedNo250 is called
+        // [WHEN] GetTranslatedNo is called
         // [THEN] The function returns the translated string "No"
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyLocalization.GetTranslatedNo(), 'locked no.');
     end;
 
     [Test]
@@ -1324,6 +1324,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure GuessDataTypeFromDescriptionAndValue_Values()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyLocalization: Codeunit "Qlty. Localization";
         QltyTestValueType: Enum "Qlty. Test Value Type";
     begin
         // [SCENARIO] Guess data type from actual values
@@ -1333,7 +1334,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Various sample values (boolean, numeric, date, text)
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with value (empty description)
         // [THEN] The function infers the correct data type from value patterns
-        LibraryAssert.AreEqual('No', QltyMiscHelpers.GetTranslatedNo250(), 'locked no.');
+        LibraryAssert.AreEqual('No', QltyLocalization.GetTranslatedNo(), 'locked no.');
 
         LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'true'), 'bool test 1');
         LibraryAssert.AreEqual(QltyTestValueType::"Value Type Boolean", QltyMiscHelpers.GuessDataTypeFromDescriptionAndValue('', 'false'), 'bool test 2');
