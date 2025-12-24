@@ -205,11 +205,6 @@ codeunit 30162 "Shpfy Order Events"
     end;
 
     [InternalEvent(false)]
-    internal procedure OnBeforeTranslateCurrencyCode(ShopifyCurrencyCode: Text; var CurrencyCode: Code[10]; var IsHandled: Boolean)
-    begin
-    end;
-
-    [InternalEvent(false)]
     internal procedure OnBeforeConvertToFinancialStatus(Value: Text; var ShpfyFinancialStatus: Enum "Shpfy Financial Status"; var IsHandled: Boolean)
     begin
     end;
