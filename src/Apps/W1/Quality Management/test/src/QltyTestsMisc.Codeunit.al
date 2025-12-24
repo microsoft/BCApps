@@ -151,7 +151,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure GetArbitraryMaximumRecursion()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
         // [SCENARIO] Verify the maximum recursion depth limit
 
@@ -160,7 +160,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] GetArbitraryMaximumRecursion is called
         // [THEN] The function returns 20 as the maximum recursion depth
         Initialize();
-        LibraryAssert.AreEqual(20, QltyMiscHelpers.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
+        LibraryAssert.AreEqual(20, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
     end;
 
     [Test]
@@ -741,7 +741,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure GetDefaultMaximumRowsFieldLookup_Defined()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
         // [SCENARIO] Get maximum rows for field lookup when configured
@@ -757,14 +757,14 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] GetDefaultMaximumRowsFieldLookup is called
         // [THEN] The function returns the configured value of 2
-        LibraryAssert.AreEqual(2, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
+        LibraryAssert.AreEqual(2, QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
     end;
 
     [Test]
     procedure GetDefaultMaximumRowsFieldLookup_Undefined()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
     begin
         // [SCENARIO] Get maximum rows for field lookup when not configured
@@ -780,7 +780,7 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [WHEN] GetDefaultMaximumRowsFieldLookup is called
         // [THEN] The function returns the default value of 100
-        LibraryAssert.AreEqual(100, QltyMiscHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
+        LibraryAssert.AreEqual(100, QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup(), 'simple maximum');
     end;
 
     [Test]

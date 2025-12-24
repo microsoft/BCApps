@@ -12,7 +12,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
@@ -39,36 +38,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
         BadFieldTok: Label '?t:%1?f:%2?', Locked = true, Comment = '%1=the table, %2=the requested field';
-
-    /// <summary>
-    /// The maximum recursion to use when creating inspections.
-    /// Used for traversal on source table configuration when finding applicable generation rules, and also when populating source fields.
-    /// 
-    /// This limit prevents infinite loops in complex configuration hierarchies and ensures reasonable performance
-    /// when traversing multi-level table relationships.
-    /// </summary>
-    /// <returns>The maximum recursion depth allowed (currently 20 levels)</returns>
-    internal procedure GetArbitraryMaximumRecursion(): Integer
-    begin
-        exit(20);
-    end;
-
-    internal procedure GetDefaultMaximumRowsFieldLookup() ResultRowsCount: Integer
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        Handled: Boolean;
-    begin
-        ResultRowsCount := 100;
-        OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, Handled);
-        if Handled then
-            exit;
-
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit;
-
-        if QltyManagementSetup."Max Rows Field Lookups" > 0 then
-            ResultRowsCount := QltyManagementSetup."Max Rows Field Lookups";
-    end;
 
     /// <summary>
     /// Prompts the user to select a file and imports its contents into an InStream for processing.
@@ -198,12 +167,13 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values</param>
     procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         ReasonableMaximum: Integer;
         DummyText: Text;
         TableFilter: Text;
     begin
-        ReasonableMaximum := GetDefaultMaximumRowsFieldLookup();
+        ReasonableMaximum := QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup();
 
         TableFilter := QltyExpressionMgmt.EvaluateTextExpression(QltyTest."Lookup Table Filter", OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine);
 
@@ -247,8 +217,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     internal procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text) ResultText: Text
     var
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
     begin
-        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, GetArbitraryMaximumRecursion(), TempBufferQltyLookupCode, ResultText);
+        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), TempBufferQltyLookupCode, ResultText);
     end;
 
     /// <summary>
@@ -265,6 +236,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="CSVSimpleText"></param>
     local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxCountRecords: Integer; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var CSVSimpleText: Text)
     var
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         RecordRefToFetch: RecordRef;
         FieldRefToChoiceField: FieldRef;
         FieldRefToDescriptionField: FieldRef;
@@ -278,7 +250,7 @@ codeunit 20599 "Qlty. Misc Helpers"
             exit;
 
         if MaxCountRecords <= 0 then begin
-            MaxCountRecords := GetDefaultMaximumRowsFieldLookup();
+            MaxCountRecords := QltyConfigurationHelpers.GetDefaultMaximumRowsFieldLookup();
             if MaxCountRecords <= 0 then
                 MaxCountRecords := 1;
             if MaxCountRecords > 1000 then
@@ -908,18 +880,6 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Provides an opportunity for customizations to alter the default maximum rows shown
-    /// for a table lookup in a quality inspector field.
-    /// Changing the default to a larger number can introduce performance issues.
-    /// </summary>
-    /// <param name="Rows"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDefaultMaximumRowsToShowInLookup(var Rows: Integer; var Handled: Boolean)
     begin
     end;
 }
