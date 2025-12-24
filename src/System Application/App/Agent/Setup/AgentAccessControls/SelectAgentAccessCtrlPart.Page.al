@@ -110,6 +110,23 @@ page 4338 "Select Agent Access Ctrl Part"
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        exit(HandleCompanyNameOnInsert());
+    end;
+
+    internal procedure Initialize(NewAgentUserSecurityId: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    var
+        AgentSingleCompany: Boolean;
+    begin
+        AgentUserSecurityID := NewAgentUserSecurityId;
+        Rec.Copy(TempAgentAccessControl, true);
+
+        AgentSingleCompany := AgentImpl.GetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
+        if not ShowCompanyFieldOverride then
+            ShowCompanyField := not AgentSingleCompany;
+    end;
+
+    local procedure HandleCompanyNameOnInsert(): Boolean
     var
         UserSecurityID: Guid;
     begin
@@ -134,20 +151,6 @@ page 4338 "Select Agent Access Ctrl Part"
 #pragma warning restore AA0139
 
         exit(true);
-    end;
-
-    internal procedure Initialize(NewAgentUserSecurityId: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
-    var
-        AgentSingleCompany: Boolean;
-    begin
-        AgentUserSecurityID := NewAgentUserSecurityId;
-        Rec.Copy(TempAgentAccessControl, true);
-
-        AgentSingleCompany := AgentImpl.GetAccessControlForSingleCompany(AgentUserSecurityID, GlobalSingleCompanyName);
-        if not ShowCompanyFieldOverride then
-            ShowCompanyField := not AgentSingleCompany;
-
-        CurrPage.Update(false);
     end;
 
     local procedure UpdateGlobalVariables()
@@ -224,12 +227,9 @@ page 4338 "Select Agent Access Ctrl Part"
                     OwnerFound := true;
             until (Rec.Next() = 0) or OwnerFound;
 
-        if not OwnerFound then begin
-            Rec.Copy(TempAgentAccessControl);
-            Error(OneOwnerMustBeDefinedForAgentErr);
-        end;
-
         Rec.Copy(TempAgentAccessControl);
+        if not OwnerFound then
+            Error(OneOwnerMustBeDefinedForAgentErr);
     end;
 
     var

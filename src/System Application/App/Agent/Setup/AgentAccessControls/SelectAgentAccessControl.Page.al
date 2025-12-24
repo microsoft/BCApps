@@ -33,6 +33,7 @@ page 4321 "Select Agent Access Control"
     begin
         BackupAgentAccessControl();
         CurrPage.AccessControlPart.Page.Initialize(AgentUserSecurityID, Rec);
+        CurrPage.AccessControlPart.Page.Update(false);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean

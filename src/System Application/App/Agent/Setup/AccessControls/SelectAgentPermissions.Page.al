@@ -13,7 +13,7 @@ page 4336 "Select Agent Permissions"
     ApplicationArea = All;
     SourceTable = "Access Control Buffer";
     SourceTableTemporary = true;
-    Caption = 'Edit Agent Permissions (Preview)';
+    Caption = 'Edit Agent Permissions';
     Extensible = false;
     DataCaptionExpression = '';
     InherentPermissions = X;
@@ -39,6 +39,7 @@ page 4336 "Select Agent Permissions"
     begin
         BackupAccessControlBuffer();
         CurrPage.PermissionsPart.Page.Initialize(AgentUserSecurityID, Rec);
+        CurrPage.PermissionsPart.Page.Update(false);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean

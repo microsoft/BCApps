@@ -150,6 +150,23 @@ page 4340 "Select Agent Permissions Part"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
+        HandleCompanyNameOnInsert();
+    end;
+
+    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AgentSingleCompany: Boolean;
+    begin
+        AgentUserSecurityID := NewAgentUserSecurityID;
+        Rec.Copy(TempAccessControlBuffer, true);
+
+        AgentSingleCompany := GetAccessControlForSingleCompany(GlobalSingleCompanyName);
+        if not ShowCompanyFieldOverride then
+            ShowCompanyField := not AgentSingleCompany;
+    end;
+
+    local procedure HandleCompanyNameOnInsert()
+    begin
         if GlobalSingleCompanyName <> '' then begin
             if (Rec."Company Name" = '') and not ShowCompanyField then
                 // Default the company name for the inserted record when all these conditions are met:
@@ -164,20 +181,6 @@ page 4340 "Select Agent Permissions Part"
                 // was identified as the main one.
                 GlobalSingleCompanyName := '';
         end;
-    end;
-
-    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
-    var
-        AgentSingleCompany: Boolean;
-    begin
-        AgentUserSecurityID := NewAgentUserSecurityID;
-        Rec.Copy(TempAccessControlBuffer, true);
-
-        AgentSingleCompany := GetAccessControlForSingleCompany(GlobalSingleCompanyName);
-        if not ShowCompanyFieldOverride then
-            ShowCompanyField := not AgentSingleCompany;
-
-        CurrPage.Update(false);
     end;
 
     local procedure UpdateGlobalVariables()
