@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Customer;
@@ -19,6 +20,7 @@ codeunit 139647 "Shpfy Company Import Test"
     var
         Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERM: Codeunit "Library - ERM";
         Any: Codeunit Any;
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
@@ -146,6 +148,80 @@ codeunit 139647 "Shpfy Company Import Test"
         LibraryAssert.AreEqual(Customer."Payment Terms Code", PaymentTermsCode, 'Payment Terms Code');
     end;
 
+    [Test]
+    procedure UnitTestCreateCustomerFromCompanyWithRegistrationNo()
+    var
+        Customer: Record Customer;
+        TempShopifyCustomer: Record "Shpfy Customer" temporary;
+        ShopifyCompany: Record "Shpfy Company";
+        CompanyLocation: Record "Shpfy Company Location";
+        CreateCustomer: Codeunit "Shpfy Create Customer";
+        TaxRegistrationId: Text[150];
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO] Create a customer from a company with location with Tax Registration Id using Registration No. mapping.
+        Initialize();
+
+        // [GIVEN] Tax Registration Id
+        TaxRegistrationId := CopyStr(Any.AlphanumericText(20), 1, MaxStrLen(TaxRegistrationId));
+        // [GIVEN] Shop with Tax Id Mapping set to "Registration No."
+        Shop."Shpfy Comp. Tax Id Mapping" := Enum::"Shpfy Comp. Tax Id Mapping"::"Registration No.";
+        Shop.Modify(false);
+        // [GIVEN] Shopify Company
+        CreateCompany(ShopifyCompany, EmptyGuid);
+        // [GIVEN] Company Location with Tax Registration Id
+        CreateCompanyLocationWithTaxId(CompanyLocation, ShopifyCompany, TaxRegistrationId);
+        // [GIVEN] TempShopifyCustomer
+        CreateTempShopifyCustomer(TempShopifyCustomer);
+
+        // [WHEN] Invoke CreateCustomerFromCompany
+        CreateCustomer.SetShop(Shop);
+        CreateCustomer.SetTemplateCode(Shop."Customer Templ. Code");
+        CreateCustomer.CreateCustomerFromCompany(ShopifyCompany, TempShopifyCustomer);
+
+        // [THEN] Customer record is created with the correct Registration Number.
+        Customer.GetBySystemId(ShopifyCompany."Customer SystemId");
+        LibraryAssert.AreEqual(TaxRegistrationId, Customer."Registration Number", 'Registration Number');
+    end;
+
+    [Test]
+    procedure UnitTestCreateCustomerFromCompanyWithVATRegistrationNo()
+    var
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        TempShopifyCustomer: Record "Shpfy Customer" temporary;
+        ShopifyCompany: Record "Shpfy Company";
+        CompanyLocation: Record "Shpfy Company Location";
+        CreateCustomer: Codeunit "Shpfy Create Customer";
+        TaxRegistrationId: Text[150];
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO] Create a customer from a company with location with Tax Registration Id using VAT Registration No. mapping.
+        Initialize();
+
+        // [GIVEN] Tax Registration Id
+        CompanyInformation.Get();
+        TaxRegistrationId := LibraryERM.GenerateVATRegistrationNo(CompanyInformation."Country/Region Code");
+        // [GIVEN] Shop with Tax Id Mapping set to "VAT Registration No."
+        Shop."Shpfy Comp. Tax Id Mapping" := Enum::"Shpfy Comp. Tax Id Mapping"::"VAT Registration No.";
+        Shop.Modify(false);
+        // [GIVEN] Shopify Company
+        CreateCompany(ShopifyCompany, EmptyGuid);
+        // [GIVEN] Company Location with Tax Registration Id
+        CreateCompanyLocationWithTaxId(CompanyLocation, ShopifyCompany, TaxRegistrationId);
+        // [GIVEN] TempShopifyCustomer
+        CreateTempShopifyCustomer(TempShopifyCustomer);
+
+        // [WHEN] Invoke CreateCustomerFromCompany
+        CreateCustomer.SetShop(Shop);
+        CreateCustomer.SetTemplateCode(Shop."Customer Templ. Code");
+        CreateCustomer.CreateCustomerFromCompany(ShopifyCompany, TempShopifyCustomer);
+
+        // [THEN] Customer record is created with the correct VAT Registration No.
+        Customer.GetBySystemId(ShopifyCompany."Customer SystemId");
+        LibraryAssert.AreEqual(TaxRegistrationId, Customer."VAT Registration No.", 'VAT Registration No.');
+    end;
+
     local procedure Initialize()
     begin
         Any.SetDefaultSeed();
@@ -201,6 +277,18 @@ codeunit 139647 "Shpfy Company Import Test"
         CompanyLocation."Company SystemId" := ShopifyCompany.SystemId;
         CompanyLocation.Id := Any.IntegerInRange(10000, 99999);
         CompanyLocation."Shpfy Payment Terms Id" := PaymentTermsId;
+        CompanyLocation.Insert(false);
+
+        ShopifyCompany."Location Id" := CompanyLocation.Id;
+        ShopifyCompany.Modify(false);
+    end;
+
+    local procedure CreateCompanyLocationWithTaxId(var CompanyLocation: Record "Shpfy Company Location"; var ShopifyCompany: Record "Shpfy Company"; TaxRegistrationId: Text[150])
+    begin
+        CompanyLocation.Init();
+        CompanyLocation."Company SystemId" := ShopifyCompany.SystemId;
+        CompanyLocation.Id := Any.IntegerInRange(10000, 99999);
+        CompanyLocation."Tax Registration Id" := TaxRegistrationId;
         CompanyLocation.Insert(false);
 
         ShopifyCompany."Location Id" := CompanyLocation.Id;
