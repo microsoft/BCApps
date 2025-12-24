@@ -5,7 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30233 "Shpfy GQL CreateFulfillmentSvc" implements "Shpfy IGraphQL"
+/// <summary>
+/// Codeunit Shpfy GQL Location (ID 30411).
+/// Implements the IGraphQL interface for retrieving Shopify location using GraphQL.
+/// </summary>
+codeunit 30411 "Shpfy GQL Location" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 
@@ -15,7 +19,7 @@ codeunit 30233 "Shpfy GQL CreateFulfillmentSvc" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query": "mutation { fulfillmentServiceCreate(name: \"{{Name}}\", callbackUrl: \"{{CallbackUrl}}\") {fulfillmentService {id}}}"}');
+        exit('{"query": "{ location(id: \"gid://shopify/Location/{{Id}}\") { fulfillmentService { id callbackUrl } } }"}');
     end;
 
     /// <summary>
@@ -24,6 +28,6 @@ codeunit 30233 "Shpfy GQL CreateFulfillmentSvc" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(10);
+        exit(2);
     end;
 }
