@@ -218,9 +218,22 @@ codeunit 30199 "Shpfy Authentication Mgt."
     internal procedure CheckScopeChange(Shop: Record "Shpfy Shop"): Boolean
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
+        ActualScopes: List of [Text];
+        RequestedScopes: List of [Text];
+        Scope: Text;
     begin
-        if RegisteredStoreNew.Get(Shop.GetStoreName()) then
-            exit(RegisteredStoreNew."Actual Scope" <> GetScope());
+        if not RegisteredStoreNew.Get(Shop.GetStoreName()) then
+            exit(false);
+
+        ActualScopes := RegisteredStoreNew."Actual Scope".Split(',');
+        RequestedScopes := GetScope().Split(',');
+
+        if ActualScopes.Count() <> RequestedScopes.Count() then
+            exit(true);
+
+        foreach Scope in RequestedScopes do
+            if not ActualScopes.Contains(Scope) then
+                exit(true);
 
         exit(false);
     end;
