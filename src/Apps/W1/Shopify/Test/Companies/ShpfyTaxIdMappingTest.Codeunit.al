@@ -31,14 +31,14 @@ codeunit 134246 "Shpfy Tax Id Mapping Test"
     var
         Customer: Record Customer;
         TaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
-        RegistrationNo: Text[20];
+        RegistrationNo: Text[50];
         RegistrationNoResult: Text[150];
     begin
         // [SCENARIO] GetTaxRegistrationId for Tax Registration No. implementation of mapping
         Initialize();
 
         // [GIVEN] Registration No.
-        RegistrationNo := CopyStr(Any.AlphanumericText(20), 1, MaxStrLen(RegistrationNo));
+        RegistrationNo := CopyStr(Any.AlphanumericText(50), 1, MaxStrLen(RegistrationNo));
         // [GIVEN] Customer
         CreateCustomerWithRegistrationNo(Customer, RegistrationNo);
         // [GIVEN] TaxRegistrationIdMapping interface is "Registration No."
