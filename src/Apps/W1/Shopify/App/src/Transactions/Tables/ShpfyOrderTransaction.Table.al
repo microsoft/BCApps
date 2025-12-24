@@ -254,6 +254,9 @@ table 30133 "Shpfy Order Transaction"
         key(Idx003; Type)
         {
         }
+        key(Key5; "Shopify Order Id", Status)
+        {
+        }
     }
 
     fieldgroups
