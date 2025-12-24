@@ -83,10 +83,11 @@ page 6105 "Inbound E-Documents"
                 }
                 field(TaskID; AgentTask.ID)
                 {
-                    Caption = 'Task';
+                    Caption = 'Agent Task No.';
                     ToolTip = 'Specifies the task number for the document.';
                     Editable = false;
                     ExtendedDatatype = Task;
+                    BlankNumbers = BlankZero;
 
                     trigger OnDrillDown()
                     var
@@ -104,6 +105,11 @@ page 6105 "Inbound E-Documents"
                     Caption = 'Task Status';
                     ToolTip = 'Specifies the status of the agent task for this document.';
                     Editable = false;
+                }
+                field("Vendor Name"; EDocumentPurchaseHeader."Vendor Company Name")
+                {
+                    Caption = 'Sender';
+                    ToolTip = 'Specifies the vendor name of the document.';
                 }
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
@@ -125,11 +131,6 @@ page 6105 "Inbound E-Documents"
                 {
                     Caption = 'Source Details';
                     ToolTip = 'Specifies the details about the source of the document.';
-                }
-                field("Vendor Name"; EDocumentPurchaseHeader."Vendor Company Name")
-                {
-                    Caption = 'Sender';
-                    ToolTip = 'Specifies the vendor name of the document.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
