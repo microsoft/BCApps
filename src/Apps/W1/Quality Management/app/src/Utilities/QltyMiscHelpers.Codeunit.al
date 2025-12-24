@@ -23,7 +23,6 @@ codeunit 20599 "Qlty. Misc Helpers"
     var
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
-        ImportFromLbl: Label 'Import From File';
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';
         YesNoKeyword2Txt: Label 'Do the';
@@ -38,58 +37,6 @@ codeunit 20599 "Qlty. Misc Helpers"
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
         BadFieldTok: Label '?t:%1?f:%2?', Locked = true, Comment = '%1=the table, %2=the requested field';
-
-    /// <summary>
-    /// Prompts the user to select a file and imports its contents into an InStream for processing.
-    /// Displays a file upload dialog with optional file type filtering.
-    /// 
-    /// Common usage: Importing configuration files, test data, or external quality inspection results.
-    /// </summary>
-    /// <param name="FilterString">File type filter for the upload dialog (e.g., "*.xml|*.txt")</param>
-    /// <param name="InStream">Output: InStream containing the uploaded file contents</param>
-    /// <returns>True if file was successfully selected and uploaded; False if user cancelled or upload failed</returns>
-    procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream) Worked: Boolean
-    var
-        ServerFile: Text;
-    begin
-        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFile, InStream);
-    end;
-
-    /// <summary>
-    /// Attempts to parse simple range notation (min..max) into separate minimum and maximum decimal values.
-    /// Handles the common 90% use case of range specifications in quality inspections.
-    /// 
-    /// Examples:
-    /// - "10..20" → OutMin=10, OutMax=20, returns true
-    /// - "5.5..10.5" → OutMin=5.5, OutMax=10.5, returns true
-    /// - "Invalid" → returns false
-    /// - "10" → returns false (not a range)
-    /// </summary>
-    /// <param name="InputText">The text containing a range in format "minValue..maxValue"</param>
-    /// <param name="MinValueInRange">Output: The minimum value from the range</param>
-    /// <param name="MaxValueInRange">Output: The maximum value from the range</param>
-    /// <returns>True if successfully parsed as a simple range; False if input doesn't match simple range pattern</returns>
-    procedure AttemptSplitSimpleRangeIntoMinMax(InputText: Text; var MinValueInRange: Decimal; var MaxValueInRange: Decimal): Boolean
-    var
-        OfParts: List of [Text];
-        Temp: Text;
-    begin
-        Clear(MaxValueInRange);
-        Clear(MinValueInRange);
-
-        if InputText.Contains('..') then
-            if InputText.IndexOf('..') > 0 then begin
-                OfParts := InputText.Split('..');
-                if OfParts.Count() = 2 then begin
-                    OfParts.Get(1, Temp);
-                    if Evaluate(MinValueInRange, Temp) then begin
-                        OfParts.Get(2, Temp);
-                        if Evaluate(MaxValueInRange, Temp) then
-                            exit(true);
-                    end;
-                end;
-            end;
-    end;
 
     /// <summary>
     /// Retrieves available record values for a table lookup field configured on an inspection line, returned as CSV.

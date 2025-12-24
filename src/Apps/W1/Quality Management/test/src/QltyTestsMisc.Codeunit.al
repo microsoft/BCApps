@@ -75,7 +75,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_IntegerSimple()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -86,7 +86,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the range string
         // [THEN] The function returns true and sets Min to 1 and Max to 2
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1, Min, 'simple integer min');
         LibraryAssert.AreEqual(2, Max, 'simple integer max');
     end;
@@ -94,7 +94,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_IntegerNegativeValues()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -105,7 +105,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the negative range
         // [THEN] The function returns true and sets Min to -5 and Max to -1
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
         LibraryAssert.AreEqual(-5, Min, 'simple integer min');
         LibraryAssert.AreEqual(-1, Max, 'simple integer max');
     end;
@@ -113,7 +113,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_DecimalSimple()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -124,7 +124,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the decimal range
         // [THEN] The function returns true and sets Min to 1.00000001 and Max to 2.999999999999
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'simple decimal min');
         LibraryAssert.AreEqual(2.999999999999, Max, 'simple decimal max');
     end;
@@ -132,7 +132,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_DecimalThousands()
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         Min: Decimal;
         Max: Decimal;
     begin
@@ -143,7 +143,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the formatted range
         // [THEN] The function returns true and correctly parses Min and Max values
         Initialize();
-        LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
+        LibraryAssert.AreEqual(true, QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'thousands separator decimal min');
         LibraryAssert.AreEqual(1234567890.99, Max, 'thousands separator decimal max');
     end;
