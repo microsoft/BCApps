@@ -18,8 +18,8 @@ using System.Reflection;
 table 20401 "Qlty. Test"
 {
     Caption = 'Quality Test';
-    DrillDownPageID = "Qlty. Tests";
-    LookupPageID = "Qlty. Test Lookup";
+    DrillDownPageId = "Qlty. Tests";
+    LookupPageId = "Qlty. Test Lookup";
     DataClassification = CustomerContent;
 
     fields

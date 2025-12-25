@@ -27,7 +27,7 @@ using System.Environment.Configuration;
 table 20400 "Qlty. Management Setup"
 {
     Caption = 'Quality Management Setup';
-    DrillDownPageID = "Qlty. Management Setup";
+    DrillDownPageId = "Qlty. Management Setup";
     DataClassification = CustomerContent;
 
     fields
