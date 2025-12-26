@@ -296,7 +296,6 @@ table 6121 "E-Document"
             Caption = 'Last Clearance Request Time';
             DataClassification = SystemMetadata;
         }
-
         #endregion
     }
     keys
@@ -312,6 +311,9 @@ table 6121 "E-Document"
         {
         }
         key(Key4; SystemCreatedAt)
+        {
+        }
+        key(DueDate; "Due Date")
         {
         }
     }
