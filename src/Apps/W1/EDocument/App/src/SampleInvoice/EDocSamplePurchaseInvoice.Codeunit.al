@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
-using Microsoft.Purchases.Document;
-using System.Utilities;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Foundation.Period;
-using Microsoft.Foundation.UOM;
-using Microsoft.Foundation.Company;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Period;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 /// <summary>
 /// The purpose of the codeunit is to generate sample purchase invoices in PDF format.
