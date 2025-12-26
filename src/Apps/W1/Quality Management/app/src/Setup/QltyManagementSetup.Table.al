@@ -27,7 +27,7 @@ using System.Environment.Configuration;
 table 20400 "Qlty. Management Setup"
 {
     Caption = 'Quality Management Setup';
-    DrillDownPageID = "Qlty. Management Setup";
+    DrillDownPageId = "Qlty. Management Setup";
     DataClassification = CustomerContent;
 
     fields
@@ -725,7 +725,6 @@ table 20400 "Qlty. Management Setup"
     /// <summary>
     /// Gets the first page template for the supplied page.
     /// </summary>
-    /// <param name="piPageID"></param>
     /// <returns></returns>
     procedure GetItemReclassJournalTemplate(): Code[10]
     var

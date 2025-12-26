@@ -24,7 +24,7 @@ using Microsoft.Warehouse.Structure;
 page 20408 "Qlty. Inspection List"
 {
     Caption = 'Quality Inspections';
-    CardPageID = "Qlty. Inspection";
+    CardPageId = "Qlty. Inspection";
     DeleteAllowed = false;
     Editable = false;
     PageType = List;
