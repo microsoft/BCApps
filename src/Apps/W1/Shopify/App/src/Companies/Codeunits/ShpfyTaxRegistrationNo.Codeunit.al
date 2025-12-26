@@ -23,4 +23,10 @@ codeunit 30367 "Shpfy Tax Registration No." implements "Shpfy Tax Registration I
     begin
         Customer.SetRange("Registration Number", CompanyLocation."Tax Registration Id");
     end;
+
+    procedure UpdateTaxRegistrationId(var Customer: Record Customer; NewTaxRegistrationId: Text[150])
+    begin
+        Customer.Validate("Registration Number", CopyStr(NewTaxRegistrationId, 1, MaxStrLen(Customer."Registration Number")));
+        Customer.Modify(true);
+    end;
 }

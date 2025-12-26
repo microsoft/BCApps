@@ -25,4 +25,12 @@ interface "Shpfy Tax Registration Id Mapping"
     /// <param name="Customer">Customer record</param>
     /// <param name="CompanyLocation">Company location record</param>
     procedure SetMappingFiltersForCustomers(var Customer: Record Customer; CompanyLocation: Record "Shpfy Company Location");
+
+
+    /// <summary>
+    /// Updates the tax registration id for the customer.
+    /// </summary>
+    /// <param name="Customer">Customer record</param>
+    /// <param name="NewTaxRegistrationId">New tax registration id</param>
+    procedure UpdateTaxRegistrationId(var Customer: Record Customer; NewTaxRegistrationId: Text[150]);
 }
