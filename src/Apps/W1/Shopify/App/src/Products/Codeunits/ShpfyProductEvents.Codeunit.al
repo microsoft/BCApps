@@ -82,6 +82,15 @@ codeunit 30177 "Shpfy Product Events"
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating product metafields in Shopify.
+    /// </summary>
+    /// <param name="ProductId">The Shopify product Id.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeUpdateProductMetafields(ProductId: BigInteger)
+    begin
+    end;
+
 #pragma warning disable AS0027
     /// <summary> 
     /// Raised After Find Item Template.
