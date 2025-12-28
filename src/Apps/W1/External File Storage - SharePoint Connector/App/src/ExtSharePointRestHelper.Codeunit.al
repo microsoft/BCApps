@@ -22,15 +22,15 @@ codeunit 4582 "Ext. SharePoint REST Helper"
 
     #region File Operations
 
-    internal procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
+    internal procedure ListFiles(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
         SharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
         if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, SharePointFile) then
             ShowError(SharePointClient);
 
@@ -48,14 +48,14 @@ codeunit 4582 "Ext. SharePoint REST Helper"
         until SharePointFile.Next() = 0;
     end;
 
-    internal procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream)
+    internal procedure GetFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; Stream: InStream)
     var
         SharePointClient: Codeunit "SharePoint Client";
         Content: HttpContent;
         TempBlobStream: InStream;
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
 
         if not SharePointClient.DownloadFileContentByServerRelativeUrl(Path, TempBlobStream) then
             ShowError(SharePointClient);
@@ -65,14 +65,14 @@ codeunit 4582 "Ext. SharePoint REST Helper"
         Content.ReadAs(Stream);
     end;
 
-    internal procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream)
+    internal procedure CreateFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; Stream: InStream)
     var
         SharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
         ParentPath, FileName : Text;
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
         SplitPath(Path, ParentPath, FileName);
         if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, SharePointFile, false) then
             exit;
@@ -80,33 +80,33 @@ codeunit 4582 "Ext. SharePoint REST Helper"
         ShowError(SharePointClient);
     end;
 
-    internal procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
+    internal procedure CopyFile(SharePointAccount: Record "Ext. SharePoint Account"; SourcePath: Text; TargetPath: Text)
     var
         TempBlob: Codeunit "Temp Blob";
         Stream: InStream;
     begin
         TempBlob.CreateInStream(Stream);
 
-        GetFile(AccountId, SourcePath, Stream);
-        CreateFile(AccountId, TargetPath, Stream);
+        GetFile(SharePointAccount, SourcePath, Stream);
+        CreateFile(SharePointAccount, TargetPath, Stream);
     end;
 
-    internal procedure MoveFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
+    internal procedure MoveFile(SharePointAccount: Record "Ext. SharePoint Account"; SourcePath: Text; TargetPath: Text)
     var
         Stream: InStream;
     begin
-        GetFile(AccountId, SourcePath, Stream);
-        CreateFile(AccountId, TargetPath, Stream);
-        DeleteFile(AccountId, SourcePath);
+        GetFile(SharePointAccount, SourcePath, Stream);
+        CreateFile(SharePointAccount, TargetPath, Stream);
+        DeleteFile(SharePointAccount, SourcePath);
     end;
 
-    internal procedure FileExists(AccountId: Guid; Path: Text): Boolean
+    internal procedure FileExists(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text): Boolean
     var
         SharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
         if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), SharePointFile) then
             ShowError(SharePointClient);
 
@@ -114,12 +114,12 @@ codeunit 4582 "Ext. SharePoint REST Helper"
         exit(not SharePointFile.IsEmpty());
     end;
 
-    internal procedure DeleteFile(AccountId: Guid; Path: Text)
+    internal procedure DeleteFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
     var
         SharePointClient: Codeunit "SharePoint Client";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
         if SharePointClient.DeleteFileByServerRelativeUrl(Path) then
             exit;
 
@@ -130,15 +130,15 @@ codeunit 4582 "Ext. SharePoint REST Helper"
 
     #region Directory Operations
 
-    internal procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
+    internal procedure ListDirectories(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
         SharePointFolder: Record "SharePoint Folder";
         SharePointClient: Codeunit "SharePoint Client";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
         if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, SharePointFolder) then
             ShowError(SharePointClient);
 
@@ -156,25 +156,25 @@ codeunit 4582 "Ext. SharePoint REST Helper"
         until SharePointFolder.Next() = 0;
     end;
 
-    internal procedure CreateDirectory(AccountId: Guid; Path: Text)
+    internal procedure CreateDirectory(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
     var
         SharePointFolder: Record "SharePoint Folder";
         SharePointClient: Codeunit "SharePoint Client";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
         if SharePointClient.CreateFolder(Path, SharePointFolder) then
             exit;
 
         ShowError(SharePointClient);
     end;
 
-    internal procedure DirectoryExists(AccountId: Guid; Path: Text) Result: Boolean
+    internal procedure DirectoryExists(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text) Result: Boolean
     var
         SharePointClient: Codeunit "SharePoint Client";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
 
         Result := SharePointClient.FolderExistsByServerRelativeUrl(Path);
 
@@ -182,12 +182,12 @@ codeunit 4582 "Ext. SharePoint REST Helper"
             ShowError(SharePointClient);
     end;
 
-    internal procedure DeleteDirectory(AccountId: Guid; Path: Text)
+    internal procedure DeleteDirectory(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
     var
         SharePointClient: Codeunit "SharePoint Client";
     begin
-        InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
+        InitPath(SharePointAccount, Path);
+        InitSharePointClient(SharePointAccount, SharePointClient);
         if SharePointClient.DeleteFolderByServerRelativeUrl(Path) then
             exit;
 
@@ -198,15 +198,13 @@ codeunit 4582 "Ext. SharePoint REST Helper"
 
     #region Helper Methods
 
-    local procedure InitSharePointClient(var AccountId: Guid; var SharePointClient: Codeunit "SharePoint Client")
+    local procedure InitSharePointClient(SharePointAccount: Record "Ext. SharePoint Account"; var SharePointClient: Codeunit "SharePoint Client")
     var
-        SharePointAccount: Record "Ext. SharePoint Account";
         SharePointAuth: Codeunit "SharePoint Auth.";
         SharePointAuthorization: Interface "SharePoint Authorization";
         Scopes: List of [Text];
         AccountDisabledErr: Label 'The account "%1" is disabled.', Comment = '%1 - Account Name';
     begin
-        SharePointAccount.Get(AccountId);
         if SharePointAccount.Disabled then
             Error(AccountDisabledErr, SharePointAccount.Name);
 
@@ -255,11 +253,8 @@ codeunit 4582 "Ext. SharePoint REST Helper"
             FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
     end;
 
-    local procedure InitPath(AccountId: Guid; var Path: Text)
-    var
-        SharePointAccount: Record "Ext. SharePoint Account";
+    local procedure InitPath(SharePointAccount: Record "Ext. SharePoint Account"; var Path: Text)
     begin
-        SharePointAccount.Get(AccountId);
         Path := CombinePath(SharePointAccount."Base Relative Folder Path", Path);
     end;
 

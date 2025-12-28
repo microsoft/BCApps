@@ -29,14 +29,14 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
 
     #region File Operations
 
-    internal procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
+    internal procedure ListFiles(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
         GraphDriveItem: Record "SharePoint Graph Drive Item";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         // List children in the directory
         Path := Path.TrimEnd('/');
@@ -60,14 +60,14 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         FilePaginationData.SetEndOfListing(true);
     end;
 
-    internal procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream)
+    internal procedure GetFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; Stream: InStream)
     var
         TempBlob: Codeunit "Temp Blob";
         Response: Codeunit "SharePoint Graph Response";
         Content: HttpContent;
     begin
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         // Use chunked download for all files to handle >150MB files
         Response := SharePointGraphClient.DownloadLargeFileByPath(Path, TempBlob);
@@ -80,15 +80,15 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         Content.ReadAs(Stream);
     end;
 
-    internal procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream)
+    internal procedure CreateFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; Stream: InStream)
     var
         GraphDriveItem: Record "SharePoint Graph Drive Item";
         Response: Codeunit "SharePoint Graph Response";
         FileName: Text;
         FolderPath: Text;
     begin
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         // Split path into folder and filename
         SplitPath(Path, FolderPath, FileName);
@@ -100,15 +100,15 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
             ShowError(Response);
     end;
 
-    internal procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
+    internal procedure CopyFile(SharePointAccount: Record "Ext. SharePoint Account"; SourcePath: Text; TargetPath: Text)
     var
         Response: Codeunit "SharePoint Graph Response";
         FileName: Text;
         TargetFolderPath: Text;
     begin
-        InitPath(AccountId, SourcePath);
-        InitPath(AccountId, TargetPath);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, SourcePath);
+        InitPath(SharePointAccount, TargetPath);
+        InitializeGraphClient(SharePointAccount);
 
         // Split destination path into folder and filename
         SplitPath(TargetPath, TargetFolderPath, FileName);
@@ -120,15 +120,15 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
             ShowError(Response);
     end;
 
-    internal procedure MoveFile(AccountId: Guid; SourcePath: Text; TargetPath: Text)
+    internal procedure MoveFile(SharePointAccount: Record "Ext. SharePoint Account"; SourcePath: Text; TargetPath: Text)
     var
         Response: Codeunit "SharePoint Graph Response";
         FileName: Text;
         TargetFolderPath: Text;
     begin
-        InitPath(AccountId, SourcePath);
-        InitPath(AccountId, TargetPath);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, SourcePath);
+        InitPath(SharePointAccount, TargetPath);
+        InitializeGraphClient(SharePointAccount);
 
         // Split destination path into folder and filename
         SplitPath(TargetPath, TargetFolderPath, FileName);
@@ -140,13 +140,13 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
             ShowError(Response);
     end;
 
-    internal procedure FileExists(AccountId: Guid; Path: Text): Boolean
+    internal procedure FileExists(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text): Boolean
     var
         Response: Codeunit "SharePoint Graph Response";
         Exists: Boolean;
     begin
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         Response := SharePointGraphClient.ItemExistsByPath(Path, Exists);
 
@@ -156,12 +156,12 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         exit(Exists);
     end;
 
-    internal procedure DeleteFile(AccountId: Guid; Path: Text)
+    internal procedure DeleteFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
     var
         Response: Codeunit "SharePoint Graph Response";
     begin
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         Response := SharePointGraphClient.DeleteItemByPath(Path);
 
@@ -173,14 +173,14 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
 
     #region Directory Operations
 
-    internal procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
+    internal procedure ListDirectories(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
         TempGraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
         OriginalPath: Text;
     begin
         OriginalPath := Path;
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         // List children in the directory
         Path := Path.TrimEnd('/');
@@ -204,15 +204,15 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         FilePaginationData.SetEndOfListing(true);
     end;
 
-    internal procedure CreateDirectory(AccountId: Guid; Path: Text)
+    internal procedure CreateDirectory(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
     var
         GraphDriveItem: Record "SharePoint Graph Drive Item";
         Response: Codeunit "SharePoint Graph Response";
         ParentPath: Text;
         FolderName: Text;
     begin
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         // Split path into parent path and folder name
         SplitPath(Path, ParentPath, FolderName);
@@ -223,13 +223,13 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
             ShowError(Response);
     end;
 
-    internal procedure DirectoryExists(AccountId: Guid; Path: Text): Boolean
+    internal procedure DirectoryExists(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text): Boolean
     var
         Response: Codeunit "SharePoint Graph Response";
         Exists: Boolean;
     begin
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         Response := SharePointGraphClient.ItemExistsByPath(Path, Exists);
 
@@ -239,12 +239,12 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         exit(Exists);
     end;
 
-    internal procedure DeleteDirectory(AccountId: Guid; Path: Text)
+    internal procedure DeleteDirectory(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
     var
         Response: Codeunit "SharePoint Graph Response";
     begin
-        InitPath(AccountId, Path);
-        InitializeGraphClient(AccountId);
+        InitPath(SharePointAccount, Path);
+        InitializeGraphClient(SharePointAccount);
 
         Response := SharePointGraphClient.DeleteItemByPath(Path);
 
@@ -256,9 +256,8 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
 
     #region Helper Methods
 
-    local procedure InitializeGraphClient(AccountId: Guid)
+    local procedure InitializeGraphClient(SharePointAccount: Record "Ext. SharePoint Account")
     var
-        SharePointAccount: Record "Ext. SharePoint Account";
         GraphAuthorization: Codeunit "Graph Authorization";
         GraphAuthInterface: Interface "Graph Authorization";
         ClientSecret: SecretText;
@@ -267,7 +266,6 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         Scopes: List of [Text];
     begin
         // Get and validate account
-        SharePointAccount.Get(AccountId);
         if SharePointAccount.Disabled then
             Error(AccountDisabledErr, SharePointAccount.Name);
 
@@ -343,11 +341,8 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         exit('/');
     end;
 
-    local procedure InitPath(AccountId: Guid; var Path: Text)
-    var
-        SharePointAccount: Record "Ext. SharePoint Account";
+    local procedure InitPath(SharePointAccount: Record "Ext. SharePoint Account"; var Path: Text)
     begin
-        SharePointAccount.Get(AccountId);
         Path := CombinePath(SharePointAccount."Base Relative Folder Path", Path);
     end;
 
