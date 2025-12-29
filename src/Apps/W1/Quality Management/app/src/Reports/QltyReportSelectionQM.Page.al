@@ -40,7 +40,7 @@ page 20442 "Qlty. Report Selection - QM"
                 }
                 field("Report ID"; Rec."Report ID")
                 {
-                    LookupPageID = Objects;
+                    LookupPageId = Objects;
                     ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Caption"; Rec."Report Caption")
