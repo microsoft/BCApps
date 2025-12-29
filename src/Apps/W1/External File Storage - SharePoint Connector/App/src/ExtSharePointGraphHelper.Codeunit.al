@@ -94,9 +94,9 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         // Split path into folder and filename
         SplitPath(Path, FolderPath, FileName);
 
-        // Use simple upload for files under 3.9MB, chunked upload for larger files
-        // 3.9MB threshold provides safety margin below Graph API's 4MB limit
-        MaxSimpleUploadSize := 4088218; // 3.9 MB
+        // Use simple upload for files under 4MB, chunked upload for larger files
+        // Graph API supports simple upload up to 4MB
+        MaxSimpleUploadSize := 4 * 1024 * 1024; // 4 MB
 
         if Stream.Length <= MaxSimpleUploadSize then
             Response := SharePointGraphClient.UploadFile(FolderPath, FileName, Stream, GraphDriveItem)
