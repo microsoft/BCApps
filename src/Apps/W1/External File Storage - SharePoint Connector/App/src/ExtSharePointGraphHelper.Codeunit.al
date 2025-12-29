@@ -8,7 +8,6 @@ namespace System.ExternalFileStorage;
 using System.Integration.Graph.Authorization;
 using System.Integration.Sharepoint;
 using System.Utilities;
-using System.Integration.Graph;
 
 /// <summary>
 /// Helper implementation for SharePoint file operations using Microsoft Graph API.
