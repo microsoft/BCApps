@@ -18,7 +18,8 @@ using Microsoft.QualityManagement.Document;
 table 20411 "Qlty. Inspection Result"
 {
     Caption = 'Quality Inspection Result';
-    DrillDownPageID = "Qlty. Inspection Result List";
+    LookupPageId = "Qlty. Inspection Result List";
+    DrillDownPageId = "Qlty. Inspection Result List";
     DataClassification = CustomerContent;
 
     fields

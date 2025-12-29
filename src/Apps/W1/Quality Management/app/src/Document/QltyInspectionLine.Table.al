@@ -20,6 +20,7 @@ table 20406 "Qlty. Inspection Line"
 {
     Caption = 'Quality Inspection Line';
     LookupPageId = "Qlty. Inspection Lines";
+    DrillDownPageId = "Qlty. Inspection Lines";
     DataClassification = CustomerContent;
 
     fields

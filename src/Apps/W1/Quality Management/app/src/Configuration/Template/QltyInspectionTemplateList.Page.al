@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Document;
 page 20404 "Qlty. Inspection Template List"
 {
     Caption = 'Quality Inspection Templates';
-    CardPageID = "Qlty. Inspection Template";
+    CardPageId = "Qlty. Inspection Template";
     DeleteAllowed = false;
     Editable = false;
     PageType = List;
