@@ -201,6 +201,9 @@ table 30119 "Shpfy Order Line"
             SumIndexFields = Quantity;
             MaintainSiftIndex = true;
         }
+        key(Key3; "Line Id")
+        {
+        }
     }
 
     trigger OnDelete()
