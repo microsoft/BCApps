@@ -14,6 +14,6 @@ codeunit 30222 "Shpfy GQL NextShipmentLines" implements "Shpfy IGraphQL"
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(73);
+        exit(15);
     end;
 }

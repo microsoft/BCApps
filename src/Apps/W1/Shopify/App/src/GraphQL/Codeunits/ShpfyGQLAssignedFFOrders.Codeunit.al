@@ -28,6 +28,6 @@ codeunit 30412 "Shpfy GQL AssignedFFOrders" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(12);
+        exit(8);
     end;
 }

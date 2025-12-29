@@ -27,7 +27,7 @@ codeunit 30356 "Shpfy GQL Get Fulfillments" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(6);
+        exit(4);
     end;
 }
 

@@ -27,7 +27,7 @@ codeunit 30129 "Shpfy GQL FindCustByEMail" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(5);
+        exit(3);
     end;
 
 }
