@@ -172,9 +172,11 @@ codeunit 30110 "Shpfy Create Customer"
 
         Customer.Modify();
 
-        ShopifyCustomer.Copy(TempShopifyCustomer);
-        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
-        ShopifyCustomer.Insert();
+        if not ShopifyCustomer.Get(TempShopifyCustomer.Id) then begin
+            ShopifyCustomer.Copy(TempShopifyCustomer);
+            ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+            ShopifyCustomer.Insert();
+        end;
 
         ShopifyCompany."Customer SystemId" := Customer.SystemId;
         ShopifyCompany."Main Contact Customer Id" := ShopifyCustomer.Id;
