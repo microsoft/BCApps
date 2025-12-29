@@ -679,6 +679,7 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
     {
         Caption = 'Get Location';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL Location";
+    }
     value(136; GetAssignedFulfillmentOrders)
     {
         Caption = 'Get Assigned Fulfillment Orders';
