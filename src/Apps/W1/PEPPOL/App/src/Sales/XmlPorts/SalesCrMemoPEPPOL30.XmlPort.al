@@ -1405,6 +1405,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                 }
 
                 trigger OnAfterGetRecord()
+                var
                     PEPPOLPaymentInfoProvider: Interface "PEPPOL Payment Info Provider";
                 begin
                     if not FindNextVATAmtRec(TempVATAmtLine, AllowanceChargePaymentDiscountLoop.Number) then
