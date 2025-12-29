@@ -86,6 +86,7 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         Response: Codeunit "SharePoint Graph Response";
         FileName: Text;
         FolderPath: Text;
+        MaxSimpleUploadSize: Integer;
     begin
         InitPath(SharePointAccount, Path);
         InitializeGraphClient(SharePointAccount);
@@ -93,8 +94,14 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         // Split path into folder and filename
         SplitPath(Path, FolderPath, FileName);
 
-        // Use chunked upload (handles files of all sizes)
-        Response := SharePointGraphClient.UploadLargeFile(FolderPath, FileName, Stream, GraphDriveItem);
+        // Use simple upload for files under 3.9MB, chunked upload for larger files
+        // 3.9MB threshold provides safety margin below Graph API's 4MB limit
+        MaxSimpleUploadSize := 4088218; // 3.9 MB
+
+        if Stream.Length <= MaxSimpleUploadSize then
+            Response := SharePointGraphClient.UploadFile(FolderPath, FileName, Stream, GraphDriveItem)
+        else
+            Response := SharePointGraphClient.UploadLargeFile(FolderPath, FileName, Stream, GraphDriveItem);
 
         if not Response.IsSuccessful() then
             ShowError(Response);
