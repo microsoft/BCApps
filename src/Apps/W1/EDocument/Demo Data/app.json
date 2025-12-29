@@ -50,6 +50,21 @@
       "id": "0b450a33-3524-488d-99ca-1ce1beb37bd3",
       "name": "E-Document Core Demo Data (NZ)",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89193",
+      "name": "E-Document Core Demo Data (FR)",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "de0dddf3-9917-430d-8d20-6e7679a08501",
+      "name": "E-Document Core Demo Data IT",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89194",
+      "name": "E-Document Core Demo Data (DE)",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],

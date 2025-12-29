@@ -119,23 +119,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// Adds a sample purchase invoice line to the current temporary header.
     /// </summary>
     procedure AddLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
-    var
-        Item: Record Item;
-        GLAccount: Record "G/L Account";
     begin
-        if Description = '' then
-            case LineType of
-                Enum::"Purchase Line Type"::Item:
-                    begin
-                        Item.Get(No);
-                        Description := Item.Description;
-                    end;
-                Enum::"Purchase Line Type"::"G/L Account":
-                    begin
-                        GLAccount.Get(No);
-                        Description := GLAccount.Name;
-                    end;
-            end;
         AddLine(TempEDocPurchLine, TempEDocPurchHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
@@ -166,7 +150,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         EDocPurchaseLine."[BC] Purchase Line Type" := LineType;
         EDocPurchaseLine."[BC] Purchase Type No." := No;
         EDocPurchaseLine."Product Code" := No;
-        EDocPurchaseLine.Description := Description;
+        EDocPurchaseLine.Description := GetLineDescription(LineType, No, Description);
         EDocPurchaseLine.Quantity := Quantity;
         if UnitOfMeasureCode <> '' then
             UnitOfMeasure.Get(UnitOfMeasureCode)
@@ -209,5 +193,27 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
         exit(CopyStr(TempEDocPurchHeader."Sales Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name")))
+    end;
+
+    local procedure GetLineDescription(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]): Text[100]
+    var
+        Item: Record Item;
+        GLAccount: Record "G/L Account";
+    begin
+        if Description <> '' then
+            exit(Description);
+        case LineType of
+            Enum::"Purchase Line Type"::Item:
+                begin
+                    Item.Get(No);
+                    exit(Item.Description);
+                end;
+            Enum::"Purchase Line Type"::"G/L Account":
+                begin
+                    GLAccount.Get(No);
+                    exit(GLAccount.Name);
+                end;
+        end;
+        exit('');
     end;
 }
