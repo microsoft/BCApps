@@ -33,6 +33,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         Code20: Code[20];
         ZoneTok: Label 'PICK';
@@ -70,7 +71,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         Code20 := Item."No.";
 
         // [WHEN] BuildFilter is called with no existing filter
-        ClaimedFilterBuilt := QltyFilterHelpers.BuildFilter(Database::Item, false, Value);
+        ClaimedFilterBuilt := QltyInspectionUtility.BuildFilter(Database::Item, false, Value);
 
         // [THEN] A filter is successfully built
         LibraryAssert.IsTrue(ClaimedFilterBuilt, 'Should have made filter');
@@ -98,7 +99,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         Code20 := SecondItem."No.";
 
         // [WHEN] BuildFilter is called with an existing filter
-        ClaimedFilterBuilt := QltyFilterHelpers.BuildFilter(Database::Item, false, Value);
+        ClaimedFilterBuilt := QltyInspectionUtility.BuildFilter(Database::Item, false, Value);
 
         // [THEN] A filter is successfully built
         LibraryAssert.IsTrue(ClaimedFilterBuilt, 'Should have made filter');
@@ -1937,7 +1938,6 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     procedure EditQltyInspectionTemplate_NoFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1960,7 +1960,6 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     procedure EditQltyInspectionTemplate_TemplateFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -2154,7 +2153,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         Filter := StrSubstNo(Attribute2Tok, ItemAttribute.Name, ItemAttributeValue.Value);
 
         // [WHEN] BuildItemAttributeFilter is called to add a second attribute
-        QltyFilterHelpers.BuildItemAttributeFilter(Filter);
+        QltyInspectionUtility.BuildItemAttributeFilter(Filter);
 
         // [THEN] The filter contains both attributes
         LibraryAssert.AreEqual(StrSubstNo(Attribute3Tok, ItemAttribute.Name, ItemAttributeValue.Value, SecondItemAttribute.Name, SecondItemAttributeValue.Value), Filter, 'Should match provided attributes.');

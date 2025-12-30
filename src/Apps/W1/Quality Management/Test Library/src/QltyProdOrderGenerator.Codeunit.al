@@ -55,7 +55,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// </summary>
     /// <param name="Seed">A seed for the random number generator. Using the same seed should give 
     /// the same results every time for stable testing.</param>
-    internal procedure Init(Seed: Integer)
+    procedure Init(Seed: Integer)
     var
         UnitOfMeasure: Record "Unit of Measure";
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -126,6 +126,23 @@ codeunit 139952 "Qlty. Prod. Order Generator"
 
         OutProdProductionOrder.Get(OutProdProductionOrder.Status::Released, ProductionOrder);
         OutItem.Get(OutProdProductionOrder."Source No.");
+    end;
+
+    /// <summary>
+    /// Generates production orders from Item source type and returns the list of created order codes.
+    /// This is a convenience wrapper that initializes the generator, configures it for Item source type,
+    /// and generates the specified quantity of orders.
+    /// </summary>
+    /// <param name="Quantity">The number of production orders to generate.</param>
+    /// <param name="OutOrdersList">Returns the list of generated production order codes.</param>
+    procedure GenerateItemSourceProdOrders(Quantity: Integer; var OutOrdersList: List of [Code[20]])
+    var
+        QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
+    begin
+        QltyProdOrderGenerator.Init(100);
+        QltyProdOrderGenerator.ToggleAllSources(false);
+        QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
+        QltyProdOrderGenerator.Generate(Quantity, OutOrdersList);
     end;
 
     /// <summary>
@@ -241,7 +258,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// </summary>
     /// <param name="Type">The Prod. Order Source Type to toggle.</param>
     /// <param name="Value">A boolean to enable/disable the type.</param>
-    internal procedure ToggleSourceType(Type: Enum "Prod. Order Source Type"; Value: Boolean)
+    procedure ToggleSourceType(Type: Enum "Prod. Order Source Type"; Value: Boolean)
     begin
         Sources.Set(Type, Value);
     end;
@@ -250,7 +267,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// Toggles all Prod. Order Source Types used by the generator to the given value.
     /// </summary>
     /// <param name="Value">A boolean to enable/disable all types.</param>
-    internal procedure ToggleAllSources(Value: Boolean)
+    procedure ToggleAllSources(Value: Boolean)
     var
         Type: Enum "Prod. Order Source Type";
     begin
@@ -265,7 +282,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// </summary>
     /// <param name="Quantity">The quantity of Prod. Orders of each source type to create.</param>
     /// <param name="pliOutOrders">A list of the Prod. Order No's generated.</param>
-    internal procedure Generate(Quantity: Integer; var pliOutOrders: List of [Code[20]])
+    procedure Generate(Quantity: Integer; var pliOutOrders: List of [Code[20]])
     var
         ProductionOrder: Record "Production Order";
         Type: Enum "Prod. Order Source Type";
