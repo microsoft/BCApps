@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
-using System.Security.User;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Security.User;
 
 page 4315 "Agent Card"
 {
@@ -98,7 +98,7 @@ page 4315 "Agent Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Standard;
                     Caption = 'State';
-                    ToolTip = 'Specifies if the agent is enabled or disabled.';
+                    ToolTip = 'Specifies if the agent is active or inactive.';
 
                     trigger OnValidate()
                     begin
@@ -193,9 +193,11 @@ page 4315 "Agent Card"
     trigger OnOpenPage()
     var
         AgentUtilities: Codeunit "Agent Utilities";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
-        if not Rec.WritePermission() then
+
+        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             Error(YouDoNotHavePermissionToModifyThisAgentErr);
     end;
 

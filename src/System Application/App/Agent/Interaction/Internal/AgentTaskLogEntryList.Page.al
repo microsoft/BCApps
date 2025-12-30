@@ -11,7 +11,7 @@ page 4303 "Agent Task Log Entry List"
     PageType = List;
     ApplicationArea = All;
     SourceTable = "Agent Task Log Entry";
-    Caption = 'Agent Task Log';
+    Caption = 'Agent Task Log (Preview)';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
@@ -69,6 +69,30 @@ page 4303 "Agent Task Log Entry List"
                         Message(DetailsTxt);
                     end;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Promoted)
+        {
+            actionref(Refresh_Promoted; Refresh)
+            {
+            }
+        }
+        area(Creation)
+        {
+            action(Refresh)
+            {
+                Caption = 'Refresh';
+                Image = Refresh;
+                ToolTip = 'Refresh the page.';
+
+                trigger OnAction()
+                begin
+                    CurrPage.Update(false);
+                end;
             }
         }
     }

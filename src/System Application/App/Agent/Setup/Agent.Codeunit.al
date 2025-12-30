@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
+using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Environment.Configuration;
 
 codeunit 4321 Agent
 {
@@ -206,13 +206,13 @@ codeunit 4321 Agent
     /// Assigns the permission set to the agent.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
-    /// <param name="AggregatePermissionSet">Permission sets to assign</param>
+    /// <param name="TempAccessControlBuffer">The access controls to assign</param>
     [Scope('OnPrem')]
-    procedure AssignPermissionSet(AgentUserSecurityID: Guid; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    procedure AssignPermissionSet(AgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        AgentImpl.AssignPermissionSets(AgentUserSecurityID, CompanyName(), AggregatePermissionSet);
+        AgentImpl.AssignPermissionSets(AgentUserSecurityID, TempAccessControlBuffer);
     end;
 
     /// <summary>
