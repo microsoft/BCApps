@@ -33,6 +33,11 @@
     },
     {
       "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89191",
+      "name": "E-Document Core Demo Data (GB)",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89192",
       "name": "E-Document Core Demo Data (DK)",
       "publisher": "Microsoft"
     },
