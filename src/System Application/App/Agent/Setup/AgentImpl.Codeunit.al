@@ -521,6 +521,13 @@ codeunit 4301 "Agent Impl."
         UserSettings: Codeunit "User Settings";
     begin
         UserSettings.GetAllowedCompaniesForUser(AgentUserSecurityID, TempCompany);
+        if TempCompany.IsEmpty() then begin
+#pragma warning disable AA0139
+            SingleCompanyName := CompanyName();
+#pragma warning restore AA0139
+            exit(true);
+        end;
+
         if TempCompany.Count() <> 1 then
             exit(false);
 
