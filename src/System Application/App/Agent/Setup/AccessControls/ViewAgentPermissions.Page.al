@@ -14,6 +14,7 @@ page 4334 "View Agent Permissions"
     PageType = ListPart;
     SourceTable = "Access Control";
     Editable = false;
+    Extensible = false;
     InsertAllowed = false;
     DeleteAllowed = false;
     ModifyAllowed = false;

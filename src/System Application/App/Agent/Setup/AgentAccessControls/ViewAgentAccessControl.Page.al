@@ -17,6 +17,7 @@ page 4320 "View Agent Access Control"
     ApplicationArea = All;
     SourceTable = "Agent Access Control";
     Editable = false;
+    Extensible = false;
     InsertAllowed = false;
     DeleteAllowed = false;
     ModifyAllowed = false;
