@@ -19,5 +19,5 @@ permissionset 36950 "PowerBI Report Admin"
         tabledata "PowerBI Reports Setup" = RIMD,
         tabledata "Working Day" = RIMD,
         tabledata "Account Category" = RMID,
-        tabledata "ABC Analysis Setup" = RMID;
+        tabledata "PowerBI ABC Analysis Setup" = RMID;
 }

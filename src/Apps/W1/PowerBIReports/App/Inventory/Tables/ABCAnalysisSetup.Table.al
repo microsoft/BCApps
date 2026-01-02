@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.PowerBIReports;
 
-table 36956 "ABC Analysis Setup"
+table 36956 "PowerBI ABC Analysis Setup"
 {
     Access = Internal;
-    Caption = 'ABC Analysis Setup';
+    Caption = 'Power BI ABC Analysis Setup';
     DataClassification = CustomerContent;
 
     fields
@@ -55,11 +55,9 @@ table 36956 "ABC Analysis Setup"
 
     internal procedure ValidateCategoryFields()
     var
-        Sum: Decimal;
-        SumErr: Label 'The total of Category A, B, and C percentages must equal 100. Please adjust the values accordingly.';
+        CategoriesSumErr: Label 'The total of Category A, B, and C percentages must equal 100. Please adjust the values accordingly.';
     begin
-        Sum := Rec."Category A" + Rec."Category B" + Rec."Category C";
-        if (Sum <> 100) then
-            Error(SumErr);
+        if (Rec."Category A" + Rec."Category B" + Rec."Category C" <> 100) then
+            Error(CategoriesSumErr);
     end;
 }

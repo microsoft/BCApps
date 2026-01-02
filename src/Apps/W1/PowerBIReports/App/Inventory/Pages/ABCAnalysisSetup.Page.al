@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.PowerBIReports;
 
-page 36982 "ABC Analysis Setup"
+page 36982 "PowerBI ABC Analysis Setup"
 {
     Caption = 'ABC Analysis Setup';
-    SourceTable = "ABC Analysis Setup";
+    SourceTable = "PowerBI ABC Analysis Setup";
     PageType = Card;
-    ApplicationArea = All;
-    UsageCategory = Administration;
     DeleteAllowed = false;
     InsertAllowed = false;
+    AboutTitle = 'About ABC Analysis Setup';
+    AboutText = 'Set up the percentage boundaries for ABC Analysis categories in the Power BI Inventory reports. Category A typically represents the most valuable items, Category B represents moderately valuable items, and Category C represents the least valuable items. The sum of the percentages for all three categories must equal 100%.';
 
     layout
     {

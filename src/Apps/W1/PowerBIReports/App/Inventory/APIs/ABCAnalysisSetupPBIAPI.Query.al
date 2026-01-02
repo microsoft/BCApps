@@ -18,7 +18,7 @@ query 37022 "ABC Analysis Setup - PBI API"
 
     elements
     {
-        dataitem(abcAnalysisSetup; "ABC Analysis Setup")
+        dataitem(abcAnalysisSetup; "PowerBI ABC Analysis Setup")
         {
             column(categoryA; "Category A")
             {

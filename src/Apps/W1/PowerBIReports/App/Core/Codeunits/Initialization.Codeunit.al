@@ -234,7 +234,7 @@ codeunit 36951 Initialization
 
     internal procedure InitializeABCAnalysisSetup()
     var
-        ABCAnalysisSetup: Record "ABC Analysis Setup";
+        ABCAnalysisSetup: Record "PowerBI ABC Analysis Setup";
     begin
         if not ABCAnalysisSetup.Get() then begin
             ABCAnalysisSetup.Init();
