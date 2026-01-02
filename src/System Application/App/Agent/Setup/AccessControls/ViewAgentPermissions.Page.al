@@ -5,17 +5,16 @@
 
 namespace System.Agents;
 
-using System.Environment;
-using System.Environment.Configuration;
 using System.Security.AccessControl;
-
 
 page 4334 "View Agent Permissions"
 {
+    ApplicationArea = All;
     Caption = 'Agent Permission Sets';
     PageType = ListPart;
     SourceTable = "Access Control";
     Editable = false;
+    Extensible = false;
     InsertAllowed = false;
     DeleteAllowed = false;
     ModifyAllowed = false;
@@ -85,6 +84,8 @@ page 4334 "View Agent Permissions"
                 trigger OnAction()
                 var
                     Agent: Record Agent;
+                    TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+                    AgentImpl: Codeunit "Agent Impl.";
                     SelectAgentPermissions: Page "Select Agent Permissions";
                 begin
                     if not Agent.Get(Rec."User Security ID") then
@@ -99,8 +100,14 @@ page 4334 "View Agent Permissions"
                             Commit();
                         end;
 
-                    SelectAgentPermissions.SetRecord(Agent);
-                    SelectAgentPermissions.RunModal();
+                    CopyAccessControlToBuffer(Rec."User Security ID", TempAccessControlBuffer);
+
+                    SelectAgentPermissions.Initialize(Rec."User Security ID", TempAccessControlBuffer);
+                    if SelectAgentPermissions.RunModal() = Action::OK then begin
+                        SelectAgentPermissions.GetTempAccessControlBuffer(TempAccessControlBuffer);
+                        AgentImpl.AssignPermissionSets(Rec."User Security ID", TempAccessControlBuffer);
+                    end;
+
                     CurrPage.Update(false);
                 end;
             }
@@ -125,6 +132,8 @@ page 4334 "View Agent Permissions"
     trigger OnAfterGetRecord()
     var
         AggregatePermissionSet: Record "Aggregate Permission Set";
+        AgentImpl: Codeunit "Agent Impl.";
+        GlobalSingleCompanyName: Text[30];
     begin
         PermissionScope := Format(Rec.Scope);
 
@@ -133,22 +142,30 @@ page 4334 "View Agent Permissions"
             PermissionSetNotFound := not AggregatePermissionSet.Get(Rec.Scope, Rec."App ID", Rec."Role ID");
 
         if not ShowCompanyFieldOverride then begin
-            ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
+            ShowCompanyField := not AgentImpl.GetAccessControlForSingleCompany(Rec."User Security ID", GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
     end;
 
-    local procedure AccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
+    local procedure CopyAccessControlToBuffer(UserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
-        TempCompany: Record Company temporary;
-        UserSettings: Codeunit "User Settings";
+        AccessControl: Record "Access Control";
     begin
-        UserSettings.GetAllowedCompaniesForUser(Rec."User Security ID", TempCompany);
-        if TempCompany.Count() <> 1 then
-            exit(false);
+        TempAccessControlBuffer.Reset();
+        TempAccessControlBuffer.DeleteAll();
 
-        SingleCompanyName := TempCompany.Name;
-        exit(true);
+        AccessControl.SetRange("User Security ID", UserSecurityID);
+        if not AccessControl.FindSet() then
+            exit;
+
+        repeat
+            Clear(TempAccessControlBuffer);
+            TempAccessControlBuffer."Company Name" := AccessControl."Company Name";
+            TempAccessControlBuffer.Scope := AccessControl.Scope;
+            TempAccessControlBuffer."App ID" := AccessControl."App ID";
+            TempAccessControlBuffer."Role ID" := AccessControl."Role ID";
+            TempAccessControlBuffer.Insert();
+        until AccessControl.Next() = 0;
     end;
 
     var
@@ -156,6 +173,5 @@ page 4334 "View Agent Permissions"
         ShowCompanyFieldOverride: Boolean;
         PermissionScope: Text;
         PermissionSetNotFound: Boolean;
-        GlobalSingleCompanyName: Text[30];
         DeactivateAgentToEditPermissionsQst: Label 'Permissions can only be edited for inactive agents. Do you want to make the agent inactive now?';
 }

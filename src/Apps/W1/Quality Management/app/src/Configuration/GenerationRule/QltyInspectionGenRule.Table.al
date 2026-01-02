@@ -32,8 +32,8 @@ using System.Reflection;
 table 20404 "Qlty. Inspection Gen. Rule"
 {
     Caption = 'Quality Inspection Generation Rule';
-    DrillDownPageID = "Qlty. Inspection Gen. Rules";
-    LookupPageID = "Qlty. Inspection Gen. Rules";
+    DrillDownPageId = "Qlty. Inspection Gen. Rules";
+    LookupPageId = "Qlty. Inspection Gen. Rules";
     DataClassification = CustomerContent;
 
     fields

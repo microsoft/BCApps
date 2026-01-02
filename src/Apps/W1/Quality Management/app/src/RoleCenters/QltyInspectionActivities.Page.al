@@ -24,23 +24,23 @@ page 20425 "Qlty. Inspection Activities"
 
                 field("Unassigned Inspections"; Rec."Unassigned Inspections")
                 {
-                    DrillDownPageID = "Qlty. Inspection List";
+                    DrillDownPageId = "Qlty. Inspection List";
                 }
                 field("My Open Inspections"; Rec."My Open Inspections")
                 {
-                    DrillDownPageID = "Qlty. Inspection List";
+                    DrillDownPageId = "Qlty. Inspection List";
                 }
                 field("My Open and Due Inspections"; Rec."My Open and Due Inspections")
                 {
-                    DrillDownPageID = "Qlty. Inspection List";
+                    DrillDownPageId = "Qlty. Inspection List";
                 }
                 field("All Open Inspections"; Rec."All Open Inspections")
                 {
-                    DrillDownPageID = "Qlty. Inspection List";
+                    DrillDownPageId = "Qlty. Inspection List";
                 }
                 field("All Open and Due Inspections"; Rec."All Open and Due Inspections")
                 {
-                    DrillDownPageID = "Qlty. Inspection List";
+                    DrillDownPageId = "Qlty. Inspection List";
                 }
             }
             cuegroup("Finished Inspections")
@@ -49,11 +49,11 @@ page 20425 "Qlty. Inspection Activities"
 
                 field("My Finished Inspections"; Rec."My Finished Inspections")
                 {
-                    DrillDownPageID = "Qlty. Inspection List";
+                    DrillDownPageId = "Qlty. Inspection List";
                 }
                 field("All Finished Inspections"; Rec."All Finished Inspections")
                 {
-                    DrillDownPageID = "Qlty. Inspection List";
+                    DrillDownPageId = "Qlty. Inspection List";
                 }
             }
         }
