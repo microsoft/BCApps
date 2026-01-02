@@ -1,0 +1,105 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Purchases.Document;
+using Microsoft.Warehouse.Document;
+
+pageextension 99001533 "Sub. Whse Rcpt Subform Ext." extends "Whse. Receipt Subform"
+{
+    actions
+    {
+        addafter(ItemTrackingLines)
+        {
+            group(Production)
+            {
+                Caption = 'Production';
+                action("Production Order")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Production Order';
+                    Image = Production;
+                    ToolTip = 'Specifies the depended Production Order of this Subcontracting Purchase Order.';
+                    trigger OnAction()
+                    begin
+                        if Rec."Source Type" = Database::"Purchase Line" then
+                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                ShowProductionOrder(PurchLine);
+                    end;
+                }
+                action("Production Order Routing")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Production Order Routing';
+                    Image = Route;
+                    ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
+                    trigger OnAction()
+                    begin
+                        if Rec."Source Type" = Database::"Purchase Line" then
+                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                ShowProductionOrderRouting(PurchLine);
+                    end;
+                }
+                action("Production Order Components")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Production Order Components';
+                    Image = Components;
+                    ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
+                    trigger OnAction()
+                    begin
+                        if Rec."Source Type" = Database::"Purchase Line" then
+                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                ShowProductionOrderComponents(PurchLine);
+                    end;
+                }
+                action("Transfer Order")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Subcontracting Transfer Order';
+                    Image = TransferOrder;
+                    ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
+                    trigger OnAction()
+                    begin
+                        if Rec."Source Type" = Database::"Purchase Line" then
+                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                    end;
+                }
+                action("Return Transfer Order")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Subcontracting Return Transfer Order';
+                    Image = ReturnRelated;
+                    ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';
+                    trigger OnAction()
+                    begin
+                        if Rec."Source Type" = Database::"Purchase Line" then
+                            if PurchLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
+                                SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                    end;
+                }
+            }
+        }
+    }
+    var
+        PurchLine: Record "Purchase Line";
+        SubcontractingFactboxMgmt: Codeunit "Sub. Factbox Mgmt.";
+
+    local procedure ShowProductionOrder(RecRelatedVariant: Variant)
+    begin
+        SubcontractingFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+    end;
+
+    local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
+    begin
+        SubcontractingFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+    end;
+
+    local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
+    begin
+        SubcontractingFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+    end;
+}
