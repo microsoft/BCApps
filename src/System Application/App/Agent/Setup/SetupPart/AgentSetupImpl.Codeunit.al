@@ -67,6 +67,57 @@ codeunit 4325 "Agent Setup Impl."
         exit(AgentSetupBuffer."Access Updated" or AgentSetupBuffer."Values Updated" or AgentSetupBuffer."User Settings Updated" or AgentSetupBuffer."State Updated");
     end;
 
+    [Scope('OnPrem')]
+    procedure OpenProfileLookup(var UserSettingsRec: Record "User Settings"): Boolean
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        exit(AgentImpl.ProfileLookup(UserSettingsRec));
+    end;
+
+    /// <summary>
+    /// Opens the setup page for the specified agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">Security ID of the agent.</param>
+    [Scope('OnPrem')]
+    procedure OpenSetupPageId(AgentUserSecurityID: Guid)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+        Agent: Record Agent;
+    begin
+        AgentImpl.GetAgent(Agent, AgentUserSecurityID);
+        AgentImpl.OpenSetupPageId(AgentMetadataProvider, AgentUserSecurityID);
+    end;
+
+    [Scope('OnPrem')]
+    procedure OpenAgentLookup() AgentUserSecurityId: Guid
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+        Agent: Record Agent;
+    begin
+        AgentImpl.SelectAgent(Agent);
+        exit(Agent."User Security ID");
+    end;
+
+    [Scope('OnPrem')]
+    procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider") AgentUserSecurityId: Guid
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+        Agent: Record Agent;
+    begin
+        Agent.SetRange("Agent Metadata Provider", AgentType);
+        AgentImpl.SelectAgent(Agent);
+        exit(Agent."User Security ID");
+    end;
+
+    procedure OpenSetupPageId(AgentUserSecurityID: Guid)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.
+        AgentImpl.OpenSetupPageId(Agent."Agent Metadata Provider", AgentUserSecurityID);
+    end;
+
     local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
     var
         Agent: Record Agent;

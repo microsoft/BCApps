@@ -158,6 +158,16 @@ codeunit 4301 "Agent Impl."
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
 
+    procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; LanguageID: Integer; LocaleID: Integer; TimeZone: Text[180])
+    var
+        NewUserSettingsRec: Record "User Settings" temporary;
+    begin
+        NewUserSettingsRec."Language ID" := LanguageID;
+        NewUserSettingsRec."Locale ID" := LocaleID;
+        NewUserSettingsRec."Time Zone" := TimeZone;
+        this.UpdateLocalizationSettings(AgentUserSecurityID, NewUserSettingsRec);
+    end;
+
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
     var
         Agent: Record Agent;
@@ -187,7 +197,7 @@ codeunit 4301 "Agent Impl."
         UserSettings.GetUserSettings(UserSecurityID, UserSettingsRec);
     end;
 
-    local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
+    procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
         UserSettingsRecord: Record "User Settings";
@@ -344,7 +354,21 @@ codeunit 4301 "Agent Impl."
         until TempAccessControlBuffer.Next() = 0;
     end;
 
-    local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
+    procedure GetPermissionSets(AgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AccessControl: Record "Access Control";
+    begin
+        TempAccessControlBuffer.Reset();
+        TempAccessControlBuffer.DeleteAll();
+        AccessControl.SetRange("User Security ID", AgentUserSecurityID);
+        if AccessControl.FindSet() then
+            repeat
+                TempAccessControlBuffer.Copy(AccessControl);
+                TempAccessControlBuffer.Insert();
+            until AccessControl.Next() = 0;
+    end;
+
+    procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
     begin
         if not Agent.Get(UserSecurityID) then
             Error(AgentDoesNotExistErr);

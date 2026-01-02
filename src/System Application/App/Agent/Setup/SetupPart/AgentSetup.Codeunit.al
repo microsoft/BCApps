@@ -5,6 +5,9 @@
 
 namespace System.Agents;
 
+using System.Environment.Configuration;
+using System.Environment;
+
 /// <summary>
 /// Used for setting up new agents and configuring existing agents.
 /// </summary>
@@ -22,9 +25,9 @@ codeunit 4324 "Agent Setup"
     /// <param name="DefaultUserName">Default user name for new agents</param>
     /// <param name="DefaultDisplayName">Default display name for new agents</param>
     /// <param name="AgentSummary">Summary information about the agent</param>
-    [Scope('OnPrem')]
     procedure GetSetupRecord(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; AgentSummary: Text)
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentSetupImpl.GetSetupRecord(AgentSetupBuffer, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, AgentSummary);
     end;
 
@@ -33,9 +36,9 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>Agent User ID of the created or updated agent.</returns>
-    [Scope('OnPrem')]
     procedure SaveChanges(var AgentSetupBuffer: Record "Agent Setup Buffer") "Agent User ID": Guid
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.SaveChanges(AgentSetupBuffer));
     end;
 
@@ -44,9 +47,9 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if there are changes made, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure GetChangesMade(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.GetChangesMade(AgentSetupBuffer));
     end;
 
@@ -56,9 +59,9 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the language and region settings were updated, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure SetupLanguageAndRegion(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.SetupLanguageAndRegion(AgentSetupBuffer));
     end;
 
@@ -67,9 +70,9 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>Summary information about the agent.</returns>
-    [Scope('OnPrem')]
     procedure GetAgentSummary(var AgentSetupBuffer: Record "Agent Setup Buffer"): Text
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.GetAgentSummary(AgentSetupBuffer));
     end;
 
@@ -79,12 +82,48 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the user access control settings were updated, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure UpdateUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.UpdateUserAccessControl(AgentSetupBuffer));
+    end;
+
+    /// <summary>
+    /// Allows the user to select the new profile for given User Settings for an agent.
+    /// </summary>
+    /// <param name="UserSettingsRec">User settings to update with the new profile</param>
+    procedure OpenProfileLookup(var UserSettingsRec: Record "User Settings"): Boolean
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentSetupImpl.OpenProfileLookup(UserSettingsRec));
+    end;
+
+    /// <summary>
+    /// Allows the user to select an agent out of the list of enabled agents.
+    /// </summary>
+    /// <returns>The security ID of the selected agent or the empty guid if none selected.</returns>
+    procedure OpenAgentLookup() AgentUserSecurityId: Guid
+    var
+        AgentSetupImpl: Codeunit "Agent Setup Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentSetupImpl.OpenAgentLookup());
+    end;
+
+    /// <summary>
+    /// Allows the user to select an agent out of the list of enabled agents.
+    /// </summary>
+    /// <param name="AgentType">The type of agent to filter the lookup on.</param>
+    /// <returns>The security ID of the selected agent or the empty guid if none selected.</returns>
+    procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider") AgentUserSecurityId: Guid
+    var
+        AgentSetupImpl: Codeunit "Agent Setup Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentSetupImpl.OpenAgentLookup(AgentType));
     end;
 
     var
         AgentSetupImpl: Codeunit "Agent Setup Impl.";
+        FeatureAccessManagement: Codeunit "Feature Access Management";
 }
