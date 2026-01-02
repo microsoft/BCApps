@@ -6,14 +6,14 @@ namespace Microsoft.PowerBIReports;
 
 using System.Integration.PowerBI;
 
-page 37114 "Customer Retention"
+page 36983 "Customer Retention Overview"
 {
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Customer Retention';
-    AboutTitle = 'About Customer Retention';
-    AboutText = 'The Customer Retention page provides insights into customer retention metrics, helping to analyze customer loyalty and retention trends.';
+    Caption = 'Customer Retention Overview';
+    AboutTitle = 'About Customer Retention Overview';
+    AboutText = 'The Customer Retention Overview page provides insights into customer retention metrics, helping to analyze customer loyalty and retention trends.';
 
     layout
     {
