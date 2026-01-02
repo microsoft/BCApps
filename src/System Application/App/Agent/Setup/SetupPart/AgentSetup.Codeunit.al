@@ -5,8 +5,8 @@
 
 namespace System.Agents;
 
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Used for setting up new agents and configuring existing agents.
