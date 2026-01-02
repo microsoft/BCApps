@@ -6,7 +6,7 @@ namespace Microsoft.PowerBIReports;
 
 using System.Integration.PowerBI;
 
-page 37111 "ABC Analysis"
+page 37111 "PowerBI ABC Analysis"
 {
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;

@@ -126,7 +126,7 @@ pageextension 36956 "Whse. Basic Role Center" extends "Whse. Basic Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'ABC Analysis (Power BI)';
                     Image = "PowerBI";
-                    RunObject = page "ABC Analysis";
+                    RunObject = page "PowerBI ABC Analysis";
                     Tooltip = 'Open the Power BI Report that performs an ABC analysis of your sales data, categorizing customers based on their contribution to total sales.';
                 }
             }
