@@ -16,6 +16,7 @@ codeunit 36957 "PowerBI Upgrade"
         TransferDimensionSetEntries();
         InitialSetupUpgrade();
         CloseIncomeSourceCodeUpgrade();
+        InitializeABCAnalysisSetupUpgrade();
     end;
 
     local procedure TransferDimensionSetEntries()
@@ -59,6 +60,17 @@ codeunit 36957 "PowerBI Upgrade"
         UpgradeTag.SetUpgradeTag(CloseIncomeSourceCodeUpgradeTag());
     end;
 
+    local procedure InitializeABCAnalysisSetupUpgrade()
+    var
+        Initialization: Codeunit Initialization;
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(InitializeABCAnalysisSetupUpgradeTag()) then
+            exit;
+        Initialization.InitializeABCAnalysisSetup();
+        UpgradeTag.SetUpgradeTag(InitializeABCAnalysisSetupUpgradeTag());
+    end;
+
     local procedure TransferDimensionSetEntriesUpgradeTag(): Code[250]
     begin
         exit('MS-561310-POWERBI-TRANSFER-DIMENSION-SET-ENTRIES-20250110');
@@ -74,10 +86,16 @@ codeunit 36957 "PowerBI Upgrade"
         exit('MS-GH-PY-529-POWERBI-CLSINCOME-UPGRADE-20250123');
     end;
 
+    local procedure InitializeABCAnalysisSetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-TEMP-POWERBI-ABC-ANALYSIS-SETUP-20251216'); //TODO: To be confirmed with Microsoft team.
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(TransferDimensionSetEntriesUpgradeTag());
+        PerCompanyUpgradeTags.Add(InitializeABCAnalysisSetupUpgradeTag());
     end;
 
 }
