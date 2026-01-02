@@ -16,7 +16,7 @@ table ENVIRONMENT
 	partition ENVIRONMENT = m
 		mode: import
 		queryGroup: 'Parameters and Functions'
-		source = "SANDBOX_250911" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+		source = "Sandbox" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 
 	changedProperty = IsHidden
 

@@ -22,7 +22,7 @@ table COMPANY
 	partition COMPANY = m
 		mode: import
 		queryGroup: 'Parameters and Functions'
-		source = "ANZ Fisheries" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+		source = "Cronus" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 
 	changedProperty = IsHidden
 

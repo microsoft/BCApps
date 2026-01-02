@@ -452,6 +452,29 @@
           }
         }
       ]
+    },
+    "syncGroup": {
+      "groupName": "Lost Customer Month Range",
+      "fieldChanges": true,
+      "filterChanges": true
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "a200c467d2217fbdbf9f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lost Customer Month Range"
+              }
+            },
+            "Property": "Lost Customer Month Range"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

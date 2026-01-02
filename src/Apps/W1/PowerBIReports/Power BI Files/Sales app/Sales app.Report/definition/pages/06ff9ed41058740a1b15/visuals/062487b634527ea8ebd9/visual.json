@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
-  "name": "2c3ac303fcd1d9b75dfb",
+  "name": "062487b634527ea8ebd9",
   "position": {
-    "x": 651.19453924914671,
-    "y": 60.81911262798635,
-    "z": 6000,
-    "height": 66.962457337883961,
-    "width": 600.81911262798633,
-    "tabOrder": 6000
+    "x": 651.16419911968592,
+    "y": 61.129700325521533,
+    "z": 8001,
+    "height": 66.445326440784271,
+    "width": 600.66575102468983,
+    "tabOrder": 8001
   },
   "visual": {
     "visualType": "slicer",
@@ -95,7 +95,7 @@
                           [
                             {
                               "Literal": {
-                                "Value": "2L"
+                                "Value": "6L"
                               }
                             }
                           ]
@@ -452,6 +452,29 @@
           }
         }
       ]
+    },
+    "syncGroup": {
+      "groupName": "Lost Customer Month Range",
+      "fieldChanges": true,
+      "filterChanges": true
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "a4b344beb068424e7a58",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lost Customer Month Range"
+              }
+            },
+            "Property": "Lost Customer Month Range"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }
