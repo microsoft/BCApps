@@ -102,6 +102,11 @@ page 4338 "Select Agent Access Ctrl Part"
         UpdateGlobalVariables();
     end;
 
+    trigger OnClosePage()
+    begin
+        DeleteEmptyRecords();
+    end;
+
     trigger OnDeleteRecord(): Boolean
     begin
         if Rec."Can Configure Agent" then
@@ -230,6 +235,15 @@ page 4338 "Select Agent Access Ctrl Part"
         Rec.Copy(TempAgentAccessControl);
         if not OwnerFound then
             Error(OneOwnerMustBeDefinedForAgentErr);
+    end;
+
+    local procedure DeleteEmptyRecords()
+    var
+        EmptyGuid: Guid;
+    begin
+        Rec.SetRange("User Security ID", EmptyGuid);
+        Rec.DeleteAll();
+        Rec.Reset();
     end;
 
     var
