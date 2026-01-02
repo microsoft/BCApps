@@ -54,8 +54,7 @@ codeunit 4324 "Agent Setup"
     end;
 
     /// <summary>
-    /// Updates the language and region settings for the agent.
-    /// This action is automatically done by the <see cref="SaveChanges"/> method. You may call this method to update the settings separately.
+    /// Opens a page where the language and region settings for the agent can be updated.
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the language and region settings were updated, false otherwise.</returns>
@@ -77,12 +76,11 @@ codeunit 4324 "Agent Setup"
     end;
 
     /// <summary>
-    /// Updates the user access control settings for the agent.
-    /// This action is automatically done by the <see cref="SaveChanges"/> method. You may call this method to update the settings separately.
+    /// Opens a page where the user access control settings for the agent can be updated.
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the user access control settings were updated, false otherwise.</returns>
-    procedure UpdateUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure SetupUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.UpdateUserAccessControl(AgentSetupBuffer));
@@ -121,6 +119,18 @@ codeunit 4324 "Agent Setup"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.OpenAgentLookup(AgentType));
+    end;
+
+    /// <summary>
+    /// Opens the page where the user access control settings for the agent can be updated.
+    /// </summary>
+    /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
+    /// <returns>True if the user access control settings were updated, false otherwise.</returns>
+    [Scope('OnPrem')]
+    procedure UpdateUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentSetupImpl.UpdateUserAccessControl(AgentSetupBuffer));
     end;
 
     var
