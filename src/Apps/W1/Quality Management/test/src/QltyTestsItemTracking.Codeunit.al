@@ -2516,7 +2516,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PurRtnOrderPurchaseLine.FindFirst();
 
         // [WHEN] Tracking is deleted and recreated for purchase return order line with quantity 10
-        QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, 10);
+        QltyInspectionUtility.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, 10);
 
         // [THEN] One reservation entry is created with correct location, lot number, and negative quantity
         Clear(ReservationEntry);
@@ -2597,7 +2597,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PurRtnOrderPurchaseLine.FindFirst();
 
         // [WHEN] Attempting to delete and recreate tracking with negative quantity of -10
-        asserterror QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, -10);
+        asserterror QltyInspectionUtility.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, -10);
 
         // [THEN] Error is thrown indicating negative tracking entries cannot be created
         LibraryAssert.ExpectedError(StrSubstNo(NegativeTrackingErr, Item."No.", PurRtnOrderPurchaseHeader."No."));
@@ -2671,7 +2671,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PurRtnOrderPurchaseLine.FindFirst();
 
         // [WHEN] Attempting to delete and recreate tracking with quantity 10 for serial-tracked item
-        asserterror QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, 10);
+        asserterror QltyInspectionUtility.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, 10);
 
         // [THEN] Error is thrown indicating serial number has already been entered
         LibraryAssert.ExpectedError(StrSubstNo(SNAlreadyEnteredErr, Serial));
@@ -2931,7 +2931,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [WHEN] Checking if item is lot-tracked
         TempItemTrackingSetup."Lot No. Required" := true;
-        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+        QltyInspectionUtility.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
 
         // [THEN] Result is true indicating item is lot-tracked
         LibraryAssert.IsTrue(TempItemTrackingSetup."Lot No. Required", 'Should return is lot-tracked (true)');
@@ -2951,7 +2951,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [WHEN] Checking if item is lot-tracked
         TempItemTrackingSetup."Lot No. Required" := true;
-        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+        QltyInspectionUtility.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
 
         // [THEN] Result is false indicating item is not lot-tracked
         LibraryAssert.IsFalse(TempItemTrackingSetup."Lot No. Required", 'Should return is not lot-tracked (false)');
@@ -2972,7 +2972,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [WHEN] Checking if item is serial-tracked
         TempItemTrackingSetup."Serial No. Required" := true;
-        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+        QltyInspectionUtility.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
 
         // [THEN] Result is true indicating item is serial-tracked
         LibraryAssert.IsTrue(TempItemTrackingSetup."Serial No. Required", 'Should return is serial-tracked (true)');
@@ -2992,7 +2992,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [WHEN] Checking if item is serial-tracked
         TempItemTrackingSetup."Serial No. Required" := true;
-        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+        QltyInspectionUtility.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
 
         // [THEN] Result is false indicating item is not serial-tracked
         LibraryAssert.IsFalse(TempItemTrackingSetup."Serial No. Required", 'Should return is not serial-tracked (false)');
@@ -3013,7 +3013,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [WHEN] Checking if item is package-tracked
         TempItemTrackingSetup."Package No. Required" := true;
-        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+        QltyInspectionUtility.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
 
         // [THEN] Result is true indicating item is package-tracked
         LibraryAssert.IsTrue(TempItemTrackingSetup."Package No. Required", 'Should return is package-tracked (true)');
@@ -3033,7 +3033,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [WHEN] Checking if item is package-tracked
         TempItemTrackingSetup."Package No. Required" := true;
-        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+        QltyInspectionUtility.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
 
         // [THEN] Result is false indicating item is not package-tracked
         LibraryAssert.IsFalse(TempItemTrackingSetup."Package No. Required", 'Should return is not package-tracked (false)');
