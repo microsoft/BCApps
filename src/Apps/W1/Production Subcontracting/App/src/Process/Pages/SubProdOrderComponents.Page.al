@@ -153,13 +153,13 @@ page 99001503 "Sub. Prod. Order Components"
     {
         area(Navigation)
         {
-            group("&Line")
+            group("Line")
             {
-                Caption = '&Line';
+                Caption = 'Line';
                 Image = Line;
-                action("Item &Tracking Lines")
+                action("Item Tracking Lines")
                 {
-                    Caption = 'Item &Tracking Lines';
+                    Caption = 'Item Tracking Lines';
                     Image = ItemTrackingLines;
                     ShortcutKey = 'Shift+Ctrl+I';
                     ToolTip = 'View or edit serial numbers and lot numbers that are assigned to the item on the document or journal line.';
