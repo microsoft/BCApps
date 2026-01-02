@@ -1,0 +1,1 @@
+{"data":{"fulfillmentServiceUpdate":{"fulfillmentService":{"id":"gid://shopify/FulfillmentService/1597800748", "callbackUrl": "%1" },"userErrors":[]}}}

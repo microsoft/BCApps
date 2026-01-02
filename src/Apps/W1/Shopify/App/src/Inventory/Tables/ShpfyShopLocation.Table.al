@@ -147,6 +147,20 @@ table 30113 "Shpfy Shop Location"
                 end;
             end;
         }
+        field(13; "Fulfillment Service Id"; BigInteger)
+        {
+            Caption = 'Fulfillment Service Id';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            Description = 'The Id of the fulfillment service in Shopify.';
+        }
+        field(14; "Fulfillment Srv. Callback Url"; Text[500])
+        {
+            Caption = 'Fulfillment Service Callback Url';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            Description = 'The callback URL of the fulfillment service in Shopify.';
+        }
     }
 
     keys
