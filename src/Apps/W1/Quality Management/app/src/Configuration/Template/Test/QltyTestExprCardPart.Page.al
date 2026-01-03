@@ -443,7 +443,7 @@ page 20467 "Qlty. Test Expr. Card Part"
     var
         QltyTest: Record "Qlty. Test";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyValueParsing: Codeunit "Qlty. Value Parsing";
         MatrixSourceRecordId: array[10] of RecordId;
         Visible1: Boolean;
         Visible2: Boolean;
@@ -523,7 +523,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
         QltyResultConditionMgmt.GetPromotedResultsForTest(QltyTest, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         for Iterator := 1 to ArrayLen(MatrixArrayConditionCellData) do
-            QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
+            QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(MatrixArrayConditionCellData[Iterator], MatrixMinValue[Iterator], MatrixMaxValue[Iterator]);
 
         Visible1 := MatrixVisibleState[1];
         Visible2 := MatrixVisibleState[2];
@@ -543,7 +543,7 @@ page 20467 "Qlty. Test Expr. Card Part"
     begin
         QltyIResultConditConf.Get(MatrixSourceRecordId[MatrixField]);
         QltyIResultConditConf.Validate(Condition, MatrixArrayConditionCellData[MatrixField]);
-        QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[MatrixField], MatrixMaxValue[MatrixField]);
+        QltyValueParsing.AttemptSplitSimpleRangeIntoMinMax(QltyIResultConditConf.Condition, MatrixMinValue[MatrixField], MatrixMaxValue[MatrixField]);
         QltyIResultConditConf.Modify(true);
         LoadExistingTest(QltyTest.Code, true);
         CurrPage.Update(false);
