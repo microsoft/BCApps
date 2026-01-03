@@ -116,8 +116,8 @@ report 20412 "Qlty. Schedule Inspection"
         QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(QltyInspectionGenRule);
 
         SourceRecordRef.Open(QltyInspectionGenRule."Source Table No.");
-        if QltyInspectionGenRule."Condition Filter" <> '' then
-            SourceRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
+        if QltyInspectionGenRule.HasConditionFilter() then
+            SourceRecordRef.SetView(QltyInspectionGenRule.GetConditionFilter());
 
         QltyInspectionGenRule.SetRecFilter();
         QltyInspectionGenRule.SetRange("Schedule Group", QltyInspectionGenRule."Schedule Group");

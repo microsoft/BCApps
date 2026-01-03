@@ -749,11 +749,6 @@ codeunit 20403 "Qlty. Filter Helpers"
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
 
-    procedure CleanUpWhereClause400(Input: Text) ResultText: Text[400]
-    begin
-        ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
-    end;
-
     procedure CleanUpWhereClause(Input: Text) ResultText: Text
     var
         FindWhere: Integer;
@@ -813,15 +808,6 @@ codeunit 20403 "Qlty. Filter Helpers"
                     Result += ',';
                 Result += StrSubstNo(ItemAttributeFilterSimulatorTok, TempFilterItemAttributesBuffer.Attribute, TempFilterItemAttributesBuffer.Value);
             until TempFilterItemAttributesBuffer.Next() = 0;
-    end;
-
-    internal procedure BuildItemAttributeFilter400(var ItemAttributeFilter: Text[400])
-    var
-        FullItemAttributeFilter: Text;
-    begin
-        FullItemAttributeFilter := ItemAttributeFilter;
-        BuildItemAttributeFilter(FullItemAttributeFilter);
-        ItemAttributeFilter := CopyStr(FullItemAttributeFilter, 1, MaxStrLen(ItemAttributeFilter));
     end;
 
     internal procedure BuildItemAttributeFilter(var ItemAttributeFilter: Text)
