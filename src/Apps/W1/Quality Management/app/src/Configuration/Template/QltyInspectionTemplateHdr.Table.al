@@ -15,8 +15,8 @@ using Microsoft.QualityManagement.Document;
 table 20402 "Qlty. Inspection Template Hdr."
 {
     Caption = 'Quality Inspection Template Header';
-    DrillDownPageID = "Qlty. Inspection Template List";
-    LookupPageID = "Qlty. Inspection Template List";
+    DrillDownPageId = "Qlty. Inspection Template List";
+    LookupPageId = "Qlty. Inspection Template List";
     DataClassification = CustomerContent;
     Permissions = tabledata "Qlty. Inspection Template Line" = d;
 

@@ -10,8 +10,8 @@ namespace Microsoft.QualityManagement.Configuration.Template.Test;
 table 20408 "Qlty. Lookup Code"
 {
     Caption = 'Quality Lookup Code';
-    DrillDownPageID = "Qlty. Lookup Code List";
-    LookupPageID = "Qlty. Lookup Code List";
+    DrillDownPageId = "Qlty. Lookup Code List";
+    LookupPageId = "Qlty. Lookup Code List";
     DataClassification = CustomerContent;
 
     fields

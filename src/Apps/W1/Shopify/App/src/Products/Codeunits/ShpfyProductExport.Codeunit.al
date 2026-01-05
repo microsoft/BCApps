@@ -68,7 +68,6 @@ codeunit 30178 "Shpfy Product Export"
         ProductEvents: Codeunit "Shpfy Product Events";
         ProductPriceCalc: Codeunit "Shpfy Product Price Calc.";
         VariantApi: Codeunit "Shpfy Variant API";
-        MetafieldAPI: Codeunit "Shpfy Metafield API";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         OnlyUpdatePrice: Boolean;
         RecordCount: Integer;
@@ -578,7 +577,6 @@ codeunit 30178 "Shpfy Product Export"
         ProductApi.SetShop(Shop);
         VariantApi.SetShop(Shop);
         ProductPriceCalc.SetShop(Shop);
-        MetafieldAPI.SetShop(Shop);
     end;
 
     /// <summary> 
@@ -765,17 +763,20 @@ codeunit 30178 "Shpfy Product Export"
     local procedure UpdateMetafields(ProductId: BigInteger)
     var
         ShpfyVariant: Record "Shpfy Variant";
+        Metafields: Codeunit "Shpfy Metafields";
     begin
         if OnlyUpdatePrice then
             exit;
 
-        MetafieldAPI.CreateOrUpdateMetafieldsInShopify(Database::"Shpfy Product", ProductId);
+        ProductEvents.OnBeforeUpdateProductMetafields(ProductId);
+
+        Metafields.SyncMetafieldsToShopify(Database::"Shpfy Product", ProductId, Shop.Code);
 
         ShpfyVariant.SetRange("Product Id", ProductId);
         ShpfyVariant.ReadIsolation := IsolationLevel::ReadCommitted;
         if ShpfyVariant.FindSet() then
             repeat
-                MetafieldAPI.CreateOrUpdateMetafieldsInShopify(Database::"Shpfy Variant", ShpfyVariant.Id);
+                Metafields.SyncMetafieldsToShopify(Database::"Shpfy Variant", ShpfyVariant.Id, Shop.Code);
             until ShpfyVariant.Next() = 0;
     end;
 

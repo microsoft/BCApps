@@ -33,8 +33,8 @@ using System.Utilities;
 table 20405 "Qlty. Inspection Header"
 {
     Caption = 'Quality Inspection Header';
-    DrillDownPageID = "Qlty. Inspection List";
-    LookupPageID = "Qlty. Inspection List";
+    DrillDownPageId = "Qlty. Inspection List";
+    LookupPageId = "Qlty. Inspection List";
     DataClassification = CustomerContent;
     Permissions = tabledata "Qlty. Inspection Line" = d;
 
