@@ -87,7 +87,8 @@ codeunit 4324 "Agent Setup"
     end;
 
     /// <summary>
-    /// Allows the user to select the new profile for given User Settings for an agent.
+    /// Allows the user to select a profile out of the list of available profiles.
+    /// The user settings record will be updated with the selected profile.
     /// </summary>
     /// <param name="UserSettingsRec">User settings to update with the new profile</param>
     procedure OpenProfileLookup(var UserSettingsRec: Record "User Settings"): Boolean
@@ -119,6 +120,30 @@ codeunit 4324 "Agent Setup"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.OpenAgentLookup(AgentType));
+    end;
+
+    /// <summary>
+    /// Opens the setup page for the agent.
+    /// </summary>
+    /// <param name="AgentSetupBuffer">A record that should point to the agent.</param>
+    procedure OpenSetupPage(var AgentSetupBuffer: Record "Agent Setup Buffer")
+    var
+        AgentSetupImpl: Codeunit "Agent Setup Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentSetupImpl.OpenSetupPageId(AgentSetupBuffer."User Security ID");
+    end;
+
+    /// <summary>
+    /// Opens the setup page for the agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityId">The user security ID of the agent.</param>
+    procedure OpenSetupPage(AgentUserSecurityId: Guid)
+    var
+        AgentSetupImpl: Codeunit "Agent Setup Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentSetupImpl.OpenSetupPageId(AgentUserSecurityId);
     end;
 
     /// <summary>

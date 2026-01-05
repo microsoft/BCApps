@@ -86,7 +86,7 @@ codeunit 4325 "Agent Setup Impl."
         Agent: Record Agent;
     begin
         AgentImpl.GetAgent(Agent, AgentUserSecurityID);
-        AgentImpl.OpenSetupPageId(AgentMetadataProvider, AgentUserSecurityID);
+        AgentImpl.OpenSetupPageId(Agent."Agent Metadata Provider", AgentUserSecurityID);
     end;
 
     [Scope('OnPrem')]
@@ -108,14 +108,6 @@ codeunit 4325 "Agent Setup Impl."
         Agent.SetRange("Agent Metadata Provider", AgentType);
         AgentImpl.SelectAgent(Agent);
         exit(Agent."User Security ID");
-    end;
-
-    procedure OpenSetupPageId(AgentUserSecurityID: Guid)
-    var
-        AgentImpl: Codeunit "Agent Impl.";
-    begin
-        AgentImpl.
-        AgentImpl.OpenSetupPageId(Agent."Agent Metadata Provider", AgentUserSecurityID);
     end;
 
     local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
