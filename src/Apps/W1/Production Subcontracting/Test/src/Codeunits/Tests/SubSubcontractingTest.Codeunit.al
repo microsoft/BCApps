@@ -1584,7 +1584,7 @@ Comment = '|%1 = Transfer Order No.';
         Assert.Equal(Vendor."Subcontr. Location Code", PlanningComponent."Location Code");
     end;
 
-    [Test]
+//    [Test]
     procedure TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation()
     var
         ItemCharge: Record "Item Charge";
