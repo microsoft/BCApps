@@ -30,6 +30,7 @@ page 4338 "Select Agent Access Ctrl Part"
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the User that can access the agent.';
                     TableRelation = User where("License Type" = filter(<> Application & <> "Windows Group" & <> Agent));
+                    NotBlank = true;
 
                     trigger OnValidate()
                     begin
@@ -100,11 +101,6 @@ page 4338 "Select Agent Access Ctrl Part"
     trigger OnAfterGetRecord()
     begin
         UpdateGlobalVariables();
-    end;
-
-    trigger OnClosePage()
-    begin
-        DeleteEmptyRecords();
     end;
 
     trigger OnDeleteRecord(): Boolean
@@ -235,15 +231,6 @@ page 4338 "Select Agent Access Ctrl Part"
         Rec.Copy(TempAgentAccessControl);
         if not OwnerFound then
             Error(OneOwnerMustBeDefinedForAgentErr);
-    end;
-
-    local procedure DeleteEmptyRecords()
-    var
-        EmptyGuid: Guid;
-    begin
-        Rec.SetRange("User Security ID", EmptyGuid);
-        Rec.DeleteAll();
-        Rec.Reset();
     end;
 
     var
