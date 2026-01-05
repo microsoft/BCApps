@@ -299,6 +299,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Log Entries Delete" = X,
         codeunit "Shpfy Math" = X,
         codeunit "Shpfy Metafield API" = X,
+        codeunit "Shpfy Metafields" = X,
         codeunit "Shpfy Metafield Owner Company" = X,
         codeunit "Shpfy Metafield Owner Customer" = X,
         codeunit "Shpfy Metafield Owner Product" = X,
