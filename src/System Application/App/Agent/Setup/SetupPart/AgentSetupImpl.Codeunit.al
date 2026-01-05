@@ -80,10 +80,10 @@ codeunit 4325 "Agent Setup Impl."
     /// </summary>
     /// <param name="AgentUserSecurityID">Security ID of the agent.</param>
     [Scope('OnPrem')]
-    procedure OpenSetupPageId(AgentUserSecurityID: Guid)
+    procedure OpenSetupPage(AgentUserSecurityID: Guid)
     var
-        AgentImpl: Codeunit "Agent Impl.";
         Agent: Record Agent;
+        AgentImpl: Codeunit "Agent Impl.";
     begin
         AgentImpl.GetAgent(Agent, AgentUserSecurityID);
         AgentImpl.OpenSetupPageId(Agent."Agent Metadata Provider", AgentUserSecurityID);
@@ -92,8 +92,8 @@ codeunit 4325 "Agent Setup Impl."
     [Scope('OnPrem')]
     procedure OpenAgentLookup() AgentUserSecurityId: Guid
     var
-        AgentImpl: Codeunit "Agent Impl.";
         Agent: Record Agent;
+        AgentImpl: Codeunit "Agent Impl.";
     begin
         AgentImpl.SelectAgent(Agent);
         exit(Agent."User Security ID");
@@ -102,8 +102,8 @@ codeunit 4325 "Agent Setup Impl."
     [Scope('OnPrem')]
     procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider") AgentUserSecurityId: Guid
     var
-        AgentImpl: Codeunit "Agent Impl.";
         Agent: Record Agent;
+        AgentImpl: Codeunit "Agent Impl.";
     begin
         Agent.SetRange("Agent Metadata Provider", AgentType);
         AgentImpl.SelectAgent(Agent);

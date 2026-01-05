@@ -102,8 +102,6 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <returns>The security ID of the selected agent or the empty guid if none selected.</returns>
     procedure OpenAgentLookup() AgentUserSecurityId: Guid
-    var
-        AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.OpenAgentLookup());
@@ -115,8 +113,6 @@ codeunit 4324 "Agent Setup"
     /// <param name="AgentType">The type of agent to filter the lookup on.</param>
     /// <returns>The security ID of the selected agent or the empty guid if none selected.</returns>
     procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider") AgentUserSecurityId: Guid
-    var
-        AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.OpenAgentLookup(AgentType));
@@ -127,11 +123,9 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer">A record that should point to the agent.</param>
     procedure OpenSetupPage(var AgentSetupBuffer: Record "Agent Setup Buffer")
-    var
-        AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentSetupImpl.OpenSetupPageId(AgentSetupBuffer."User Security ID");
+        AgentSetupImpl.OpenSetupPage(AgentSetupBuffer."User Security ID");
     end;
 
     /// <summary>
@@ -139,11 +133,9 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentUserSecurityId">The user security ID of the agent.</param>
     procedure OpenSetupPage(AgentUserSecurityId: Guid)
-    var
-        AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentSetupImpl.OpenSetupPageId(AgentUserSecurityId);
+        AgentSetupImpl.OpenSetupPage(AgentUserSecurityId);
     end;
 
     /// <summary>

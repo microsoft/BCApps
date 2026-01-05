@@ -160,12 +160,12 @@ codeunit 4301 "Agent Impl."
 
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; LanguageID: Integer; LocaleID: Integer; TimeZone: Text[180])
     var
-        NewUserSettingsRec: Record "User Settings" temporary;
+        TempNewUserSettingsRec: Record "User Settings" temporary;
     begin
-        NewUserSettingsRec."Language ID" := LanguageID;
-        NewUserSettingsRec."Locale ID" := LocaleID;
-        NewUserSettingsRec."Time Zone" := TimeZone;
-        this.UpdateLocalizationSettings(AgentUserSecurityID, NewUserSettingsRec);
+        TempNewUserSettingsRec."Language ID" := LanguageID;
+        TempNewUserSettingsRec."Locale ID" := LocaleID;
+        TempNewUserSettingsRec."Time Zone" := TimeZone;
+        this.UpdateLocalizationSettings(AgentUserSecurityID, TempNewUserSettingsRec);
     end;
 
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
@@ -197,7 +197,7 @@ codeunit 4301 "Agent Impl."
         UserSettings.GetUserSettings(UserSecurityID, UserSettingsRec);
     end;
 
-    procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
+    local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
         UserSettingsRecord: Record "User Settings";
