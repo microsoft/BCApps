@@ -71,21 +71,6 @@ codeunit 4301 "Agent Impl."
         AgentAccessControl.Insert();
     end;
 
-    procedure VerifyOwnerExists(AgentAccessControlModified: Record "Agent Access Control")
-    var
-        ExistingAgentAccessControl: Record "Agent Access Control";
-    begin
-        if (AgentAccessControlModified."Can Configure Agent") then
-            exit;
-
-        SetOwnerFilters(ExistingAgentAccessControl);
-        ExistingAgentAccessControl.SetFilter("User Security ID", '<>%1', AgentAccessControlModified."User Security ID");
-        ExistingAgentAccessControl.SetRange("Agent User Security ID", AgentAccessControlModified."Agent User Security ID");
-
-        if ExistingAgentAccessControl.IsEmpty() then
-            Error(OneOwnerMustBeDefinedForAgentErr);
-    end;
-
     procedure GetUserAccess(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         Agent: Record Agent;
@@ -374,66 +359,45 @@ codeunit 4301 "Agent Impl."
     local procedure UpdateAgentAccessControl(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent)
     begin
         // We must delete or update the user doing the change the last to avoid removing permissions that are needed to commit the change
-        UpdateUsersOtherThanMainUser(TempAgentAccessControl, Agent);
+        UpdateAgentAccessControlForUsers(TempAgentAccessControl, Agent, '<>%1', UserSecurityId());
 
         // Update the user at the end
-        UpdateUserDoingTheChange(TempAgentAccessControl, Agent);
+        UpdateAgentAccessControlForUsers(TempAgentAccessControl, Agent, '%1', UserSecurityId());
     end;
 
-    local procedure UpdateUsersOtherThanMainUser(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent)
+    local procedure UpdateAgentAccessControlForUsers(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent; UserSecurityIdFilter: Text; UserSecurityIdValue: Guid)
     var
         AgentAccessControl: Record "Agent Access Control";
     begin
+        // Delete any existing records that match the filter and are not in the temp table
         AgentAccessControl.SetRange("Agent User Security ID", Agent."User Security ID");
-        AgentAccessControl.SetFilter("User Security ID", '<>%1', UserSecurityId());
+        AgentAccessControl.SetFilter("User Security ID", UserSecurityIdFilter, UserSecurityIdValue);
         if AgentAccessControl.FindSet() then
             repeat
-                if not TempAgentAccessControl.Get(AgentAccessControl."Agent User Security ID", AgentAccessControl."User Security ID") then
+                if not TempAgentAccessControl.Get(AgentAccessControl."Agent User Security ID", AgentAccessControl."User Security ID", AgentAccessControl."Company Name") then
                     AgentAccessControl.Delete(true);
             until AgentAccessControl.Next() = 0;
 
+        // Insert or update all records from temp table that match the filter
         AgentAccessControl.Reset();
         TempAgentAccessControl.Reset();
-        TempAgentAccessControl.SetFilter("User Security ID", '<>%1', UserSecurityId());
+        TempAgentAccessControl.SetFilter("User Security ID", UserSecurityIdFilter, UserSecurityIdValue);
         if not TempAgentAccessControl.FindSet() then
             exit;
 
         repeat
-            if AgentAccessControl.Get(Agent."User Security ID", TempAgentAccessControl."User Security ID") then begin
-                AgentAccessControl.TransferFields(TempAgentAccessControl, true);
-                AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
+            if AgentAccessControl.Get(Agent."User Security ID", TempAgentAccessControl."User Security ID", TempAgentAccessControl."Company Name") then begin
+                AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
                 AgentAccessControl.Modify();
             end else begin
-                AgentAccessControl.TransferFields(TempAgentAccessControl, true);
+                Clear(AgentAccessControl);
                 AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
+                AgentAccessControl."User Security ID" := TempAgentAccessControl."User Security ID";
+                AgentAccessControl."Company Name" := TempAgentAccessControl."Company Name";
+                AgentAccessControl."Can Configure Agent" := TempAgentAccessControl."Can Configure Agent";
                 AgentAccessControl.Insert();
             end;
         until TempAgentAccessControl.Next() = 0;
-    end;
-
-    local procedure UpdateUserDoingTheChange(var TempAgentAccessControl: Record "Agent Access Control" temporary; var Agent: Record Agent)
-    var
-        AgentAccessControl: Record "Agent Access Control";
-    begin
-        TempAgentAccessControl.SetFilter("User Security ID", UserSecurityId());
-        if not TempAgentAccessControl.FindFirst() then begin
-            if AgentAccessControl.Get(Agent."User Security ID", UserSecurityId()) then
-                AgentAccessControl.Delete();
-
-            exit;
-        end;
-
-        if AgentAccessControl.Get(Agent."User Security ID", UserSecurityId()) then begin
-            AgentAccessControl.TransferFields(TempAgentAccessControl, true);
-            AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
-            AgentAccessControl.Modify();
-            exit;
-        end else begin
-            AgentAccessControl.TransferFields(TempAgentAccessControl, true);
-            AgentAccessControl."Agent User Security ID" := Agent."User Security ID";
-            AgentAccessControl.Insert();
-            exit;
-        end;
     end;
 
     procedure SelectAgent(var Agent: Record "Agent")
@@ -551,8 +515,27 @@ codeunit 4301 "Agent Impl."
         Page.RunModal(SetupPageId, SourceRecordVariant);
     end;
 
+    procedure GetAccessControlForSingleCompany(AgentUserSecurityID: Guid; var SingleCompanyName: Text[30]): Boolean
     var
-        OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
+        TempCompany: Record Company temporary;
+        UserSettings: Codeunit "User Settings";
+    begin
+        UserSettings.GetAllowedCompaniesForUser(AgentUserSecurityID, TempCompany);
+        if TempCompany.IsEmpty() then begin
+#pragma warning disable AA0139
+            SingleCompanyName := CompanyName();
+#pragma warning restore AA0139
+            exit(true);
+        end;
+
+        if TempCompany.Count() <> 1 then
+            exit(false);
+
+        SingleCompanyName := TempCompany.Name;
+        exit(true);
+    end;
+
+    var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
