@@ -5,7 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30233 "Shpfy GQL CreateFulfillmentSvc" implements "Shpfy IGraphQL"
+/// <summary>
+/// Codeunit Shpfy GQL UpdateFulfillmentSvc (ID 30410).
+/// Implements the IGraphQL interface for updating Shopify fulfillment service using GraphQL.
+/// </summary>
+codeunit 30410 "Shpfy GQL UpdateFulfillmentSvc" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 
@@ -15,7 +19,7 @@ codeunit 30233 "Shpfy GQL CreateFulfillmentSvc" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query": "mutation { fulfillmentServiceCreate(name: \"{{Name}}\", callbackUrl: \"{{CallbackUrl}}\") {fulfillmentService {id}}}"}');
+        exit('{"query": "mutation { fulfillmentServiceUpdate( id: \"gid://shopify/FulfillmentService/{{Id}}\" callbackUrl: \"{{CallbackUrl}}\" ) { userErrors { field message } fulfillmentService { callbackUrl } } }"}');
     end;
 
     /// <summary>
