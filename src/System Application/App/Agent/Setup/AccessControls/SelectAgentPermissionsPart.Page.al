@@ -35,6 +35,7 @@ page 4340 "Select Agent Permissions Part"
                     ToolTip = 'Specifies the ID of a security role that has been assigned to this Windows login in the current database.';
                     Style = Unfavorable;
                     StyleExpr = PermissionSetNotFound;
+                    NotBlank = true;
 
                     trigger OnLookup(var Text: Text): Boolean
                     var

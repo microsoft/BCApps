@@ -30,6 +30,7 @@ page 4338 "Select Agent Access Ctrl Part"
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the User that can access the agent.';
                     TableRelation = User where("License Type" = filter(<> Application & <> "Windows Group" & <> Agent));
+                    NotBlank = true;
 
                     trigger OnValidate()
                     begin
