@@ -187,6 +187,7 @@ page 6105 "Inbound E-Documents"
                 AllowedFileExtensions = '.pdf';
                 AllowMultipleFiles = true;
                 Image = SendAsPDF;
+                Visible = false;
 
                 trigger OnAction(Files: List of [FileUpload])
                 begin
