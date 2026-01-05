@@ -7,8 +7,8 @@ namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Location;
-using System.Utilities;
 using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 /// <summary>
 /// Report for generating sample purchase invoice PDFs
