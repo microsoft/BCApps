@@ -1256,6 +1256,9 @@ page 30101 "Shpfy Shop Card"
                     Rec.Enabled := false;
                     Rec.Modify();
                 end;
+#if not CLEAN28
+            Rec.UpdateFulfillmentService();
+#endif
             ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
         end;
     end;
