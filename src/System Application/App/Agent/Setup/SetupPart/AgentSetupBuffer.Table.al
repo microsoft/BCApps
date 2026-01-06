@@ -87,15 +87,6 @@ table 4310 "Agent Setup Buffer"
             ToolTip = 'Specifies the initials to be displayed on the icon opening the agent''s timeline.';
         }
         /// <summary>
-        /// Specifies whether to show the publisher name on the agent's setup start part.
-        /// </summary>
-        field(16; "Show Publisher Name"; Boolean)
-        {
-            Caption = 'Show Publisher Name';
-            InitValue = true;
-            ToolTip = 'Specifies whether to show the publisher name on the agent''s setup start part.';
-        }
-        /// <summary>
         /// Short summary of the agents capabilities and role.
         /// </summary>
         field(5000; "Agent Summary"; Blob)

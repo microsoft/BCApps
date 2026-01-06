@@ -64,7 +64,7 @@ page 4310 "Agent Setup Part"
                     trigger OnDrillDown()
                     begin
                         if AgentSetup.SetupLanguageAndRegion(Rec) then begin
-                            UpdateAgentDisplayTexts();
+                            UpdateAgentSummaryDisplayText();
                             CurrPage.Update(false);
                         end;
                     end;
@@ -110,7 +110,8 @@ page 4310 "Agent Setup Part"
     begin
         AgentSetup.GetSetupRecord(Rec, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
         AgentSummary := NewAgentSummary;
-        UpdateAgentDisplayTexts();
+        UpdateAgentSummaryDisplayText();
+        UpdateAgentPublisherText();
     end;
 
     /// <summary>
@@ -137,7 +138,8 @@ page 4310 "Agent Setup Part"
     begin
         AgentSetupImpl.CopyAgentSetupBuffer(Rec, AgentSetupBuffer);
         AgentSummary := AgentSetupImpl.GetAgentSummary(AgentSetupBuffer);
-        UpdateAgentDisplayTexts();
+        UpdateAgentSummaryDisplayText();
+        UpdateAgentPublisherText();
     end;
 
     /// <summary>
@@ -150,7 +152,7 @@ page 4310 "Agent Setup Part"
     procedure SetAgentSummary(NewAgentSummary: Text)
     begin
         AgentSummary := NewAgentSummary;
-        UpdateAgentDisplayTexts();
+        UpdateAgentSummaryDisplayText();
     end;
 
     /// <summary>
@@ -162,25 +164,31 @@ page 4310 "Agent Setup Part"
         exit(AgentSetup.GetChangesMade(Rec));
     end;
 
-    local procedure UpdateAgentDisplayTexts()
+    local procedure UpdateAgentSummaryDisplayText()
     var
         AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
         AgentSummaryDisplayText := AgentSetupImpl.AppendAgentSummary(Rec, AgentSummary);
+    end;
+
+    local procedure UpdateAgentPublisherText()
+    begin
         AgentPublisherText := GetAgentPublisherText();
     end;
 
     local procedure GetAgentPublisherText(): Text
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+        AgentPublisherType: Enum "Agent Publisher Type";
+        AgentPublisherName: Text[250];
     begin
-        if not Rec."Show Publisher Name" then
+        if not AgentUtilities.TryGetAgentPublisherInfo(Rec."Agent Metadata Provider", AgentPublisherName, AgentPublisherType) then
             exit('');
 
-        // TODO: To be replaced with an actual lookup.
-        if Rec."Agent Metadata Provider".AsInteger() = 4377 then
+        if AgentPublisherType = AgentPublisherType::User then
             exit(UserCreatedAgentPublisherLbl);
 
-        // TODO: Replace 'Microsoft' with actual publisher name when available.
-        exit(StrSubstNo(AgentPublisherLbl, 'Microsoft'));
+        exit(StrSubstNo(AgentPublisherLbl, AgentPublisherName));
     end;
 
     var
