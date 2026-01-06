@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Ledger;
@@ -20,23 +20,23 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
     var
         TempCreatedBufferWhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header" temporary;
         ShouldSuppressNotification: Boolean;
-        PutAwayEntireLotErr: Label 'Creating an Internal Put-away the entire lot for test %1 was requested, however the item associated with this test does not require lot or serial tracking.', Comment = '%1=the test';
+        PutAwayEntireLotErr: Label 'Creating an Internal Put-away the entire lot for inspection %1 was requested, however the item associated with this inspection does not require lot or serial tracking.', Comment = '%1=the inspection';
         DocumentTypeLbl: Label 'Internal Put-Away';
 
     ///<summary>
-    /// Create a warehouse internal put-away(s) from the supplied test.
+    /// Create a warehouse internal put-away(s) from the supplied inspection.
     /// It's possible that multiple put-away's could be created if the lot is in multiple bins, but the typical scenario would be
     /// one internal put-away.
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">The test to create the internal put-away from</param>
-    /// <param name="OptionalSpecificQuantity">Optional quantity.  Leave blank to use the entire lot or the quantity from the test.</param>
+    /// <param name="QltyInspectionHeader">The inspection to create the internal put-away from</param>
+    /// <param name="OptionalSpecificQuantity">Optional quantity.  Leave blank to use the entire lot or the quantity from the inspection.</param>
     /// <param name="OptionalSourceLocationFilter">Optional limitations on the source location.</param>
     /// <param name="OptionalSourceBinFilter">Optional limitations on the source bin.</param>
     /// <param name="ReleaseImmediately">if true it will release the document, if false it will keep it open.</param>
     /// <param name="QltyQuantityBehavior">The quantity behavior</param>
     /// <returns>Confirming internal putaway lines created.</returns>
-    internal procedure PerformDisposition(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
+    internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin
@@ -47,10 +47,10 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Bin Filter" := CopyStr(OptionalSourceBinFilter, 1, MaxStrLen(TempInstructionQltyDispositionBuffer."Bin Filter"));
         if ReleaseImmediately then
             TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
-        exit(PerformDisposition(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer));
+        exit(PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
     end;
 
-    procedure PerformDisposition(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -62,13 +62,13 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Create Internal Put-away";
         QltyManagementSetup.Get();
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
-            if not QltyInspectionTestHeader.IsItemTrackingUsed() then
-                Error(PutAwayEntireLotErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+            if not QltyInspectionHeader.IsItemTrackingUsed() then
+                Error(PutAwayEntireLotErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
-        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
+        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
         if not TempQuantityToActQltyDispositionBuffer.FindSet() then begin
-            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
             exit;
         end;
 
@@ -80,10 +80,10 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
                 TempCreatedBufferWhseInternalPutAwayHeader.Insert();
 
                 if not ShouldSuppressNotification then
-                    QltyNotificationMgmt.NotifyDocumentCreated(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl, WhseInternalPutAwayHeader."No.", WhseInternalPutAwayHeader);
+                    QltyNotificationMgmt.NotifyDocumentCreated(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl, WhseInternalPutAwayHeader."No.", WhseInternalPutAwayHeader);
             end;
 
-            CreateInternalPutawayLine(QltyInspectionTestHeader, WhseInternalPutAwayHeader, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)");
+            CreateInternalPutawayLine(QltyInspectionHeader, WhseInternalPutAwayHeader, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)");
 
             DidSomething := true;
 
@@ -102,7 +102,7 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         end;
 
         if not DidSomething then
-            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
     local procedure CreateInternalPutawayHeader(var WhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header"; FromLocationCode: Code[10]; FromBinCode: Code[20])
@@ -114,7 +114,7 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         WhseInternalPutAwayHeader.Insert(true);
     end;
 
-    local procedure CreateInternalPutawayLine(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var InWhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header"; Quantity: Decimal)
+    local procedure CreateInternalPutawayLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; var InWhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header"; Quantity: Decimal)
     var
         WhseInternalPutAwayLine: Record "Whse. Internal Put-away Line";
         TempWarehouseEntry: Record "Warehouse Entry" temporary;
@@ -130,16 +130,16 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         WhseInternalPutAwayLine.Validate("Location Code", InWhseInternalPutAwayHeader."Location Code");
         WhseInternalPutAwayLine.Validate("From Zone Code", InWhseInternalPutAwayHeader."From Zone Code");
         WhseInternalPutAwayLine.Validate("From Bin Code", InWhseInternalPutAwayHeader."From Bin Code");
-        WhseInternalPutAwayLine.Validate("Item No.", QltyInspectionTestHeader."Source Item No.");
-        WhseInternalPutAwayLine.Validate("Variant Code", QltyInspectionTestHeader."Source Variant Code");
+        WhseInternalPutAwayLine.Validate("Item No.", QltyInspectionHeader."Source Item No.");
+        WhseInternalPutAwayLine.Validate("Variant Code", QltyInspectionHeader."Source Variant Code");
         WhseInternalPutAwayLine.Validate(Quantity, Quantity);
         WhseInternalPutAwayLine.Insert(true);
-        TempWarehouseEntry."Item No." := QltyInspectionTestHeader."Source Item No.";
-        TempWarehouseEntry."Variant Code" := QltyInspectionTestHeader."Source Variant Code";
-        TempWarehouseEntry."Lot No." := QltyInspectionTestHeader."Source Lot No.";
-        TempWarehouseEntry."Serial No." := QltyInspectionTestHeader."Source Serial No.";
-        TempWarehouseEntry."Expiration Date" := QltyItemTrackingMgmt.GetExpirationDate(QltyInspectionTestHeader, InWhseInternalPutAwayHeader."Location Code");
-        TempWarehouseEntry."Package No." := QltyInspectionTestHeader."Source Package No.";
+        TempWarehouseEntry."Item No." := QltyInspectionHeader."Source Item No.";
+        TempWarehouseEntry."Variant Code" := QltyInspectionHeader."Source Variant Code";
+        TempWarehouseEntry."Lot No." := QltyInspectionHeader."Source Lot No.";
+        TempWarehouseEntry."Serial No." := QltyInspectionHeader."Source Serial No.";
+        TempWarehouseEntry."Expiration Date" := QltyItemTrackingMgmt.GetExpirationDate(QltyInspectionHeader, InWhseInternalPutAwayHeader."Location Code");
+        TempWarehouseEntry."Package No." := QltyInspectionHeader."Source Package No.";
         if (TempWarehouseEntry."Lot No." <> '') or (TempWarehouseEntry."Serial No." <> '') or (TempWarehouseEntry."Package No." <> '') then
             WhseInternalPutAwayLine.SetItemTrackingLines(TempWarehouseEntry, Quantity);
 

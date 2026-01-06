@@ -16,6 +16,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Dispositions.ItemTracking;
@@ -23,7 +24,7 @@ using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Journal;
@@ -42,12 +43,14 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert: Codeunit "Library Assert";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryPurchase: Codeunit "Library - Purchase";
         NegativeTrackingErr: Label 'Cannot create negative tracking entries on the item %1 in the purchase document %2', Comment = '%1=the item no., %2=the purchase document no';
         SNAlreadyEnteredErr: Label 'Serial Number: [%1] has already been entered.', Comment = '%1 = The serial number';
         IsInitialized: Boolean;
@@ -68,7 +71,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         WarehouseEntry: Record "Warehouse Entry";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         InitialInventoryWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyDispMoveAutoChoose: Codeunit "Qlty. Disp. Move Auto Choose";
@@ -80,12 +83,12 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized with warehouse trigger disabled
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::NoTrigger;
 
         // [GIVEN] Lot-tracked item with no. series is created
-        QltyTestsUtility.CreateLotTrackedItem(Item, LotNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, LotNoSeries);
 
         // [GIVEN] Full WMS location with bins is created and bin content is set up
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
@@ -100,7 +103,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PickBin.FindSet();
 
         // [GIVEN] Warehouse employee is set for the location
-        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         // [GIVEN] Warehouse journal templates and batches are created for initial inventory and reclassification
         LibraryWarehouse.CreateWhseJournalTemplate(InitialInventoryWhseItemWarehouseJournalTemplate, InitialInventoryWhseItemWarehouseJournalTemplate.Type::Item);
@@ -117,9 +120,9 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory of 100 units with lot number is created in pick bin
         LotNo := NoSeries.GetNextNo(LotNoSeries.Code);
 
-        TempQltyInspectionTestHeader."No." := 'initialinventory';
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Lot No." := LotNo;
+        TempQltyInspectionHeader."No." := 'initialinventory';
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Lot No." := LotNo;
         TempQltyDispositionBuffer."Location Filter" := Location.Code;
         TempQltyDispositionBuffer."Bin Filter" := Location."Adjustment Bin Code";
         TempQltyDispositionBuffer."New Bin Code" := PickBin.Code;
@@ -127,33 +130,33 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 100;
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
-        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionTestHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
-        QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionTestHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
+        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
+        QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
         WarehouseEntry.SetRange("Location Code", Location.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
         WarehouseEntry.SetRange("Lot No.", LotNo);
 
-        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test. ');
+        LibraryAssert.AreEqual(1, WarehouseEntry.Count(), 'Sanity check on inventory creation prior to the actual test.');
         WarehouseEntry.FindFirst();
 
         // [GIVEN] Disposition buffer is configured to move 6 units to a different pick bin
-        TempQltyInspectionTestHeader."Source RecordId" := WarehouseEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Warehouse Entry";
-        TempQltyInspectionTestHeader."Location Code" := Location.Code;
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Lot No." := LotNo;
+        TempQltyInspectionHeader."Source RecordId" := WarehouseEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Warehouse Entry";
+        TempQltyInspectionHeader."Location Code" := Location.Code;
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Lot No." := LotNo;
         TempQltyDispositionBuffer."Location Filter" := Location.Code;
         TempQltyDispositionBuffer."Bin Filter" := TempQltyDispositionBuffer."New Bin Code";
         PickBin.Next();
         TempQltyDispositionBuffer."New Bin Code" := PickBin.Code;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := 5;
+        TempQltyInspectionHeader."Source Quantity (Base)" := 5;
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 6;
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to create warehouse journal line for bin change
-        QltyDispMoveAutoChoose.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispMoveAutoChoose.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] Warehouse reclassification journal line is created with correct bin and quantity
         WhseItemWarehouseJournalLine.Reset();
@@ -1003,11 +1006,11 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         InventoryCreationItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         ReclassJnlItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
 
@@ -1020,7 +1023,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Lot number series and tracking code are created
@@ -1039,21 +1042,21 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalBatch(InventoryCreationItemJournalBatch, InventoryCreationItemJournalTemplate.Name);
 
         // [GIVEN] Initial inventory of 10 units with original lot number is created and posted
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, InventoryCreationItemJournalTemplate.Name, InventoryCreationItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, InventoryCreationItemJournalTemplate.Name, InventoryCreationItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
         OriginalLotNo := NoSeries.GetNextNo(LotNoSeries.Code, Today(), true);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := Location.Code;
-        InitialTestInventoryJnlItemJournalLine."Lot No." := OriginalLotNo;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := Location.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := OriginalLotNo;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', OriginalLotNo, 10);
-        InitialTestInventoryJnlItemJournalLine."Lot No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, 10);
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         ItemLedgerEntry.FindLast();
 
         // [GIVEN] Transfer journal template and batch are created for reclassification
@@ -1067,17 +1070,17 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReclassLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
 
         // [GIVEN] Disposition buffer is configured to change lot number
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Lot No." := OriginalLotNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Lot No." := OriginalLotNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
         TempQltyDispositionBuffer."New Lot No." := ReclassLotNo;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
 
         // [WHEN] Disposition is performed to create reclassification journal line with new lot number
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclassification journal line is created in the batch
         ReclassJnlItemJournalLine.Reset();
@@ -1101,7 +1104,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(ReclassLotNo, ReservationEntry."New Lot No.", 'The new lot no. should match the item journal line');
         LibraryAssert.AreEqual(ReclassJnlItemJournalLine.Quantity, -ReservationEntry.Quantity, 'The quantity should match the item journal line.');
         LibraryAssert.AreEqual(ReclassJnlItemJournalLine."Quantity (Base)", -ReservationEntry."Quantity (Base)", 'The Quantity (Base) should match the item journal line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
     end;
 
     [Test]
@@ -1116,10 +1119,10 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         InventoryCreationItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         ReclassJnlItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1133,7 +1136,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A lot-tracked item with expiration date tracking is created
@@ -1150,26 +1153,26 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalBatch(InventoryCreationItemJournalBatch, InventoryCreationItemJournalTemplate.Name);
         InventoryCreationItemJournalBatch."Item Tracking on Lines" := true;
         InventoryCreationItemJournalBatch.Modify();
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, InventoryCreationItemJournalTemplate.Name, InventoryCreationItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, InventoryCreationItemJournalTemplate.Name, InventoryCreationItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
         OriginalLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := Location.Code;
-        InitialTestInventoryJnlItemJournalLine."Lot No." := OriginalLotNo;
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := Location.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := OriginalLotNo;
         ExpDate := WorkDate();
-        InitialTestInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        InitialInspectionInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', OriginalLotNo, 10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, 10);
         ReservationEntry."Expiration Date" := ExpDate;
         ReservationEntry.Modify();
 
-        InitialTestInventoryJnlItemJournalLine."Lot No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         ItemLedgerEntry.FindLast();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
@@ -1179,15 +1182,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReclassLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
 
         // [WHEN] Reclassification disposition is performed to change the lot number while keeping the expiration date
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Lot No." := OriginalLotNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Lot No." := OriginalLotNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
         TempQltyDispositionBuffer."New Lot No." := ReclassLotNo;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
@@ -1211,7 +1214,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(ReclassLotNo, ReservationEntry."New Lot No.", 'The new lot no. should match the item journal line');
         LibraryAssert.AreEqual(ReclassJnlItemJournalLine.Quantity, -ReservationEntry.Quantity, 'The quantity should match the item journal line.');
         LibraryAssert.AreEqual(ReclassJnlItemJournalLine."Quantity (Base)", -ReservationEntry."Quantity (Base)", 'The Quantity (Base) should match the item journal line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
     end;
 
     [Test]
@@ -1226,10 +1229,10 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         InventoryCreationItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         ReclassJnlItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1245,7 +1248,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A lot-tracked item with expiration date tracking is created
@@ -1260,28 +1263,28 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory with lot number and expiration date is posted
         LibraryInventory.CreateItemJournalTemplateByType(InventoryCreationItemJournalTemplate, InventoryCreationItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(InventoryCreationItemJournalBatch, InventoryCreationItemJournalTemplate.Name);
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, InventoryCreationItemJournalTemplate.Name, InventoryCreationItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, InventoryCreationItemJournalTemplate.Name, InventoryCreationItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
         OriginalLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine.Validate("Location Code", Location.Code);
-        InitialTestInventoryJnlItemJournalLine."Lot No." := OriginalLotNo;
+        InitialInspectionInventoryJnlItemJournalLine.Validate("Location Code", Location.Code);
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := OriginalLotNo;
         ExpDate := WorkDate();
-        InitialTestInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', OriginalLotNo, 10);
+        InitialInspectionInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', OriginalLotNo, 10);
 
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
-        InitialTestInventoryJnlItemJournalLine."Lot No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
 
         ReservationEntry."Expiration Date" := ExpDate;
         ReservationEntry."New Expiration Date" := ExpDate;
         ReservationEntry.Modify();
 
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
         LibraryAssert.AreEqual(ExpDate, ItemLedgerEntry."Expiration Date", 'test setup failed, expected an expiration date');
@@ -1296,16 +1299,16 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReclassLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
         NewExpDate := CalcDate('<+10D>', WorkDate());
 
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Lot No." := OriginalLotNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Lot No." := OriginalLotNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
         TempQltyDispositionBuffer."New Lot No." := ReclassLotNo;
         TempQltyDispositionBuffer."New Expiration Date" := NewExpDate;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
@@ -1328,7 +1331,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(ExpDate, ReservationEntry."Expiration Date", 'The original expiration date should be retained.');
         LibraryAssert.AreEqual(ReclassJnlItemJournalLine.Quantity, -ReservationEntry.Quantity, 'The quantity should match the item journal line.');
         LibraryAssert.AreEqual(ReclassJnlItemJournalLine."Quantity (Base)", -ReservationEntry."Quantity (Base)", 'The Quantity (Base) should match the item journal line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
     end;
 
     [Test]
@@ -1343,10 +1346,10 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         ReclassJnlItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1360,7 +1363,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item is created
@@ -1375,21 +1378,21 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory with serial number is posted
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
         OriginalSerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine.Validate("Location Code", Location.Code);
-        InitialTestInventoryJnlItemJournalLine."Serial No." := OriginalSerialNo;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        InitialInspectionInventoryJnlItemJournalLine.Validate("Location Code", Location.Code);
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := OriginalSerialNo;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, OriginalSerialNo, '', 1);
-        InitialTestInventoryJnlItemJournalLine."Serial No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, OriginalSerialNo, '', 1);
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         if ItemLedgerEntry.FindLast() then;
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
 
@@ -1401,15 +1404,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [WHEN] Reclassification disposition is performed to change serial number
         ReclassSerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
 
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Serial No." := OriginalSerialNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Serial No." := OriginalSerialNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
         TempQltyDispositionBuffer."New Serial No." := ReclassSerialNo;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
@@ -1445,10 +1448,10 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         ReclassJnlItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1462,7 +1465,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item with expiration date tracking is created
@@ -1477,29 +1480,29 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory with serial number and expiration date is posted
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
         OriginalSerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := Location.Code;
-        InitialTestInventoryJnlItemJournalLine."Serial No." := OriginalSerialNo;
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := Location.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := OriginalSerialNo;
         ExpDate := WorkDate();
-        InitialTestInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, OriginalSerialNo, '', 1);
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        InitialInspectionInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, OriginalSerialNo, '', 1);
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
         ReservationEntry."Expiration Date" := ExpDate;
         ReservationEntry."New Expiration Date" := ExpDate;
 
         ReservationEntry.Modify();
 
-        InitialTestInventoryJnlItemJournalLine."Serial No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
         LibraryAssert.AreEqual(ExpDate, ItemLedgerEntry."Expiration Date", 'test setup failed, expected an expiration date');
@@ -1513,15 +1516,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [WHEN] Reclassification disposition is performed to change the serial number while keeping the expiration date
         ReclassSerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
 
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Serial No." := OriginalSerialNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Serial No." := OriginalSerialNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
         TempQltyDispositionBuffer."New Serial No." := ReclassSerialNo;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
@@ -1558,10 +1561,10 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         ReclassJnlItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1576,7 +1579,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item with expiration date tracking is created
@@ -1593,26 +1596,26 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
         ItemJournalBatch."Item Tracking on Lines" := true;
         ItemJournalBatch.Modify();
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
         OriginalSerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := Location.Code;
-        InitialTestInventoryJnlItemJournalLine."Serial No." := OriginalSerialNo;
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := Location.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := OriginalSerialNo;
         ExpDate := WorkDate();
-        InitialTestInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, OriginalSerialNo, '', 1);
+        InitialInspectionInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, OriginalSerialNo, '', 1);
         ReservationEntry."Expiration Date" := ExpDate;
         ReservationEntry.Modify();
 
-        InitialTestInventoryJnlItemJournalLine."Serial No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
         LibraryAssert.AreEqual(ExpDate, ItemLedgerEntry."Expiration Date", 'test setup failed, expected an expiration date');
@@ -1627,16 +1630,16 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReclassSerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
         NewExpDate := CalcDate('<+10D>', WorkDate());
 
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Serial No." := OriginalSerialNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Serial No." := OriginalSerialNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
         TempQltyDispositionBuffer."New Serial No." := ReclassSerialNo;
         TempQltyDispositionBuffer."New Expiration Date" := NewExpDate;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
@@ -1675,10 +1678,10 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         ReclassJnlItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1691,7 +1694,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Package number series is created and configured in inventory setup
@@ -1717,22 +1720,22 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         // [GIVEN] Initial inventory of 10 units with original package number is created and posted
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
         OriginalPackageNo := NoSeries.GetNextNo(PackageNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := Location.Code;
-        InitialTestInventoryJnlItemJournalLine."Package No." := OriginalPackageNo;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
-        ItemLedgerEntry.SetRange("Package No.", InitialTestInventoryJnlItemJournalLine."Package No.");
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := Location.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Package No." := OriginalPackageNo;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
+        ItemLedgerEntry.SetRange("Package No.", InitialInspectionInventoryJnlItemJournalLine."Package No.");
 
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', '', OriginalPackageNo, 10);
-        InitialTestInventoryJnlItemJournalLine."Package No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', '', OriginalPackageNo, 10);
+        InitialInspectionInventoryJnlItemJournalLine."Package No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
 
         // [GIVEN] Transfer journal template and batch for reclassification are created
@@ -1745,17 +1748,17 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReclassPackageNo := NoSeries.GetNextNo(PackageNoSeries.Code);
 
         // [GIVEN] Disposition buffer is configured to change package number (new package no., prepare only behavior, item tracked quantity)
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Package No." := OriginalPackageNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Package No." := OriginalPackageNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
         TempQltyDispositionBuffer."New Package No." := ReclassPackageNo;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity";
 
         // [WHEN] Disposition is performed to create reclassification journal line with new package number
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclassification journal line is created in the batch
         ReclassJnlItemJournalLine.Reset();
@@ -1776,9 +1779,9 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(Location.Code, ReservationEntry."Location Code", 'The location code should match the item journal line.');
         LibraryAssert.AreEqual(OriginalPackageNo, ReservationEntry."Package No.", 'The package no. should match the original.');
         LibraryAssert.AreEqual(ReclassPackageNo, ReservationEntry."New Package No.", 'The new package no. should match the item journal line');
-        LibraryAssert.AreEqual(-InitialTestInventoryJnlItemJournalLine."Quantity (Base)", ReservationEntry.Quantity, 'The quantity should match the item journal line.');
-        LibraryAssert.AreEqual(-InitialTestInventoryJnlItemJournalLine."Quantity (Base)", ReservationEntry."Quantity (Base)", 'The Quantity (Base) should match the item journal line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
+        LibraryAssert.AreEqual(-InitialInspectionInventoryJnlItemJournalLine."Quantity (Base)", ReservationEntry.Quantity, 'The quantity should match the item journal line.');
+        LibraryAssert.AreEqual(-InitialInspectionInventoryJnlItemJournalLine."Quantity (Base)", ReservationEntry."Quantity (Base)", 'The Quantity (Base) should match the item journal line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the item journal line.');
     end;
 
     [Test]
@@ -1789,12 +1792,12 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         ReservationEntry: Record "Reservation Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         LotNoSeries: Record "No. Series";
@@ -1806,7 +1809,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Lot number series is created
@@ -1825,30 +1828,30 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         // [GIVEN] Initial inventory of 10 units at source location without lot number is posted
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', '', 10);
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', '', 10);
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        InitialTestInventoryJnlItemJournalLine."Lot No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
 
         // [GIVEN] Disposition buffer is configured for transfer from source to destination location with specific quantity of 5
-        TempQltyInspectionTestHeader."No." := NoSeries.GetNextNo(LotNoSeries.Code);
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."No." := NoSeries.GetNextNo(LotNoSeries.Code);
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
 
-        TempQltyInspectionTestHeader."Location Code" := SourceLocation.Code;
+        TempQltyInspectionHeader."Location Code" := SourceLocation.Code;
         TempQltyDispositionBuffer."Location Filter" := SourceLocation.Code;
         TempQltyDispositionBuffer."New Location Code" := DestinationLocation.Code;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
@@ -1856,13 +1859,13 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 5;
 
         // [WHEN] Disposition is performed to create transfer order
-        QltyDispTransfer.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispTransfer.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
-        TransferHeader.SetRange("Qlty. Inspection Test No.", TempQltyInspectionTestHeader."No.");
+        TransferHeader.SetRange("Qlty. Inspection No.", TempQltyInspectionHeader."No.");
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'there should be only one transfer header');
         LibraryAssert.IsTrue(TransferHeader.FindFirst(), 'there should be a transfer header');
         TransferLine.SetRange("Document No.", TransferHeader."No.");
-        TransferLine.SetRange("Item No.", TempQltyInspectionTestHeader."Source Item No.");
+        TransferLine.SetRange("Item No.", TempQltyInspectionHeader."Source Item No.");
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'there should be only one transfer line');
         LibraryAssert.IsTrue(TransferLine.FindFirst(), 'there should be a transfer line');
         LibraryAssert.AreEqual(5, TransferLine."Quantity (Base)", '10 were made, but a specific quantity of 5 was requested');
@@ -1946,12 +1949,12 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LotItemTrackingCode: Record "Item Tracking Code";
         ItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         ReservationEntry: Record "Reservation Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
@@ -1963,7 +1966,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A lot-tracked item with expiration date tracking is created
@@ -1979,51 +1982,51 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory with lot number and expiration date is posted at source location
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
         LotNo := NoSeries.GetNextNo(LotNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
-        InitialTestInventoryJnlItemJournalLine."Lot No." := LotNo;
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := LotNo;
         ExpDate := WorkDate();
-        InitialTestInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', LotNo, 10);
+        InitialInspectionInventoryJnlItemJournalLine."Expiration Date" := ExpDate;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', LotNo, 10);
         ReservationEntry.Validate("Expiration Date", ExpDate);
         ReservationEntry.Modify();
 
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        InitialTestInventoryJnlItemJournalLine."Lot No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
 
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
 
         // [WHEN] Transfer disposition is performed with specific quantity for outbound transfer
-        TempQltyInspectionTestHeader."No." := NoSeries.GetNextNo(LotNoSeries.Code);
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Lot No." := LotNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
-        TempQltyInspectionTestHeader."Location Code" := SourceLocation.Code;
+        TempQltyInspectionHeader."No." := NoSeries.GetNextNo(LotNoSeries.Code);
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Lot No." := LotNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Location Code" := SourceLocation.Code;
         TempQltyDispositionBuffer."Location Filter" := SourceLocation.Code;
         TempQltyDispositionBuffer."New Location Code" := DestinationLocation.Code;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 5;
-        QltyDispTransfer.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispTransfer.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One transfer header and transfer line are created with correct quantity
-        TransferHeader.SetRange("Qlty. Inspection Test No.", TempQltyInspectionTestHeader."No.");
+        TransferHeader.SetRange("Qlty. Inspection No.", TempQltyInspectionHeader."No.");
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'there should be only one transfer header');
         LibraryAssert.IsTrue(TransferHeader.FindFirst(), 'there should be a transfer header');
         TransferLine.SetRange("Document No.", TransferHeader."No.");
-        TransferLine.SetRange("Item No.", TempQltyInspectionTestHeader."Source Item No.");
+        TransferLine.SetRange("Item No.", TempQltyInspectionHeader."Source Item No.");
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'there should be only one transfer line');
         LibraryAssert.IsTrue(TransferLine.FindFirst(), 'there should be a transfer line');
         LibraryAssert.AreEqual(5, TransferLine."Quantity (Base)", '10 were made, but a specific quantity of 5 was requested');
@@ -2043,7 +2046,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(ExpDate, ReservationEntry."Expiration Date", 'The expiration date should match the item.');
         LibraryAssert.AreEqual(-5, ReservationEntry.Quantity, 'The quantity should be negative and match the transfer line.');
         LibraryAssert.AreEqual(-5, ReservationEntry."Quantity (Base)", 'The Quantity (Base) should be negative and match the transfer line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
     end;
 
     [Test]
@@ -2054,12 +2057,12 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         ReservationEntry: Record "Reservation Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
@@ -2070,11 +2073,11 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItem(Item);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item);
 
         // [GIVEN] Source and destination locations are created
         LibraryWarehouse.CreateLocationWMS(SourceLocation, false, false, false, false, false);
@@ -2083,46 +2086,46 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory with serial number is posted at source location
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
         SerialNo := NoSeries.GetNextNo(Item."Serial Nos.");
-        InitialTestInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
-        InitialTestInventoryJnlItemJournalLine."Serial No." := SerialNo;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, SerialNo, '', 1);
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := SerialNo;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, SerialNo, '', 1);
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        InitialTestInventoryJnlItemJournalLine."Serial No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        InitialInspectionInventoryJnlItemJournalLine."Serial No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
 
         // [WHEN] Transfer disposition is performed with specific quantity for outbound transfer
-        TempQltyInspectionTestHeader."No." := NoSeries.GetNextNo(Item."Serial Nos.");
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Serial No." := SerialNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."No." := NoSeries.GetNextNo(Item."Serial Nos.");
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Serial No." := SerialNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
 
-        TempQltyInspectionTestHeader."Location Code" := SourceLocation.Code;
+        TempQltyInspectionHeader."Location Code" := SourceLocation.Code;
         TempQltyDispositionBuffer."Location Filter" := SourceLocation.Code;
         TempQltyDispositionBuffer."New Location Code" := DestinationLocation.Code;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 1;
-        QltyDispTransfer.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispTransfer.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One transfer header and transfer line are created with quantity 1
-        TransferHeader.SetRange("Qlty. Inspection Test No.", TempQltyInspectionTestHeader."No.");
+        TransferHeader.SetRange("Qlty. Inspection No.", TempQltyInspectionHeader."No.");
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'there should be only one transfer header');
         LibraryAssert.IsTrue(TransferHeader.FindFirst(), 'there should be a transfer header');
         TransferLine.SetRange("Document No.", TransferHeader."No.");
-        TransferLine.SetRange("Item No.", TempQltyInspectionTestHeader."Source Item No.");
+        TransferLine.SetRange("Item No.", TempQltyInspectionHeader."Source Item No.");
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'there should be only one transfer line');
         LibraryAssert.IsTrue(TransferLine.FindFirst(), 'there should be a transfer line');
         LibraryAssert.AreEqual(1, TransferLine."Quantity (Base)", '1 sn only');
@@ -2141,7 +2144,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(SerialNo, ReservationEntry."Serial No.", 'The serial no. should match the transfer line.');
         LibraryAssert.AreEqual(-1, ReservationEntry.Quantity, 'The quantity should be negative and match the transfer line.');
         LibraryAssert.AreEqual(-1, ReservationEntry."Quantity (Base)", 'The Quantity (Base) should be negative and match the transfer line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
     end;
 
     [Test]
@@ -2220,12 +2223,12 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PackageItemTrackingCode: Record "Item Tracking Code";
         ItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         ReservationEntry: Record "Reservation Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
@@ -2236,7 +2239,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Package number series is configured in inventory setup
@@ -2259,34 +2262,34 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory of 10 units with package number is created and posted at source location
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
         PackageNo := NoSeries.GetNextNo(PackageNoSeries.Code);
-        InitialTestInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
-        InitialTestInventoryJnlItemJournalLine."Package No." := PackageNo;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', '', PackageNo, 10);
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Package No." := PackageNo;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', '', PackageNo, 10);
 
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Package No.", InitialTestInventoryJnlItemJournalLine."Package No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Package No.", InitialInspectionInventoryJnlItemJournalLine."Package No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        InitialTestInventoryJnlItemJournalLine."Package No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        InitialInspectionInventoryJnlItemJournalLine."Package No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
 
         // [GIVEN] Disposition buffer is configured for transfer from source to destination location with specific quantity of 5
-        TempQltyInspectionTestHeader."No." := NoSeries.GetNextNo(PackageNoSeries.Code);
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Package No." := PackageNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := InitialTestInventoryJnlItemJournalLine.Quantity;
-        TempQltyInspectionTestHeader."Location Code" := SourceLocation.Code;
+        TempQltyInspectionHeader."No." := NoSeries.GetNextNo(PackageNoSeries.Code);
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Package No." := PackageNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := InitialInspectionInventoryJnlItemJournalLine.Quantity;
+        TempQltyInspectionHeader."Location Code" := SourceLocation.Code;
         TempQltyDispositionBuffer."Location Filter" := SourceLocation.Code;
         TempQltyDispositionBuffer."New Location Code" := DestinationLocation.Code;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
@@ -2294,14 +2297,14 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 5;
 
         // [WHEN] Disposition is performed to create transfer order
-        QltyDispTransfer.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispTransfer.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] Transfer header and line are created with correct quantity
-        TransferHeader.SetRange("Qlty. Inspection Test No.", TempQltyInspectionTestHeader."No.");
+        TransferHeader.SetRange("Qlty. Inspection No.", TempQltyInspectionHeader."No.");
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'there should be only one transfer header for ' + TransferHeader.GetFilters());
         LibraryAssert.IsTrue(TransferHeader.FindFirst(), 'there should be a transfer header');
         TransferLine.SetRange("Document No.", TransferHeader."No.");
-        TransferLine.SetRange("Item No.", TempQltyInspectionTestHeader."Source Item No.");
+        TransferLine.SetRange("Item No.", TempQltyInspectionHeader."Source Item No.");
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'there should be only one transfer line');
         LibraryAssert.IsTrue(TransferLine.FindFirst(), 'there should be a transfer line');
         LibraryAssert.AreEqual(5, TransferLine."Quantity (Base)", '10 were made, but a specific quantity of 5 was requested');
@@ -2320,7 +2323,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(PackageNo, ReservationEntry."Package No.", 'The package no. should match the transfer line.');
         LibraryAssert.AreEqual(-5, ReservationEntry.Quantity, 'The quantity should be negative and match the transfer line.');
         LibraryAssert.AreEqual(-5, ReservationEntry."Quantity (Base)", 'The Quantity (Base) should be negative and match the transfer line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
     end;
 
     [Test]
@@ -2335,12 +2338,12 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LotAndPackageItemTrackingCode: Record "Item Tracking Code";
         ItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
-        InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
+        InitialInspectionInventoryJnlItemJournalLine: Record "Item Journal Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         ReservationEntry: Record "Reservation Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
@@ -2352,7 +2355,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Quality management setup is initialized
         Initialize();
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [GIVEN] Lot and package number series is configured in inventory setup
@@ -2375,39 +2378,39 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Initial inventory of 10 units with lot and package numbers is created and posted
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
-        LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
+        LibraryInventory.CreateItemJournalLine(InitialInspectionInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialInspectionInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 10);
         PackageNo := NoSeries.GetNextNo(LotAndPackageNoSeries.Code);
         LotNo := NoSeries.GetNextNo(LotAndPackageNoSeries.Code);
 
-        InitialTestInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
-        InitialTestInventoryJnlItemJournalLine."Package No." := PackageNo;
-        InitialTestInventoryJnlItemJournalLine."Lot No." := LotNo;
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialTestInventoryJnlItemJournalLine, '', LotNo, PackageNo, 10);
+        InitialInspectionInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
+        InitialInspectionInventoryJnlItemJournalLine."Package No." := PackageNo;
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := LotNo;
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, InitialInspectionInventoryJnlItemJournalLine, '', LotNo, PackageNo, 10);
 
-        ItemLedgerEntry.SetRange("Item No.", InitialTestInventoryJnlItemJournalLine."Item No.");
-        ItemLedgerEntry.SetRange("Variant Code", InitialTestInventoryJnlItemJournalLine."Variant Code");
-        ItemLedgerEntry.SetRange("Lot No.", InitialTestInventoryJnlItemJournalLine."Lot No.");
-        ItemLedgerEntry.SetRange("Serial No.", InitialTestInventoryJnlItemJournalLine."Serial No.");
-        ItemLedgerEntry.SetRange("Package No.", InitialTestInventoryJnlItemJournalLine."Package No.");
-        ItemLedgerEntry.SetRange("Location Code", InitialTestInventoryJnlItemJournalLine."Location Code");
+        ItemLedgerEntry.SetRange("Item No.", InitialInspectionInventoryJnlItemJournalLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", InitialInspectionInventoryJnlItemJournalLine."Variant Code");
+        ItemLedgerEntry.SetRange("Lot No.", InitialInspectionInventoryJnlItemJournalLine."Lot No.");
+        ItemLedgerEntry.SetRange("Serial No.", InitialInspectionInventoryJnlItemJournalLine."Serial No.");
+        ItemLedgerEntry.SetRange("Package No.", InitialInspectionInventoryJnlItemJournalLine."Package No.");
+        ItemLedgerEntry.SetRange("Location Code", InitialInspectionInventoryJnlItemJournalLine."Location Code");
 
-        InitialTestInventoryJnlItemJournalLine."Package No." := '';
-        InitialTestInventoryJnlItemJournalLine."Lot No." := '';
-        InitialTestInventoryJnlItemJournalLine.Modify();
-        LibraryInventory.PostItemJnlLineWithCheck(InitialTestInventoryJnlItemJournalLine);
+        InitialInspectionInventoryJnlItemJournalLine."Package No." := '';
+        InitialInspectionInventoryJnlItemJournalLine."Lot No." := '';
+        InitialInspectionInventoryJnlItemJournalLine.Modify();
+        LibraryInventory.PostItemJnlLineWithCheck(InitialInspectionInventoryJnlItemJournalLine);
         LibraryAssert.AreEqual(1, ItemLedgerEntry.Count(), 'test setup failed, expected one item ledger entry.');
         ItemLedgerEntry.FindLast();
 
         // [GIVEN] Disposition buffer is configured for transfer with specific quantity set to zero but test quantity of 3
-        TempQltyInspectionTestHeader."No." := NoSeries.GetNextNo(LotAndPackageNoSeries.Code);
-        TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
-        TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
-        TempQltyInspectionTestHeader."Source Package No." := PackageNo;
-        TempQltyInspectionTestHeader."Source Lot No." := LotNo;
-        TempQltyInspectionTestHeader."Source Quantity (Base)" := 3;
-        TempQltyInspectionTestHeader."Location Code" := SourceLocation.Code;
+        TempQltyInspectionHeader."No." := NoSeries.GetNextNo(LotAndPackageNoSeries.Code);
+        TempQltyInspectionHeader."Source RecordId" := ItemLedgerEntry.RecordId();
+        TempQltyInspectionHeader."Source Table No." := Database::"Item Ledger Entry";
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
+        TempQltyInspectionHeader."Source Package No." := PackageNo;
+        TempQltyInspectionHeader."Source Lot No." := LotNo;
+        TempQltyInspectionHeader."Source Quantity (Base)" := 3;
+        TempQltyInspectionHeader."Location Code" := SourceLocation.Code;
         TempQltyDispositionBuffer."Location Filter" := SourceLocation.Code;
         TempQltyDispositionBuffer."New Location Code" := DestinationLocation.Code;
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
@@ -2415,14 +2418,14 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 0;
 
         // [WHEN] Disposition is performed to create transfer order
-        QltyDispTransfer.PerformDisposition(TempQltyInspectionTestHeader, TempQltyDispositionBuffer);
+        QltyDispTransfer.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] Transfer header and line are created using test quantity of 3 instead of zero
-        TransferHeader.SetRange("Qlty. Inspection Test No.", TempQltyInspectionTestHeader."No.");
+        TransferHeader.SetRange("Qlty. Inspection No.", TempQltyInspectionHeader."No.");
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'there should be only one transfer header for ' + TransferHeader.GetFilters());
         LibraryAssert.IsTrue(TransferHeader.FindFirst(), 'there should be a transfer header');
         TransferLine.SetRange("Document No.", TransferHeader."No.");
-        TransferLine.SetRange("Item No.", TempQltyInspectionTestHeader."Source Item No.");
+        TransferLine.SetRange("Item No.", TempQltyInspectionHeader."Source Item No.");
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'there should be only one transfer line');
         LibraryAssert.IsTrue(TransferLine.FindFirst(), 'there should be a transfer line');
         LibraryAssert.AreEqual(3, TransferLine."Quantity (Base)", '10 were made, but a specific quantity of 3 was requested');
@@ -2442,7 +2445,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(LotNo, ReservationEntry."Lot No.", 'The lot no. should match the transfer line.');
         LibraryAssert.AreEqual(-3, ReservationEntry.Quantity, 'The quantity should be negative and match the transfer line.');
         LibraryAssert.AreEqual(-3, ReservationEntry."Quantity (Base)", 'The Quantity (Base) should be negative and match the transfer line.');
-        LibraryAssert.AreEqual(InitialTestInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
+        LibraryAssert.AreEqual(InitialInspectionInventoryJnlItemJournalLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The qty. per UOM should match the transfer line.');
     end;
 
     [Test]
@@ -2451,7 +2454,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Location: Record Location;
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         LotNoSeries: Record "No. Series";
         LotNoSeriesLine: Record "No. Series Line";
         LotItemTrackingCode: Record "Item Tracking Code";
@@ -2464,9 +2467,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         LotNo: Code[50];
@@ -2492,15 +2493,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
-        // [GIVEN] Quality inspection template and test are created for purchase line
-        TestQltyTestsUtility.EnsureSetup();
-        TestQltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        TestQltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
+        // [GIVEN] Quality inspection template and inspection are created for purchase line
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         LotNo := ReservationEntry."Lot No.";
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2511,11 +2512,11 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         PurRtnOrderPurchaseLine.SetRange("Document Type", PurRtnOrderPurchaseLine."Document Type"::"Return Order");
         PurRtnOrderPurchaseLine.SetRange("Document No.", PurRtnOrderPurchaseHeader."No.");
-        PurRtnOrderPurchaseLine.SetRange("No.", QltyInspectionTestHeader."Source Item No.");
+        PurRtnOrderPurchaseLine.SetRange("No.", QltyInspectionHeader."Source Item No.");
         PurRtnOrderPurchaseLine.FindFirst();
 
         // [WHEN] Tracking is deleted and recreated for purchase return order line with quantity 10
-        QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionTestHeader, PurRtnOrderPurchaseLine, 10);
+        QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, 10);
 
         // [THEN] One reservation entry is created with correct location, lot number, and negative quantity
         Clear(ReservationEntry);
@@ -2536,7 +2537,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Location: Record Location;
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         LotNoSeries: Record "No. Series";
         LotNoSeriesLine: Record "No. Series Line";
         LotItemTrackingCode: Record "Item Tracking Code";
@@ -2549,9 +2550,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2576,14 +2575,14 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
-        // [GIVEN] Quality inspection template and test are created for purchase line
-        TestQltyTestsUtility.EnsureSetup();
-        TestQltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        TestQltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
+        // [GIVEN] Quality inspection template and inspection are created for purchase line
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2594,11 +2593,11 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         PurRtnOrderPurchaseLine.SetRange("Document Type", PurRtnOrderPurchaseLine."Document Type"::"Return Order");
         PurRtnOrderPurchaseLine.SetRange("Document No.", PurRtnOrderPurchaseHeader."No.");
-        PurRtnOrderPurchaseLine.SetRange("No.", QltyInspectionTestHeader."Source Item No.");
+        PurRtnOrderPurchaseLine.SetRange("No.", QltyInspectionHeader."Source Item No.");
         PurRtnOrderPurchaseLine.FindFirst();
 
         // [WHEN] Attempting to delete and recreate tracking with negative quantity of -10
-        asserterror QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionTestHeader, PurRtnOrderPurchaseLine, -10);
+        asserterror QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, -10);
 
         // [THEN] Error is thrown indicating negative tracking entries cannot be created
         LibraryAssert.ExpectedError(StrSubstNo(NegativeTrackingErr, Item."No.", PurRtnOrderPurchaseHeader."No."));
@@ -2610,7 +2609,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Location: Record Location;
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         SerialNoSeries: Record "No. Series";
         SerialNoSeriesLine: Record "No. Series Line";
         SerialItemTrackingCode: Record "Item Tracking Code";
@@ -2623,9 +2622,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        TestQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DocCopyDocumentMgt: Codeunit "Copy Document Mgt.";
         RecordRef: RecordRef;
         UnusedVariant1: Variant;
@@ -2651,15 +2648,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
-        // [GIVEN] Quality inspection template and test are created for purchase line with serial number tracking
-        TestQltyTestsUtility.EnsureSetup();
-        TestQltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
-        TestQltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
+        // [GIVEN] Quality inspection template and inspection are created for purchase line with serial number tracking
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         Serial := ReservationEntry."Serial No.";
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
         LibraryPurchase.CreatePurchaseReturnOrderWithLocation(PurRtnOrderPurchaseHeader, Vendor."No.", Location.Code);
@@ -2670,11 +2667,11 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         PurRtnOrderPurchaseLine.SetRange("Document Type", PurRtnOrderPurchaseLine."Document Type"::"Return Order");
         PurRtnOrderPurchaseLine.SetRange("Document No.", PurRtnOrderPurchaseHeader."No.");
-        PurRtnOrderPurchaseLine.SetRange("No.", QltyInspectionTestHeader."Source Item No.");
+        PurRtnOrderPurchaseLine.SetRange("No.", QltyInspectionHeader."Source Item No.");
         PurRtnOrderPurchaseLine.FindFirst();
 
         // [WHEN] Attempting to delete and recreate tracking with quantity 10 for serial-tracked item
-        asserterror QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionTestHeader, PurRtnOrderPurchaseLine, 10);
+        asserterror QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader, PurRtnOrderPurchaseLine, 10);
 
         // [THEN] Error is thrown indicating serial number has already been entered
         LibraryAssert.ExpectedError(StrSubstNo(SNAlreadyEnteredErr, Serial));
@@ -2728,7 +2725,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         LotNoInformation: Record "Lot No. Information";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         NoSeries: Codeunit "No. Series";
         LotNo: Code[50];
     begin
@@ -2736,15 +2733,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Lot-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection test header with lot number is prepared
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] Inspection header with lot number is prepared
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
         LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
-        TempQltyInspectionTestHeader."Source Lot No." := LotNo;
+        TempQltyInspectionHeader."Source Lot No." := LotNo;
 
         // [WHEN] Setting lot block state to blocked
-        QltyItemTracking.SetLotBlockState(TempQltyInspectionTestHeader, true);
+        QltyItemTracking.SetLotBlockState(TempQltyInspectionHeader, true);
 
         // [THEN] Lot number information shows lot is blocked
         LotNoInformation.Get(Item."No.", '', LotNo);
@@ -2757,7 +2754,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         LotNoInformation: Record "Lot No. Information";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         NoSeries: Codeunit "No. Series";
         LotNo: Code[50];
     begin
@@ -2765,23 +2762,23 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Lot-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection test header with lot number is prepared
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] Inspection header with lot number is prepared
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
         LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
-        TempQltyInspectionTestHeader."Source Lot No." := LotNo;
+        TempQltyInspectionHeader."Source Lot No." := LotNo;
 
         // [GIVEN] Lot number information is created as blocked
         LotNoInformation.Init();
-        LotNoInformation."Item No." := TempQltyInspectionTestHeader."Source Item No.";
-        LotNoInformation."Lot No." := TempQltyInspectionTestHeader."Source Lot No.";
+        LotNoInformation."Item No." := TempQltyInspectionHeader."Source Item No.";
+        LotNoInformation."Lot No." := TempQltyInspectionHeader."Source Lot No.";
         LotNoInformation.Insert(true);
         LotNoInformation.Blocked := true;
         LotNoInformation.Modify();
 
         // [WHEN] Setting lot block state to unblocked
-        QltyItemTracking.SetLotBlockState(TempQltyInspectionTestHeader, false);
+        QltyItemTracking.SetLotBlockState(TempQltyInspectionHeader, false);
 
         // [THEN] Lot number information shows lot is not blocked
         LotNoInformation.Get(Item."No.", '', LotNo);
@@ -2794,7 +2791,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         SerialNoInformation: Record "Serial No. Information";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         NoSeries: Codeunit "No. Series";
         SerialNo: Code[50];
     begin
@@ -2802,15 +2799,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Serial-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection test header with serial number is prepared
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] Inspection header with serial number is prepared
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
         SerialNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
-        TempQltyInspectionTestHeader."Source Serial No." := SerialNo;
+        TempQltyInspectionHeader."Source Serial No." := SerialNo;
 
         // [WHEN] Setting serial block state to blocked
-        QltyItemTracking.SetSerialBlockState(TempQltyInspectionTestHeader, true);
+        QltyItemTracking.SetSerialBlockState(TempQltyInspectionHeader, true);
 
         // [THEN] Serial number information shows serial is blocked
         SerialNoInformation.Get(Item."No.", '', SerialNo);
@@ -2823,7 +2820,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         SerialNoInformation: Record "Serial No. Information";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         NoSeries: Codeunit "No. Series";
         SerialNo: Code[50];
     begin
@@ -2831,23 +2828,23 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Serial-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection test header with serial number is prepared
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] Inspection header with serial number is prepared
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
         SerialNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
-        TempQltyInspectionTestHeader."Source Serial No." := SerialNo;
+        TempQltyInspectionHeader."Source Serial No." := SerialNo;
 
         // [GIVEN] Serial number information is created as blocked
         SerialNoInformation.Init();
-        SerialNoInformation."Item No." := TempQltyInspectionTestHeader."Source Item No.";
-        SerialNoInformation."Serial No." := TempQltyInspectionTestHeader."Source Serial No.";
+        SerialNoInformation."Item No." := TempQltyInspectionHeader."Source Item No.";
+        SerialNoInformation."Serial No." := TempQltyInspectionHeader."Source Serial No.";
         SerialNoInformation.Insert(true);
         SerialNoInformation.Blocked := true;
         SerialNoInformation.Modify();
 
         // [WHEN] Setting serial block state to unblocked
-        QltyItemTracking.SetSerialBlockState(TempQltyInspectionTestHeader, false);
+        QltyItemTracking.SetSerialBlockState(TempQltyInspectionHeader, false);
 
         // [THEN] Serial number information shows serial is not blocked
         SerialNoInformation.Get(Item."No.", '', SerialNo);
@@ -2860,7 +2857,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         PackageNoInformation: Record "Package No. Information";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         NoSeries: Codeunit "No. Series";
         PackageNo: Code[50];
     begin
@@ -2868,15 +2865,15 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Package-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection test header with package number is prepared
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] Inspection header with package number is prepared
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
         PackageNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
-        TempQltyInspectionTestHeader."Source Package No." := PackageNo;
+        TempQltyInspectionHeader."Source Package No." := PackageNo;
 
         // [WHEN] Setting package block state to blocked
-        QltyItemTracking.SetPackageBlockState(TempQltyInspectionTestHeader, true);
+        QltyItemTracking.SetPackageBlockState(TempQltyInspectionHeader, true);
 
         // [THEN] Package number information shows package is blocked
         PackageNoInformation.Get(Item."No.", '', PackageNo);
@@ -2889,7 +2886,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         PackageNoInformation: Record "Package No. Information";
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+        TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         NoSeries: Codeunit "No. Series";
         PackageNo: Code[50];
     begin
@@ -2897,23 +2894,23 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Package-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
-        // [GIVEN] Inspection test header with package number is prepared
-        TempQltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] Inspection header with package number is prepared
+        TempQltyInspectionHeader."Source Item No." := Item."No.";
         PackageNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
-        TempQltyInspectionTestHeader."Source Package No." := PackageNo;
+        TempQltyInspectionHeader."Source Package No." := PackageNo;
 
         // [GIVEN] Package number information is created as blocked
         PackageNoInformation.Init();
-        PackageNoInformation."Item No." := TempQltyInspectionTestHeader."Source Item No.";
-        PackageNoInformation."Package No." := TempQltyInspectionTestHeader."Source Package No.";
+        PackageNoInformation."Item No." := TempQltyInspectionHeader."Source Item No.";
+        PackageNoInformation."Package No." := TempQltyInspectionHeader."Source Package No.";
         PackageNoInformation.Insert(true);
         PackageNoInformation.Blocked := true;
         PackageNoInformation.Modify();
 
         // [WHEN] Setting package block state to unblocked
-        QltyItemTracking.SetPackageBlockState(TempQltyInspectionTestHeader, false);
+        QltyItemTracking.SetPackageBlockState(TempQltyInspectionHeader, false);
 
         // [THEN] Package number information shows package is not blocked
         PackageNoInformation.Get(Item."No.", '', PackageNo);
@@ -2930,7 +2927,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Lot-tracked item is created
         Initialize();
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [WHEN] Checking if item is lot-tracked
         TempItemTrackingSetup."Lot No. Required" := true;
@@ -2971,7 +2968,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Serial-tracked item is created
         Initialize();
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is serial-tracked
         TempItemTrackingSetup."Serial No. Required" := true;
@@ -3012,7 +3009,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Package-tracked item is created
         Initialize();
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is package-tracked
         TempItemTrackingSetup."Package No. Required" := true;
@@ -3042,12 +3039,79 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.IsFalse(TempItemTrackingSetup."Package No. Required", 'Should return is not package-tracked (false)');
     end;
 
+    [Test]
+    procedure ItemTrackingDetailsAreNotPopulatedOnTestForNonTrackingItem()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        Location: Record Location;
+        LotTrackedItem: Record Item;
+        NonTrackingItem: Record Item;
+        LotNoSeries: Record "No. Series";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        NoSeries: Codeunit "No. Series";
+    begin
+        // [SCENARIO 615767] Verify that item tracking details are not populated on quality inspection test for non-tracking item
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A prioritized rule is created for Purchase Line
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
+        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule.Modify();
+
+        // [GIVEN] A location is created
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Lot-tracked item with no. series is created
+        QltyInspectionUtility.CreateLotTrackedItem(LotTrackedItem, LotNoSeries);
+
+        // [GIVEN] An Non tracking item is created
+        LibraryInventory.CreateItem(NonTrackingItem);
+
+        // [GIVEN] A purchase order with the Lot trackeditem is created
+        QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, LotTrackedItem, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] Add purchase line with the Non tracking item to the purchase order
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, NonTrackingItem."No.", LibraryRandom.RandInt(10));
+
+        // [WHEN] The purchase order is received
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] Find first test and verify item tracking details are populated for Lot tracked item
+        FindQltyInspectionHeader(QltyInspectionHeader, LotTrackedItem."No.");
+        LibraryAssert.AreEqual(LotTrackedItem."No.", QltyInspectionHeader."Source Item No.", 'Should be same item.');
+        LibraryAssert.AreEqual(QltyInspectionHeader."Source Lot No.", NoSeries.GetLastNoUsed(LotNoSeries.Code), 'Lot No. should be populated.');
+
+        // [THEN] Find first test and verify item tracking details are populated for Lot tracked item
+        FindQltyInspectionHeader(QltyInspectionHeader, NonTrackingItem."No.");
+        LibraryAssert.AreEqual(NonTrackingItem."No.", QltyInspectionHeader."Source Item No.", 'Should be same item.');
+        LibraryAssert.IsTrue(QltyInspectionHeader."Source Lot No." = '', 'Lot No. should not be populated.');
+
+        QltyInspectionGenRule.Delete();
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
+    end;
+
+    local procedure FindQltyInspectionHeader(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ItemNo: Code[20])
+    begin
+        QltyInspectionHeader.Reset();
+        QltyInspectionHeader.SetRange("Source Item No.", ItemNo);
+        QltyInspectionHeader.FindFirst();
     end;
 
     [ConfirmHandler]
