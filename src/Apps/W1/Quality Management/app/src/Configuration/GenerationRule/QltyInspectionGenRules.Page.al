@@ -627,7 +627,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             if QltyInspectionGenRule.FindSet() then
                 repeat
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    if QltyInspectionGenRule.Modify() then;
+                    QltyInspectionGenRule.Modify();
                 until QltyInspectionGenRule.Next() = 0;
     end;
 }

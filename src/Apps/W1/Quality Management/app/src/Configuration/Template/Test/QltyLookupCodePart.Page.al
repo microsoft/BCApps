@@ -397,9 +397,6 @@ page 20435 "Qlty. Lookup Code Part"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        if QltyTest.Code <> '' then
-            if QltyTest.Modify(true) then;
-
         UpdateResultOptions();
         CurrPage.Update(false);
     end;
