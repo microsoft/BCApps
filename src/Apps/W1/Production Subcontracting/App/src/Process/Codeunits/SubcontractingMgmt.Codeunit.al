@@ -6,6 +6,8 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -17,17 +19,15 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Utilities;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Foundation.Enums;
-using Microsoft.Foundation.Company;
-using Microsoft.Manufacturing.Setup;
 
 codeunit 99001505 "Subcontracting Mgmt."
 {

@@ -6,13 +6,13 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Manufacturing.Capacity;
 
 codeunit 99001552 "Sub. Temp Data Initializer"
 {

@@ -5,9 +5,9 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 99001555 "Sub. ProdOrderCreateBind"
 {

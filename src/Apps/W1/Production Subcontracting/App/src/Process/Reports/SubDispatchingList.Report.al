@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.CRM.Contact;
+using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Segment;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
@@ -28,7 +29,6 @@ using Microsoft.Utilities;
 using System.Email;
 using System.Globalization;
 using System.Utilities;
-using Microsoft.CRM.Interaction;
 
 report 99001504 "Sub. Dispatching List"
 {
