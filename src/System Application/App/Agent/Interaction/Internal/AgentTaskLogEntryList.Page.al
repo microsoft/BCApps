@@ -58,11 +58,21 @@ page 4303 "Agent Task Log Entry List"
                 field("User Full Name"; Rec."User Full Name")
                 {
                     Caption = 'User Full Name';
-                    Tooltip = 'Specifies the full name of the user that was involved in performing the step..';
+                    Tooltip = 'Specifies the full name of the user that was involved in performing the step.';
                 }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
+                }
+                field(Reason; Rec.Reason)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reason';
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Reason);
+                    end;
                 }
                 field(Details; DetailsTxt)
                 {
@@ -75,6 +85,28 @@ page 4303 "Agent Task Log Entry List"
                     end;
                 }
             }
+            fixed(DisclaimerGroup)
+            {
+                group(Left)
+                {
+                    ShowCaption = false;
+                    label(Empty)
+                    {
+                        ApplicationArea = All;
+                        Caption = '', Locked = true;
+                    }
+                }
+                group(Right)
+                {
+                    ShowCaption = false;
+                    label(Disclaimer)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'AI-generated content may be incorrect.';
+                        Style = Subordinate;
+                    }
+                }
+            }
         }
     }
 
@@ -83,6 +115,9 @@ page 4303 "Agent Task Log Entry List"
         area(Promoted)
         {
             actionref(Refresh_Promoted; Refresh)
+            {
+            }
+            actionref(Feedback_Promoted; Feedback)
             {
             }
         }
@@ -97,6 +132,19 @@ page 4303 "Agent Task Log Entry List"
                 trigger OnAction()
                 begin
                     CurrPage.Update(false);
+                end;
+            }
+            action(Feedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Give Feedback';
+                ToolTip = 'Tell us what you think about the agent and suggest new features or improvements.';
+                Image = Comment;
+                Scope = Repeater;
+
+                trigger OnAction()
+                begin
+                    RequestFeedback();
                 end;
             }
         }
@@ -119,12 +167,21 @@ page 4303 "Agent Task Log Entry List"
         DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
         case Rec.Level of
             Rec.Level::Error:
-                TypeStyle := 'Unfavorable';
+                TypeStyle := Format(PageStyle::Unfavorable);
             Rec.Level::Warning:
-                TypeStyle := 'Ambiguous';
+                TypeStyle := Format(PageStyle::Ambiguous);
             else
-                TypeStyle := 'Standard';
+                TypeStyle := Format(PageStyle::Standard);
         end;
+    end;
+
+    local procedure RequestFeedback()
+    var
+        AgentUserFeedback: Codeunit "Agent User Feedback";
+        ContextProperties: Dictionary of [Text, Text];
+    begin
+        ContextProperties := AgentUserFeedback.InitializeAgentTaskContext(Rec."Task ID");
+        AgentUserFeedback.RequestFeedback(ContextProperties);
     end;
 
     var

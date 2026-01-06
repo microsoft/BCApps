@@ -436,6 +436,19 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
+    procedure GetAppPublisher(AppId: Guid) AppPublisher: Text
+    var
+        PublishedApplication: Record "Published Application";
+    begin
+        if PublishedApplication.ReadPermission then begin
+            PublishedApplication.SetRange(ID, AppId);
+            PublishedApplication.SetRange("Tenant Visible", true);
+
+            if PublishedApplication.FindFirst() then
+                AppPublisher := PublishedApplication.Publisher;
+        end;
+    end;
+
     internal procedure GetAppName(AppId: Guid; OperationId: Guid) AppName: Text
     begin
         AppName := GetAppName(AppId);
