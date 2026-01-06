@@ -63,7 +63,7 @@ page 4310 "Agent Setup Part"
 
                     trigger OnDrillDown()
                     begin
-                        if AgentSetup.SetupLanguageAndRegion(Rec) then begin
+                        if AgentSetup.OpenLanguageAndRegionSetup(Rec) then begin
                             UpdateAgentSummaryDisplayText();
                             CurrPage.Update(false);
                         end;

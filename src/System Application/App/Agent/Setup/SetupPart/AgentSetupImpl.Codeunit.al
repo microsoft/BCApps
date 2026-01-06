@@ -46,7 +46,7 @@ codeunit 4325 "Agent Setup Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure UpdateUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenAgentAccessControlSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
     begin
@@ -90,24 +90,26 @@ codeunit 4325 "Agent Setup Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure OpenAgentLookup() AgentUserSecurityId: Guid
+    procedure OpenAgentLookup(var AgentUserSecurityId: Guid): Boolean
     var
         Agent: Record Agent;
         AgentImpl: Codeunit "Agent Impl.";
     begin
         AgentImpl.SelectAgent(Agent);
-        exit(Agent."User Security ID");
+        AgentUserSecurityId := Agent."User Security ID";
+        exit(not IsNullGuid(AgentUserSecurityId));
     end;
 
     [Scope('OnPrem')]
-    procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider") AgentUserSecurityId: Guid
+    procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider"; var AgentUserSecurityId: Guid): Boolean
     var
         Agent: Record Agent;
         AgentImpl: Codeunit "Agent Impl.";
     begin
         Agent.SetRange("Agent Metadata Provider", AgentType);
         AgentImpl.SelectAgent(Agent);
-        exit(Agent."User Security ID");
+        AgentUserSecurityId := Agent."User Security ID";
+        exit(not IsNullGuid(AgentUserSecurityId));
     end;
 
     local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
@@ -139,7 +141,7 @@ codeunit 4325 "Agent Setup Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure SetupLanguageAndRegion(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenLanguageAndRegionSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
         UserSettings: Record "User Settings";
         Language: Codeunit Language;

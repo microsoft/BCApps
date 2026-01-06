@@ -58,10 +58,10 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the language and region settings were updated, false otherwise.</returns>
-    procedure SetupLanguageAndRegion(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenLanguageAndRegionSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentSetupImpl.SetupLanguageAndRegion(AgentSetupBuffer));
+        exit(AgentSetupImpl.OpenLanguageAndRegionSetup(AgentSetupBuffer));
     end;
 
     /// <summary>
@@ -80,10 +80,10 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the user access control settings were updated, false otherwise.</returns>
-    procedure SetupUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenAgentAccessControlSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentSetupImpl.UpdateUserAccessControl(AgentSetupBuffer));
+        exit(AgentSetupImpl.OpenAgentAccessControlSetup(AgentSetupBuffer));
     end;
 
     /// <summary>
@@ -101,10 +101,10 @@ codeunit 4324 "Agent Setup"
     /// Allows the user to select an agent out of the list of enabled agents.
     /// </summary>
     /// <returns>The security ID of the selected agent or the empty guid if none selected.</returns>
-    procedure OpenAgentLookup() AgentUserSecurityId: Guid
+    procedure OpenAgentLookup(var AgentUserSecurityId: Guid): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentSetupImpl.OpenAgentLookup());
+        exit(AgentSetupImpl.OpenAgentLookup(AgentUserSecurityId));
     end;
 
     /// <summary>
@@ -112,10 +112,10 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentType">The type of agent to filter the lookup on.</param>
     /// <returns>The security ID of the selected agent or the empty guid if none selected.</returns>
-    procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider") AgentUserSecurityId: Guid
+    procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider"; var AgentUserSecurityId: Guid): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentSetupImpl.OpenAgentLookup(AgentType));
+        exit(AgentSetupImpl.OpenAgentLookup(AgentType, AgentUserSecurityId));
     end;
 
     /// <summary>
@@ -147,7 +147,7 @@ codeunit 4324 "Agent Setup"
     procedure UpdateUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentSetupImpl.UpdateUserAccessControl(AgentSetupBuffer));
+        exit(AgentSetupImpl.OpenAgentAccessControlSetup(AgentSetupBuffer));
     end;
 
     var

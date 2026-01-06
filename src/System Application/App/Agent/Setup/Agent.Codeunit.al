@@ -143,14 +143,12 @@ codeunit 4321 Agent
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="ProfileID">The profile ID.</param>
     /// <param name="ProfileAppID">The profile App ID.</param>
-    procedure SetProfile(AgentUserSecurityID: Guid; ProfileID: Text[30]; ProfileAppID: Guid)
+    procedure SetProfile(AgentUserSecurityID: Guid; ProfileID: Text; ProfileAppID: Guid)
     var
-        TempAllProfile: Record "All Profile" temporary;
         AgentImpl: Codeunit "Agent Impl.";
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentImpl.PopulateProfileTempRecord(ProfileID, ProfileAppID, TempAllProfile);
-        AgentImpl.SetProfile(AgentUserSecurityID, TempAllProfile);
+        AgentImpl.SetProfile(AgentUserSecurityID, ProfileID, ProfileAppID);
     end;
 
     /// <summary>

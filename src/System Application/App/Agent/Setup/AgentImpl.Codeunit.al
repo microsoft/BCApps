@@ -148,6 +148,16 @@ codeunit 4301 "Agent Impl."
         SetProfile(Agent, AllProfile);
     end;
 
+    procedure SetProfile(AgentUserSecurityID: Guid; ProfileID: Text; ProfileAppID: Guid)
+    var
+        Agent: Record Agent;
+        TempAllProfile: Record "All Profile" temporary;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+        PopulateProfileTempRecord(CopyStr(ProfileID, 1, 30), ProfileAppID, TempAllProfile);
+        SetProfile(Agent, TempAllProfile);
+    end;
+
     local procedure SetProfile(Agent: Record Agent; var AllProfile: Record "All Profile")
     var
         UserSettingsRecord: Record "User Settings";
