@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Requisition;
+#if CLEAN27
+using Microsoft.Inventory.Setup;
+#endif
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Journal;
@@ -15,9 +18,6 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
-#if CLEAN27
-using Microsoft.Inventory.Setup;
-#endif
 
 codeunit 139984 "Sub. Library Mfg. Management"
 {
