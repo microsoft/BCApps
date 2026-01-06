@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-pageextension 99001509 "Sub. Subcont. Worksheet" extends "Subcontracting Wrksheet"
+using Microsoft.Manufacturing.Journal;
+
+pageextension 99001509 "Sub. Subcont. Worksheet" extends "Subcontracting Worksheet"
 {
     layout
     {
