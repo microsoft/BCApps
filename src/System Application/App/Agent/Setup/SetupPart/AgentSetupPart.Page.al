@@ -32,11 +32,11 @@ page 4310 "Agent Setup Part"
                     Editable = false;
                     ToolTip = 'The badge of the agent.';
                 }
-                field(Type; Rec."Agent Metadata Provider")
+                field(Type; AgentPublisherText)
                 {
                     ShowCaption = false;
                     Editable = false;
-                    ToolTip = 'Specifies the type of the agent.';
+                    ToolTip = 'Specifies the publisher/type of the agent.';
                 }
                 field(Name; Rec."Display Name")
                 {
@@ -64,7 +64,7 @@ page 4310 "Agent Setup Part"
                     trigger OnDrillDown()
                     begin
                         if AgentSetup.SetupLanguageAndRegion(Rec) then begin
-                            UpdateAgentSummaryDisplayText();
+                            UpdateAgentDisplayTexts();
                             CurrPage.Update(false);
                         end;
                     end;
@@ -110,7 +110,7 @@ page 4310 "Agent Setup Part"
     begin
         AgentSetup.GetSetupRecord(Rec, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
         AgentSummary := NewAgentSummary;
-        UpdateAgentSummaryDisplayText();
+        UpdateAgentDisplayTexts();
     end;
 
     /// <summary>
@@ -137,7 +137,7 @@ page 4310 "Agent Setup Part"
     begin
         AgentSetupImpl.CopyAgentSetupBuffer(Rec, AgentSetupBuffer);
         AgentSummary := AgentSetupImpl.GetAgentSummary(AgentSetupBuffer);
-        UpdateAgentSummaryDisplayText();
+        UpdateAgentDisplayTexts();
     end;
 
     /// <summary>
@@ -150,7 +150,7 @@ page 4310 "Agent Setup Part"
     procedure SetAgentSummary(NewAgentSummary: Text)
     begin
         AgentSummary := NewAgentSummary;
-        UpdateAgentSummaryDisplayText();
+        UpdateAgentDisplayTexts();
     end;
 
     /// <summary>
@@ -162,17 +162,34 @@ page 4310 "Agent Setup Part"
         exit(AgentSetup.GetChangesMade(Rec));
     end;
 
-    local procedure UpdateAgentSummaryDisplayText()
+    local procedure UpdateAgentDisplayTexts()
     var
         AgentSetupImpl: Codeunit "Agent Setup Impl.";
     begin
         AgentSummaryDisplayText := AgentSetupImpl.AppendAgentSummary(Rec, AgentSummary);
+        AgentPublisherText := GetAgentPublisherText();
+    end;
+
+    local procedure GetAgentPublisherText(): Text
+    begin
+        if not Rec."Show Publisher Name" then
+            exit('');
+
+        // TODO: To be replaced with an actual lookup.
+        if Rec."Agent Metadata Provider".AsInteger() = 4377 then
+            exit(UserCreatedAgentPublisherLbl);
+
+        // TODO: Replace 'Microsoft' with actual publisher name when available.
+        exit(StrSubstNo(AgentPublisherLbl, 'Microsoft'));
     end;
 
     var
         AgentSetup: Codeunit "Agent Setup";
         AgentSummaryDisplayText: Text;
         AgentSummary: Text;
+        AgentPublisherText: Text;
+        AgentPublisherLbl: Label 'By %1', Comment = '%1 is The agent publisher name';
+        UserCreatedAgentPublisherLbl: Label 'Agent';
         ManageUserAccessLbl: Label 'Manage user access';
         LanguageAndRegionLbl: Label 'Language and region';
 }
