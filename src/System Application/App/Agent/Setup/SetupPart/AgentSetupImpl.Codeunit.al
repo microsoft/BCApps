@@ -141,7 +141,7 @@ codeunit 4325 "Agent Setup Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure OpenLanguageAndRegionSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenLanguageAndRegionPage(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
         UserSettings: Record "User Settings";
         Language: Codeunit Language;

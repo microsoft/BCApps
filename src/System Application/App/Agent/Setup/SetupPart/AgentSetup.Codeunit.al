@@ -58,10 +58,10 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the language and region settings were updated, false otherwise.</returns>
-    procedure OpenLanguageAndRegionSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenLanguageAndRegionPage(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        exit(AgentSetupImpl.OpenLanguageAndRegionSetup(AgentSetupBuffer));
+        exit(AgentSetupImpl.OpenLanguageAndRegionPage(AgentSetupBuffer));
     end;
 
     /// <summary>
@@ -80,7 +80,7 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if the user access control settings were updated, false otherwise.</returns>
-    procedure OpenAgentAccessControlSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenAgentAccessControlPage(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.OpenAgentAccessControlSetup(AgentSetupBuffer));
