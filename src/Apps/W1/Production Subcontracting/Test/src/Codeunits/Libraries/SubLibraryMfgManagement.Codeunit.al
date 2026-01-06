@@ -4,17 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Routing;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Vendor;
 #if CLEAN27
 using Microsoft.Inventory.Setup;
 #endif

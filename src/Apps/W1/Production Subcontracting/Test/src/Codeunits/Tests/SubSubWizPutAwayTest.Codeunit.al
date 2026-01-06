@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.Subcontracting;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
 
 codeunit 139999 "Sub. Sub. Wiz. Put-Away Test"
 {
