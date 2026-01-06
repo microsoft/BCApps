@@ -215,7 +215,6 @@ codeunit 30103 "Shpfy Communication Mgt."
         RetryCounter: Integer;
     begin
         FeatureTelemetry.LogUptake('0000HUV', 'Shopify', Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000IF5', 'Shopify', 'Shopify web request executed.');
         if CheckOutgoingRequest then
             CheckOutgoingRequests(Url, Method, Request);
 
