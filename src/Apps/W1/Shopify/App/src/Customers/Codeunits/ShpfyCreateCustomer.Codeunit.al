@@ -122,6 +122,7 @@ codeunit 30110 "Shpfy Create Customer"
         CustomerTemplMgt: Codeunit "Customer Templ. Mgt.";
         UpdateCustomer: Codeunit "Shpfy Update Customer";
         ICounty: Interface "Shpfy ICounty";
+        ITaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
         CountryCode: Code[20];
         CurrentTemplateCode: Code[20];
         IsHandled: Boolean;
@@ -169,6 +170,9 @@ codeunit 30110 "Shpfy Create Customer"
 
         if CompanyLocation."Shpfy Payment Terms Id" <> 0 then
             Customer.Validate("Payment Terms Code", UpdateCustomer.GetPaymentTermsCodeFromShopifyPaymentTermsId(CompanyLocation."Shpfy Payment Terms Id"));
+
+        ITaxRegistrationIdMapping := Shop."Shpfy Comp. Tax Id Mapping";
+        ITaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, CompanyLocation."Tax Registration Id");
 
         Customer.Modify();
 
