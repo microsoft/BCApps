@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Structure;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Transfer;
 
 tableextension 99001502 "Sub. Prod Order Comp Ext." extends "Prod. Order Component"
 {
