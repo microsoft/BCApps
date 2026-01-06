@@ -15,14 +15,14 @@ pageextension 99001503 "Sub. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             field(Subcontracting; Rec.Subcontracting)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
             }
         }
         addbefore(Control1900383207)
         {
             part("Subc. Routing Info Factbox"; "Sub. Routing Info Factbox")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 SubPageLink = "Prod. Order No." = field("Prod. Order No."), "Routing No." = field("Routing No."), "Routing Reference No." = field("Routing Reference No."), "Operation No." = field("Operation No.");
             }
         }
@@ -33,7 +33,7 @@ pageextension 99001503 "Sub. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             action("Subcontracting Purchase Lines")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Purchase Order Lines';
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
@@ -45,7 +45,7 @@ pageextension 99001503 "Sub. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             action(CreateSubcontracting)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Create Subcontracting Order';
                 Image = CreateDocument;
                 ToolTip = 'Create Purchase Orders for Subcontracting directly from the Production Routing Line.';

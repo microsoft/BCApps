@@ -32,7 +32,7 @@ using Microsoft.CRM.Interaction;
 
 report 99001504 "Sub. Dispatching List"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Subcontractor - Dispatch List';
     DefaultLayout = Word;
     PreviewMode = PrintLayout;
@@ -1570,33 +1570,33 @@ report 99001504 "Sub. Dispatching List"
                     Caption = 'Options';
                     field(ArchiveDocument; ShouldArchiveDocument)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Archive Document';
                         ToolTip = 'Specifies whether to archive the order.';
                         Visible = false;
                     }
                     field(LogInteraction; ShouldLogInteraction)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Log Interaction';
                         Enabled = LogInteractionEnable;
                         ToolTip = 'Specifies if you want to log this interaction.';
                     }
                     field(SubcPrintAddressLine; PrintAddressLine)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Show Address Line';
                         ToolTip = 'Specifies if the address line is shown.';
                     }
                     field(SubcPrintFooterLine; PrintFooterLine)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Show Footer Line';
                         ToolTip = 'Specifies if the footer line is shown.';
                     }
                     field(SubcPrintBarCode; PrintBarCode)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Show Bar Code';
                         ToolTip = 'Specifies if the Barcode is shown.';
                     }

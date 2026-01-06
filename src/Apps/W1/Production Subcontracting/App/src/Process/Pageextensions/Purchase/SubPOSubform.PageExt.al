@@ -17,7 +17,7 @@ pageextension 99001524 "Sub. PO Subform" extends "Purchase Order Subform"
         {
             action(CreateProdOrder)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Create Production Order';
                 Image = CreateSerialNo;
                 ToolTip = 'Creates the production order belonging to the order for provision.';
@@ -35,7 +35,7 @@ pageextension 99001524 "Sub. PO Subform" extends "Purchase Order Subform"
                 Caption = 'Production';
                 action("Production Order")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order';
                     Image = Production;
                     ToolTip = 'Specifies the depended Production Order of this Subcontracting Purchase Order.';
@@ -46,7 +46,7 @@ pageextension 99001524 "Sub. PO Subform" extends "Purchase Order Subform"
                 }
                 action("Production Order Routing")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order Routing';
                     Image = Route;
                     ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
@@ -57,7 +57,7 @@ pageextension 99001524 "Sub. PO Subform" extends "Purchase Order Subform"
                 }
                 action("Production Order Components")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order Components';
                     Image = Components;
                     ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
@@ -68,7 +68,7 @@ pageextension 99001524 "Sub. PO Subform" extends "Purchase Order Subform"
                 }
                 action("Transfer Order")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Transfer Order';
                     Image = TransferOrder;
                     ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
@@ -79,7 +79,7 @@ pageextension 99001524 "Sub. PO Subform" extends "Purchase Order Subform"
                 }
                 action("Return Transfer Order")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Return Transfer Order';
                     Image = ReturnRelated;
                     ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';

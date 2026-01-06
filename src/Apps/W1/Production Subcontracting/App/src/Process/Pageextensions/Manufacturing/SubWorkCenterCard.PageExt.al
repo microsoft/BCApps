@@ -19,7 +19,7 @@ pageextension 99001506 "Sub. Work Center Card" extends "Work Center Card"
 
                 action("Subcontractor Prices")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Subcontractor Prices';
                     Enabled = EnableSubcontractorPrices;
                     Image = Price;

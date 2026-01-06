@@ -14,7 +14,7 @@ pageextension 99001520 "Sub. Location Card" extends "Location Card"
         {
             field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 ToolTip = 'Specifies if Direct Transfer should be posted separately as Shipment and Receipt or as single Direct Transfer document.';
             }
         }

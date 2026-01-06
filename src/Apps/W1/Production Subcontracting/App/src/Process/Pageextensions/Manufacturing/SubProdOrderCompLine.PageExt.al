@@ -14,12 +14,12 @@ pageextension 99001513 "Sub. ProdOrderCompLine" extends "Prod. Order Comp. Line 
         {
             field("Subcontracting Type"; Rec."Subcontracting Type")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Component.';
             }
             field("Routing Link Code"; Rec."Routing Link Code")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the routing link code when you calculate the production order.';
             }
         }

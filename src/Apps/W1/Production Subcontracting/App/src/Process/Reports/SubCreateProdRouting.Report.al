@@ -13,7 +13,7 @@ using System.Utilities;
 
 report 99001503 "Sub. Create Prod. Routing"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Create Production BOM, Routing BOM';
     ProcessingOnly = true;
     UsageCategory = Tasks;
@@ -105,13 +105,13 @@ report 99001503 "Sub. Create Prod. Routing"
                     Caption = 'Options';
                     field("Create Prod. BOM"; CreateProdBOM)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Create Prod. BOM';
                         ToolTip = 'Specifies whether to create a Production BOM for the selected Items.';
                     }
                     field("Create Routing"; CreateRouting)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Create Routing';
                         ToolTip = 'Specifies whether to create a Routing for the selected Items.';
                     }

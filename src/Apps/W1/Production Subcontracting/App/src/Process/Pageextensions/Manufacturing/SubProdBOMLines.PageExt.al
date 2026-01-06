@@ -14,7 +14,7 @@ pageextension 99001510 "Sub. Prod BOM Lines" extends "Production BOM Lines"
         {
             field("Subcontracting Type"; Rec."Subcontracting Type")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
             }
         }
     }

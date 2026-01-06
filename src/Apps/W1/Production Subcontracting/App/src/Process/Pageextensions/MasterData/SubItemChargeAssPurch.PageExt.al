@@ -15,7 +15,7 @@ pageextension 99001522 "Sub. ItemChargeAss.(Purch)" extends "Item Charge Assignm
         {
             action(GetReceiptLinesSubcontracting)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Get Receipt Lines for Subcontracting';
                 Image = Receipt;
                 ToolTip = 'Select a posted subcontracting purchase receipt for the item that you want to assign the item charge to, for example, if you received an invoice for the item charge after you posted the original purchase receipt.';
