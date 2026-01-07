@@ -26,8 +26,7 @@ codeunit 8021 "Text Management"
 
     procedure ReplaceInvalidFilterChar(var BaseText: Text)
     begin
-        BaseText := ConvertStr(BaseText, '()', '??');
-        BaseText := ConvertStr(BaseText, '<>', '??');
+        BaseText := ConvertStr(BaseText, '()<>=', '?????');
     end;
 
     procedure ShowFieldText(var RRef: RecordRef; FieldNo: Integer)
