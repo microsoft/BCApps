@@ -321,8 +321,13 @@
           "properties": {
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'[Temp Title] Temporarily Lost vs. Lost Customers'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "New and Returning Customer Sales Label"
                 }
               }
             }

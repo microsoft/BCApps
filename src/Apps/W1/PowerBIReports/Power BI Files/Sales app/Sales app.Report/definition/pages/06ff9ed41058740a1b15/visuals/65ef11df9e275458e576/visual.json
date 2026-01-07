@@ -329,8 +329,13 @@
           "properties": {
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'[Temp Title] New and Returning Customer Sales'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "New and Returning Customer Sales Label"
                 }
               }
             }

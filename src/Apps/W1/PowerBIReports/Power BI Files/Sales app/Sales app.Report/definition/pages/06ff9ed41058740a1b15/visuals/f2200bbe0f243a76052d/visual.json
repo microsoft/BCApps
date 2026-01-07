@@ -87,8 +87,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'[Temp Title] Customer Retention History'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Customer Retention History Label"
                 }
               }
             },

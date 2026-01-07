@@ -276,6 +276,22 @@ cultureInfo en-US
 					caption: Actual vs. Budget Sales (LCY) by Item
 				measure 'Year-To-Date Sales (LCY) Over Time'
 					caption: Year-To-Date Sales (LCY) Over Time
+				measure 'Customer Retention Overview'
+					caption: Customer Retention Overview
+				measure 'Customer Retention Over Time'
+					caption: Customer Retention Over Time
+				measure 'Customer Retention'
+					caption: Customer Retention
+				measure 'Customer Retention History'
+					caption: Customer Retention History
+				measure 'New and Returning Customers'
+					caption: New and Returning Customers
+				measure 'New and Returning Customer Sales'
+					caption: New and Returning Customer Sales
+				measure 'Temporarily Lost vs. Recovered Customers'
+					caption: Temporarily Lost vs. Recovered Customers
+				measure 'Temporarily Lost vs. Lost Customers'
+					caption: Temporarily Lost vs. Lost Customers
 
 	linguisticMetadata =
 			{

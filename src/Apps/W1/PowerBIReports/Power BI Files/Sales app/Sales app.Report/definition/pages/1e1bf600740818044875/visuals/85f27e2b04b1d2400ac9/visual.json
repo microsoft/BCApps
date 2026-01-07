@@ -213,8 +213,13 @@
           "properties": {
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'[Temp Title] Customer Retention'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Customer Retention Label"
                 }
               }
             }
@@ -253,6 +258,62 @@
         "type": "Advanced",
         "howCreated": "User",
         "isLockedInViewMode": true
+      },
+      {
+        "name": "5e0b70055800d48523a9",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "No. of Lost Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "af62abe6cab9aaccd384",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "No. of New Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "fe5891c41c9672c80099",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "No. of Recovered Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "1b580793b0020103be10",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "No. of Returning Customers"
+          }
+        },
+        "type": "Advanced"
       }
     ]
   }
