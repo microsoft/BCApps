@@ -95,7 +95,7 @@
             "webUrl": {
               "expr": {
                 "Literal": {
-                  "Value": "'https://learn.microsoft.com/dynamics365/business-central/sales-powerbi-customer-loyalty'"
+                  "Value": "'https://learn.microsoft.com/dynamics365/business-central/sales-powerbi-customer-retention-history'"
                 }
               }
             },

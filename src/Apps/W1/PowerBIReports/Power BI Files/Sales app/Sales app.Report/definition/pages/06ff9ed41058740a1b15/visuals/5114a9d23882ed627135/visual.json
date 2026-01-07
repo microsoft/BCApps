@@ -322,7 +322,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'[Temp Title]Temporarily Lost vs. Lost Customers'"
+                  "Value": "'[Temp Title] Temporarily Lost vs. Lost Customers'"
                 }
               }
             }
