@@ -62,7 +62,7 @@ page 8351 "MCP Config Card"
                 }
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
-                    Editable = not IsDefault and Rec.EnableDynamicToolMode and Rec.Active;
+                    Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
 
                     trigger OnValidate()
                     begin
