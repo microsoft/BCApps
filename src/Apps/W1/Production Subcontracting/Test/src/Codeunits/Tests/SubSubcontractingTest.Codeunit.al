@@ -37,7 +37,8 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Structure;
 
 codeunit 139989 "Sub. Subcontracting Test"
-{ // [FEATURE] Subcontracting Management
+{
+    // [FEATURE] Subcontracting Management
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
@@ -1584,7 +1585,7 @@ Comment = '|%1 = Transfer Order No.';
         Assert.Equal(Vendor."Subcontr. Location Code", PlanningComponent."Location Code");
     end;
 
-//    [Test]
+    [Test]
     procedure TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation()
     var
         ItemCharge: Record "Item Charge";
