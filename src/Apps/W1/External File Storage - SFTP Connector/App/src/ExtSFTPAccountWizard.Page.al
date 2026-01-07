@@ -10,7 +10,7 @@ using System.Environment;
 /// <summary>
 /// Displays an account that is being registered via the SFTP connector.
 /// </summary>
-page 4591 "Ext. SFTP Account Wizard"
+page 4622 "Ext. SFTP Account Wizard"
 {
     ApplicationArea = All;
     Caption = 'Setup SFTP Account';
@@ -122,7 +122,7 @@ page 4591 "Ext. SFTP Account Wizard"
                     Caption = 'Certificate';
                     Editable = false;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the certificate file used for authentication. Click here to upload a certificate file (.pfx, .cer, or .crt).';
+                    ToolTip = 'Specifies the key file used for authentication. Click here to upload a key file (.pk, .ppk, or .pub).';
 
                     trigger OnDrillDown()
                     begin

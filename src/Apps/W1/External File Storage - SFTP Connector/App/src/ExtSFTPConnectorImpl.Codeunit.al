@@ -10,7 +10,7 @@ using System.SFTPClient;
 using System.Text;
 using System.Utilities;
 
-codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Connector"
+codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Connector"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -76,7 +76,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
 
-        SFTPClient.GetFileAsStream(Path, TempBlobStream);
+        Response := SFTPClient.GetFileAsStream(Path, TempBlobStream);
         SFTPClient.Disconnect();
 
         // Platform fix: For some reason the Stream from GetFileAsStream dies after leaving the interface
@@ -97,11 +97,9 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     var
         SFTPClient: Codeunit "SFTP Client";
         Response: Codeunit "SFTP Operation Response";
-        ParentPath, FileName : Text;
     begin
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
-        SplitPath(Path, ParentPath, FileName);
 
         Response := SFTPClient.PutFileStream(Path, Stream);
         SFTPClient.Disconnect();
@@ -379,7 +377,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
 
         case NewAccount."Authentication Type" of
             Enum::"Ext. SFTP Auth Type"::Password:
-                NewAccount.SetPassword(Certificate);
+                NewAccount.SetPassword(Password);
             Enum::"Ext. SFTP Auth Type"::Certificate:
                 begin
                     NewAccount.SetCertificate(Certificate);
@@ -406,7 +404,7 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         if SFTPAccount.Disabled then
             Error(AccountDisabledErr, SFTPAccount.Name);
 
-        AddFingerPrints(SFTPAccount."Fingerprints", SFTPClient);
+        AddFingerprints(SFTPAccount."Fingerprints", SFTPClient);
 
         case SFTPAccount."Authentication Type" of
             Enum::"Ext. SFTP Auth Type"::Password:
@@ -451,12 +449,6 @@ codeunit 4599 "Ext. SFTP Connector Impl" implements "External File Storage Conne
             exit(Parent);
 
         exit(StrSubstNo(JoinPathTok, Parent.TrimEnd(PathSeparatorTok), Child.TrimStart(PathSeparatorTok)));
-    end;
-
-    local procedure SplitPath(Path: Text; var ParentPath: Text; var FileName: Text)
-    begin
-        ParentPath := Path.TrimEnd(PathSeparatorTok).Substring(1, Path.LastIndexOf(PathSeparatorTok));
-        FileName := Path.TrimEnd(PathSeparatorTok).Substring(Path.LastIndexOf(PathSeparatorTok) + 1);
     end;
 
     local procedure AddFingerprints(Fingerprints: Text; var SFTPClient: Codeunit "SFTP Client")

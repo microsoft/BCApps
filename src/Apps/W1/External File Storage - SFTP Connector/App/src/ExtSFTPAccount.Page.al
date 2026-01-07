@@ -8,7 +8,7 @@ namespace System.ExternalFileStorage;
 /// <summary>
 /// Displays an account that was registered via the SFTP connector.
 /// </summary>
-page 4590 "Ext. SFTP Account"
+page 4621 "Ext. SFTP Account"
 {
     ApplicationArea = All;
     Caption = 'SFTP Account';
@@ -53,14 +53,14 @@ page 4590 "Ext. SFTP Account"
                     ShowCaption = false;
                     Visible = PasswordVisible;
 
-                    field(PasswordField; Passowrd)
+                    field(PasswordField; Password)
                     {
                         Caption = 'Password';
                         ExtendedDatatype = Masked;
                         ToolTip = 'Specifies the Password to access the SFTP Server.';
                         trigger OnValidate()
                         begin
-                            Rec.SetPassword(Passowrd);
+                            Rec.SetPassword(Password);
                         end;
                     }
                 }
@@ -73,7 +73,7 @@ page 4590 "Ext. SFTP Account"
                     {
                         Caption = 'Certificate';
                         Editable = false;
-                        ToolTip = 'Specifies the certificate file used for authentication. Click here to upload a new certificate file (.pfx, .cer, or .crt).';
+                        ToolTip = 'Specifies the key file used for authentication. Click here to upload a key file (.pk, .ppk, or .pub).';
 
                         trigger OnDrillDown()
                         begin
@@ -105,7 +105,7 @@ page 4590 "Ext. SFTP Account"
         PasswordVisible: Boolean;
         CertificateVisible: Boolean;
         [NonDebuggable]
-        Passowrd: Text;
+        Password: Text;
         [NonDebuggable]
         CertificatePassword, Certificate : Text;
         CertificateStatusText: Text;
@@ -127,12 +127,12 @@ page 4590 "Ext. SFTP Account"
 
     local procedure MaskSensitiveFields()
     begin
-        Clear(Passowrd);
+        Clear(Password);
         Clear(Certificate);
         Clear(CertificatePassword);
 
         if not IsNullGuid(Rec."Password Key") then
-            Passowrd := '***';
+            Password := '***';
 
         if not IsNullGuid(Rec."Certificate Password Key") then
             CertificatePassword := '***';

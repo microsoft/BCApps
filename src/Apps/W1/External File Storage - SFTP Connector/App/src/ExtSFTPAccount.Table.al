@@ -11,7 +11,7 @@ using System.Utilities;
 /// <summary>
 /// Holds the information for all file accounts that are registered via the SFTP connector
 /// </summary>
-table 4590 "Ext. SFTP Account"
+table 4621 "Ext. SFTP Account"
 {
     Caption = 'SFTP Account';
     DataClassification = CustomerContent;

@@ -8,12 +8,12 @@ namespace System.ExternalFileStorage;
 /// <summary>
 /// Enum extension to register the SFTP connector.
 /// </summary>
-enumextension 4590 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
+enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
 {
     /// <summary>
     /// The SFTP connector.
     /// </summary>
-    value(4590; "SFTP")
+    value(4621; "SFTP")
     {
         Caption = 'SFTP';
         Implementation = "External File Storage Connector" = "Ext. SFTP Connector Impl";

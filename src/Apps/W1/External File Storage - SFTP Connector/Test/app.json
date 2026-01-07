@@ -41,8 +41,8 @@
   "platform": "28.0.0.0",
   "idRanges": [
     {
-      "from": 100000,
-      "to": 150000
+      "from": 144590,
+      "to": 144599 
     }
   ],
   "resourceExposurePolicy": {

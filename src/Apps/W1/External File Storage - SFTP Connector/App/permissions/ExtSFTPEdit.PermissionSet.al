@@ -5,7 +5,7 @@
 
 namespace System.ExternalFileStorage;
 
-permissionset 4590 "Ext. SFTP - Edit"
+permissionset 4621 "Ext. SFTP - Edit"
 {
     Access = Public;
     Assignable = false;

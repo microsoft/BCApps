@@ -55,7 +55,7 @@ codeunit 144591 "Ext. SFTP Connector Test"
     [Scope('OnPrem')]
     [HandlerFunctions('AccountRegisterPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure TestEnviromentCleanupDisablesAccounts()
+    procedure TestEnvironmentCleanupDisablesAccounts()
     var
         FileAccount: Record "File Account";
         ExtSFTPAccount: Record "Ext. SFTP Account";

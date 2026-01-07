@@ -5,7 +5,7 @@
 
 namespace System.ExternalFileStorage;
 
-permissionset 4594 "Ext. SFTP - Read"
+permissionset 4623 "Ext. SFTP - Read"
 {
     Access = Public;
     Assignable = false;

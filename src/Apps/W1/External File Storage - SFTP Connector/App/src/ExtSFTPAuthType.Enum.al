@@ -8,13 +8,13 @@ namespace System.ExternalFileStorage;
 /// <summary>
 /// Specifies the authentication types for SFTP accounts.
 /// </summary>
-enum 4595 "Ext. SFTP Auth Type"
+enum 4621 "Ext. SFTP Auth Type"
 {
     Extensible = false;
     Access = Public;
 
     /// <summary>
-    /// Authenticate password.
+    /// Authenticate using password.
     /// </summary>
     value(0; Password)
     {

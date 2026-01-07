@@ -5,7 +5,7 @@
 
 namespace System.ExternalFileStorage;
 
-permissionsetextension 4591 "File Storage - Edit - Ext. SFTP" extends "File Storage - Edit"
+permissionsetextension 4622 "File Storage - Edit - Ext. SFTP" extends "File Storage - Edit"
 {
     IncludedPermissionSets = "Ext. SFTP - Read";
 }
