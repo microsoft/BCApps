@@ -14,7 +14,7 @@ pageextension 99001515 "Sub. Planning Routing" extends "Planning Routing"
         {
             field("Routing Link Code"; Rec."Routing Link Code")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 ToolTip = 'Specifies the routing link code.';
                 Visible = false;

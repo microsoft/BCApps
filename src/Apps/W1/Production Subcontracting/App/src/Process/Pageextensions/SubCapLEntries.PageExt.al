@@ -14,19 +14,19 @@ pageextension 99001502 "Sub. CapLEntries" extends "Capacity Ledger Entries"
         {
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
             field("Subcontractor No."; Rec."Subcontractor No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related subcontractor.';
                 Visible = false;
             }
@@ -39,9 +39,10 @@ pageextension 99001502 "Sub. CapLEntries" extends "Capacity Ledger Entries"
             group(Production)
             {
                 Caption = 'Production';
+
                 action("Purchase Order")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Purchase Order';
                     Image = Order;
                     ToolTip = 'Specifies the depended Purchase Order of this Subcontracting Transfer Order.';

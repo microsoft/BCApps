@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.ProductionBOM;
 
 page 99001506 "Sub. Temp BOM Lines"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     AutoSplitKey = true;
     Caption = 'Temporary Production BOM Lines';
     DelayedInsert = true;
@@ -78,7 +78,7 @@ page 99001506 "Sub. Temp BOM Lines"
                 field("Subcontracting Type"; Rec."Subcontracting Type")
                 {
                     ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production BOM Line.';
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     trigger OnValidate()
                     begin
                         if Rec."Subcontracting Type" = Rec."Subcontracting Type"::Purchase then

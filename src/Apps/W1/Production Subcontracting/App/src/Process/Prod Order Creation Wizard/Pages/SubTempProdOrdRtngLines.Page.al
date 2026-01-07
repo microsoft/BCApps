@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 
 page 99001509 "Sub. TempProdOrdRtngLines"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Temporary Prod. Order Routing Lines';
     DelayedInsert = true;
     PageType = ListPart;
