@@ -208,7 +208,9 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy GQL Location" = X,
         codeunit "Shpfy GQL LocationGroups" = X,
 #if not CLEAN28
+#pragma warning disable AL0432
         codeunit "Shpfy GQL LocationOrderLines" = X,
+#pragma warning restore AL0432
 #endif
         codeunit "Shpfy GQL Locations" = X,
         codeunit "Shpfy GQL Market Catalogs" = X,
