@@ -39,7 +39,7 @@ annotation __TEdtr = 1
 
 annotation PBI_ProTooling = ["DevMode","DaxQueryView_Desktop","TMDL-Extension"]
 
-annotation TranslationsBuilder = Version:2.2-Updated:2025-05-06
+annotation TranslationsBuilder = Version:2.2-Updated:2026-01-07
 
 ref table Item
 ref table Location
