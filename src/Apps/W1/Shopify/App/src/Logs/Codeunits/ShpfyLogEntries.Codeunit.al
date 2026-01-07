@@ -21,7 +21,7 @@ codeunit 30430 "Shpfy Log Entries"
         DownloadTitleLbl: Label 'Download Escalation Report';
         SubjectLbl: Label 'Subject: Technical Escalation: GraphQL 500 Error', Comment = 'GraphQL should not be translated.';
         IssueDescriptionLbl: Label 'Issue Description: I am a merchant using the Business Central app. A 500 Internal Server Error occurring during a specific process.';
-        ImpactLbl: Label 'Impact: [Example: Unable to sync inventory / Orders not exporting]';
+        ImpactLbl: Label 'Impact: [Example: Unable to sync orders / Inventory not exporting]';
         ServerSideNoteLbl: Label 'The test shows that this is a server-side response and not a local browser or network issue.';
         EscalateNoteLbl: Label 'Please escalate this ticket to the Technical Support or Developer Support team to investigate the internal logs associated with the provided Request ID.';
         TechnicalDetailsLbl: Label 'Technical Details for Tier 2/Developer Support:';
@@ -29,7 +29,7 @@ codeunit 30430 "Shpfy Log Entries"
         TimestampLbl: Label 'Timestamp: %1 UTC', Comment = '%1 = Date and time';
         StoreUrlLbl: Label 'Store URL: %1', Comment = '%1 = Store URL';
         ApiVersionLbl: Label 'API Version: %1', Comment = '%1 = API version';
-        AppNameLbl: Label 'App: Business Central Shopify Connector';
+        AppNameLbl: Label 'App: Dynamics 365 Business Central';
         RequestLbl: Label 'Request:';
         ResponseLbl: Label 'Response:';
         DownloadRequestTitleLbl: Label 'Download Request file';
@@ -131,6 +131,7 @@ codeunit 30430 "Shpfy Log Entries"
         StoreUrl := ExtractStoreUrlFromLogUrl(LogEntry.URL);
 
         Shop.SetFilter("Shopify URL", '@*' + StoreUrl + '*');
+        Shop.SetRange(Enabled, true);
         if not Shop.FindFirst() then
             Error(ShopNotFoundErr);
     end;
