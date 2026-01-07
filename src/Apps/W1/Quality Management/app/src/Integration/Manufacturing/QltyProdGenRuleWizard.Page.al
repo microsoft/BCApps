@@ -157,7 +157,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     field(ChooseRoutingNoFilter; RoutingNoFilter)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Routing No.';
                         ToolTip = 'Specifies which Routing?';
 
@@ -174,7 +174,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     }
                     field(ChooseOperationNo; OperationNo)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Operation No.';
                         ToolTip = 'Specifies which operation?';
 
@@ -191,7 +191,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     }
                     field(ChooseWorkCenterNo; WorkCenterNo)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Work Center No.';
                         ToolTip = 'Specifies a work center.';
 
@@ -208,7 +208,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     }
                     field(ChooseSpecificMachineNoFilter; SpecificNoFilter)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Machine No.';
                         ToolTip = 'Specifies which machine?';
 
@@ -409,7 +409,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                     field(ChooseProdOrderRoutingLineRuleFilter; ProdOrderRoutingLineRuleFilter)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Filters';
                         ToolTip = 'Specifies additional filters you may need to review and set.';
                         MultiLine = true;
@@ -462,7 +462,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 
                         field(ChooseeAutomaticallyCreateProductionInspection; QltyProductionTrigger)
                         {
-                            ApplicationArea = All;
+                            ApplicationArea = Manufacturing;
                             Caption = 'Automatically Create Inspection';
                             ToolTip = 'Specifies whether to automatically create an inspection when product is produced.';
                         }

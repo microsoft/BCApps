@@ -233,7 +233,7 @@ page 20407 "Qlty. Inspection Subform"
                 {
                     StyleExpr = ResultStyleExpr;
                 }
-                field("Result Priority"; Rec."Result Priority")
+                field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {
                     Visible = false;
                 }

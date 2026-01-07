@@ -81,7 +81,7 @@ page 20413 "Qlty. Inspection Lines"
                 field("Result Description"; Rec."Result Description")
                 {
                 }
-                field("Result Priority"; Rec."Result Priority")
+                field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {
                     Visible = false;
                 }

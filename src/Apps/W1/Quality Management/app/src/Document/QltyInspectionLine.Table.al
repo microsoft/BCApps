@@ -20,6 +20,7 @@ table 20406 "Qlty. Inspection Line"
 {
     Caption = 'Quality Inspection Line';
     LookupPageId = "Qlty. Inspection Lines";
+    DrillDownPageId = "Qlty. Inspection Lines";
     DataClassification = CustomerContent;
 
     fields
@@ -154,7 +155,7 @@ table 20406 "Qlty. Inspection Line"
                 QltyResult: Record "Qlty. Inspection Result";
             begin
                 if QltyResult.Get(Rec."Result Code") then begin
-                    Rec."Result Priority" := QltyResult."Evaluation Sequence";
+                    Rec."Evaluation Sequence" := QltyResult."Evaluation Sequence";
                     Rec.CalcFields("Result Description");
                 end;
             end;
@@ -168,12 +169,12 @@ table 20406 "Qlty. Inspection Line"
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
             ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
         }
-        field(30; "Result Priority"; Integer)
+        field(30; "Evaluation Sequence"; Integer)
         {
             Editable = false;
-            Description = 'The associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
-            Caption = 'Result Priority';
-            ToolTip = 'Specifies the associated result priority for this test result. The result is automatically determined based on the test value and result configuration.';
+            Description = 'The associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            Caption = 'Evaluation Sequence';
+            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
         }
         field(33; "Failure State"; Enum "Qlty. Line Failure State")
         {
@@ -201,9 +202,9 @@ table 20406 "Qlty. Inspection Line"
         }
         key(byResult; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", "Result Code")
         {
-            SumIndexFields = "Result Priority";
+            SumIndexFields = "Evaluation Sequence";
         }
-        key(byResultPriority; "Template Code", "Inspection No.", "Re-inspection No.", "Result Priority")
+        key(byEvaluationSequence; "Template Code", "Inspection No.", "Re-inspection No.", "Evaluation Sequence")
         {
         }
         key(byDate; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
