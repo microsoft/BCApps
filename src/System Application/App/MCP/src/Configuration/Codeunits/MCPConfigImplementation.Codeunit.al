@@ -581,14 +581,28 @@ codeunit 8351 "MCP Config Implementation"
     end;
 
     internal procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    var
+        // MCPUtilities: Codeunit "MCP Utilities";
+        SystemTools: Dictionary of [Text, Text];
+        ToolName: Text;
     begin
-        // TODO: Replace after platform API to retrieve system tools is available
         MCPSystemTool.Reset();
         MCPSystemTool.DeleteAll();
 
-        InsertSystemTool(MCPSystemTool, 'bc_action_describe', 'Describes a Business Central action, providing details about its parameters and usage.');
-        InsertSystemTool(MCPSystemTool, 'bc_action_invoke', 'Invokes a Business Central action with the specified parameters.');
-        InsertSystemTool(MCPSystemTool, 'bc_action_search', 'Searches for available Business Central actions based on the provided criteria.');
+        // SystemTools := MCPUtilities.GetSystemToolsInDynamicMode(); TODO
+        SystemTools := GetSystemTools();
+        foreach ToolName in SystemTools.Keys() do
+            InsertSystemTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
+    end;
+
+    local procedure GetSystemTools(): Dictionary of [Text, Text]
+    var
+        SystemTools: Dictionary of [Text, Text];
+    begin
+        SystemTools.Add('bc_action_search', 'Searches for available Business Central actions based on the provided criteria.');
+        SystemTools.Add('bc_action_describe', 'Describes a Business Central action, providing details about its parameters and usage.');
+        SystemTools.Add('bc_action_invoke', 'Invokes a Business Central action with the specified parameters.');
+        exit(SystemTools);
     end;
 
     local procedure InsertSystemTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])

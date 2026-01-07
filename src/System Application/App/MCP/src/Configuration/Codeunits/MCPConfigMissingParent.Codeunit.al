@@ -5,6 +5,8 @@
 
 namespace System.MCP;
 
+using System.Reflection;
+
 codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
 {
     Access = Internal;
@@ -12,18 +14,66 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
     InherentPermissions = X;
 
     var
-        MissingParentWarningLbl: Label 'This API page has a parent page that is not included in the configuration.';
+        MissingParentWarningLbl: Label 'This API page is missing parent page(s): %1', Comment = '%1 = comma-separated list of missing parent page IDs';
         MissingParentFixLbl: Label 'Add the parent API pages to the configuration.';
 
     procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        PageMetadata: Record "Page Metadata";
+        // MCPUtilities: Codeunit "MCP Utilities";
+        PageIdVersions: Dictionary of [Integer, Text];
+        ParentMCPTools: Dictionary of [Integer, List of [Integer]];
+        ParentPageIds: List of [Integer];
+        MissingParentIds: List of [Integer];
+        PageId: Integer;
+        ParentPageId: Integer;
+        MissingParentsText: Text;
     begin
-        EntryNo += 0;
-        // TODO: Implement after platform support for parent-child relationships of API pages
+        // Build dictionary of page IDs and API versions from configuration tools
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        MCPConfigurationTool.SetRange("Object Type", MCPConfigurationTool."Object Type"::Page);
+        if not MCPConfigurationTool.FindSet() then
+            exit;
+
+        repeat
+            if PageMetadata.Get(MCPConfigurationTool."Object ID") then
+                PageIdVersions.Add(MCPConfigurationTool."Object ID", PageMetadata.APIVersion);
+        until MCPConfigurationTool.Next() = 0;
+
+        // Get parent mappings from platform
+        // ParentMCPTools := MCPUtilities.GetParentMCPTools(PageIdVersions); TODO
+
+        // Check each page with parents for missing parent tools
+        foreach PageId in ParentMCPTools.Keys() do begin
+            ParentPageIds := ParentMCPTools.Get(PageId);
+            Clear(MissingParentIds);
+
+            // Check if each parent exists in the configuration
+            foreach ParentPageId in ParentPageIds do
+                if not PageIdVersions.ContainsKey(ParentPageId) then
+                    MissingParentIds.Add(ParentPageId);
+
+            // Create warning if there are missing parents
+            if MissingParentIds.Count() > 0 then begin
+                // Get the tool record to retrieve its SystemId
+                MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Page, PageId);
+
+                MissingParentsText := FormatPageIdList(MissingParentIds);
+                MCPConfigWarning."Entry No." := EntryNo;
+                MCPConfigWarning."Config Id" := ConfigId;
+                MCPConfigWarning."Tool Id" := MCPConfigurationTool.SystemId;
+                MCPConfigWarning."Warning Type" := MCPConfigWarning."Warning Type"::"Missing Parent Object";
+                MCPConfigWarning."Additional Info" := CopyStr(MissingParentsText, 1, MaxStrLen(MCPConfigWarning."Additional Info"));
+                MCPConfigWarning.Insert();
+                EntryNo += 1;
+            end;
+        end;
     end;
 
     procedure WarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
     begin
-        exit(MissingParentWarningLbl); // TODO: Enhance message with specific parent details.
+        exit(StrSubstNo(MissingParentWarningLbl, MCPConfigWarning."Additional Info"));
     end;
 
     procedure RecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text
@@ -32,7 +82,33 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
     end;
 
     procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
+    var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        PageIdList: List of [Text];
+        PageIdText: Text;
+        PageId: Integer;
     begin
-        // TODO: Implement logic to add the parent API page to the configuration.
+        if MCPConfigWarning."Additional Info" = '' then
+            exit;
+
+        // Parse comma-separated page IDs and add each as a tool
+        PageIdList := MCPConfigWarning."Additional Info".Split(',');
+        foreach PageIdText in PageIdList do
+            if Evaluate(PageId, PageIdText.Trim()) then
+                MCPConfigImplementation.CreateAPITool(MCPConfigWarning."Config Id", PageId, false);
+
+        MCPConfigWarning.Delete();
+    end;
+
+    local procedure FormatPageIdList(PageIds: List of [Integer]): Text
+    var
+        PageId: Integer;
+        Result: TextBuilder;
+    begin
+        foreach PageId in PageIds do begin
+            Result.Append(Format(PageId));
+            Result.Append(', ');
+        end;
+        exit(Result.ToText().TrimEnd(', '));
     end;
 }

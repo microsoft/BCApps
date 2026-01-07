@@ -34,6 +34,11 @@ table 8352 "MCP Config Warning"
             Caption = 'Warning Type';
             ToolTip = 'Specifies the type of warning.';
         }
+        field(5; "Additional Info"; Text[2048])
+        {
+            Caption = 'Additional Info';
+            ToolTip = 'Specifies additional information about the warning, such as missing parent page IDs.';
+        }
     }
 
     keys
