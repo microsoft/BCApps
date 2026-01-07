@@ -18,7 +18,7 @@ codeunit 30356 "Shpfy GQL Get Fulfillments" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query": "{order (id: \"gid://shopify/Order/{{OrderId}}\") { fulfillmentOrders ( first: {{NumberOfOrders}}) { nodes { id }}}}"}');
+        exit('{"query": "{order (id: \"gid://shopify/Order/{{OrderId}}\") { fulfillmentOrders (first: 250) { pageInfo { endCursor hasNextPage } nodes { id }}}}"}');
     end;
 
     /// <summary>
@@ -27,7 +27,7 @@ codeunit 30356 "Shpfy GQL Get Fulfillments" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(4);
+        exit(14);
     end;
 }
 

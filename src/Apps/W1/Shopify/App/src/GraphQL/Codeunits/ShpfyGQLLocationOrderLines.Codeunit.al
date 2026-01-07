@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,9 @@ namespace Microsoft.Integration.Shopify;
 codeunit 30134 "Shpfy GQL LocationOrderLines" implements "Shpfy IGraphQL"
 {
     Access = Internal;
+    ObsoleteReason = 'This request is no longer used.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     /// <summary>
     /// GetGraphQL.
@@ -27,7 +31,8 @@ codeunit 30134 "Shpfy GQL LocationOrderLines" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(6);
+        exit(25);
     end;
 
 }
+#endif
