@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Inventory.Transfer;
-using Microsoft.Sales.Customer;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 tableextension 99001524 "Sub. DirectTransHeader Ext." extends "Direct Trans. Header"
 {
