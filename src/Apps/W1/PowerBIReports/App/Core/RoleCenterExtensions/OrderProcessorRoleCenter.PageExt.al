@@ -146,7 +146,7 @@ pageextension 36954 "Order Processor Role Center" extends "Order Processor Role 
                 action("Customer Retention Overview (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Customer Retention OverviewPower BI)';
+                    Caption = 'Customer Retention Overview (Power BI)';
                     Image = "PowerBI";
                     RunObject = page "Customer Retention Overview";
                     Tooltip = 'Open the Power BI Report that analyzes customer retention, providing insights into repeat purchase behavior, customer loyalty, and trends in customer churn over time.';
