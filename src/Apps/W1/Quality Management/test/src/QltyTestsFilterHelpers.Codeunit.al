@@ -2048,7 +2048,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [SCENARIO] Validate where clause cleanup reducing length to 400 characters or less
 
         // [WHEN] CleanUpWhereClause400 is called with input where clause
-        Output := QltyFilterHelpers.CleanUpWhereClause400(InputWhereClause400Tok);
+        Output := QltyFilterHelpers.CleanUpWhereClause(InputWhereClause400Tok);
 
         // [THEN] The output length is 400 characters or less
         LibraryAssert.IsTrue(StrLen(Output) <= 400, 'Should reduce length to 250 characters or less');
