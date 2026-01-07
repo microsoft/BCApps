@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Location;
 
 codeunit 139997 "Sub. Sub. Wiz. Source Test"
 {

@@ -4,23 +4,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Subcontracting;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Planning;
-using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Planning;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 139992 "Sub. Subcontracting Sync Test"
 { // [FEATURE] Subcontracting Management
