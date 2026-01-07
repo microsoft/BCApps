@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
-using Microsoft.Foundation.Enums;
-using Microsoft.Manufacturing.Capacity;
 codeunit 99001535 "Sub. Purch. Post Ext"
 {
     var

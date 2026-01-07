@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Subcontracting;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Inventory.Item;
-using System.Utilities;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 codeunit 139991 "Sub. Purch. Subcont. Test"
 {

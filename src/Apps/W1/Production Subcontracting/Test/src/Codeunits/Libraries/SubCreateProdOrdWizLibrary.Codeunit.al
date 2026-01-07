@@ -4,17 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 139986 "Sub. CreateProdOrdWizLibrary"
 {

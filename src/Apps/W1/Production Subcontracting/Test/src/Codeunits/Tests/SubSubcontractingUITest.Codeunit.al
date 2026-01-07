@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using System.Reflection;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Inventory.Planning;
-using Microsoft.Manufacturing.Subcontracting;
-using Microsoft.Manufacturing.Journal;
+using System.Reflection;
 
 codeunit 139990 "Sub. Subcontracting UI Test"
 {
