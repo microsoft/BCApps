@@ -199,8 +199,13 @@ table 4621 "Ext. SFTP Account"
 
     local procedure TryDeleteIsolatedStorageValue(StorageKey: Guid)
     begin
-        if not IsNullGuid(StorageKey) then
-            if IsolatedStorage.Delete(StorageKey, DataScope::Company) then;
+        if IsNullGuid(StorageKey) then
+            exit;
+
+        if not IsolatedStorage.Contains(Format(StorageKey), DataScope::Company) then
+            exit;
+
+        IsolatedStorage.Delete(StorageKey, DataScope::Company);
     end;
 
     local procedure SetIsolatedStorageValue(StorageKey: Guid; Value: SecretText; ErrorMessage: Text)

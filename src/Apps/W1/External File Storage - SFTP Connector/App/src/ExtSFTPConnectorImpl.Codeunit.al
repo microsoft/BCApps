@@ -79,12 +79,12 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         Response := SFTPClient.GetFileAsStream(Path, TempBlobStream);
         SFTPClient.Disconnect();
 
+        if Response.IsError() then
+            ShowError(Response);
+
         // Platform fix: For some reason the Stream from GetFileAsStream dies after leaving the interface
         Content.WriteFrom(TempBlobStream);
         Content.ReadAs(Stream);
-
-        if Response.IsError() then
-            ShowError(Response);
     end;
 
     /// <summary>
@@ -363,6 +363,12 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         if TempAccount."Base Relative Folder Path" = '' then
             exit(false);
 
+        if TempAccount.Username = '' then
+            exit(false);
+
+        if TempAccount.Port = 0 then
+            exit(false);
+
         exit(true);
     end;
 
@@ -372,8 +378,6 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     begin
         NewAccount.TransferFields(AccountToCopy);
         NewAccount.Id := CreateGuid();
-
-        NewAccount.SetPassword(Password);
 
         case NewAccount."Authentication Type" of
             Enum::"Ext. SFTP Auth Type"::Password:
@@ -425,9 +429,9 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
 
     local procedure ShowError(var Response: Codeunit "SFTP Operation Response")
     var
-        ErrorOccuredErr: Label 'An error occured.\%1', Comment = '%1 - Error message from SFTP Server';
+        ErrorOccurredErr: Label 'An error occurred.\%1', Comment = '%1 - Error message from SFTP Server';
     begin
-        Error(ErrorOccuredErr, Response.GetError());
+        Error(ErrorOccurredErr, Response.GetError());
     end;
 
     local procedure InitPath(AccountId: Guid; var Path: Text)
@@ -463,13 +467,20 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     var
         SHA256PrefixTok: Label 'sha256:', Locked = true;
         MD5PrefixTok: Label 'md5:', Locked = true;
+        InvalidFingerprintErr: Label 'Fingerprint must start with "md5:" or "sha256:".';
     begin
         Fingerprint := Fingerprint.Trim();
-        if Fingerprint.StartsWith(SHA256PrefixTok) then
-            SFTPClient.AddFingerprintSHA256(Fingerprint.Substring(StrLen(SHA256PrefixTok) + 1))
-        else
-            if Fingerprint.StartsWith(MD5PrefixTok) then
+        if Fingerprint = '' then
+            exit;
+
+        case true of
+            Fingerprint.StartsWith(SHA256PrefixTok):
+                SFTPClient.AddFingerprintSHA256(Fingerprint.Substring(StrLen(SHA256PrefixTok) + 1));
+            Fingerprint.StartsWith(MD5PrefixTok):
                 SFTPClient.AddFingerprintMD5(Fingerprint.Substring(StrLen(MD5PrefixTok) + 1));
+            else
+                Error(InvalidFingerprintErr);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearCompanyConfig, '', false, false)]
