@@ -35,7 +35,8 @@ codeunit 4301 "Agent Impl."
         Agent.Insert(true);
 
         if TempAgentAccessControl.IsEmpty() then
-            GetUserAccess(Agent, TempAgentAccessControl, true);
+            // If no access control is provided, the server is giving access to the user creating the agent.
+            GetUserAccess(Agent, TempAgentAccessControl);
 
         AssignCompany(Agent."User Security ID", CompanyName());
         AssignDefaultProfile(Agent."User Security ID");
@@ -54,33 +55,16 @@ codeunit 4301 "Agent Impl."
         ChangeAgentState(AgentUserSecurityID, false);
     end;
 
-    procedure InsertCurrentOwnerIfNoOwnersDefined(var Agent: Record Agent; var AgentAccessControl: Record "Agent Access Control")
-    begin
-        SetOwnerFilters(AgentAccessControl);
-        AgentAccessControl.SetRange("Agent User Security ID", Agent."User Security ID");
-        if not AgentAccessControl.IsEmpty() then
-            exit;
-        InsertCurrentOwner(Agent."User Security ID", AgentAccessControl);
-    end;
-
-    procedure InsertCurrentOwner(AgentUserSecurityID: Guid; var AgentAccessControl: Record "Agent Access Control")
-    begin
-        AgentAccessControl."Can Configure Agent" := true;
-        AgentAccessControl."Agent User Security ID" := AgentUserSecurityID;
-        AgentAccessControl."User Security ID" := UserSecurityId();
-        AgentAccessControl.Insert();
-    end;
-
     procedure GetUserAccess(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         Agent: Record Agent;
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        GetUserAccess(Agent, TempAgentAccessControl, false);
+        GetUserAccess(Agent, TempAgentAccessControl);
     end;
 
-    local procedure GetUserAccess(var Agent: Record Agent; var TempAgentAccessControl: Record "Agent Access Control" temporary; InsertCurrentUserAsOwner: Boolean)
+    local procedure GetUserAccess(var Agent: Record Agent; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         AgentAccessControl: Record "Agent Access Control";
     begin
@@ -88,13 +72,8 @@ codeunit 4301 "Agent Impl."
         TempAgentAccessControl.DeleteAll();
 
         AgentAccessControl.SetRange("Agent User Security ID", Agent."User Security ID");
-        if AgentAccessControl.IsEmpty() then begin
-            if not InsertCurrentUserAsOwner then
-                exit;
-
-            InsertCurrentOwnerIfNoOwnersDefined(Agent, TempAgentAccessControl);
+        if AgentAccessControl.IsEmpty() then
             exit;
-        end;
 
         AgentAccessControl.FindSet();
         repeat
@@ -413,11 +392,6 @@ codeunit 4301 "Agent Impl."
 
         if not (Page.RunModal(Page::"Agent List", Agent) in [Action::LookupOK, Action::OK]) then
             Error('');
-    end;
-
-    local procedure SetOwnerFilters(var AgentAccessControl: Record "Agent Access Control")
-    begin
-        AgentAccessControl.SetFilter("Can Configure Agent", '%1', true);
     end;
 
     procedure ShowNoAgentsAvailableNotification()
