@@ -6,9 +6,9 @@
 namespace System.Integration.Sharepoint;
 
 using System.Integration.Graph;
-using System.Utilities;
 using System.Integration.Graph.Authorization;
 using System.RestClient;
+using System.Utilities;
 
 /// <summary>
 /// Provides functionality for interacting with SharePoint through Microsoft Graph API.
