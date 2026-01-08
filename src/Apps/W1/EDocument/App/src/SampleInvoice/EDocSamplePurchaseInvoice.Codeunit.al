@@ -13,8 +13,8 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using System.Utilities;
 using System.Reflection;
+using System.Utilities;
 
 /// <summary>
 /// The purpose of the codeunit is to generate sample purchase invoices in PDF format.

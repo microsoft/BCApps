@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.Foundation.Reporting;
 using System.IO;
 using System.Utilities;
-using Microsoft.Foundation.Reporting;
 
 /// <summary>
 /// Facade codeunit for managing sample purchase invoice PDF generation.
