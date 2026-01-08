@@ -1,11 +1,5 @@
 [
     {
-        "FeatureName": "The list is being prepared",
-        "Description": "We are currently preparing the list of early access preview features. Please check back later for updates.",
-        "HelpURL": "https://learn.microsoft.com/dynamics365/business-central",
-        "VideoURL": ""
-    },
-    {
         "FeatureName": "Create contract service orders with respect to the One Service Item Line/Order setting",
         "Description": "Ensure consistent service order creation by enforcing the One Service Item Line/Order rule when generating orders from service contracts.  Start by reviewing the **One Service Item Line/Order** field on the **Service Management Setup** page to understand whether orders will be split per service item or combined. Open the **Create Contract Service Orders** page, set the **Starting Date** and **Ending Date**, and apply filters as needed. Run the batch to automatically create service orders for planned service dates.",
         "HelpURL": "",
