@@ -100,6 +100,11 @@ codeunit 20402 "Qlty. Auto Configure"
         AssemblyOutputToInspectDescriptionTok: Label 'Posted Assembly Header to Inspect', Locked = true;
         ResourceBasedInstallFileTok: Label 'InstallFiles/PackageQM-EXPRESSDEMO.rapidstart', Locked = true;
 
+    internal procedure GetDefaultPassResult(): Text
+    begin
+        exit(DefaultResult2PassCodeTok);
+    end;
+
     internal procedure EnsureBasicSetupExists(ShowMessage: Boolean)
     begin
         EnsureSetupRecordExists();
