@@ -118,10 +118,9 @@ page 6115 "New E-Documents API"
         GetFileContent(FileContent, TempBlob);
         TempBlob.CreateInStream(Instream, TextEncoding::UTF8);
         EDocumentImport.CreateFromType(EDocument, EDocumentServiceVar, FileType, Rec."File Name", Instream);
-        if ProcessDocument then begin
+        if ProcessDocument then
             if EDocumentImport.ProcessAutomaticallyIncomingEDocument(EDocument) then;
-            Rec := EDocument;
-        end;
+        Rec := EDocument;
         exit(false);
     end;
 
