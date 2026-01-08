@@ -99,6 +99,26 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Finds warnings for the specified MCP configuration, such as missing objects or missing parent objects.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration to find warnings for.</param>
+    /// <param name="MCPConfigWarning">A temporary record variable to hold the found warnings.</param>
+    /// <returns>True if any warnings were found; otherwise, false.</returns>
+    procedure FindWarningsForConfiguration(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"): Boolean
+    begin
+        exit(MCPConfigImplementation.FindWarningsForConfiguration(ConfigId, MCPConfigWarning));
+    end;
+
+    /// <summary>
+    /// Applies the recommended action for the specified warning.
+    /// </summary>
+    /// <param name="MCPConfigWarning">The warning record to apply the recommended action for.</param>
+    procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
+    begin
+        MCPConfigImplementation.ApplyRecommendedAction(MCPConfigWarning);
+    end;
+
+    /// <summary>
     /// Creates a new API tool for the specified configuration and API page.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
