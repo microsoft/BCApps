@@ -18,6 +18,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     TableNo = "Qlty. Inspection Line";
 
     var
+        QltyLocalization: Codeunit "Qlty. Localization";
         IsDefaultNumberTok: Label '<>0', Locked = true;
         IsDefaultTextTok: Label '<>''''', Locked = true;
         InvalidDataTypeErr: Label 'The value "%1" is not allowed for %2, it is not a %3.', Comment = '%1=the value, %2=field name,%3=field type.';
@@ -378,16 +379,13 @@ codeunit 20410 "Qlty. Result Evaluation"
             QltyTestValueType::"Value Type Boolean":
                 begin
                     if not (IsBlankOrEmptyCondition(AllowableValues) and (TextToValidate = '')) then
-                        if QltyMiscHelpers.GetBooleanFor(TextToValidate) then
-                            TextToValidate := QltyMiscHelpers.GetTranslatedYes250()
-                        else
-                            TextToValidate := QltyMiscHelpers.GetTranslatedNo250();
+                        TextToValidate := QltyLocalization.FormatForUser(QltyMiscHelpers.GetBooleanFor(TextToValidate));
 
                     if (AllowableValues <> '') and (QltyMiscHelpers.CanTextBeInterpretedAsBooleanIsh(AllowableValues)) then begin
                         if not QltyMiscHelpers.GetBooleanFor(TextToValidate) = QltyMiscHelpers.GetBooleanFor(AllowableValues) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                     end else
-                        if not (TextToValidate in [QltyMiscHelpers.GetTranslatedYes250(), QltyMiscHelpers.GetTranslatedNo250(), '']) then
+                        if not (TextToValidate in [QltyLocalization.GetTranslatedYes(), QltyLocalization.GetTranslatedNo(), '']) then
                             Error(NotInAllowableValuesErr, TextToValidate, NumberOrNameOfTestNameForError, AllowableValues);
                 end;
             QltyTestValueType::"Value Type Text":

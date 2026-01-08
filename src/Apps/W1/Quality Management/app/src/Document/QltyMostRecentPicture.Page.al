@@ -53,14 +53,14 @@ page 20431 "Qlty. Most Recent Picture"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyFileImport: Codeunit "Qlty. File Import";
                     InStream: InStream;
                 begin
                     if Rec."Most Recent Picture".HasValue() then
                         if not Confirm(OverrideImageQst) then
                             exit;
                     Clear(Rec."Most Recent Picture");
-                    if QltyMiscHelpers.PromptAndImportIntoInStream(FileFilterTok, InStream) then begin
+                    if QltyFileImport.PromptAndImportIntoInStream(FileFilterTok, InStream) then begin
                         Rec."Most Recent Picture".ImportStream(InStream, ImageTok);
                         Rec.Modify();
                     end;
