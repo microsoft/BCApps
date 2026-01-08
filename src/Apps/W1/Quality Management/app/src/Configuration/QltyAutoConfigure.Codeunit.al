@@ -100,11 +100,6 @@ codeunit 20402 "Qlty. Auto Configure"
         AssemblyOutputToInspectDescriptionTok: Label 'Posted Assembly Header to Inspect', Locked = true;
         ResourceBasedInstallFileTok: Label 'InstallFiles/PackageQM-EXPRESSDEMO.rapidstart', Locked = true;
 
-    internal procedure GetDefaultPassResult(): Text
-    begin
-        exit(DefaultResult2PassCodeTok);
-    end;
-
     internal procedure EnsureBasicSetupExists(ShowMessage: Boolean)
     begin
         EnsureSetupRecordExists();
@@ -1783,102 +1778,5 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSrcFldConf."Priority Test" := QltyConfigTestPriority;
             QltyInspectSrcFldConf.Insert();
         end;
-    end;
-
-    /// <summary>
-    /// GuessDoesAppearToBeSetup will guess if the system appears to be setup.
-    /// Use this if you need to not just make sure that Quality Management is installed but some basic setup has been done.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    procedure GuessDoesAppearToBeSetup(): Boolean
-    var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTest: Record "Qlty. Test";
-        QltyInspectionResult: Record "Qlty. Inspection Result";
-    begin
-        case true of
-            QltyInspectionGenRule.IsEmpty(),
-            QltyInspectionTemplateHdr.IsEmpty(),
-            QltyTest.IsEmpty(),
-            QltyInspectionResult.IsEmpty():
-                exit(false);
-        end;
-
-        exit(true);
-    end;
-
-    /// <summary>
-    /// GuessDoesAppearToBeUsed will guess if it's used.
-    /// Use this if you need to guess if the system is not just probably setup enough, but also appears to have actual usage.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    procedure GuessDoesAppearToBeUsed(): Boolean
-    var
-        QltyInspectionLine: Record "Qlty. Inspection Line";
-    begin
-        exit(QltyInspectionLine.Count() > 2);
-    end;
-
-    /// <summary>
-    /// Apply any settings files from the public endpoint
-    /// </summary>
-    /// <param name="CurrentCommit">Boolean.</param>
-    procedure ApplyGettingStartedData(CurrentCommit: Boolean)
-    begin
-        if CurrentCommit then
-            Commit();
-        ApplyConfigurationPackage();
-        if CurrentCommit then
-            Commit();
-    end;
-
-    /// <summary>
-    /// Apply the configuration package.
-    /// </summary>
-    procedure ApplyConfigurationPackage()
-    begin
-        ApplyConfigurationPackageFromResource(ResourceBasedInstallFileTok);
-        UpdateResultCategoryOnResultsInSystem();
-    end;
-
-    local procedure UpdateResultCategoryOnResultsInSystem()
-    var
-        QltyInspectionResult: Record "Qlty. Inspection Result";
-    begin
-        QltyInspectionResult.SetRange("Result Category", QltyInspectionResult."Result Category"::Uncategorized);
-        if QltyInspectionResult.FindSet(true) then
-            repeat
-                case QltyInspectionResult.Code of
-                    'PASS', 'GOOD', 'ACCEPTABLE':
-                        begin
-                            QltyInspectionResult."Result Category" := QltyInspectionResult."Result Category"::Acceptable;
-                            QltyInspectionResult.Modify(false);
-                        end;
-                    'FAIL', 'BAD', 'UNACCEPTABLE', 'ERROR', 'REJECT':
-                        begin
-                            QltyInspectionResult."Result Category" := QltyInspectionResult."Result Category"::"Not acceptable";
-                            QltyInspectionResult.Modify(false);
-                        end;
-                end;
-            until QltyInspectionResult.Next() = 0;
-    end;
-
-    /// <summary>
-    /// Apply the supplied configuration package.
-    /// </summary>
-    /// <param name="ResourcePath">reference to the internal resource location</param>
-    procedure ApplyConfigurationPackageFromResource(ResourcePath: Text)
-    var
-        TempBlob: Codeunit "Temp Blob";
-        ConfigPackageImport: Codeunit "Config. Package - Import";
-        InStreamFromResource: InStream;
-        OutStreamToConfigPackage: OutStream;
-    begin
-        TempBlob.CreateInStream(InStreamFromResource);
-        TempBlob.CreateOutStream(OutStreamToConfigPackage);
-        NavApp.GetResource(ResourcePath, InStreamFromResource);
-        CopyStream(OutStreamToConfigPackage, InStreamFromResource);
-        ConfigPackageImport.ImportAndApplyRapidStartPackageStream(TempBlob);
     end;
 }

@@ -42,25 +42,21 @@ page 20438 "Qlty. Management Setup Wizard"
                     InstructionalText = 'This wizard will guide you through the initial setup required to perform quality inspections.';
                 }
             }
-            group(SettingsFor_StepGettingStarted)
+            group(DemoData)
             {
-                Caption = 'Apply Getting Started Data?';
-                Visible = (StepGettingStarted = CurrentStepCounter);
-                InstructionalText = 'Would you like to apply getting started data?';
+                Caption = 'Demo data for Quality Management';
+                Visible = (StepDemoData = CurrentStepCounter);
 
-                group(SettingsFor_ApplyConfigurationPackage)
+                group(DemoDataIntroduction)
                 {
-                    Caption = 'What Is Getting Started Data?';
-                    InstructionalText = 'Getting started data for Quality Management will include basic setup data and also some useful examples or other demonstration data. Getting Started data can help you get running quickly, or help you with evaluating if the application is a fit more quickly. Very basic setup data for common integration scenarios will still be applied if you choose not to apply the getting started data. If you do not want this data, or if you have been previously set up then do not apply this configuration.';
+                    Caption = 'Demo data for Quality Management';
+                    InstructionalText = 'The Quality Management application includes demo data available as a Contoso Demo Tool module. Here is how to get started with it.';
+                }
 
-                    field(ChooseApplyConfigurationPackage; ApplyConfigurationPackage)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        OptionCaption = 'Apply Getting Started Data,Do Not Apply Configuration';
-                        Caption = 'Getting Started Data?';
-                        ShowCaption = false;
-                        ToolTip = 'Specifies a configuration package of getting-started data is available to automatically apply.';
-                    }
+                group(DemoDataInstructions)
+                {
+                    Caption = 'How to?';
+                    InstructionalText = 'Navigate to the Contoso Demo Tool page. Then, select the Quality Management module, and click on the Generate action. This will install demo data including sample inspection templates, inspection generation rules, and quality inspections.';
                 }
             }
             group(SettingsFor_StepWhatAreYouMakingQltyInspectionsFor)
@@ -435,14 +431,13 @@ page 20438 "Qlty. Management Setup Wizard"
         ShowHTMLHeader: Boolean;
         IsPremiumExperienceEnabled: Boolean;
         StepWelcome: Integer;
-        StepGettingStarted: Integer;
+        StepDemoData: Integer;
         StepReceivingConfig: Integer;
         StepWhatAreYouMakingQltyInspectionsFor: Integer;
         StepProductionConfig: Integer;
         StepShowInspections: Integer;
         StepDone: Integer;
         MaxStep: Integer;
-        ApplyConfigurationPackage: Option "Apply Getting Started Data","Do Not Apply Configuration.";
         ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central administrator to grant more permission.';
         FinishWizardLbl: Label 'Finish wizard.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
@@ -453,7 +448,7 @@ page 20438 "Qlty. Management Setup Wizard"
         CopyPreviousSetup();
 
         StepWelcome := 1;
-        StepGettingStarted := 2;
+        StepDemoData := 2;
         StepWhatAreYouMakingQltyInspectionsFor := 3;
         StepProductionConfig := 4;
         StepReceivingConfig := 5;
@@ -513,13 +508,6 @@ page 20438 "Qlty. Management Setup Wizard"
                     Commit();
 
                     QltyAutoConfigure.EnsureBasicSetupExists(false);
-                    if GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Qlty. Management Setup Wizard") or
-                       QltyAutoConfigure.GuessDoesAppearToBeSetup() or
-                       QltyAutoConfigure.GuessDoesAppearToBeUsed()
-                    then
-                        ApplyConfigurationPackage := ApplyConfigurationPackage::"Do Not Apply Configuration."
-                    else
-                        ApplyConfigurationPackage := ApplyConfigurationPackage::"Apply Getting Started Data";
                 end;
             StepWhatAreYouMakingQltyInspectionsFor:
                 begin
@@ -563,13 +551,9 @@ page 20438 "Qlty. Management Setup Wizard"
         case LeavingThisStep of
             StepWelcome:
                 Commit();
-            StepGettingStarted:
+            StepDemoData:
                 begin
                     GetLatestSetupRecord(true, true);
-                    if ApplyConfigurationPackage = ApplyConfigurationPackage::"Apply Getting Started Data" then begin
-                        QltyAutoConfigure.ApplyGettingStartedData(true);
-                        Commit();
-                    end;
                     Commit();
                     GetLatestSetupRecord(false, true);
                 end;
