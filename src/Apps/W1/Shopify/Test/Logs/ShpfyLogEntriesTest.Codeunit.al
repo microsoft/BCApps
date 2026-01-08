@@ -12,6 +12,7 @@ codeunit 139616 "Shpfy Log Entries Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     var
         Assert: Codeunit "Library Assert";
