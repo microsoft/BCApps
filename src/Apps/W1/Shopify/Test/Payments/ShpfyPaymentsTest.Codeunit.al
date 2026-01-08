@@ -23,7 +23,6 @@ codeunit 139566 "Shpfy Payments Test"
         PaymentTransaction: Record "Shpfy Payment Transaction";
         PaymentsAPI: Codeunit "Shpfy Payments API";
         Id: BigInteger;
-        LastPayoutId: BigInteger;
         JPayment: JsonObject;
     begin
         // [SCENARIO] Extract the data out json token that contains a payment info into the "Shpfy Payment Transaction" record.
@@ -31,8 +30,8 @@ codeunit 139566 "Shpfy Payments Test"
         Id := Any.IntegerInRange(10000, 99999);
         JPayment := GetRandomPayment(Id);
 
-        // [WHEN] Invoke the function ImportPaymentTransaction(JPayment, LastPayoutId)
-        PaymentsAPI.ImportPaymentTransaction(JPayment, LastPayoutId);
+        // [WHEN] Invoke the function ImportPaymentTransaction(JPayment)
+        PaymentsAPI.ImportPaymentTransaction(JPayment);
 
         // [THEN] We must find the "Shpfy Payment" record with the same id
         LibraryAssert.IsTrue(PaymentTransaction.Get(Id), 'Get "Shpfy Payment Transaction" record');

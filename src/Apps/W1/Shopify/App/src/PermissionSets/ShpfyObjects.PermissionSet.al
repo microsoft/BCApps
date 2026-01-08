@@ -264,6 +264,8 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy GQL Payment Terms" = X,
         codeunit "Shpfy GQL PaymentTransactions" = X,
         codeunit "Shpfy GQL Payouts" = X,
+        codeunit "Shpfy GQL PayoutsByIds" = X,
+        codeunit "Shpfy GQL PaymTransByIds" = X,
         codeunit "Shpfy GQL ProductById" = X,
         codeunit "Shpfy GQL ProductIds" = X,
         codeunit "Shpfy GQL ProductImages" = X,
