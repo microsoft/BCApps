@@ -5,16 +5,17 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30230 "Shpfy GQL RefundLines" implements "Shpfy IGraphQL"
+codeunit 30419 "Shpfy GQL NextGetFulfillments" implements "Shpfy IGraphQL"
 {
+    Access = Internal;
 
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{ refund(id: \"gid://shopify/Refund/{{RefundId}}\") { refundLineItems(first: 10) { pageInfo { endCursor hasNextPage } nodes { lineItem { id } quantity restockType location { legacyResourceId } restocked priceSet { presentmentMoney { amount } shopMoney { amount }} subtotalSet { presentmentMoney { amount } shopMoney { amount }} totalTaxSet { presentmentMoney { amount } shopMoney { amount }}}}}}"}');
+        exit('{"query": "{order (id: \"gid://shopify/Order/{{OrderId}}\") { fulfillmentOrders (first: 250, after:\"{{After}}\") { pageInfo { endCursor hasNextPage } nodes { id }}}}"}');
     end;
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(15);
+        exit(14);
     end;
 }
