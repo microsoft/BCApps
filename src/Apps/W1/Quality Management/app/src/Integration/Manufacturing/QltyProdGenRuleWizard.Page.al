@@ -4,12 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Manufacturing;
 
-using Microsoft.Assembly.History;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 
