@@ -112,18 +112,6 @@ page 20400 "Qlty. Management Setup"
                         AboutTitle = 'Picture Upload Behavior';
                         AboutText = 'When a picture has been taken, this value defines what to do with that picture.';
                     }
-                    group(Workflow)
-                    {
-                        Caption = 'Workflow and Approval Request Integration';
-                        field("Workflow Integration Enabled"; Rec."Workflow Integration Enabled")
-                        {
-                            Importance = Additional;
-                            ApplicationArea = All;
-                            AboutTitle = 'Business Central Workflow integration.';
-                            AboutText = 'Workflows can be used to trigger dispositions, such as negative adjustments, transfers, moves, and more.';
-                        }
-                    }
-
                 }
             }
             group(SettingsForReceiving)
