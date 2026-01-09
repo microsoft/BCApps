@@ -14,6 +14,7 @@ using Microsoft.Warehouse.Posting;
 
 codeunit 99001546 "Sub. Whse Direct Posting"
 {
+    // COPIED
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Act.-Post (Yes/No)", OnBeforeSelectForOtherTypes, '', false, false)]
     local procedure OnBeforeSelectForOtherTypes(var WhseActivLine: Record "Warehouse Activity Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -94,6 +95,7 @@ codeunit 99001546 "Sub. Whse Direct Posting"
         end;
     end;
 
+    // COPIED
     local procedure PostInboundTransferInOneStep(var WarehouseActivityHeader: Record "Warehouse Activity Header"): Boolean
     var
         TransferHeader: Record "Transfer Header";
@@ -136,6 +138,7 @@ codeunit 99001546 "Sub. Whse Direct Posting"
         TransferPostReceipt.Run(TransferHeader);
     end;
 
+    // COPIED
     local procedure WhseActYesNoQuestion(var WhseActivLine: Record "Warehouse Activity Line"; var Result: Boolean; var IsHandled: Boolean)
     var
         WarehouseActivityHeader: Record "Warehouse Activity Header";
