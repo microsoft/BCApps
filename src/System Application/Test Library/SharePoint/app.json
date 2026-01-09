@@ -66,5 +66,12 @@
     "allowDebugging": true,
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
-  }
+  },
+  "internalsVisibleTo": [
+    {
+      "id": "977e6b76-d7c1-41fa-b38b-21399cd140a7",
+      "name": "SharePoint Test",
+      "publisher": "Microsoft"
+    }
+  ]
 }
