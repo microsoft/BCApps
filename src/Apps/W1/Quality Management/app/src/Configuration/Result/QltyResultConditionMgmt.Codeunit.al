@@ -239,6 +239,28 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     end;
 
     /// <summary>
+    /// This will copy any grade configurations configured to automatically copy to all existing templates.
+    /// This leverages how CopyGradeConditionsFromFieldToTemplateLine will already update fields via CopyGradeConditionsFromDefaultToField 
+    /// when a specific grade is supplied.
+    /// </summary>
+    procedure CopyGradeConditionsFromDefaultToAllTemplates()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    begin
+        QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
+        if QltyInspectionResult.FindSet() then
+            repeat
+                if QltyInspectionTemplateLine.FindSet(false) then
+                    repeat
+                        // We're using 'false' here because we do not want to replace the conditions, only add new ones.
+                        // We do not want to remove grades that were previously added to templates.
+                        CopyResultConditionsFromTestToTemplateLine(QltyInspectionTemplateLine."Template Code", QltyInspectionTemplateLine."Line No.", QltyInspectionResult.Code, false);
+                    until (QltyInspectionTemplateLine.Next() = 0);
+            until (QltyInspectionResult.Next() = 0);
+    end;
+
+    /// <summary>
     /// Copies the default result conditions into the specified test.
     /// </summary>
     /// <param name="TestCode"></param>
