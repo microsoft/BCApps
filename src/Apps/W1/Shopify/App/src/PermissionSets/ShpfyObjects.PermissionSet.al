@@ -302,6 +302,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Item Reference Mgt." = X,
         codeunit "Shpfy Json Helper" = X,
         codeunit "Shpfy Log Entries Delete" = X,
+        codeunit "Shpfy Log Entries" = X,
         codeunit "Shpfy Math" = X,
         codeunit "Shpfy Metafield API" = X,
         codeunit "Shpfy Metafields" = X,
