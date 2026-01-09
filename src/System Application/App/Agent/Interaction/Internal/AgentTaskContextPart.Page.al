@@ -47,9 +47,15 @@ page 4339 "Agent Task Context Part"
                     TaskPane.ShowTask(Rec);
                 end;
             }
+            field(TaskTitle; Rec.Title)
+            {
+                Caption = 'Task title';
+                ToolTip = 'Specifies the title of the task that was executed.';
+                Visible = Rec.Title <> '';
+            }
             field(CompanyName; Rec."Company Name")
             {
-                Caption = 'Company Name';
+                Caption = 'Company name';
                 ToolTip = 'Specifies the name of the company in which the task was executed.';
             }
         }
