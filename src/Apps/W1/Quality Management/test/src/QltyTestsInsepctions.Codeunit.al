@@ -14,7 +14,6 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Utilities;
@@ -690,7 +689,6 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyUtilitiesIntegration: Codeunit "Qlty. Utilities Integration";
         JsonArray: JsonArray;
         FieldJsonObject: JsonObject;
         FieldJsonToken: JsonToken;
@@ -705,7 +703,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         QltyManagementSetup.Get();
 
         // [GIVEN] Brick headers are configured in Quality Management setup
-        QltyManagementSetup.GetBrickHeaders(QltyManagementSetup."Brick Top Left Header", QltyManagementSetup."Brick Middle Left Header", QltyManagementSetup."Brick Middle Right Header", QltyManagementSetup."Brick Bottom Left Header", QltyManagementSetup."Brick Bottom Right Header");
+        QltyInspectionUtility.GetBrickHeaders(QltyManagementSetup);
         QltyManagementSetup.Modify();
 
         // [GIVEN] A basic template and Inspection instance are created
@@ -728,7 +726,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         JsonArray.Add(FieldJsonObject);
 
         // [WHEN] The page summary handler is invoked for the Quality Inspection
-        QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary(Page::"Qlty. Inspection", QltyInspectionHeader.RecordId(), JsonArray);
+        QltyInspectionUtility.HandleOnAfterGetPageSummary(Page::"Qlty. Inspection", QltyInspectionHeader.RecordId(), JsonArray);
 
         // [THEN] All brick field captions are replaced with the configured brick headers from setup
         foreach FieldJsonToken in JsonArray do begin

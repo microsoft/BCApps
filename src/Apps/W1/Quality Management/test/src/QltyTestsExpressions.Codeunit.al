@@ -63,6 +63,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
     var
         Item: Record Item;
         TempIgnoredQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        TempIgnoredQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -85,7 +86,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
         // [WHEN] Text expression is evaluated with item field lookup syntax
         // [THEN] Item field values are correctly retrieved and substituted into the expression
         LibraryAssert.AreEqual('A turkey apple cheese is 123' + GetRegionalDecimalSeparator() + '45',
-            QltyExpressionMgmt.EvaluateTextExpression('A [Item:Description 2] is [Item:Unit Cost]', TempIgnoredQltyInspectionHeader, true),
+            QltyExpressionMgmt.EvaluateTextExpression('A [Item:Description 2] is [Item:Unit Cost]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
             'Basic item lookup a');
     end;
 
@@ -94,6 +95,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
     var
         Item: Record Item;
         TempIgnoredQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        TempIgnoredQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -116,25 +118,25 @@ codeunit 139961 "Qlty. Tests - Expressions"
         // [WHEN] Text expression is evaluated with F0 format (standard with thousands separator)
         // [THEN] The value is formatted with thousands separators and decimal separator
         LibraryAssert.AreEqual('F0 A turkey apple cheese is 1' + GetRegionalThousandsSeparator() + '234' + GetRegionalThousandsSeparator() + '567' + GetRegionalThousandsSeparator() + '890' + GetRegionalDecimalSeparator() + '12',
-            QltyExpressionMgmt.EvaluateTextExpression('F0 A [Item:Description 2] is [Item(F0):Unit Cost]', TempIgnoredQltyInspectionHeader, true),
+            QltyExpressionMgmt.EvaluateTextExpression('F0 A [Item:Description 2] is [Item(F0):Unit Cost]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'Table(F0):field');
         // [WHEN] Text expression is evaluated with F1 format (no thousands separator)
         // [THEN] The value is formatted without thousands separators
         LibraryAssert.AreEqual('F1 A turkey apple cheese is 1234567890' + GetRegionalDecimalSeparator() + '12',
-            QltyExpressionMgmt.EvaluateTextExpression('F1 A [Item:Description 2] is [Item(F1):Unit Cost]', TempIgnoredQltyInspectionHeader, true),
+            QltyExpressionMgmt.EvaluateTextExpression('F1 A [Item:Description 2] is [Item(F1):Unit Cost]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'Table(F1):field');
         // [WHEN] Text expression is evaluated with F2 format (plain format)
         // [THEN] The value is formatted as a plain decimal number
-        LibraryAssert.AreEqual('F2 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F2 A [Item:Description 2] is [Item(F2):Unit Cost]', TempIgnoredQltyInspectionHeader, true),
+        LibraryAssert.AreEqual('F2 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F2 A [Item:Description 2] is [Item(F2):Unit Cost]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'Table(F2):field');
         // [WHEN] Text expression is evaluated with F9 format (same as F2, plain format)
         // [THEN] The value is formatted as a plain decimal number
-        LibraryAssert.AreEqual('F9 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F9 A [Item:Description 2] is [Item(F9):Unit Cost]', TempIgnoredQltyInspectionHeader, true),
+        LibraryAssert.AreEqual('F9 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F9 A [Item:Description 2] is [Item(F9):Unit Cost]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'Table(F9):field');
         // [WHEN] Text expression is evaluated with legacy format syntax (ItemF)
         // [THEN] The legacy syntax still works with standard formatting
         LibraryAssert.AreEqual('(legacy format syntax) A turkey apple cheese is 1' + GetRegionalThousandsSeparator() + '234' + GetRegionalThousandsSeparator() + '567' + GetRegionalThousandsSeparator() + '890' + GetRegionalDecimalSeparator() + '12',
-            QltyExpressionMgmt.EvaluateTextExpression('(legacy format syntax) A [Item:Description 2] is [ItemF:Unit Cost]', TempIgnoredQltyInspectionHeader, true),
+            QltyExpressionMgmt.EvaluateTextExpression('(legacy format syntax) A [Item:Description 2] is [ItemF:Unit Cost]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'TableF:field');
     end;
 
@@ -143,6 +145,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
     var
         Item: Record Item;
         TempIgnoredQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        TempIgnoredQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -165,20 +168,20 @@ codeunit 139961 "Qlty. Tests - Expressions"
         // [WHEN] FORMATNUM function is used with format 0 (standard with thousands separator)
         // [THEN] The value is formatted with thousands separators
         LibraryAssert.AreEqual('F0 A turkey apple cheese is 1' + GetRegionalThousandsSeparator() + '234' + GetRegionalThousandsSeparator() + '567' + GetRegionalThousandsSeparator() + '890' + GetRegionalDecimalSeparator() + '12',
-            QltyExpressionMgmt.EvaluateTextExpression('F0 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];0;)]', TempIgnoredQltyInspectionHeader, true),
+            QltyExpressionMgmt.EvaluateTextExpression('F0 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];0;)]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'FORMATNUM-0');
         // [WHEN] FORMATNUM function is used with format 1 (no thousands separator)
         // [THEN] The value is formatted without thousands separators
         LibraryAssert.AreEqual('F1 A turkey apple cheese is 1234567890' + GetRegionalDecimalSeparator() + '12',
-            QltyExpressionMgmt.EvaluateTextExpression('F1 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];1;)]', TempIgnoredQltyInspectionHeader, true),
+            QltyExpressionMgmt.EvaluateTextExpression('F1 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];1;)]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
             'FORMATNUM-1');
         // [WHEN] FORMATNUM function is used with format 2 (plain format)
         // [THEN] The value is formatted as a plain decimal number
-        LibraryAssert.AreEqual('F2 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F2 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];2; )]', TempIgnoredQltyInspectionHeader, true),
+        LibraryAssert.AreEqual('F2 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F2 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];2; )]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'FORMATNUM-2');
         // [WHEN] FORMATNUM function is used with format 9 (same as format 2)
         // [THEN] The value is formatted as a plain decimal number
-        LibraryAssert.AreEqual('F9 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F9 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];9; )]', TempIgnoredQltyInspectionHeader, true),
+        LibraryAssert.AreEqual('F9 A turkey apple cheese is 1234567890.12', QltyExpressionMgmt.EvaluateTextExpression('F9 A [Item:Description 2] is [FORMATNUM([Item:Unit Cost];9; )]', TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine),
                 'FORMATNUM-9');
     end;
 
@@ -187,6 +190,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
     var
         Location: Record Location;
         TempIgnoredQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
+        TempIgnoredQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
@@ -199,7 +203,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
 
         // [WHEN] LOOKUP expression is evaluated to find location code by name
         // [THEN] The correct location code is returned
-        LibraryAssert.AreEqual(Location.Code, QltyExpressionMgmt.EvaluateTextExpression(StrSubstNo(LookupExpressionTok, LocationNameTok), TempIgnoredQltyInspectionHeader, false), 'should return the location code');
+        LibraryAssert.AreEqual(Location.Code, QltyExpressionMgmt.EvaluateTextExpression(StrSubstNo(LookupExpressionTok, LocationNameTok), TempIgnoredQltyInspectionHeader, TempIgnoredQltyInspectionLine), 'should return the location code');
     end;
 
     [Test]

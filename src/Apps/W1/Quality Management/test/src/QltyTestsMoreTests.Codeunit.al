@@ -24,7 +24,6 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
-using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -682,7 +681,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [WHEN] GetSetupVideoLink is called
         // [THEN] An empty string is returned
-        LibraryAssert.AreEqual('', QltyManagementSetup.GetSetupVideoLink(), 'Setup video link should be empty');
+        LibraryAssert.AreEqual('', QltyInspectionUtility.GetSetupVideoLink(QltyManagementSetup), 'Setup video link should be empty');
     end;
 
     [Test]
@@ -2146,7 +2145,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig."From Table No." := Database::"Reservation Entry";
 
         // [WHEN] DetectInterestingConfiguration is called
-        asserterror SpecificQltyInspectSourceConfig.DetectInterestingConfiguration();
+        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
 
         // [THEN] An error is thrown indicating interesting configuration detected
         LibraryAssert.ExpectedError(InterestingDetectionErr);
@@ -2170,7 +2169,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig."To Table No." := Database::"Reservation Entry";
 
         // [WHEN] DetectInterestingConfiguration is called
-        asserterror SpecificQltyInspectSourceConfig.DetectInterestingConfiguration();
+        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
 
         // [THEN] An error is thrown indicating interesting configuration detected
         LibraryAssert.ExpectedError(InterestingDetectionErr);
@@ -2277,8 +2276,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ApplicationAreaSetup: Record "Application Area Setup";
         ConfPersonalizationMgt: Codeunit "Conf./Personalization Mgt.";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
-        QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
-
     begin
         // [SCENARIO] Quality Management application area is enabled by default on Essential experience
 
@@ -2294,7 +2291,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [WHEN] Checking if Quality Management application area is enabled
         // [THEN] The application area is enabled
-        LibraryAssert.AreEqual(true, QltyApplicationAreaMgmt.IsQualityManagementApplicationAreaEnabled(), 'Should be enabled.');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.IsQualityManagementApplicationAreaEnabled(), 'Should be enabled.');
     end;
 
     [ModalPageHandler]
