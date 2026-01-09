@@ -21,7 +21,7 @@ pageextension 99001508 "Sub. Routing Lines" extends "Routing Lines"
         {
             action("Subcontracting Prices")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Prices';
                 Image = Price;
                 ToolTip = 'View the related subcontracting prices.';

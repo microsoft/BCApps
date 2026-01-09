@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Posting;
-using Microsoft.Inventory.Item;
 
 codeunit 99001547 "Sub. TransOrderPostTrans Ext"
 {

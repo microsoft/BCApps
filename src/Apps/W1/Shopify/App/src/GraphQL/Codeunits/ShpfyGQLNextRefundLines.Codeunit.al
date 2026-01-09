@@ -15,6 +15,6 @@ codeunit 30232 "Shpfy GQL NextRefundLines" implements "Shpfy IGraphQL"
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(53);
+        exit(15);
     end;
 }

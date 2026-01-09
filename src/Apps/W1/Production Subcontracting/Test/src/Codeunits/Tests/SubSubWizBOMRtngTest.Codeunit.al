@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Manufacturing.Subcontracting;
-using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Purchases.Document;
 
 codeunit 139995 "Sub. Sub. Wiz. BOM/Rtng Test"
 {

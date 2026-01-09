@@ -14,43 +14,43 @@ pageextension 99001527 "Sub. Pstd. Transfer Shpt" extends "Posted Transfer Shipm
         {
             field(SourceType; Rec."Source Type")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 Visible = false;
             }
             field(SourceSubtype; Rec."Source Subtype")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 Visible = false;
             }
             field(SourceID; Rec."Source ID")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 Visible = false;
             }
             field(SourceRefNo; Rec."Source Ref. No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 Visible = false;
             }
             field("Return Order"; Rec."Return Order")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }

@@ -525,12 +525,16 @@ table 20401 "Qlty. Test"
                     OfChoices := Rec."Allowable Values".Split(',');
                     foreach Choice in OfChoices do begin
                         Choice := Choice.Trim();
+                        if not TempBufferQltyLookupCode.Get(Rec.Code, CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code))) then begin
+                            TempBufferQltyLookupCode.Init();
+                            TempBufferQltyLookupCode."Group Code" := Rec.Code;
                         TempBufferQltyLookupCode.Code := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code));
                         TempBufferQltyLookupCode.Description := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Description));
                         TempBufferQltyLookupCode."Custom 1" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1"));
                         TempBufferQltyLookupCode."Custom 2" := TempBufferQltyLookupCode."Custom 1".ToLower();
                         TempBufferQltyLookupCode."Custom 3" := TempBufferQltyLookupCode."Custom 1".ToUpper();
-                        if TempBufferQltyLookupCode.Insert() then;
+                            TempBufferQltyLookupCode.Insert();
+                        end;
                     end;
                 end;
         end;

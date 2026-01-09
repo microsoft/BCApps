@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 
 page 99001508 "Sub. Temp Prod Order Comp"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     AutoSplitKey = true;
     Caption = 'Temporary Prod. Order Components';
     DelayedInsert = true;

@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 
 page 99001502 "Sub. Routing Info Factbox"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Subcontracting Routing Details';
     Editable = false;
     PageType = CardPart;

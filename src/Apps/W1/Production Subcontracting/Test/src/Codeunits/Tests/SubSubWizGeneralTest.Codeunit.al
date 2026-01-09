@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.Document;
 
 codeunit 139993 "Sub. Sub. Wiz. General Test"
 {

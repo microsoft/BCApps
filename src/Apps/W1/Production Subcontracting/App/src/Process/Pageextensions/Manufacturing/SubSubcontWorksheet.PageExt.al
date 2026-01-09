@@ -14,29 +14,29 @@ pageextension 99001509 "Sub. Subcont. Worksheet" extends "Subcontracting Workshe
         {
             field("Standard Task Code"; Rec."Standard Task Code")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
             }
             field("Pricelist Cost"; Rec."Pricelist Cost")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Visible = false;
             }
             field("UoM for Pricelist"; Rec."UoM for Pricelist")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Visible = false;
             }
             field("PL UM Qty/Base UM Qty"; Rec."PL UM Qty/Base UM Qty")
             {
                 AutoFormatType = 0;
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Visible = false;
             }
             field("Base UM Qty/PL UM Qty"; Rec."Base UM Qty/PL UM Qty")
             {
                 AutoFormatType = 0;
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Visible = false;
             }
         }

@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 
 page 99001503 "Sub. Prod. Order Components"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Prod. Order Comp. Line List';
     Editable = false;
     PageType = List;

@@ -14,7 +14,7 @@ pageextension 99001519 "Sub. Item List" extends "Item List"
         {
             action("Subcontractor Prices")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Subcontractor Prices';
                 Image = Price;
                 RunObject = page "Subcontractor Prices";

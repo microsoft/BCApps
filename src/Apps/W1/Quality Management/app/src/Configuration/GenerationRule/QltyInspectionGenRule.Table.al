@@ -337,7 +337,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         if Rec."Template Code" = '' then
             Error(ChooseTemplateFirstErr);
         if IsNullGuid(Rec.SystemId) and not Rec.IsTemporary() then
-            if Rec.Insert() then;
+            Rec.Insert();
         Filter := QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations();
         QltyFilterHelpers.RunModalLookupTable(Rec."Source Table No.", Filter);
         Rec.CalcFields("Table Caption");

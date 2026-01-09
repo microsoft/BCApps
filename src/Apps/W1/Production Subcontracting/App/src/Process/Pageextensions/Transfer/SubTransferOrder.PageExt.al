@@ -19,7 +19,7 @@ pageextension 99001526 "Sub. Transfer Order" extends "Transfer Order"
         {
             field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = (Rec.Status = Rec.Status::Open) and EsEnableTransferFields;
                 ToolTip = 'Specifies whether the incoming posting of the transfer order is posted directly with the outgoing posting, or whether the posting is done in 2 steps. Note: If "Direct transfer" is selected, no transit code will be used and no posted documents will be created.';
                 trigger OnValidate()
@@ -32,48 +32,48 @@ pageextension 99001526 "Sub. Transfer Order" extends "Transfer Order"
         {
             field(SourceType; Rec."Source Type")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies for which source type the transfer order is related to.';
                 Visible = false;
             }
             field(SourceSubtype; Rec."Source Subtype")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies which source subtype the transfer order is related to.';
                 Visible = false;
             }
             field(SourceID; Rec."Source ID")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies which source ID the transfer order is related to.';
                 Visible = false;
             }
             field(SourceRefNo; Rec."Source Ref. No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
                 Visible = false;
             }
             field("Return Order"; Rec."Return Order")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 ToolTip = 'Specifies whether the existing transfer order is a return of the subcontractor.';
                 Visible = false;
             }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
@@ -82,7 +82,7 @@ pageextension 99001526 "Sub. Transfer Order" extends "Transfer Order"
         {
             part("Sub. Transfer Line Factbox"; "Sub. Transfer Line Factbox")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Provider = TransferLines;
                 SubPageLink = "Document No." = field("Document No."), "Line No." = field("Line No.");
                 Visible = ShowSubcontractingFactBox;

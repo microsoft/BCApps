@@ -14,7 +14,7 @@ pageextension 99001525 "Sub. PurchOrderList" extends "Purchase Order List"
         {
             field("Subc. Location Code"; Rec."Subc. Location Code")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
             }
         }
@@ -25,7 +25,7 @@ pageextension 99001525 "Sub. PurchOrderList" extends "Purchase Order List"
         {
             action(CreateTransfOrdToSubcontractor)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Create Transf. Ord. to Subcontractor';
                 Image = NewDocument;
                 ToolTip = 'Create a transfer order to send to the subcontractor.';
@@ -41,7 +41,7 @@ pageextension 99001525 "Sub. PurchOrderList" extends "Purchase Order List"
             }
             action(CreateReturnFromSubcontractor)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Create Return from Subcontractor';
                 Image = ReturnRelated;
                 ToolTip = 'Create a return document from the subcontractor.';
@@ -57,7 +57,7 @@ pageextension 99001525 "Sub. PurchOrderList" extends "Purchase Order List"
             }
             action(PrintSubcDispatchingList)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Print Subcontractor Dispatching List';
                 Image = Print;
                 ToolTip = 'Prints the Dispatching List for the subcontractor.';
