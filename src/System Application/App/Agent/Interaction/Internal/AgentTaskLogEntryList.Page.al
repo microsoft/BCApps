@@ -76,6 +76,18 @@ page 4303 "Agent Task Log Entry List"
                 }
             }
         }
+
+        area(FactBoxes)
+        {
+            part(TaskContext; "Agent Task Context Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Task context';
+                AboutTitle = 'Context information about the task and agent';
+                AboutText = 'Shows context information such as the agent name, task ID, and company name.';
+                SubPageLink = ID = field("Task ID");
+            }
+        }
     }
 
     actions

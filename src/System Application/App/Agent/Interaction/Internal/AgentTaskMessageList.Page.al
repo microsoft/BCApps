@@ -18,6 +18,7 @@ page 4301 "Agent Task Message List"
     Editable = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    SourceTableView = sorting("Task Id", "Memory Entry Id") order(descending);
 
     layout
     {
