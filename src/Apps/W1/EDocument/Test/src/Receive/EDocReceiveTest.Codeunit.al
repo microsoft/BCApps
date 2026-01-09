@@ -3057,7 +3057,7 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
         TempXMLBuffer: Record "XML Buffer" temporary;
         TempBlob: Codeunit "Temp Blob";
-        EDocServicePage: TestPage "E-Document Service";
+        EDocImport: Codeunit "E-Doc. Import";
         EDocumentPage: TestPage "E-Document";
         Document: Text;
         XMLInstream: InStream;
@@ -3096,7 +3096,8 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
         EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
         EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := ImportDataExchDefLbl;
-        EDocServiceDataExchDef.Insert();
+        if not EDocServiceDataExchDef.Insert() then
+            EDocServiceDataExchDef.Modify();
 
         // [GIVEN] Modify XML to have vendor VAT number as EndpointID.
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
@@ -3123,9 +3124,7 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocImplState.SetVariableStorage(LibraryVariableStorage);
 
         // [WHEN] Receiving the document.
-        EDocServicePage.OpenView();
-        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
-        EDocServicePage.Receive.Invoke();
+        EDocImport.ReceiveAndProcessAutomatically(EDocService);
 
         // [THEN] Verify that no purchase order is created.
         EDocumentPage.OpenView();
