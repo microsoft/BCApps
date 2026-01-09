@@ -57,7 +57,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                     trigger OnAssistEdit()
                     begin
-                        Rec.HandleOnLookupSourceTable();
+                        Rec.HandleOnAssistEditSourceTable();
                         CurrPage.Update();
                     end;
                 }
@@ -72,7 +72,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                             if Rec.Insert(true) then;
                             Commit();
                         end;
-                        Rec.HandleOnLookupSourceTable();
+                        Rec.HandleOnAssistEditSourceTable();
                         if xRec."Entry No." = Rec."Entry No." then
                             CurrPage.Update(true);
                     end;
@@ -148,6 +148,19 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 }
                 field("Schedule Group"; Rec."Schedule Group")
                 {
+                    trigger OnDrillDown()
+                    var
+                        QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
+                    begin
+                        QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(Rec);
+                        if GuiAllowed() then
+                            if Rec."Schedule Group" = '' then begin
+                                Rec."Schedule Group" := DefaultScheduleGroupLbl;
+                                Rec.Modify(false);
+                                QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group");
+                            end else
+                                QltyJobQueueManagement.RunPageLookupJobQueueEntriesForScheduleGroup(Rec."Schedule Group")
+                    end;
                 }
             }
         }
@@ -379,6 +392,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         GenerationRulesCaptionLbl: Label 'Quality Inspection Generation Rules';
         GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Generation Rules for %1', Comment = '%1=the template';
+        DefaultScheduleGroupLbl: Label 'QM', Locked = true;
 
     trigger OnInit()
     begin
