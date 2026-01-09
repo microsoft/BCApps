@@ -133,6 +133,16 @@ codeunit 4301 "Agent Impl."
         SetProfile(Agent, AllProfile);
     end;
 
+    procedure SetProfile(AgentUserSecurityID: Guid; ProfileID: Text; ProfileAppID: Guid)
+    var
+        Agent: Record Agent;
+        TempAllProfile: Record "All Profile" temporary;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+        PopulateProfileTempRecord(CopyStr(ProfileID, 1, 30), ProfileAppID, TempAllProfile);
+        SetProfile(Agent, TempAllProfile);
+    end;
+
     local procedure SetProfile(Agent: Record Agent; var AllProfile: Record "All Profile")
     var
         UserSettingsRecord: Record "User Settings";
@@ -141,6 +151,16 @@ codeunit 4301 "Agent Impl."
         UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
         UpdateUserSettingsWithProfile(AllProfile, UserSettingsRecord);
         UpdateAgentUserSettings(UserSettingsRecord);
+    end;
+
+    procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; LanguageID: Integer; LocaleID: Integer; TimeZone: Text[180])
+    var
+        TempNewUserSettingsRec: Record "User Settings" temporary;
+    begin
+        TempNewUserSettingsRec."Language ID" := LanguageID;
+        TempNewUserSettingsRec."Locale ID" := LocaleID;
+        TempNewUserSettingsRec."Time Zone" := TimeZone;
+        this.UpdateLocalizationSettings(AgentUserSecurityID, TempNewUserSettingsRec);
     end;
 
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
@@ -329,7 +349,21 @@ codeunit 4301 "Agent Impl."
         until TempAccessControlBuffer.Next() = 0;
     end;
 
-    local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
+    procedure GetPermissionSets(AgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AccessControl: Record "Access Control";
+    begin
+        TempAccessControlBuffer.Reset();
+        TempAccessControlBuffer.DeleteAll();
+        AccessControl.SetRange("User Security ID", AgentUserSecurityID);
+        if AccessControl.FindSet() then
+            repeat
+                TempAccessControlBuffer.Copy(AccessControl);
+                TempAccessControlBuffer.Insert();
+            until AccessControl.Next() = 0;
+    end;
+
+    procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
     begin
         if not Agent.Get(UserSecurityID) then
             Error(AgentDoesNotExistErr);
