@@ -520,11 +520,8 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ConditionalQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ConfigurationToLoadSecondQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        ConfigurationToLoadSecondQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        ToLoadSecondQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         TestCode: Text;
         BeforeNewResultCountConditions: Integer;
     begin
