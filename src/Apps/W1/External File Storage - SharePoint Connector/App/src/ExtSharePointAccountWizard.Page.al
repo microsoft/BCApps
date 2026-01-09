@@ -130,6 +130,9 @@ page 4581 "Ext. SharePoint Account Wizard"
                     IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
                 end;
             }
+            field("Use Graph API"; Rec."Use Graph API")
+            {
+            }
 
             field("Base Relative Folder Path"; Rec."Base Relative Folder Path")
             {
@@ -139,10 +142,6 @@ page 4581 "Ext. SharePoint Account Wizard"
                 begin
                     IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
                 end;
-            }
-
-            field("Use Graph API"; Rec."Use Graph API")
-            {
             }
         }
     }
