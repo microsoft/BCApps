@@ -53,6 +53,7 @@ page 4316 "Agent List"
                 Caption = 'Setup';
                 ToolTip = 'Set up the agent';
                 Image = SetupLines;
+                Enabled = Rec."Can Curr. User Configure Agent";
 
                 trigger OnAction()
                 var
