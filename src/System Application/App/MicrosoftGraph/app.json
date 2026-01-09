@@ -52,6 +52,11 @@
       "id": "2746dab0-7900-449d-b154-20751e116a67",
       "name": "Microsoft Graph Test",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "1a7bfa64-c856-49ed-86b0-bb05eb5b2de4",
+      "name": "SharePoint",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
