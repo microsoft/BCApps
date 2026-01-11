@@ -99,11 +99,11 @@
                       "Entity": "Customer"
                     }
                   },
-                  "Property": "Sales Lost Customers (12M)"
+                  "Property": "Sales Lost Customers"
                 }
               },
-              "queryRef": "Customer.Sales Lost Customers (12M)",
-              "nativeQueryRef": "Sales Lost Customers (12M)"
+              "queryRef": "Customer.Sales Lost Customers",
+              "nativeQueryRef": "Sales Lost Customers"
             }
           ]
         },
@@ -294,20 +294,6 @@
         "type": "Advanced"
       },
       {
-        "name": "ada2bc362a9614fde615",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "Sales Lost Customers (12M)"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
         "name": "45d686579503aa023f48",
         "field": {
           "Measure": {
@@ -317,6 +303,20 @@
               }
             },
             "Property": "Sales (LCY)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "476cc580d4eb429b6867",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Lost Customers"
           }
         },
         "type": "Advanced"

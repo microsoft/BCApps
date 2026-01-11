@@ -918,7 +918,7 @@ table Customer
 		displayFolder: _Customer Measures
 		lineageTag: 31585bf3-8301-4088-b857-2e4e689dc218
 
-	/// This measure calculates the total sales lost over the past 12 months due to customers who stopped purchasing ("lost" customers). It first identifies the most recent "lost" date, then filters customers who were lost before that date. It gets the sales from the previous 12 months for these lost customers and calculates the total revenue they generated before they stopped purchasing.
+	/// This measure calculates the total sales lost over the past 12 months due to customers who stopped purchasing ("lost" customers). “Lost” is defined by an inactivity threshold in months since their last purchase, this inactivity threshold is managed by setting the Lost Customer Month Range filter. It first identifies the most recent "lost" date, then filters customers who were lost before that date. It gets the sales from the previous 12 months for these lost customers and calculates the total revenue they generated before they stopped purchasing.
 	measure 'Sales Lost Customers' = ```
 			
 			VAR PeriodStart = MIN ( 'Date'[Date] )

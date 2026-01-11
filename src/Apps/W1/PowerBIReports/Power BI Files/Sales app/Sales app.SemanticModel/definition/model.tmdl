@@ -66,6 +66,7 @@ ref table 'Pareto Scale'
 ref table ENVIRONMENT
 ref table 'Sales Cycle Stages'
 ref table 'Close Opportunity Codes'
+ref table 'Translated Localized Labels'
 ref table Resources
 ref table 'G/L Accounts'
 ref table 'Sales Lines'
@@ -81,7 +82,6 @@ ref table 'Sales Document Type'
 ref table 'Project Journal Line Type'
 ref table 'Item Ledger Document Type'
 ref table 'Lost Customer Month Range'
-ref table 'Translated Localized Labels'
 
 ref cultureInfo en-US
 ref cultureInfo es-ES

@@ -162,11 +162,11 @@
                       "Entity": "Customer"
                     }
                   },
-                  "Property": "Sales Lost Customers (12M)"
+                  "Property": "Sales Lost Customers"
                 }
               },
-              "queryRef": "Customer.Sales Lost Customers (12M)",
-              "nativeQueryRef": "Sales Lost Customers (12M)"
+              "queryRef": "Customer.Sales Lost Customers",
+              "nativeQueryRef": "Sales Lost Customers"
             }
           ]
         }
@@ -560,6 +560,146 @@
         },
         "type": "Advanced",
         "howCreated": "User"
+      },
+      {
+        "name": "c9adff35000ad34bdccd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Customer Country/Region Code"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "a99903ccc4a11aee8c47",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Customer County"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "609b90b740057512a84c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Customer City"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "552ed8109eeb41863336",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Customer Address"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c32fca43372b078c980b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Customer Post Code"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c49babeeb37214cdc2eb",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Documents"
+              }
+            },
+            "Property": "Sales (LCY)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "4bcea0940bc3e19047d2",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales New Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "922fb57187a533d317e5",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Recovered Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "8aa21f6b5a13bda90744",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Returning Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "bdf547b07da2560a9266",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Lost Customers"
+          }
+        },
+        "type": "Advanced"
       }
     ]
   }
