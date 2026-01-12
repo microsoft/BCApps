@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Routing;
 
 page 99001507 "Sub. Temp Routing Lines"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Temporary Routing Lines';
     DelayedInsert = true;
     PageType = ListPart;

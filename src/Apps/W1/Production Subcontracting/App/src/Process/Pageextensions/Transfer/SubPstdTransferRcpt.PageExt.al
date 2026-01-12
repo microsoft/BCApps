@@ -14,49 +14,49 @@ pageextension 99001528 "Sub. Pstd. Transfer Rcpt" extends "Posted Transfer Recei
         {
             field(SourceType; Rec."Source Type")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies for which source type the transfer order is related to.';
                 Visible = false;
             }
             field(SourceSubtype; Rec."Source Subtype")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies which source subtype the transfer order is related to.';
                 Visible = false;
             }
             field(SourceID; Rec."Source ID")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies which source ID the transfer order is related to.';
                 Visible = false;
             }
             field(SourceRefNo; Rec."Source Ref. No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Editable = false;
                 ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
                 Visible = false;
             }
             field("Return Order"; Rec."Return Order")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 ToolTip = 'Specifies whether the existing transfer order is a return of the subcontractor.';
                 Visible = false;
             }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;

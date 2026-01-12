@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 page 99001510 "Sub. Management Setup"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Subcontracting Setup';
     DeleteAllowed = false;
     InsertAllowed = false;

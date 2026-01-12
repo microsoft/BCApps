@@ -813,7 +813,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             QltyInspectionGenRule."Assembly Trigger" := QltyAssemblyTrigger;
             QltyManagementSetup."Assembly Trigger" := QltyAssemblyTrigger;
         end;
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
         QltyInspectionGenRule."Item Filter" := ItemRuleFilter;
         QltyInspectionGenRule.Modify();
 

@@ -54,7 +54,8 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         TempTrackingSpecification."Variant Code" := WarehouseEntry."Variant Code";
         TempTrackingSpecification."Lot No." := WarehouseEntry."Lot No.";
         TempTrackingSpecification."Serial No." := WarehouseEntry."Serial No.";
-        if TempTrackingSpecification.Insert(false) then;
+        TempTrackingSpecification."Package No." := WarehouseEntry."Package No.";
+        TempTrackingSpecification.Insert(false);
 
         if GetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, DoNotSendSourceVariant) then
             CollectSourceItemTracking(DoNotSendSourceVariant, TempTrackingSpecification);

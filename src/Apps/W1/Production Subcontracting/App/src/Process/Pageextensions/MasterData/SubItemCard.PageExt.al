@@ -14,7 +14,7 @@ pageextension 99001518 "Sub. Item Card" extends "Item Card"
         {
             action("Subcontractor Prices")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Subcontractor Prices';
                 Image = Price;
                 RunObject = page "Subcontractor Prices";
@@ -24,7 +24,7 @@ pageextension 99001518 "Sub. Item Card" extends "Item Card"
             }
             action(CreatePurchProvProdBOMRtng)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Create purchase provision Prod. BOM/Routing';
                 Image = CreateForm;
                 ToolTip = 'Create Production BOM and/or Routing BOM with purchase provision options.';

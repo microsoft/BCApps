@@ -13,7 +13,7 @@ using System.Text;
 
 page 99001500 "Subcontractor Prices"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Subcontractor Prices';
     DataCaptionExpression = GetCaption();
     DelayedInsert = true;

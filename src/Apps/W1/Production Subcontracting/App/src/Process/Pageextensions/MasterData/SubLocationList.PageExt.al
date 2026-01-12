@@ -14,7 +14,7 @@ pageextension 99001521 "Sub. Location List" extends "Location List"
         {
             field("Direct Transfer Posting"; Rec."Direct Transfer Posting")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
             }
         }
     }
