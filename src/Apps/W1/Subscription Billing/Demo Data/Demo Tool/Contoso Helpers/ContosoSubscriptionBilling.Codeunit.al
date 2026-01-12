@@ -592,6 +592,20 @@ codeunit 8105 "Contoso Subscription Billing"
         VendorContract.CreateVendorContractLineFromServiceCommitment(ServiceCommitment);
     end;
 
+    procedure AddVendorContractLine(ContractNo: Code[20]; ObjectNo: Code[20])
+    var
+        VendorContract: Record "Vendor Subscription Contract";
+        VendorContractLine: Record "Vend. Sub. Contract Line";
+        ServiceCommitment: Record "Subscription Line";
+    begin
+        ServiceCommitment.SetRange("Subscription Header No.", ObjectNo);
+        ServiceCommitment.SetRange(Partner, ServiceCommitment.Partner::Vendor);
+        ServiceCommitment.FindFirst();
+        ServiceCommitment."Subscription Contract No." := ContractNo;
+        VendorContract.Get(ContractNo);
+        VendorContract.CreateVendorContractLineFromServiceCommitment(ServiceCommitment);
+    end;
+
     procedure InsertUsageDataImport(SupplierNo: Code[20]; Description: Text[80]; UsageData: Text; FileName: Text; ImportDate: Date)
     var
         UsageDataImport: Record "Usage Data Import";
