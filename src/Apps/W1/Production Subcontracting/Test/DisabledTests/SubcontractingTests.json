@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "617432",
+        "codeunitId": 139989,
+        "codeunitName": "Sub. Subcontracting Test",
+        "method": "TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation"
+    }
+]
