@@ -345,7 +345,7 @@ codeunit 132912 "Azure AD Plan Tests"
         UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
 
         // [Given] The Delegated Admin agent - Partner plan exists
-        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Global Administrator', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
 
         // [Given] The plan is not assigned to the current user
         LibraryAssert.IsFalse(UserPlan.Get(PlanIds.GetDelegatedAdminPlanId(), UserSID), 'Plan should not be assigned to user');
@@ -406,7 +406,7 @@ codeunit 132912 "Azure AD Plan Tests"
         UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
 
         // [Given] The Delegated Admin agent - Partner plan exists
-        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Global Administrator', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
 
         // [Given] The plan is not assigned to the current user
         LibraryAssert.IsFalse(UserPlan.Get(PlanIds.GetDelegatedAdminPlanId(), UserSID), 'Plan should not be assigned to user');
@@ -460,7 +460,7 @@ codeunit 132912 "Azure AD Plan Tests"
         UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
 
         // [Given] The Delegated Admin agent - Partner plan exists
-        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Global Administrator', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
 
         // [Given] The plan is not assigned to the current user
         LibraryAssert.IsFalse(UserPlan.Get(PlanIds.GetDelegatedAdminPlanId(), UserSID), 'Plan should not be assigned to user');
@@ -511,7 +511,7 @@ codeunit 132912 "Azure AD Plan Tests"
         UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
 
         // [Given] The Delegated Admin agent - Partner plan exists
-        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Global Administrator', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
 
         // [Given] The plan is not assigned to the current user
         LibraryAssert.IsFalse(UserPlan.Get(PlanIds.GetDelegatedAdminPlanId(), UserSID), 'Plan should not be assigned to user');
@@ -566,7 +566,7 @@ codeunit 132912 "Azure AD Plan Tests"
         UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
 
         // [Given] The Delegated Helpdesk agent - Partner plan exists
-        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk agent - Partner', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk Administrator', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
 
         // [Given] The plan is not assigned to the current user
         LibraryAssert.IsFalse(UserPlan.Get(PlanIds.GetHelpDeskPlanId(), UserSID), 'Plan should not be assigned to user');
@@ -620,7 +620,7 @@ codeunit 132912 "Azure AD Plan Tests"
         UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
 
         // [Given] The Delegated Helpdesk agent - Partner plan exists
-        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk agent - Partner', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk Administrator', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
 
         // [Given] The plan is not assigned to the current user
         LibraryAssert.IsFalse(UserPlan.Get(PlanIds.GetHelpDeskPlanId(), UserSID), 'Plan should not be assigned to user');

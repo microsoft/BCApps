@@ -86,8 +86,10 @@ codeunit 9057 "Plan Upgrade"
         RenameOrCreatePlan(PlanIds.GetExternalAccountantPlanId(), 'Dynamics 365 Business Central External Accountant');
         RenameOrCreatePlan(PlanIds.GetPremiumISVPlanId(), 'Dynamics 365 Business Central Premium - Embedded');
         RenameOrCreatePlan(PlanIds.GetViralSignupPlanId(), 'Dynamics 365 Business Central for IWs');
-        RenameOrCreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner');
-        RenameOrCreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk agent - Partner');
+        RenameOrCreatePlan(PlanIds.GetDelegatedBCAdminPlanId(), 'Delegated Dynamics 365 Business Central Administrator');
+        RenameOrCreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Global Administrator');
+        RenameOrCreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk Administrator');
+        RenameOrCreatePlan(PlanIds.GetD365AdminPartnerPlanId(), 'Delegated Dynamics 365 Administrator');
         RenameOrCreatePlan('996DEF3D-B36C-4153-8607-A6FD3C01B89F', 'D365 Business Central Infrastructure');
 
         DeletePlan('07EB0DC4-7DA7-4E7B-BB42-2D44C5E08B08');
@@ -96,7 +98,7 @@ codeunit 9057 "Plan Upgrade"
         DeletePlan('46764787-E039-4AB0-8F00-820FC2D89BF9');
         DeletePlan('312BDEEE-8FBD-496E-B529-EB985F305FCF');
 
-        Session.LogMessage('0000AHN', 'Subscription Plans were renamed and old plans werer deleted.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+        Session.LogMessage('0000AHN', 'Subscription Plans were renamed and old plans were deleted.', Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
 
         UpgradeTag.SetUpgradeTag(PlanUpgradeTag.GetRenamePlansUpgradeTag());
     end;
@@ -233,7 +235,7 @@ codeunit 9057 "Plan Upgrade"
 
         // Create delegated plan
         PlanId := PlanIds.GetDelegatedBCAdminPlanId();
-        PlanName := 'Delegated BC Admin agent - Partner';
+        PlanName := 'Delegated Dynamics 365 Business Central Administrator';
         RoleCenterId := 9022;
 
         if not Plan.Get(PlanId) then
@@ -283,7 +285,7 @@ codeunit 9057 "Plan Upgrade"
             exit;
 
         PlanId := PlanIds.GetD365AdminPartnerPlanId();
-        PlanName := 'Delegated Dynamics 365 Admin agent - Partner';
+        PlanName := 'Delegated Dynamics 365 Administrator';
         RoleCenterId := 9022;
 
         if Plan.Get(PlanId) then

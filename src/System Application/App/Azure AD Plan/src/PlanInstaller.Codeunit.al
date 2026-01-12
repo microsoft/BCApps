@@ -32,13 +32,13 @@ codeunit 9056 "Plan Installer"
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
     begin
-        CreatePlan(PlanIds.GetDelegatedBCAdminPlanId(), 'Delegated BC Admin agent - Partner', 9022, 'FFF16A30-3B0B-47CB-9751-54A5C8F634ED');
+        CreatePlan(PlanIds.GetDelegatedBCAdminPlanId(), 'Delegated Dynamics 365 Business Central Administrator', 9022, 'FFF16A30-3B0B-47CB-9751-54A5C8F634ED');
         CreatePlan(PlanIds.GetBCAdminPlanId(), 'Internal BC Administrator', 9022, 'A2BB1194-FC0B-4C6B-840F-963851B783C9');
-        CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
-        CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk agent - Partner', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
+        CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Global Administrator', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
+        CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk Administrator', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetGlobalAdminPlanId(), 'Internal Administrator', 9022, '9B84DDCA-27B8-E911-BB26-000D3A2B005C'); // Global admin
         CreatePlan(PlanIds.GetD365AdminPlanId(), 'Dynamics 365 Administrator', 9022, 'F67B9B96-C667-4DD2-B370-FA065A895C9D');
-        CreatePlan(PlanIds.GetD365AdminPartnerPlanId(), 'Delegated Dynamics 365 Admin agent - Partner', 9022, '5C28E514-8AFD-4158-B8C0-93A5915938F9');
+        CreatePlan(PlanIds.GetD365AdminPartnerPlanId(), 'Delegated Dynamics 365 Administrator', 9022, '5C28E514-8AFD-4158-B8C0-93A5915938F9');
         CreatePlan(PlanIds.GetEssentialISVPlanId(), 'Dynamics 365 Business Central Essential - Embedded', 9022, '2E84DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetTeamMemberPlanId(), 'Dynamics 365 Business Central Team Member', 9028, '5784DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetMicrosoft365PlanId(), 'Microsoft 365', 8999, '57ff2da0-773e-42df-b2af-ffb7a2317929');
