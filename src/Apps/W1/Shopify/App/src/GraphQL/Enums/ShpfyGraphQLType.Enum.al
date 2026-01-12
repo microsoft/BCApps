@@ -705,6 +705,27 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Get Next Custom Product Collections';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCustProdColls";
     }
+    value(141; GetVariantImage)
+    {
+        Caption = 'Get Variant Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetVariantImage";
+    }
+    value(142; AddVariantImage)
+    {
+        Caption = 'Add Variant Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddVariantImage";
+    }
+    value(143; UpdateProdWithImage)
+    {
+        Caption = 'Update Product With Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddImageToProduct";
+    }
+    value(144; SetVariantImage)
+    {
+        Caption = 'Set Variant Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL SetVariantImage";
+    }
+
     value(145; GetPaymTransByIds)
     {
         Caption = 'Get Payment Transactions By Ids';

@@ -406,7 +406,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
             if QltyInspectionHeader.Get(InspectionRecordId) then begin
                 QltyInspectionHeader.AssignToSelf();
 #pragma warning disable AA0214
-                if QltyInspectionHeader.Modify() then;
+                QltyInspectionHeader.Modify();
 #pragma warning restore AA0214
             end;
     end;
