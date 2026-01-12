@@ -46,7 +46,7 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
         SKU: Record "Stockkeeping Unit";
         Vendor: Record Vendor;
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
-        SubcontractingManagement: Codeunit "Subcontracting Mgmt.";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if PlanningComponent."Routing Link Code" <> '' then begin
             PlanningRtngLine.SetRange("Worksheet Template Name", PlanningComponent."Worksheet Template Name");

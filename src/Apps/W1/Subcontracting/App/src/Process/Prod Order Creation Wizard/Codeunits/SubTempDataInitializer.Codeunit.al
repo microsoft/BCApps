@@ -555,7 +555,7 @@ codeunit 99001552 "Sub. Temp Data Initializer"
 
     local procedure PresetComponentLocationCode()
     var
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
         ComponentsLocationCode: Code[10];
     begin
 

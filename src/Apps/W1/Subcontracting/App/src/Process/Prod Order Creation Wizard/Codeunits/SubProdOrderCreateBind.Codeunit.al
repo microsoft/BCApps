@@ -22,7 +22,7 @@ codeunit 99001555 "Sub. ProdOrderCreateBind"
         IsHandled := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Mgmt.", OnBeforeGetSubcontractor, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Management", OnBeforeGetSubcontractor, '', false, false)]
     local procedure OnBeforeGetSubcontractor(WorkCenterNo: Code[20]; var Vendor: Record Vendor; var HasSubcontractor: Boolean; var IsHandled: Boolean)
     begin
         GetSubcontractorForPurchaseProvision(Vendor, HasSubcontractor, IsHandled);
@@ -42,7 +42,7 @@ codeunit 99001555 "Sub. ProdOrderCreateBind"
     local procedure TransferSubcontractingFieldsBOMComponentForPurchaseProvision(var ProdOrderComponent: Record "Prod. Order Component")
     var
         SubManagementSetup: Record "Sub. Management Setup";
-        SubcontractingManagement: Codeunit "Subcontracting Mgmt.";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         ComponentsLocationCode: Code[10];
     begin
         SubManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");

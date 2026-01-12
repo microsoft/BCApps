@@ -66,7 +66,7 @@ report 99001501 "Sub. Create SubC.Transf. Order"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
-        SubcontractingMgt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgt: Codeunit "Subcontracting Management";
         PurchOrderNo: Code[20];
         LineNum: Integer;
         ComponentsDoesNotExistErr: Label 'Components to send to subcontractor do not exist.';
@@ -76,7 +76,7 @@ report 99001501 "Sub. Create SubC.Transf. Order"
 
     local procedure InsertTransferHeader(CompLineLocation: Code[10])
     var
-        SubSubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubSubcontractingMgmt: Codeunit "Subcontracting Management";
         TransferToLocationCode: Code[10];
     begin
         if not SubcontractingMgmtSetup.Get() then

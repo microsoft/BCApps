@@ -11,7 +11,7 @@ codeunit 99001513 "Sub. Req.Line Extension"
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterGetDirectCost, '', false, false)]
     local procedure OnAfterGetDirectCost(var RequisitionLine: Record "Requisition Line"; CalledByFieldNo: Integer)
     var
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         SubcontractingMgmt.UpdateSubcontractorPriceForRequisitionLine(RequisitionLine);
     end;

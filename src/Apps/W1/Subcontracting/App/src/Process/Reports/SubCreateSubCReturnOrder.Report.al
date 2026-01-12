@@ -70,7 +70,7 @@ report 99001502 "Sub. Create SubCReturnOrder"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
-        SubcontractingMgt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgt: Codeunit "Subcontracting Management";
         PurchOrderNo: Code[20];
         LineNum: Integer;
         ComponentsDoesNotExistErr: Label 'Components to return from subcontractor do not exist.';
@@ -81,7 +81,7 @@ report 99001502 "Sub. Create SubCReturnOrder"
 
     local procedure InsertTransferHeader(SubcontractingType: Enum "Subcontracting Type"; OrigCompLineLocation: Code[10])
     var
-        SubSubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubSubcontractingMgmt: Codeunit "Subcontracting Management";
         TransferFromLocationCode, TransferToLocationCode : Code[10];
     begin
         if not SubcontractingMgmtSetup.Get() then

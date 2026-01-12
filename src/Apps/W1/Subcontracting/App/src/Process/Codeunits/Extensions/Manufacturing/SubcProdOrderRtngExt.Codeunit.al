@@ -19,7 +19,7 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnBeforeValidateEvent, "No.", false, false)]
     local procedure OnBeforeValidateNo(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
     var
-        SubSubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubSubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         if (xRec."No." <> Rec."No.") and (Rec."Routing Link Code" <> '') then
             SubSubcontractingMgmt.UpdLinkedComponents(Rec, true);
@@ -51,7 +51,7 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     var
         ProdOrdRtngLine2: Record "Prod. Order Routing Line";
         ConfirmMgt: Codeunit "Confirm Management";
-        SubSubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubSubcontractingMgmt: Codeunit "Subcontracting Management";
         UpdateCanceledErr: Label 'Update cancelled.';
         UpdateRoutingQst: Label '%1 %2 used more than once on this Routing. Do you want to update it anyway?', Comment = '%1=Field Caption, %2=Routing Link Code';
     begin
@@ -76,7 +76,7 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     local procedure HandleSubcontractingAfterRoutingLineDelete(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; RunTrigger: Boolean)
     var
         WorkCenter: Record "Work Center";
-        SubSubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubSubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         if RunTrigger then
             if ProdOrderRoutingLine.Status = ProdOrderRoutingLine.Status::Released then

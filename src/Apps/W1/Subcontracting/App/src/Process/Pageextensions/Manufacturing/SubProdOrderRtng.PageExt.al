@@ -53,7 +53,7 @@ pageextension 99001503 "Sub. Prod. Order Rtng." extends "Prod. Order Routing"
                 var
                     ProdOrderRtngLine: Record "Prod. Order Routing Line";
                     PurchaseLine: Record "Purchase Line";
-                    SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+                    SubcontractingMgmt: Codeunit "Subcontracting Management";
                     NoOfCreatedPurchOrder: Integer;
                     NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
                 begin

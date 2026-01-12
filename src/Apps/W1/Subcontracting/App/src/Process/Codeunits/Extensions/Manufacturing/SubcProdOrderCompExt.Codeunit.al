@@ -244,7 +244,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         SKU: Record "Stockkeeping Unit";
         Vendor: Record Vendor;
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
-        SubcontractingManagement: Codeunit "Subcontracting Mgmt.";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if ProdOrderComponent."Subcontracting Type" = ProdOrderComponent."Subcontracting Type"::Transfer then
             exit;

@@ -46,7 +46,7 @@ permissionset 99001500 "Sub. Permissionset"
         codeunit "Sub. SelectionFilterMgmt" = X,
         codeunit "Subcontracting Comp. Init." = X,
         codeunit "Subcontracting Management" = X,
-        codeunit "Subcontracting Mgmt." = X,
+        codeunit "Subcontracting Management Ext." = X,
         codeunit "Sub. Synchronize Management" = X,
         codeunit "Sub. Temp Data Initializer" = X,
         codeunit "Sub. TempProdOrdBind" = X,

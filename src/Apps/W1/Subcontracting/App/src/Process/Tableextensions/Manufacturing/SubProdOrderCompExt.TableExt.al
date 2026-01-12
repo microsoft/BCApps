@@ -23,7 +23,7 @@ tableextension 99001502 "Sub. Prod Order Comp Ext." extends "Prod. Order Compone
             ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Order Component.';
             trigger OnValidate()
             var
-                SubSubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+                SubSubcontractingMgmt: Codeunit "Subcontracting Management";
             begin
                 SubSubcontractingMgmt.UpdateSubcontractingTypeForProdOrderComponent(Rec);
             end;

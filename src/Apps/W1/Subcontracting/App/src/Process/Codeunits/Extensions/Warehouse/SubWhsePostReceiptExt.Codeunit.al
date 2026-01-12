@@ -11,7 +11,7 @@ codeunit 99001551 "Sub. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", OnAfterTransRcptLineModify, '', false, false)]
     local procedure OnAfterTransRcptLineModify(var TransferReceiptLine: Record "Transfer Receipt Line"; TransferLine: Record "Transfer Line"; CommitIsSuppressed: Boolean)
     var
-        SubcontrMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontrMgmt: Codeunit "Subcontracting Management";
     begin
         SubcontrMgmt.TransferReservationEntryFromPstTransferLineToProdOrderComp(TransferReceiptLine);
     end;

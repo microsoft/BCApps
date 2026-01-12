@@ -608,7 +608,7 @@ codeunit 99001556 "Sub. Create Prod. Ord. Opt."
     local procedure HandleSubcontractingAfterUpdate(var PurchLine: Record "Purchase Line")
     var
         RequisitionLine: Record "Requisition Line";
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
         SubcontractingMgmtExt: Codeunit "Subcontracting Management";
         NextLineNo: Integer;
     begin

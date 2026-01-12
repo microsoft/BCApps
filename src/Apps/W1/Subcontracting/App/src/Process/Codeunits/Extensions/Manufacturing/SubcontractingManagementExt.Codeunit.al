@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-codeunit 99001527 "Subcontracting Management"
+codeunit 99001527 "Subcontracting Management Ext."
 {
     EventSubscriberInstance = Manual;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Mgmt.", OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Management", OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor, '', false, false)]
     local procedure OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor(var SubContractorWorkCenterNo: Code[20])
     var
         SingleInstanceDict: Codeunit "Single Instance Dictionary";
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         if SubContractorWorkCenterNo = '' then
             SubContractorWorkCenterNo := CopyStr(SingleInstanceDict.GetCode(SubcontractingMgmt.GetDictionaryKey_Sub_CreateProdOrderProcess()), 1, 20);

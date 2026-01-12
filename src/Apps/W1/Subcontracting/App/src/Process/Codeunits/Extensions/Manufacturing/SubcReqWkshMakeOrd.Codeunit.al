@@ -24,7 +24,7 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 
     local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchOrderLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     var
-        EnhSubMgmt: Codeunit "Subcontracting Mgmt.";
+        EnhSubMgmt: Codeunit "Subcontracting Management";
     begin
         EnhSubMgmt.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchOrderLine, RequisitionLine);
         EnhSubMgmt.TransferSubcontractingProdOrderComp(PurchOrderLine, RequisitionLine, NextLineNo);

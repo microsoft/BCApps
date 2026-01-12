@@ -20,7 +20,7 @@ tableextension 99001503 "Sub. Planning Comp Ext." extends "Planning Component"
             ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Planning Component.';
             trigger OnValidate()
             var
-                SubSubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+                SubSubcontractingMgmt: Codeunit "Subcontracting Management";
             begin
                 SubSubcontractingMgmt.UpdateSubcontractingTypeForPlanningComponent(Rec);
             end;

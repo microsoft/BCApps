@@ -13,7 +13,7 @@ codeunit 99001526 "Subc. Create Prod. Rtng. Ext."
     [EventSubscriber(ObjectType::Report, Report::"Sub. Create Prod. Routing", OnAfterInsertRoutingHeader, '', false, false)]
     local procedure OnAfterInsertRoutingHeader(RoutingHeader: Record "Routing Header")
     var
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         SubcontractingMgmt.CreatePurchProvisionRoutingLine(RoutingHeader);
     end;

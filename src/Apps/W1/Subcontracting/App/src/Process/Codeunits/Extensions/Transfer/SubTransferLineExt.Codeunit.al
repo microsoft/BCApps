@@ -17,7 +17,7 @@ codeunit 99001544 "Sub. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Transfer Line"; RunTrigger: Boolean)
     var
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         if not Rec.IsTemporary() then
             if RunTrigger then

@@ -29,7 +29,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Utilities;
 
-codeunit 99001505 "Subcontracting Mgmt."
+codeunit 99001505 "Subcontracting Management"
 {
     var
         SubManagementSetup: Record "Sub. Management Setup";
@@ -106,7 +106,7 @@ codeunit 99001505 "Subcontracting Mgmt."
         RtngLine: Record "Routing Line";
         Vend: Record Vendor;
         CSubingleInstanceDict: Codeunit "Single Instance Dictionary";
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
         RoutingLinkCode: Code[10];
         WorkCenterNo: Code[20];
     begin
@@ -545,7 +545,7 @@ codeunit 99001505 "Subcontracting Mgmt."
     procedure UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(var TransferLine: Record "Transfer Line")
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         if ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No.") then
             if ProdOrderComponent."Orig. Location Code" <> '' then begin
