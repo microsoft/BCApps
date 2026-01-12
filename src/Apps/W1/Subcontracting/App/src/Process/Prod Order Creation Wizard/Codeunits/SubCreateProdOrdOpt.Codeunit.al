@@ -609,7 +609,7 @@ codeunit 99001556 "Sub. Create Prod. Ord. Opt."
     var
         RequisitionLine: Record "Requisition Line";
         SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
-        SubcontractingMgmtExt: Codeunit "Sub. SubcontractingMgmtExt";
+        SubcontractingMgmtExt: Codeunit "Subcontracting Management";
         NextLineNo: Integer;
     begin
         RequisitionLine."Prod. Order No." := PurchLine."Prod. Order No.";

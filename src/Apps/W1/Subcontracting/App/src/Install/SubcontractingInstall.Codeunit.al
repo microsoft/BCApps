@@ -33,14 +33,14 @@ codeunit 99001501 "Subcontracting Install"
 
     local procedure HandleFreshInstallPerCompany()
     var
-        SubcontractingCompanyInit: Codeunit "Sub. Subcontr. Comp. Init";
+        SubcontractingCompanyInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingCompanyInit.CreateBasicSubcontractingMgtSetup();
     end;
 
     local procedure HandleReinstallPerCompany()
     var
-        SubcontractingCompanyInit: Codeunit "Sub. Subcontr. Comp. Init";
+        SubcontractingCompanyInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingCompanyInit.CreateBasicSubcontractingMgtSetup();
     end;

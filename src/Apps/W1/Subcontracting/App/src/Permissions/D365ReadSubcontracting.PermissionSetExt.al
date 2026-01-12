@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Security.AccessControl;
 
-permissionsetextension 99001500 "D365 READ - Prod. Subcon." extends "D365 READ"
+permissionsetextension 99001500 "D365 READ - Subcontracting" extends "D365 READ"
 {
-    IncludedPermissionSets = "Prod. Subcon. - Read";
+    IncludedPermissionSets = "Subcontract. - Read";
 }

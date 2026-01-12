@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Purchases.Vendor;
 
-codeunit 99001522 "Sub. Planning Comp. Ext"
+codeunit 99001522 "Subc. Planning Comp. Ext."
 {
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Routing Link Code", false, false)]
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)

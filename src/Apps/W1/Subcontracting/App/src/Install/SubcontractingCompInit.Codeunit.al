@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Journal;
 
-codeunit 99001503 "Sub. Subcontr. Comp. Init"
+codeunit 99001503 "Subcontracting Comp. Init."
 {
     procedure CreateBasicSubcontractingMgtSetup()
     begin

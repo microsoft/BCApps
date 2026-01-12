@@ -13,7 +13,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
-codeunit 99001524 "Sub. Prod. Order Comp. Ext"
+codeunit 99001524 "Subc. Prod. Order Comp. Ext."
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Comp.-Reserve", OnAfterInitFromProdOrderComp, '', false, false)]
     local procedure OnAfterInitFromProdOrderComp(ProdOrderComponent: Record "Prod. Order Component")

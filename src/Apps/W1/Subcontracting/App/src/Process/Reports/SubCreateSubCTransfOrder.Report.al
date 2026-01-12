@@ -155,7 +155,7 @@ report 99001501 "Sub. Create SubC.Transf. Order"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         CostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-        SubProdOrderCompReserve: Codeunit "Sub. ProdOrderComp.-Reserve";
+        SubProdOrderCompReserve: Codeunit "Subc. Prod. Ord. Comp. Res.";
         UOMMgt: Codeunit "Unit of Measure Management";
         TransferFromLocationCode: Code[10];
         QtyPerUom: Decimal;

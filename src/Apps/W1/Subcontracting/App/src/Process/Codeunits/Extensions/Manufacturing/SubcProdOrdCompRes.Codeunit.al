@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001530 "Sub. ProdOrderComp.-Reserve"
+codeunit 99001530 "Subc. Prod. Ord. Comp. Res."
 {
     EventSubscriberInstance = Manual;
 

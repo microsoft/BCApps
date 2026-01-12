@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001526 "Sub. CreateProdRtngExt"
+codeunit 99001526 "Subc. Create Prod. Rtng. Ext."
 {
     EventSubscriberInstance = Manual;
 

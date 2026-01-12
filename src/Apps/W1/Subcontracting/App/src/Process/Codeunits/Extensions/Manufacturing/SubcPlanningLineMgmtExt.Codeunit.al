@@ -8,7 +8,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001518 "Sub. Planning Line Mgmt Ext"
+codeunit 99001518 "Subc. Planning Line Mgmt Ext."
 {
 #if not CLEAN27
 #pragma warning disable AL0432

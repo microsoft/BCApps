@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.Company;
 using System.Environment.Configuration;
 
-codeunit 99001502 "Sub. Business Setup Ext"
+codeunit 99001502 "Subc. Business Setup Ext."
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", OnRegisterManualSetup, '', false, false)]
     local procedure OnRegisterManualSetup(sender: Codeunit "Guided Experience")
@@ -23,7 +23,7 @@ codeunit 99001502 "Sub. Business Setup Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnCompanyInitialize, '', false, false)]
     local procedure OnCompanyInitialize()
     var
-        SubcontractingMgtCompInit: Codeunit "Sub. Subcontr. Comp. Init";
+        SubcontractingMgtCompInit: Codeunit "Subcontracting Comp. Init.";
     begin
         SubcontractingMgtCompInit.CreateBasicSubcontractingMgtSetup();
     end;

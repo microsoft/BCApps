@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-codeunit 99001527 "Sub. SubcontractingMgmtExt"
+codeunit 99001527 "Subcontracting Management"
 {
     EventSubscriberInstance = Manual;
 

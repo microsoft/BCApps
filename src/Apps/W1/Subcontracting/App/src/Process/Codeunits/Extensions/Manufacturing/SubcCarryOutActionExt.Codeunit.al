@@ -8,7 +8,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001523 "Sub. Carry Out Action Ext"
+codeunit 99001523 "Subc. Carry Out Action Ext."
 {
 #if not CLEAN27
 #pragma warning disable AL0432

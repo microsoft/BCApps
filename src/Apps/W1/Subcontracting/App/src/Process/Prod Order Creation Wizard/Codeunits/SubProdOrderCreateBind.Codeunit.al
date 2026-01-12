@@ -28,7 +28,7 @@ codeunit 99001555 "Sub. ProdOrderCreateBind"
         GetSubcontractorForPurchaseProvision(Vendor, HasSubcontractor, IsHandled);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sub. Calc. Prod. Order Ext.", OnAfterTransferSubcontractingFieldsBOMComponent, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subc. Calc. Prod. Order Ext.", OnAfterTransferSubcontractingFieldsBOMComponent, '', false, false)]
     local procedure "Sub. Calc. Prod. Order Ext._OnAfterTransferSubcontractingFieldsBOMComponent"(var ProductionBOMLine: Record "Production BOM Line"; var ProdOrderComponent: Record "Prod. Order Component")
     begin
         TransferSubcontractingFieldsBOMComponentForPurchaseProvision(ProdOrderComponent);

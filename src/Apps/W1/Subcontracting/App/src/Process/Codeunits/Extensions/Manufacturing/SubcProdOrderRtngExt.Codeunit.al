@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
 using System.Utilities;
 
-codeunit 99001520 "Sub. Prod. Order Rtng. Ext."
+codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 {
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteProdOrderRtngLine(var Rec: Record "Prod. Order Routing Line"; RunTrigger: Boolean)
