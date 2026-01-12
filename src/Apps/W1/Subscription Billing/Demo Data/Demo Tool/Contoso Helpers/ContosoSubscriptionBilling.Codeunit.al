@@ -501,7 +501,7 @@ codeunit 8105 "Contoso Subscription Billing"
         ServiceCommitment.DeleteAll(true);
         ServiceObject.Get(ObjectNo);
         ServiceCommitmentPackage.SetRange(Code, PackageCode);
-        ServiceObject.InsertServiceCommitmentsFromServCommPackage(ServiceAndCalculationStartDate, ServiceCommitmentPackage);
+        ServiceObject.InsertServiceCommitmentsFromServCommPackage(ServiceAndCalculationStartDate, ServiceObject."Provision End Date", ServiceCommitmentPackage, false);
     end;
 
     procedure InsertCustomerContract(ContractNo: Code[20]; Description: Text; CustomerNo: Code[20]; ContractTypeCode: Code[10])
