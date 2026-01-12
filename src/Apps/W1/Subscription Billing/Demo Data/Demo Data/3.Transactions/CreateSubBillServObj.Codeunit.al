@@ -91,6 +91,10 @@ codeunit 8116 "Create Sub. Bill. Serv. Obj."
         ContosoSubscriptionBilling.InsertServiceObject(SUB100019(), CreateCustomer.EUAlpineSkiHouse(), CreateSubBillItem.SB1104(), DefaultStartDate, CalcDate('<+2Y>', Today()), 19);
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100019(), DefaultStartDate, CreateSubBillPackages.UDUsage());
         ContosoSubscriptionBilling.InsertServiceCommitments(SUB100019(), DefaultStartDate, CreateSubBillPackages.UDUsage());
+
+        CustomStartDate := CalcDate('<-24M>', Today());
+        ContosoSubscriptionBilling.InsertServiceObject(SUB100020(), CreateCustomer.DomesticAdatumCorporation(), CreateSubBillItem.SB1104(), CustomStartDate, CalcDate('<-18M>', Today()), 10);
+        ContosoSubscriptionBilling.InsertServiceCommitments(SUB100020(), CustomStartDate, CreateSubBillPackages.MonthlySubscription());
     end;
 
 
@@ -187,5 +191,10 @@ codeunit 8116 "Create Sub. Bill. Serv. Obj."
     procedure SUB100019(): Code[20]
     begin
         exit('SUB100019');
+    end;
+
+    procedure SUB100020(): Code[20]
+    begin
+        exit('SUB100020');
     end;
 }

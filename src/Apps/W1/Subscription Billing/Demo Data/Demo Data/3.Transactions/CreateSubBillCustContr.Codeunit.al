@@ -73,6 +73,9 @@ codeunit 8117 "Create Sub. Bill. Cust. Contr."
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100018(), UsageDataLbl, CreateCustomer.EUAlpineSkiHouse(), CreateSubBillContrTypes.UsageDataCode());
         ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100018(), CreateSubBillServObj.SUB100019());
+
+        ContosoSubscriptionBilling.InsertCustomerContract(CSC100019(), UsageDataLbl, CreateCustomer.DomesticAdatumCorporation(), CreateSubBillContrTypes.UsageDataCode(), false);
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100019(), CreateSubBillServObj.SUB100020());
     end;
 
     var
@@ -169,5 +172,10 @@ codeunit 8117 "Create Sub. Bill. Cust. Contr."
     procedure CSC100018(): Code[20]
     begin
         exit('CSC100018');
+    end;
+
+    procedure CSC100019(): Code[20]
+    begin
+        exit('CSC100019');
     end;
 }
