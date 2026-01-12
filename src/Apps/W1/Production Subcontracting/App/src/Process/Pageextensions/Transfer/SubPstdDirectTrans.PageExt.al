@@ -49,14 +49,14 @@ pageextension 99001531 "Sub. Pstd. Direct Trans." extends "Posted Direct Transfe
             }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
             field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;

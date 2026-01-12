@@ -101,8 +101,10 @@ page 30119 "Shpfy Log Entries"
                 ToolTip = 'Clear the list of log entries that are older than 7 days.';
 
                 trigger OnAction();
+                var
+                    ShpfyLogEntries: Codeunit "Shpfy Log Entries";
                 begin
-                    Rec.DeleteEntries(7);
+                    ShpfyLogEntries.DeleteEntries(Rec, 7);
                 end;
             }
             action(Delete0days)
@@ -117,8 +119,10 @@ page 30119 "Shpfy Log Entries"
                 ToolTip = 'Clear the list of all log entries.';
 
                 trigger OnAction();
+                var
+                    ShpfyLogEntries: Codeunit "Shpfy Log Entries";
                 begin
-                    Rec.DeleteEntries(0);
+                    ShpfyLogEntries.DeleteEntries(Rec, 0);
                 end;
             }
         }

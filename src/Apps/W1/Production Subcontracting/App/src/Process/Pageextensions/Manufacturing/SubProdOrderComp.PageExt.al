@@ -14,23 +14,23 @@ pageextension 99001512 "Sub. Prod Order Comp" extends "Prod. Order Components"
         {
             field("Qty. on Transfer Order (Base)"; Rec."Qty. on Trans Order (Base)")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
             }
             field("Qty. in Transit (Base)"; Rec."Qty. in Transit (Base)")
             {
-                ApplicationArea = All;
+                ApplicationArea = Location;
                 Visible = false;
             }
             field("Qty. transf. to Subcontractor"; Rec."Qty. transf. to Subcontr")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
             }
         }
         addlast(Control1)
         {
             field("Subcontracting Type"; Rec."Subcontracting Type")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
             }
         }
     }

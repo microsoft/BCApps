@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Purchases.Document;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Purchases.Document;
 
 codeunit 139994 "Sub. Sub. Wiz. Config Test"
 {

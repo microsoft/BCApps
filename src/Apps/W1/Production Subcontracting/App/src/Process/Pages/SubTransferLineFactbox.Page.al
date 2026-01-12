@@ -8,7 +8,7 @@ using Microsoft.Inventory.Transfer;
 
 page 99001501 "Sub. Transfer Line Factbox"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Subcontracting Details';
     Editable = false;
     PageType = CardPart;

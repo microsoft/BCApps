@@ -8,7 +8,7 @@ using Microsoft.Purchases.Document;
 
 page 99001518 "Sub. Purchase Line Factbox"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Subcontracting Details';
     Editable = false;
     PageType = CardPart;

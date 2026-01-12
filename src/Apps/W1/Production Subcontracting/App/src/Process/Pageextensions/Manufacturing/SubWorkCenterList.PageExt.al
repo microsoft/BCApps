@@ -18,7 +18,7 @@ pageextension 99001507 "Sub. Work Center List" extends "Work Center List"
                 Image = SubcontractingWorksheet;
                 action("Subcontractor Prices")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Subcontractor Prices';
                     Image = Price;
                     ToolTip = 'Set up different prices for the work center and vendor in subcontracting.';

@@ -18,7 +18,7 @@ pageextension 99001534 "Sub. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
                 Caption = 'Production';
                 action("Production Order")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order';
                     Image = Production;
                     ToolTip = 'Specifies the depended Production Order of this Subcontracting Purchase Order.';
@@ -31,7 +31,7 @@ pageextension 99001534 "Sub. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
                 }
                 action("Production Order Routing")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order Routing';
                     Image = Route;
                     ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
@@ -44,7 +44,7 @@ pageextension 99001534 "Sub. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
                 }
                 action("Production Order Components")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Production Order Components';
                     Image = Components;
                     ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
@@ -57,7 +57,7 @@ pageextension 99001534 "Sub. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
                 }
                 action("Transfer Order")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Transfer Order';
                     Image = TransferOrder;
                     ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
@@ -70,7 +70,7 @@ pageextension 99001534 "Sub. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
                 }
                 action("Return Transfer Order")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Return Transfer Order';
                     Image = ReturnRelated;
                     ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';

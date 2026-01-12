@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Purchases.Document;
 
 codeunit 139996 "Sub. Sub. Wiz. Variant Test"
 {

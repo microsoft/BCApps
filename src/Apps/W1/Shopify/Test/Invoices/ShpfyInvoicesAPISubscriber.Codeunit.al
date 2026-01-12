@@ -35,7 +35,7 @@ codeunit 139558 "Shpfy Invoices API Subscriber"
         GraphQlQuery: Text;
         DraftOrderCreateGraphQLTok: Label '{"query":"mutation {draftOrderCreate(input: {', Locked = true;
         DraftOrderCompleteGraphQLTok: Label '{ draftOrder { order { legacyResourceId, name }} userErrors { field, message }}}"}', Locked = true;
-        FulfillmentOrderGraphQLTok: Label '{ fulfillmentOrders ( first:', Locked = true;
+        FulfillmentOrderGraphQLTok: Label '{ fulfillmentOrders (first:', Locked = true;
         FulfillmentCreateGraphQLTok: Label '{"query": "mutation { fulfillmentCreate ( fulfillment: { lineItemsByFulfillmentOrder:', Locked = true;
         GraphQLQuerryTok: Label '/graphql.json', Locked = true;
     begin

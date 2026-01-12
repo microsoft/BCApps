@@ -13,7 +13,7 @@ using System.Utilities;
 
 page 99001505 "Sub. PurchProvisionWizard"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Purchase Provision Wizard';
     PageType = NavigatePage;
     SourceTable = Item;

@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 tableextension 99001520 "Sub. Transfer Header" extends "Transfer Header"
 {

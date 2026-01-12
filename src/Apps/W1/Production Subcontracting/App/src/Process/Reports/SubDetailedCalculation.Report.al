@@ -16,7 +16,7 @@ using System.Utilities;
 
 report 99001500 "Sub. Detailed Calculation"
 {
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     Caption = 'Detailed Calculation';
     DefaultLayout = RDLC;
     RDLCLayout = 'src\Process\Reports\Rep99001500.SubDetailedCalculation.rdl';
@@ -422,7 +422,7 @@ report 99001500 "Sub. Detailed Calculation"
                     Caption = 'Options';
                     field(CalculationDate; CalculateDate)
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Calculation Date';
                         ToolTip = 'Specifies the specific date for which to get the cost list. The standard entry in this field is the working date.';
                     }

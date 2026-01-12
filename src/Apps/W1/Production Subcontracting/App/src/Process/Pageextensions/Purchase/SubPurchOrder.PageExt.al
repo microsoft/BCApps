@@ -14,11 +14,11 @@ pageextension 99001523 "Sub. Purch. Order" extends "Purchase Order"
         {
             field("Subcontracting Order"; Rec."Subcontracting Order")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
             }
             field("Subc. Location Code"; Rec."Subc. Location Code")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
             }
         }
@@ -26,7 +26,7 @@ pageextension 99001523 "Sub. Purch. Order" extends "Purchase Order"
         {
             part(" Sub Purchase Line Factbox"; "Sub. Purchase Line Factbox")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Provider = PurchLines;
                 SubPageLink = "Document Type" = field("Document Type"), "Document No." = field("Document No."), "Line No." = field("Line No.");
                 Visible = ShowSubcontractingFactBox;
@@ -39,7 +39,7 @@ pageextension 99001523 "Sub. Purch. Order" extends "Purchase Order"
         {
             action(CreateTransfOrdToSubcontractor)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Create Transf. Ord. to Subcontractor';
                 Image = NewDocument;
                 ToolTip = 'Create a transfer order to send to the subcontractor.';
@@ -55,7 +55,7 @@ pageextension 99001523 "Sub. Purch. Order" extends "Purchase Order"
             }
             action(CreateReturnFromSubcontractor)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Create Return from Subcontractor';
                 Image = ReturnRelated;
                 ToolTip = 'Create a return document from the subcontractor.';
@@ -71,7 +71,7 @@ pageextension 99001523 "Sub. Purch. Order" extends "Purchase Order"
             }
             action(PrintSubcDispatchingList)
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Caption = 'Print Subcontractor Dispatching List';
                 Image = Print;
                 ToolTip = 'Prints the Dispatching List for the subcontractor.';

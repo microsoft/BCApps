@@ -14,7 +14,7 @@ pageextension 99001530 "Sub. Transfer Lines" extends "Transfer Lines"
         {
             field("Return Order"; Rec."Return Order")
             {
-                ApplicationArea = All;
+                ApplicationArea = Manufacturing;
                 Editable = false;
                 Visible = false;
             }

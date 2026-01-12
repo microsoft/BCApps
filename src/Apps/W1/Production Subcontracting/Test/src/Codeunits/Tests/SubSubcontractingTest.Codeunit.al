@@ -4,40 +4,41 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
-using Microsoft.Manufacturing.Subcontracting;
-using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Inventory.Location;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Manufacturing.Planning;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Purchases.Comment;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Planning;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.History;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Warehouse.Document;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Journal;
-using Microsoft.Foundation.Enums;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Planning;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Comment;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Structure;
 
 codeunit 139989 "Sub. Subcontracting Test"
-{ // [FEATURE] Subcontracting Management
+{
+    // [FEATURE] Subcontracting Management
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
@@ -1584,7 +1585,7 @@ Comment = '|%1 = Transfer Order No.';
         Assert.Equal(Vendor."Subcontr. Location Code", PlanningComponent."Location Code");
     end;
 
-//    [Test]
+    [Test]
     procedure TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation()
     var
         ItemCharge: Record "Item Charge";
