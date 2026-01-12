@@ -27,16 +27,16 @@ codeunit 8118 "Create Sub. Bill. Vend. Contr."
 
         ContosoSubscriptionBilling.InsertVendorContract(VSC100003(), HardwareMaintenanceLbl, CreateVendor.ExportFabrikam(), CreateSubBillContrTypes.MaintenanceCode());
         ContosoSubscriptionBilling.InsertVendorContractLine(VSC100003(), CreateSubBillServObj.SUB100005());
-        ContosoSubscriptionBilling.InsertVendorContractLine(VSC100003(), CreateSubBillServObj.SUB100007());
-        ContosoSubscriptionBilling.InsertVendorContractLine(VSC100003(), CreateSubBillServObj.SUB100009());
-        ContosoSubscriptionBilling.InsertVendorContractLine(VSC100003(), CreateSubBillServObj.SUB100010());
+        ContosoSubscriptionBilling.AddVendorContractLine(VSC100003(), CreateSubBillServObj.SUB100007());
+        ContosoSubscriptionBilling.AddVendorContractLine(VSC100003(), CreateSubBillServObj.SUB100009());
+        ContosoSubscriptionBilling.AddVendorContractLine(VSC100003(), CreateSubBillServObj.SUB100010());
 
         ContosoSubscriptionBilling.InsertVendorContract(VSC100004(), UsageDataLbl, CreateVendor.DomesticWorldImporter(), CreateSubBillContrTypes.UsageDataCode());
         ContosoSubscriptionBilling.InsertVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100015());
-        ContosoSubscriptionBilling.InsertVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100016());
-        ContosoSubscriptionBilling.InsertVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100017());
-        ContosoSubscriptionBilling.InsertVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100018());
-        ContosoSubscriptionBilling.InsertVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100019());
+        ContosoSubscriptionBilling.AddVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100016());
+        ContosoSubscriptionBilling.AddVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100017());
+        ContosoSubscriptionBilling.AddVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100018());
+        ContosoSubscriptionBilling.AddVendorContractLine(VSC100004(), CreateSubBillServObj.SUB100019());
     end;
 
     var
