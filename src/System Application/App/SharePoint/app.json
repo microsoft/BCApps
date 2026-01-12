@@ -67,6 +67,11 @@
   "target": "OnPrem",
   "internalsVisibleTo": [
     {
+      "id": "977e6b76-d7c1-41fa-b38b-21399cd140a7",
+      "name": "SharePoint Test",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "ff0caa38-65a2-49c5-a7e2-6a0475cfc60e",
       "name": "SharePoint Test Library",
       "publisher": "Microsoft"
