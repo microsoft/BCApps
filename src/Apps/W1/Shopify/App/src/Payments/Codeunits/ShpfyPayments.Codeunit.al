@@ -90,14 +90,14 @@ codeunit 30169 "Shpfy Payments"
                 PayoutIdFilter += Format(Payout.Id);
                 PayoutCount += 1;
                 if PayoutCount = 200 then begin
-                    PaymentsAPI.UpdatePayouts(PayoutIdFilter);
+                    PaymentsAPI.UpdatePayoutStatuses(PayoutIdFilter);
                     PayoutIdFilter := '';
                     PayoutCount := 0;
                 end;
             until Payout.Next() = 0;
 
         if PayoutIdFilter <> '' then
-            PaymentsAPI.UpdatePayouts(PayoutIdFilter);
+            PaymentsAPI.UpdatePayoutStatuses(PayoutIdFilter);
     end;
     #endregion
 

@@ -60,7 +60,6 @@ codeunit 30385 "Shpfy Payments API"
         if PaymentTransaction.Get(Id) then begin
             PaymentTransaction."Payout Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JTransaction, 'associatedPayout.id'));
             PaymentTransaction.Modify();
-            // TODONAT: Anything else to update?
         end else begin
             RecordRef.Open(Database::"Shpfy Payment Transaction");
             RecordRef.Init();
@@ -172,14 +171,15 @@ codeunit 30385 "Shpfy Payments API"
                 foreach JNode in JTransactions do begin
                     Id := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode.AsObject(), 'id'));
                     PayoutId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode.AsObject(), 'associatedPayout.id'));
-                    if PaymentTransaction.Get(Id) then begin
-                        PaymentTransaction."Payout Id" := PayoutId;
-                        PaymentTransaction.Modify();
-                    end;
+                    if PaymentTransaction.Get(Id) then
+                        if PaymentTransaction."Payout Id" <> PayoutId then begin
+                            PaymentTransaction."Payout Id" := PayoutId;
+                            PaymentTransaction.Modify();
+                        end;
                 end;
     end;
 
-    internal procedure UpdatePayouts(IdFilter: Text)
+    internal procedure UpdatePayoutStatuses(IdFilter: Text)
     var
         Payout: Record "Shpfy Payout";
         GraphQLType: Enum "Shpfy GraphQL Type";
