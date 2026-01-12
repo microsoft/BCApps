@@ -505,6 +505,11 @@ codeunit 8105 "Contoso Subscription Billing"
     end;
 
     procedure InsertCustomerContract(ContractNo: Code[20]; Description: Text; CustomerNo: Code[20]; ContractTypeCode: Code[10])
+    begin
+        InsertCustomerContract(ContractNo, Description, CustomerNo, ContractTypeCode, true);
+    end;
+
+    procedure InsertCustomerContract(ContractNo: Code[20]; Description: Text; CustomerNo: Code[20]; ContractTypeCode: Code[10]; IsActive: Boolean)
     var
         CustomerContract: Record "Customer Subscription Contract";
         Exists: Boolean;
@@ -521,6 +526,7 @@ codeunit 8105 "Contoso Subscription Billing"
         CustomerContract.Validate("Sell-to Customer No.", CustomerNo);
         CustomerContract.Validate("Contract Type", ContractTypeCode);
         CustomerContract.Validate("Detail Overview", Enum::"Contract Detail Overview"::Complete);
+        CustomerContract.Validate(Active, IsActive);
 
         if Exists then
             CustomerContract.Modify(true)
