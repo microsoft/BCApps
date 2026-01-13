@@ -36,11 +36,6 @@ page 8351 "MCP Config Card"
                 field(Active; Rec.Active)
                 {
                     Editable = not IsDefault;
-
-                    trigger OnValidate()
-                    begin
-                        MCPConfigImplementation.ActivateConfiguration(Rec.SystemId, Rec.Active);
-                    end;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
@@ -48,8 +43,6 @@ page 8351 "MCP Config Card"
 
                     trigger OnValidate()
                     begin
-                        MCPConfigImplementation.EnableDynamicToolMode(Rec.SystemId, Rec.EnableDynamicToolMode);
-
                         if not Rec.EnableDynamicToolMode then
                             Rec.DiscoverReadOnlyObjects := false;
                     end;
@@ -57,17 +50,13 @@ page 8351 "MCP Config Card"
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
                     Editable = not IsDefault and Rec.EnableDynamicToolMode;
-
-                    trigger OnValidate()
-                    begin
-                        MCPConfigImplementation.EnableDiscoverReadOnlyObjects(Rec.SystemId, Rec.DiscoverReadOnlyObjects);
-                    end;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
                     trigger OnValidate()
                     begin
-                        MCPConfigImplementation.AllowCreateUpdateDeleteTools(Rec.SystemId, Rec.AllowProdChanges);
+                        if not Rec.AllowProdChanges then
+                            MCPConfigImplementation.DisableCreateUpdateDeleteToolsInConfig(Rec.SystemId);
                         CurrPage.Update();
                     end;
                 }
@@ -107,6 +96,21 @@ page 8351 "MCP Config Card"
     trigger OnAfterGetRecord()
     begin
         IsDefault := MCPConfigImplementation.IsDefaultConfiguration(Rec);
+    end;
+
+    trigger OnDeleteRecord(): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationDeleted(Rec);
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationCreated(Rec);
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationModified(Rec, xRec);
     end;
 
     var

@@ -54,8 +54,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.Name := Name;
         MCPConfiguration.Description := Description;
         MCPConfiguration.Insert();
-        Session.LogMessage('0000R0Q', MCPConfigurationCreatedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
-        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditCreatedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        LogConfigurationCreated(MCPConfiguration);
         exit(MCPConfiguration.SystemId);
     end;
 
@@ -71,27 +70,28 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfiguration.Active := Active;
         MCPConfiguration.Modify();
-        Session.LogMessage('0000QE9', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
-        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+
     end;
 
     internal procedure AllowCreateUpdateDeleteTools(ConfigId: Guid; Allow: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
+
+        xMCPConfiguration := MCPConfiguration;
 
         if not Allow then
             DisableCreateUpdateDeleteToolsInConfig(ConfigId);
 
         MCPConfiguration.AllowProdChanges := Allow;
         MCPConfiguration.Modify();
-        Session.LogMessage('0000QEA', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
-        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
-    local procedure DisableCreateUpdateDeleteToolsInConfig(ConfigId: Guid)
+    internal procedure DisableCreateUpdateDeleteToolsInConfig(ConfigId: Guid)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
@@ -115,8 +115,7 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(DefaultConfigCannotBeDeletedErr);
 
-        Session.LogMessage('0000QEB', MCPConfigurationDeletedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
-        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        LogConfigurationDeleted(MCPConfiguration);
         MCPConfiguration.Delete();
     end;
 
@@ -151,8 +150,7 @@ codeunit 8351 "MCP Config Implementation"
 
         CopyTools(SourceMCPConfiguration, NewMCPConfiguration);
 
-        Session.LogMessage('0000R0R', MCPConfigurationCreatedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(NewMCPConfiguration));
-        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditCreatedLbl, NewMCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        LogConfigurationCreated(NewMCPConfiguration);
         exit(NewMCPConfiguration.SystemId);
     end;
 
@@ -175,9 +173,12 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
+
+        xMCPConfiguration := MCPConfiguration;
 
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
             Error(DynamicToolModeCannotBeDisabledErr);
@@ -186,16 +187,18 @@ codeunit 8351 "MCP Config Implementation"
         if not Enable then
             MCPConfiguration.DiscoverReadOnlyObjects := false;
         MCPConfiguration.Modify();
-        Session.LogMessage('0000QEC', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
-        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
     internal procedure EnableDiscoverReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
+        xMCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
+
+        xMCPConfiguration := MCPConfiguration;
 
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
             Error(DiscoverReadOnlyObjectsCannotBeDisabledErr);
@@ -205,8 +208,7 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfiguration.DiscoverReadOnlyObjects := Enable;
         MCPConfiguration.Modify();
-        Session.LogMessage('0000QED', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
-        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
@@ -519,13 +521,50 @@ codeunit 8351 "MCP Config Implementation"
     begin
         Dimensions.Add('MCPConfigurationName', MCPConfiguration.Name);
         Dimensions.Add('Active', Format(MCPConfiguration.Active));
-        Dimensions.Add('AllowProdChanges', Format(MCPConfiguration.AllowProdChanges));
-        Dimensions.Add('EnableDynamicToolMode', Format(MCPConfiguration.EnableDynamicToolMode));
+        Dimensions.Add('UnblockEditTools', Format(MCPConfiguration.AllowProdChanges));
+        Dimensions.Add('DynamicToolMode', Format(MCPConfiguration.EnableDynamicToolMode));
         Dimensions.Add('DiscoverReadOnlyObjects', Format(MCPConfiguration.DiscoverReadOnlyObjects));
     end;
 
     internal procedure GetTelemetryCategory(): Text[50]
     begin
         exit('MCP');
+    end;
+
+    internal procedure LogConfigurationCreated(MCPConfiguration: Record "MCP Configuration")
+    begin
+        Session.LogMessage('0000R0Q', MCPConfigurationCreatedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
+        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditCreatedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+    end;
+
+    internal procedure LogConfigurationModified(MCPConfiguration: Record "MCP Configuration"; xMCPConfiguration: Record "MCP Configuration")
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('MCPConfigurationName', MCPConfiguration.Name);
+        if MCPConfiguration.Active <> xMCPConfiguration.Active then begin
+            Dimensions.Add('OldActive', Format(xMCPConfiguration.Active));
+            Dimensions.Add('NewActive', Format(MCPConfiguration.Active));
+        end;
+        if MCPConfiguration.AllowProdChanges <> xMCPConfiguration.AllowProdChanges then begin
+            Dimensions.Add('OldUnblockEditTools', Format(xMCPConfiguration.AllowProdChanges));
+            Dimensions.Add('NewUnblockEditTools', Format(MCPConfiguration.AllowProdChanges));
+        end;
+        if MCPConfiguration.EnableDynamicToolMode <> xMCPConfiguration.EnableDynamicToolMode then begin
+            Dimensions.Add('OldDynamicToolMode', Format(xMCPConfiguration.EnableDynamicToolMode));
+            Dimensions.Add('NewDynamicToolMode', Format(MCPConfiguration.EnableDynamicToolMode));
+        end;
+        if MCPConfiguration.DiscoverReadOnlyObjects <> xMCPConfiguration.DiscoverReadOnlyObjects then begin
+            Dimensions.Add('OldDiscoverReadOnlyObjects', Format(xMCPConfiguration.DiscoverReadOnlyObjects));
+            Dimensions.Add('NewDiscoverReadOnlyObjects', Format(MCPConfiguration.DiscoverReadOnlyObjects));
+        end;
+        Session.LogMessage('0000QE9', MCPConfigurationModifiedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditModifiedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+    end;
+
+    internal procedure LogConfigurationDeleted(MCPConfiguration: Record "MCP Configuration")
+    begin
+        Session.LogMessage('0000QEB', MCPConfigurationDeletedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
+        Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
 }
