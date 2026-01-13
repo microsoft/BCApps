@@ -34,7 +34,7 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterValidateEvent, "Standard Task Code", false, false)]
     local procedure OnAfterValidateStandardTaskCode(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
     var
-        SubPricingMgmt: Codeunit "Sub. Price Management";
+        SubPricingMgmt: Codeunit "Subc. Price Management";
     begin
         SubPricingMgmt.GetSubcPriceList(Rec);
     end;
@@ -42,7 +42,7 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterWorkCenterTransferFields, '', false, false)]
     local procedure OnAfterWorkCenterTransferFields(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; WorkCenter: Record "Work Center")
     var
-        SubPricingMgmt: Codeunit "Sub. Price Management";
+        SubPricingMgmt: Codeunit "Subc. Price Management";
     begin
         SubPricingMgmt.GetSubcPriceList(ProdOrderRoutingLine);
     end;

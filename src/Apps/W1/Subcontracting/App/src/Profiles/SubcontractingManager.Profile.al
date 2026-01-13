@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.RoleCenters;
 profile "Subcontracting Manager"
 {
     Caption = 'Subcontracting Manager';
-    Customizations = "Sub. ProdOrderRouting", "Sub. ProdOrderComponents", "Sub. RoutingLines", "Sub. ReleasedProdOrderLines";
+    Customizations = "Subc. ProdOrderRouting", "Subc. ProdOrderComponents", "Subc. RoutingLines", "Subc. ReleasedProdOrderLines";
     ProfileDescription = 'Functionality for managers who coordinate external work in production, e.g. tracking of subcontracting purchase orders and transfers from production.';
     RoleCenter = "Production Planner Role Center";
 }

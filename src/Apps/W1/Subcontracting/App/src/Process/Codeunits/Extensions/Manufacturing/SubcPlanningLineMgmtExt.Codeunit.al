@@ -19,7 +19,7 @@ codeunit 99001518 "Subc. Planning Line Mgmt Ext."
 #endif
     local procedure OnAfterTransferRtngLine(var ReqLine: Record "Requisition Line"; var RoutingLine: Record "Routing Line"; var PlanningRoutingLine: Record "Planning Routing Line")
     var
-        SubPricingMgmt: Codeunit "Sub. Price Management";
+        SubPricingMgmt: Codeunit "Subc. Price Management";
     begin
         SubPricingMgmt.ApplySubcontractorPricingToPlanningRouting(ReqLine, RoutingLine, PlanningRoutingLine);
     end;

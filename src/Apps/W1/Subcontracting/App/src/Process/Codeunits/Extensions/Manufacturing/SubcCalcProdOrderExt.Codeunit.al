@@ -13,7 +13,7 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferRoutingLine, '', false, false)]
     local procedure OnAfterTransferRoutingLine(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
-        SubPricingMgmt: Codeunit "Sub. Price Management";
+        SubPricingMgmt: Codeunit "Subc. Price Management";
         SubSubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         SubSubcontractingMgmt.UpdateLinkedComponentsAfterRoutingTransfer(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);

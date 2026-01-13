@@ -10,7 +10,7 @@ codeunit 99001526 "Subc. Create Prod. Rtng. Ext."
 {
     EventSubscriberInstance = Manual;
 
-    [EventSubscriber(ObjectType::Report, Report::"Sub. Create Prod. Routing", OnAfterInsertRoutingHeader, '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Subc. Create Prod. Routing", OnAfterInsertRoutingHeader, '', false, false)]
     local procedure OnAfterInsertRoutingHeader(RoutingHeader: Record "Routing Header")
     var
         SubcontractingMgmt: Codeunit "Subcontracting Management";

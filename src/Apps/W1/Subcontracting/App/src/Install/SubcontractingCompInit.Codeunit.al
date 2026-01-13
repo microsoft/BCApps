@@ -16,7 +16,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
 
     local procedure CreateSubcontractingManagementSetup()
     var
-        SubcontractingManagementSetup: Record "Sub. Management Setup";
+        SubcontractingManagementSetup: Record "Subc. Management Setup";
     begin
         if not SubcontractingManagementSetup.Get() then begin
             SubcontractingManagementSetup.Init();
@@ -28,7 +28,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         end;
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup(var SubMgmtSetup: Record "Sub. Management Setup")
+    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup(var SubMgmtSetup: Record "Subc. Management Setup")
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";

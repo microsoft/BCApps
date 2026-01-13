@@ -32,7 +32,7 @@ using System.Utilities;
 codeunit 99001505 "Subcontracting Management"
 {
     var
-        SubManagementSetup: Record "Sub. Management Setup";
+        SubManagementSetup: Record "Subc. Management Setup";
         TempGlobalReservEntry: Record "Reservation Entry" temporary;
         PageManagement: Codeunit "Page Management";
         UOMMgt: Codeunit "Unit of Measure Management";
@@ -303,7 +303,7 @@ codeunit 99001505 "Subcontracting Management"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         InstructionMgt: Codeunit "Instruction Mgt.";
-        NotifMgmt: Codeunit "Sub. Notification Mgmt.";
+        NotifMgmt: Codeunit "Subc. Notification Mgmt.";
         IsHandled: Boolean;
         PurchOrderCreatedTxt: Label '%1 Purchase Order(s) created.\\Do you want to view them?', Comment = '%1 = No of Purchase Order(s) created.';
     begin
@@ -528,12 +528,12 @@ codeunit 99001505 "Subcontracting Management"
                                     DimensionSetIDArr, PurchOrderLine."Shortcut Dimension 1 Code", PurchOrderLine."Shortcut Dimension 2 Code");
                             PurchOrderLine."Order Date" := WorkDate();
 
-                            PurchOrderLine."Sub. Prod. Order No." := ProdOrderRtngLine."Prod. Order No.";
-                            PurchOrderLine."Sub. Prod. Order Line No." := ProdOrderRtngLine."Routing Reference No.";
-                            PurchOrderLine."Sub. Routing No." := ProdOrderRtngLine."Routing No.";
-                            PurchOrderLine."Sub. Rtng Reference No." := ProdOrderRtngLine."Routing Reference No.";
-                            PurchOrderLine."Sub. Operation No." := ProdOrderRtngLine."Operation No.";
-                            PurchOrderLine."Sub. Work Center No." := ProdOrderRtngLine."Work Center No.";
+                            PurchOrderLine."Subc. Prod. Order No." := ProdOrderRtngLine."Prod. Order No.";
+                            PurchOrderLine."Subc. Prod. Order Line No." := ProdOrderRtngLine."Routing Reference No.";
+                            PurchOrderLine."Subc. Routing No." := ProdOrderRtngLine."Routing No.";
+                            PurchOrderLine."Subc. Rtng Reference No." := ProdOrderRtngLine."Routing Reference No.";
+                            PurchOrderLine."Subc. Operation No." := ProdOrderRtngLine."Operation No.";
+                            PurchOrderLine."Subc. Work Center No." := ProdOrderRtngLine."Work Center No.";
 
                             PurchOrderLine.Insert();
                         until ProdOrderComp.Next() = 0;

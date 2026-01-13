@@ -17,7 +17,7 @@ codeunit 99001502 "Subc. Business Setup Ext."
         SubcontractingKeyWordsLbl: Label 'Subcontracting, Management';
         SubcontractingLbl: Label 'Subcontracting App';
     begin
-        sender.InsertManualSetup(SubcontractingLbl, SubcontractingLbl, SubcontractingDescriptionLbl, 0, ObjectType::Page, Page::"Sub. Management Setup", ManualSetupCategory::Uncategorized, SubcontractingKeyWordsLbl);
+        sender.InsertManualSetup(SubcontractingLbl, SubcontractingLbl, SubcontractingDescriptionLbl, 0, ObjectType::Page, Page::"Subc. Management Setup", ManualSetupCategory::Uncategorized, SubcontractingKeyWordsLbl);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnCompanyInitialize, '', false, false)]
