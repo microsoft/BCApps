@@ -9,6 +9,9 @@ using System.RestClient;
 
 codeunit 132975 "SharePoint Graph Test Library"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         MockHttpClientHandler: Codeunit "SharePoint Http Client Handler";
 

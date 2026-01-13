@@ -9,7 +9,6 @@ using System.RestClient;
 
 codeunit 132981 "SharePoint Http Client Handler" implements "Http Client Handler"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 

@@ -9,7 +9,6 @@ using System.RestClient;
 
 codeunit 132974 "SharePoint Graph Auth Spy" implements "Graph Authorization"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
