@@ -5,6 +5,8 @@
 
 namespace System.MCP;
 
+using System.Azure.Identity;
+using System.Environment;
 #if not CLEAN28
 using System.Environment.Configuration;
 #endif
@@ -33,6 +35,11 @@ codeunit 8351 "MCP Config Implementation"
         DeletedConfigurationLbl: Label 'Deleted MCP configuration %1', Comment = '%1 - configuration ID', Locked = true;
         SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
         SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
+        ConnectionStringLbl: Label '%1 Connection String', Comment = '%1 - configuration name';
+        MCPUrlProdLbl: Label 'https://mcp.businesscentral.dynamics.com', Locked = true;
+        MCPUrlTIELbl: Label 'https://mcp.businesscentral.dynamics-tie.com', Locked = true;
+        MCPPrefixProdLbl: Label 'businesscentral', Locked = true;
+        MCPPrefixTIELbl: Label 'businesscentral-tie', Locked = true;
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -492,6 +499,75 @@ codeunit 8351 "MCP Config Implementation"
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
+    end;
+    #endregion
+
+    #region Connection String
+    internal procedure ShowConnectionString(ConfigurationName: Text[100])
+    var
+        MCPConnectionString: Page "MCP Connection String";
+        ConnectionString: Text;
+    begin
+        ConnectionString := GenerateConnectionString(ConfigurationName);
+        MCPConnectionString.SetConnectionString(ConnectionString, ConfigurationName);
+        MCPConnectionString.Caption(StrSubstNo(ConnectionStringLbl, ConfigurationName));
+        MCPConnectionString.RunModal();
+    end;
+
+    internal procedure GenerateConnectionString(ConfigurationName: Text[100]): Text
+    var
+        AzureADTenant: Codeunit "Azure AD Tenant";
+        EnvironmentInformation: Codeunit "Environment Information";
+        MCPUrl: Text;
+        MCPPrefix: Text;
+        TenantId: Text;
+        EnvironmentName: Text;
+        Company: Text;
+    begin
+        GetMCPUrlAndPrefix(MCPUrl, MCPPrefix);
+        TenantId := AzureADTenant.GetAadTenantId();
+        EnvironmentName := EnvironmentInformation.GetEnvironmentName();
+        Company := CompanyName();
+
+        exit(BuildConnectionStringJson(MCPPrefix, MCPUrl, TenantId, EnvironmentName, Company, ConfigurationName));
+    end;
+
+    local procedure GetMCPUrlAndPrefix(var MCPUrl: Text; var MCPPrefix: Text)
+    begin
+        if IsTIEEnvironment() then begin
+            MCPUrl := MCPUrlTIELbl;
+            MCPPrefix := MCPPrefixTIELbl;
+        end else begin
+            MCPUrl := MCPUrlProdLbl;
+            MCPPrefix := MCPPrefixProdLbl;
+        end;
+    end;
+
+    local procedure IsTIEEnvironment(): Boolean
+    var
+        Url: Text;
+    begin
+        Url := LowerCase(GetUrl(ClientType::Web));
+        exit(StrPos(Url, 'businesscentral.dynamics-tie.com') <> 0);
+    end;
+
+    local procedure BuildConnectionStringJson(MCPPrefix: Text; MCPUrl: Text; TenantId: Text; EnvironmentName: Text; Company: Text; ConfigurationName: Text[100]): Text
+    var
+        JsonBuilder: TextBuilder;
+    begin
+        JsonBuilder.AppendLine('{');
+        JsonBuilder.AppendLine('  "' + MCPPrefix + '": {');
+        JsonBuilder.AppendLine('    "url": "' + MCPUrl + '",');
+        JsonBuilder.AppendLine('    "type": "http",');
+        JsonBuilder.AppendLine('    "headers": {');
+        JsonBuilder.AppendLine('      "TenantId": "' + TenantId + '",');
+        JsonBuilder.AppendLine('      "EnvironmentName": "' + EnvironmentName + '",');
+        JsonBuilder.AppendLine('      "Company": "' + Company + '",');
+        JsonBuilder.AppendLine('      "ConfigurationName": "' + ConfigurationName + '"');
+        JsonBuilder.AppendLine('    }');
+        JsonBuilder.AppendLine('  }');
+        JsonBuilder.AppendLine('}');
+        exit(JsonBuilder.ToText());
     end;
     #endregion
 
