@@ -1,11 +1,11 @@
 {
 	"folders": [
         {
-            "name":  "Production Subcontracting - App",
+            "name":  "Subcontracting - App",
             "path":  ".\\App"
         },
         {
-            "name":  "Production Subcontracting - Test",
+            "name":  "Subcontracting - Test",
             "path":  ".\\Test"
         }
 	]
