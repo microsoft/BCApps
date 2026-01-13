@@ -72,7 +72,7 @@ codeunit 139981 "Sub. Location Handler Test"
         PurchaseHeader: Record "Purchase Header";
         SubManagementSetup: Record "Sub. Management Setup";
         Location: Record Location;
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
         // [SCENARIO] GetComponentsLocationCode returns Purchase Line Location when Setup is Purchase
@@ -101,7 +101,7 @@ codeunit 139981 "Sub. Location Handler Test"
         PurchaseLine: Record "Purchase Line";
         SubManagementSetup: Record "Sub. Management Setup";
         Location: Record Location;
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
         // [SCENARIO] GetComponentsLocationCode returns Company Location when Setup is Company
@@ -127,7 +127,7 @@ codeunit 139981 "Sub. Location Handler Test"
         PurchaseLine: Record "Purchase Line";
         SubManagementSetup: Record "Sub. Management Setup";
         Location: Record Location;
-        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+        SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
         // [SCENARIO] GetComponentsLocationCode returns Manufacturing Location when Setup is Manufacturing
