@@ -10,7 +10,7 @@ using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 139501 "Shpfy Sync Variant Images Test"
+codeunit 139538 "Shpfy Sync Variant Images Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
