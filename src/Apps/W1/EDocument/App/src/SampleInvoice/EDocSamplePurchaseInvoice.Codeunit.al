@@ -204,7 +204,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
-        exit(CopyStr(TempEDocPurchHeader."Sales Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name")))
+        exit(CopyStr(TempEDocPurchHeader."Sales Invoice No." + '.pdf', 1, MaxStrLen(SamplePurchInvFile."File Name")))
     end;
 
     local procedure GetLineDescription(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]): Text[100]
