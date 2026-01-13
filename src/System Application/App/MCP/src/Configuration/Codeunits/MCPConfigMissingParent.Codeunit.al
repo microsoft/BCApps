@@ -95,7 +95,8 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
         PageIdList := MCPConfigWarning."Additional Info".Split(',');
         foreach PageIdText in PageIdList do
             if Evaluate(PageId, PageIdText.Trim()) then
-                MCPConfigImplementation.CreateAPITool(MCPConfigWarning."Config Id", PageId, false);
+                if not MCPConfigImplementation.CheckAPIToolExists(MCPConfigWarning."Config Id", PageId) then
+                    MCPConfigImplementation.CreateAPITool(MCPConfigWarning."Config Id", PageId, false);
 
         MCPConfigWarning.Delete();
     end;

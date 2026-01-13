@@ -553,7 +553,7 @@ codeunit 8351 "MCP Config Implementation"
         until PageMetadata.Next() = 0;
     end;
 
-    local procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
+    internal procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
