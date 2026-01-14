@@ -40,6 +40,9 @@ codeunit 8351 "MCP Config Implementation"
         MCPUrlTIELbl: Label 'https://mcp.businesscentral.dynamics-tie.com', Locked = true;
         MCPPrefixProdLbl: Label 'businesscentral', Locked = true;
         MCPPrefixTIELbl: Label 'businesscentral-tie', Locked = true;
+        VSCodeAppNameLbl: Label 'VS Code', Locked = true;
+        VSCodeAppDescriptionLbl: Label 'Visual Studio Code';
+        VSCodeClientIdLbl: Label 'aebc6443-996d-45c2-90f0-388ff96faa56', Locked = true;
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -231,6 +234,19 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.DiscoverReadOnlyObjects := true;
         MCPConfiguration.AllowProdChanges := true;
         MCPConfiguration.Insert();
+    end;
+
+    internal procedure CreateVSCodeEntraApplication()
+    var
+        MCPEntraApplication: Record "MCP Entra Application";
+    begin
+        if MCPEntraApplication.Get(VSCodeAppNameLbl) then
+            exit;
+
+        MCPEntraApplication.Name := VSCodeAppNameLbl;
+        MCPEntraApplication.Description := VSCodeAppDescriptionLbl;
+        Evaluate(MCPEntraApplication."Client ID", VSCodeClientIdLbl);
+        MCPEntraApplication.Insert();
     end;
 
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean

@@ -18,7 +18,7 @@ page 8357 "MCP Entra Application List"
     InherentEntitlements = X;
     InherentPermissions = X;
     AboutTitle = 'About MCP Server Entra applications';
-    AboutText = 'Register Entra applications for third-party MCP clients that need to authenticate with Business Central. Users need the Client ID when configuring their third-party MCP client to connect to this environment.';
+    AboutText = 'Your administrator can configure Entra applications so you can connect with third-party MCP clients.';
 
     layout
     {
@@ -26,18 +26,9 @@ page 8357 "MCP Entra Application List"
         {
             repeater(Control1)
             {
-                field("Client ID"; Rec."Client ID")
-                {
-                    ToolTip = 'Specifies the Entra application (client) ID. Copy this value to use in your MCP client configuration.';
-                }
-                field(Name; Rec.Name)
-                {
-                    ToolTip = 'Specifies the friendly name for the Entra application.';
-                }
-                field(Description; Rec.Description)
-                {
-                    ToolTip = 'Specifies a description for the Entra application.';
-                }
+                field(Name; Rec.Name) { }
+                field(Description; Rec.Description) { }
+                field("Client ID"; Rec."Client ID") { }
             }
         }
     }

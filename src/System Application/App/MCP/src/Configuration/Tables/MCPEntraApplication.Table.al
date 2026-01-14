@@ -19,27 +19,27 @@ table 8351 "MCP Entra Application"
 
     fields
     {
-        field(1; "Client ID"; Guid)
-        {
-            Caption = 'Client ID';
-            ToolTip = 'Specifies the Entra application (client) ID that MCP clients use to authenticate with Business Central.';
-        }
-        field(2; Name; Text[100])
+        field(1; Name; Text[100])
         {
             Caption = 'Name';
             NotBlank = true;
-            ToolTip = 'Specifies a friendly name for the Entra application.';
+            ToolTip = 'Specifies the friendly name for the Entra application registration.';
         }
-        field(3; Description; Text[250])
+        field(2; Description; Text[250])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies a description for the Entra application, such as which MCP client it is intended for.';
+            ToolTip = 'Specifies a description for the Entra application registration.';
+        }
+        field(3; "Client ID"; Guid)
+        {
+            Caption = 'Client ID';
+            ToolTip = 'Specifies the Entra application (client) ID. Copy this value to use in your third-party MCP client configuration.';
         }
     }
 
     keys
     {
-        key(Key1; "Client ID")
+        key(Key1; Name)
         {
             Clustered = true;
         }
