@@ -37,15 +37,15 @@ codeunit 8103 "Create Sub. Billing No. Series"
         CustomerContractNoSeriesDescriptionTok: Label 'Customer Subscription Contracts', MaxLength = 100;
         CustomerContractStartingNoLbl: Label 'CSC100001', MaxLength = 20;
         CustomerContractEndingNoLbl: Label 'CSC999999', MaxLength = 20;
-        CustomerContractLastUsedNoLbl: Label 'CSC100004', MaxLength = 20;
+        CustomerContractLastUsedNoLbl: Label 'CSC100019', MaxLength = 20;
         VendorContractNoSeriesTok: Label 'VENDSUBCONTR', MaxLength = 20;
         VendorContractNoSeriesDescriptionTok: Label 'Vendor Subscription Contracts', MaxLength = 100;
         VendorContractStartingNoLbl: Label 'VSC100001', MaxLength = 20;
-        VendorContractLastUsedNoLbl: Label 'VSC100002', MaxLength = 20;
+        VendorContractLastUsedNoLbl: Label 'VSC100004', MaxLength = 20;
         VendorContractEndingNoLbl: Label 'VSC999999', MaxLength = 20;
         ServiceObjectNoSeriesTok: Label 'SUBSCRIPTION', MaxLength = 20;
         ServiceObjectNoSeriesDescriptionTok: Label 'Subscriptions', MaxLength = 100;
         ServiceObjectStartingNoLbl: Label 'SUB100001', MaxLength = 20;
-        ServiceObjectLastUsedNoLbl: Label 'SUB100004', MaxLength = 20;
+        ServiceObjectLastUsedNoLbl: Label 'SUB100020', MaxLength = 20;
         ServiceObjectEndingNoLbl: Label 'SUB999999', MaxLength = 20;
 }
