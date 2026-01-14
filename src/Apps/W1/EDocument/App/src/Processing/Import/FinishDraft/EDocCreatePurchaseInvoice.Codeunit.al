@@ -138,7 +138,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         if EDocumentPurchaseHeader."Due Date" <> 0D then
             PurchaseHeader.Validate("Due Date", EDocumentPurchaseHeader."Due Date");
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";
-        OnBeforeModifyPurchHeader(PurchaseHeader, EDocumentPurchaseHeader);
         PurchaseHeader.Modify();
 
         // Validate of currency has to happen after insert.
@@ -264,11 +263,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseLine.SetRange("Document No.", DocumentNo);
         if PurchaseLine.FindLast() then
             exit(PurchaseLine."Line No.");
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeModifyPurchHeader(var PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    begin
     end;
 
 }
