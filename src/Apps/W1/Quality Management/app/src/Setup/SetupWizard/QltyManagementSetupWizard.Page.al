@@ -5,6 +5,7 @@
 namespace Microsoft.QualityManagement.Setup.SetupWizard;
 
 using Microsoft.QualityManagement.Configuration;
+using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
@@ -386,7 +387,7 @@ page 20438 "Qlty. Management Setup Wizard"
                 group(Control18)
                 {
                     Caption = 'Get Started';
-                    InstructionalText = 'Get started by navigating to Quality Inspections and Test Generation Tools.';
+                    InstructionalText = 'Get started by navigating to Quality Inspections and Quality Inspection Generation Rules.';
                     ShowCaption = false;
 
                     field(QualityInspections; QualityInspectionsLbl)
@@ -401,16 +402,16 @@ page 20438 "Qlty. Management Setup Wizard"
                             Page.RunModal(Page::"Qlty. Inspection List");
                         end;
                     }
-                    field(TestGenerationTools; TestGenerationToolsLbl)
+                    field(QualityInspectionGenerationRulesLbl; QualityInspectionGenerationRulesLbl)
                     {
-                        Caption = 'Test Generation Tools';
+                        Caption = 'Quality Inspection Generation Rules';
                         ShowCaption = false;
                         Editable = false;
                         ApplicationArea = All;
 
                         trigger OnDrillDown()
                         begin
-                            // Page.RunModal(Page::"Shpfy Shop Card", Shop);
+                            Page.RunModal(Page::"Qlty. Inspection Gen. Rules");
                         end;
                     }
                 }
@@ -510,7 +511,7 @@ page 20438 "Qlty. Management Setup Wizard"
         FinishWizardLbl: Label 'Finish wizard.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
         QualityInspectionsLbl: Label 'Quality Inspections', Locked = true;
-        TestGenerationToolsLbl: Label 'Test Generation Tools', Locked = true;
+        QualityInspectionGenerationRulesLbl: Label 'Quality Inspection Generation Rules', Locked = true;
 
     trigger OnInit();
     begin
